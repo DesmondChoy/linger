@@ -2,20 +2,20 @@
 name: poteto-mode
 description: poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.
 metadata:
-  short-description: use pstack's opinionated Codex workflow
+  short-description: use pstack's opinionated workflow
 ---
 
 # Poteto mode
 
-## Codex adaptation
+## Runtime adaptation
 
-This project uses the Codex adaptation in [`references/codex-tools.md`](references/codex-tools.md). Read it before following any pstack workflow. It defines the tool mapping, project-local paths, collaboration limit, model inheritance, no-worktree rule, and authority boundary.
+This project runs pstack on Codex and Claude Code. Read [`references/runtime-adaptation.md`](references/runtime-adaptation.md) before following any pstack workflow. It defines the shared authority boundary and no-worktree rule, then each runtime's tool mapping, concurrency limit, model names, and task-history access.
 
 Repository `AGENTS.md`, developer instructions, and the user's current request override pstack. A skill chooses a method. It never grants permission to broaden scope or to commit, push, open or merge a pull request, rewrite history, update trackers, deploy, send messages, or change remote services.
 
 ## Non-negotiables
 
-**Start a nontrivial multi-step task with the repository's tracking mechanism.** In Linger, use Beads for durable task state. Use Codex's plan tool only for a useful in-session execution plan. The first step is to read the Principles section below in full. Do not create tracking ceremony for a trivial task. In your reply, name only the principles that materially changed a decision.
+**Start a nontrivial multi-step task with the repository's tracking mechanism.** In Linger, use Beads for durable task state. Use the runtime's plan tool only for a useful in-session execution plan, and only where `AGENTS.md` allows it. The first step is to read the Principles section below in full. Do not create tracking ceremony for a trivial task. In your reply, name only the principles that materially changed a decision.
 
 Remaining triggers:
 
@@ -89,7 +89,7 @@ Carry forward existing authorization for the same action and scope. Before askin
 
 ## Subagents
 
-Use collaboration agents for bounded, independent work when they improve speed or quality, as encouraged by `AGENTS.md` and allowed by the runtime. Useful cases include independent evidence gathering, disjoint implementation, and focused review. Work directly when coordination would outweigh the benefit. Architecture tournaments remain optional unless requested or justified by unresolved design uncertainty. Codex has four collaboration slots including the main agent, so run at most three children at once. Children share this checkout. Do not create worktrees in Linger. Give writers disjoint paths and serialize overlapping edits.
+Use collaboration agents for bounded, independent work when they improve speed or quality, as encouraged by `AGENTS.md` and allowed by the runtime. Useful cases include independent evidence gathering, disjoint implementation, and focused review. Work directly when coordination would outweigh the benefit. Architecture tournaments remain optional unless requested or justified by unresolved design uncertainty. Stay within the runtime's concurrency limit (three children on Codex; small parallel waves on Claude Code). Children share this checkout. Do not create worktrees in Linger. Give writers disjoint paths and serialize overlapping edits.
 
 Omit model overrides by default so children inherit the parent. If `.agents/pstack-models.md` exists, use only valid configured overrides. Distinguish reviewers by their evidence lens and prompt even when the runtime exposes one model family.
 
@@ -114,7 +114,7 @@ Comments follow the same rule as the reply. Write them clean as you go; a flat "
 
 ## Playbooks
 
-For a nontrivial task, reflect the matched playbook's meaningful steps in Beads or the Codex plan. Preserve required repository checks, human evidence gates, and explicit user checkpoints. Select other design, delegation, and verification steps for the actual uncertainty and risk; omit unnecessary ceremony. Existing authorization carries through nested playbooks.
+For a nontrivial task, reflect the matched playbook's meaningful steps in Beads or the runtime's plan tool. Preserve required repository checks, human evidence gates, and explicit user checkpoints. Select other design, delegation, and verification steps for the actual uncertainty and risk; omit unnecessary ceremony. Existing authorization carries through nested playbooks.
 
 A large or cross-cutting effort (a migration across many call sites, an ambitious multi-part change), or work the user steps away from to trust later, routes to the **figure-it-out** skill even when a narrower playbook like Feature fits. Use **figure-it-out** whenever no bundled playbook fits. It designs a bespoke, rigorous playbook for the task. A standing project-scale program (multi-day, many stacked PRs, a fleet of subagents under one coordinator) routes to **Orchestrate** instead; figure-it-out designs one bespoke run, orchestrate runs the program.
 
@@ -133,7 +133,7 @@ A large or cross-cutting effort (a migration across many call sites, an ambitiou
 - **Babysit.** Driving a PR or a stack to merge-ready: conflicts, review threads, CI. `playbooks/babysit.md`.
 - **Shipping.** The half after Babysit. Independently verifying a green stack, then landing the contiguous verified run with Graphite merge-when-ready. `playbooks/shipping.md`.
 - **Autonomous run.** A long task to drive to completion without stopping ("run until done", "/loop until X"). `playbooks/autonomous-run.md`.
-- **Orchestrate.** A standing project handed to one coordinator task. This runtime executes at most three child agents at once, in waves. The playbook's Graphite, worktree, and persistent-store assumptions require explicit user authorization and repository compatibility. `playbooks/orchestrate.md`.
+- **Orchestrate.** A standing project handed to one coordinator task. Child agents run in waves within the runtime's concurrency limit (three on Codex). The playbook's Graphite, worktree, and persistent-store assumptions require explicit user authorization and repository compatibility. `playbooks/orchestrate.md`.
 - **Autopilot-full.** A queue of independent PRs driven to merge-ready with full autonomy: one owner per PR carries build to merge-ready, the root swarm-verifies each head, and the operator clicks every merge ("autopilot this queue", "full autopilot", one-owner-per-PR programs). `playbooks/autopilot-full.md`.
 - **Autopilot-stack.** A queue of changes built and verified with full autonomy, delivered as one linear reviewed Graphite stack the operator lands herself ("autopilot-stack", "stack them, don't ship", "build the stack, I'll land it"). `playbooks/autopilot-stack.md`.
 - **Session pickup.** Resuming or taking over a prior agent's in-flight work from a transcript, cloud-agent URL, or pushed branch. `playbooks/session-pickup.md`.
@@ -144,4 +144,4 @@ A large or cross-cutting effort (a migration across many call sites, an ambitiou
 
 ## Models
 
-Codex roles inherit the parent model by default. Optional project-local overrides live in `.agents/pstack-models.md`; see `setup-pstack`. Upstream `claude-*` model names elsewhere in the vendored playbooks are provenance and resolve through [`references/codex-tools.md`](references/codex-tools.md).
+Roles inherit the parent model by default on both runtimes. Optional project-local overrides live in `.agents/pstack-models.md`; see `setup-pstack`. Upstream `claude-*` model names elsewhere in the vendored playbooks map to Claude Code's `Agent` model aliases, are provenance on Codex, and resolve through [`references/runtime-adaptation.md`](references/runtime-adaptation.md).

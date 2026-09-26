@@ -7,4 +7,4 @@
 - Imported skill directories: 51
 - Preserved existing skill: `.agents/skills/how/`
 
-To refresh the suite, compare the pinned upstream tree with `.agents/skills/`, reapply the Codex and Linger authority rules in `poteto-mode/references/codex-tools.md`, then run every skill through Codex's `quick_validate.py` and the repository's link and portability checks.
+To refresh the suite, compare the pinned upstream tree with `.agents/skills/`, reapply the Linger authority rules and the Codex and Claude Code mappings in `poteto-mode/references/runtime-adaptation.md`, keep skill bodies runtime-neutral, then run every skill through Codex's `quick_validate.py` and the repository's link and portability checks.

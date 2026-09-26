@@ -1,6 +1,6 @@
 ---
 name: automate-me
-description: "Use for automate me, create or update my mode skill, capture my working style as a skill, or wanting Codex to follow the user's recurring conventions. Drafts or revises a project-local mode skill with skill-creator and optional evidence from recent Codex tasks."
+description: "Use for automate me, create or update my mode skill, capture my working style as a skill, or wanting the agent to follow the user's recurring conventions. Drafts or revises a project-local mode skill with skill-creator and optional evidence from recent tasks in this project."
 metadata:
   short-description: draft your own personal -mode skill from recent transcripts
 ---
@@ -11,13 +11,13 @@ A guided flow for turning the user's working conventions into a skill agents wil
 
 This skill orchestrates three parts: a bounded evidence pass, the **skill-creator** skill, and the **unslop** skill. It sequences them; it does not replace them.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names, `claude-*` slugs, and Claude built-in skills named below (including `plugin-dev:skill-development`) are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Flow
 
 ### 0. Check for an existing skill
 
-Look under `.agents/skills/` for `*-mode/SKILL.md` matching the user's handle. Keep the result project-local unless the user explicitly asks for a global skill. If one exists, confirm intent with `request_user_input` when available unless the user already asked to update it:
+Look under `.agents/skills/` for `*-mode/SKILL.md` matching the user's handle. Keep the result project-local unless the user explicitly asks for a global skill. If one exists, confirm intent with the runtime's fixed-choice question tool when available unless the user already asked to update it:
 
 - Update the existing skill (default for repeat runs)
 - Start fresh (rare; ask why before doing it)
@@ -29,9 +29,9 @@ Update mode changes the rest of the flow:
 
 ### 1. Mine their history
 
-Use Codex task tools to list and read only recent tasks in this project. Do not scan another project's task history. If task tools are unavailable, use the current conversation and repository evidence, and state that the history sample is limited.
+Use the runtime's task-history tools to list and read only recent tasks in this project. Do not scan another project's task history. If task tools are unavailable, use the current conversation and repository evidence, and state that the history sample is limited.
 
-Survey recent Codex tasks within that scope for recurring patterns. When delegation is allowed, run at most three read-only agents across slices of the selected task set. Each agent uses the task IDs supplied by the parent and returns a short structured list with evidence pointers. Default signals worth hunting:
+Survey recent tasks within that scope for recurring patterns. When delegation is allowed, run a small wave of read-only agents (at most three on Codex) across slices of the selected task set. Each agent uses the task IDs supplied by the parent and returns a short structured list with evidence pointers. Default signals worth hunting:
 
 - Response preferences (length, tone, format, "dumb it down" corrections)
 - Delegation habits (subagents, models, specialized workflows, parallelism)
@@ -44,7 +44,7 @@ Cross-check across slices before elevating a signal. Patterns seen in 2+ slices 
 
 ### 2. Ask the user directly
 
-History misses intent that has not come up yet. Use `request_user_input` when available. Ask one or two short questions, then one optional free-form question only if needed.
+History misses intent that has not come up yet. Use the runtime's fixed-choice question tool when available. Ask one or two short questions, then one optional free-form question only if needed.
 
 Shape: one or two questions with 4-6 options each, `allow_multiple: true` for category questions. Start broad ("Which areas matter most?"), then follow up on selected areas with specific options. After the structured rounds, one free-form chat question catches anything the options missed.
 
@@ -72,7 +72,7 @@ Use the **skill-creator** skill to author the skill. Placement:
 - Path: preserve an existing project-local location. For a new mode, use `.agents/skills/<handle>-mode/SKILL.md`.
 - Handle: the user's first name or chosen identifier.
 - Frontmatter `description`: trigger on their name + `/<handle>-mode` + "work in their style", not on generic keywords like "write code" or "review PR".
-- Frontmatter formatting: follow **skill-creator**. Keep `description` as one YAML scalar and use only Codex-supported frontmatter keys.
+- Frontmatter formatting: follow **skill-creator**. Keep `description` as one YAML scalar and use only frontmatter keys Codex's validator accepts (`name`, `description`, `license`, `allowed-tools`, `metadata`), since both runtimes load this skill.
 - Add `agents/openai.yaml` with `policy.allow_implicit_invocation: false` by default. Mode skills are heavy and opinionated. Enable implicit invocation only when the user explicitly wants it.
 
 ### 5. Iterate on prose
@@ -83,7 +83,7 @@ Show the draft to the user and take feedback. Expect multiple iterations. Cut ru
 
 ### 6. Verify and hand back
 
-Run the Codex skill validator and any structural forward test required by **skill-creator**. Work in the current checkout. Do not create a worktree. Commit, push, or open a pull request only when the user explicitly asks.
+Run the skill validator and any structural forward test required by **skill-creator**. Work in the current checkout. Do not create a worktree. Commit, push, or open a pull request only when the user explicitly asks.
 
 ## Guardrails
 

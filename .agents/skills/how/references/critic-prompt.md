@@ -1,6 +1,6 @@
 # Critic Guide
 
-Use this guide to build a standalone prompt for each internal Codex collaboration critic. Fill in the explanation, relevant files, repository path, and rubric content. Keep each critic independent.
+Use this guide to build a standalone prompt for each internal subagent critic. Fill in the explanation, relevant files, repository path, and rubric content. Keep each critic independent.
 
 ---
 

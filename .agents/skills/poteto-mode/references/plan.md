@@ -2,7 +2,7 @@
 
 Produce a phased implementation plan grounded in the **Principles** section of the `poteto-mode` skill. For a plan-only request, the plan is the deliverable. When planning is part of an already authorized implementation task, continue into implementation unless the user requested a checkpoint.
 
-Use Beads when repository instructions require durable plan tracking. Otherwise use a Codex plan only when it helps organize the planning work.
+Use Beads when repository instructions require durable plan tracking. Otherwise use the runtime's plan tool only when it helps organize the planning work.
 
 ## 0. Triage
 
@@ -22,7 +22,7 @@ Resolve what is in scope vs explicitly out, technical or platform constraints, p
 
 Delegate bounded independent exploration when it improves speed or quality. Keep useful local work moving while explorers run, and inspect their evidence. A narrow, well-understood plan can be grounded directly.
 
-- Use `spawn_agent` only when delegation is allowed. Run at most three read-only explorers and give each a distinct scope.
+- Use the runtime's subagent tool (`spawn_agent` on Codex, `Agent` on Claude Code) only when delegation is allowed. Run a small wave of read-only explorers (at most three on Codex) and give each a distinct scope.
 - Omit model overrides by default. Apply only valid project-local overrides from `.agents/pstack-models.md`.
 
 Each explorer returns file pointers, conventions, dependencies, test infrastructure, and entry points. No inlined dumps.

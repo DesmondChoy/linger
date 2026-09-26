@@ -20,7 +20,7 @@ Scan for:
 
 Findings must point to skills, tools, or MCPs invoked in this transcript. Speculative routings to skills the parent never opened do not count. To check whether a skill was used, scan the transcript for:
 
-- filesystem reads against any `SKILL.md` file (project-local `.agents/skills/`, user-level Codex skills, or plugin-installed skill paths)
+- filesystem reads against any `SKILL.md` file (project-local `.agents/skills/`, user-level Codex or Claude Code skills, or plugin-installed skill paths)
 - `Agent` prompts that name a skill path
 - Tool calls (Shell, Grep, MCP, etc.) that match a skill's documented commands
 

@@ -29,7 +29,7 @@ Use prose rather than pseudocode. Include short code excerpts only when the exac
 
 ### Where Things Live
 
-Provide a compact map of the few files a maintainer should open first. In Codex desktop, use clickable Markdown links with absolute paths and useful line numbers.
+Provide a compact map of the few files a maintainer should open first. In the Codex or Claude desktop app, use clickable Markdown links with useful line numbers (absolute paths on Codex, repository-relative paths on Claude Code).
 
 ### Gotchas
 

@@ -1,6 +1,6 @@
 # Explorer Guide
 
-Use this guide to build a standalone prompt for each internal Codex collaboration agent. Fill in the question, assigned angle, and repository path.
+Use this guide to build a standalone prompt for each internal subagent. Fill in the question, assigned angle, and repository path.
 
 ---
 

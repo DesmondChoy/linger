@@ -11,7 +11,7 @@ Spawn up to three reviewers to adversarially review code changes. Each reviewer 
 
 The deliverable is a synthesized verdict. Do NOT auto-apply changes.
 
-**Platform note.** On Codex, dispatch maps to `spawn_agent`. Use valid configured Codex model overrides when available; otherwise omit model overrides and distinguish reviewers by evidence lens. See [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Step 1, Determine Scope
 
@@ -36,7 +36,7 @@ Write one clear paragraph. Reviewers challenge whether the work achieves the int
 
 ## Step 3, Spawn Reviewers
 
-Launch at most three reviewers with `spawn_agent`. Use valid `interrogate reviewers` entries from `.agents/pstack-models.md` when present. Otherwise omit model overrides and distinguish reviewers with independent evidence lenses.
+Launch up to three reviewers in parallel with the runtime's subagent tool (`spawn_agent` on Codex, `Agent` on Claude Code). Use valid `interrogate reviewers` entries from `.agents/pstack-models.md` when present. Otherwise omit model overrides and distinguish reviewers with independent evidence lenses.
 
 | Reviewer | Default lens |
 |----------|--------------|

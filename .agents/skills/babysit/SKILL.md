@@ -7,9 +7,9 @@ metadata:
 
 # Babysit a PR
 
-Use a Codex heartbeat automation for recurring follow-up. Use `gh pr checks --watch` for one active check run. Do not implement monitoring with long blocking sleeps.
+Use the runtime's recurring follow-up mechanism (a heartbeat automation on Codex; the `loop` skill or `ScheduleWakeup` on Claude Code). Use `gh pr checks --watch` for one active check run. Do not implement monitoring with long blocking sleeps.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names and Claude built-in skills named below (`loop`, `AskUserQuestion`) are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 Inside poteto-mode, the **Babysit** playbook ([`../poteto-mode/playbooks/babysit.md`](../poteto-mode/playbooks/babysit.md)) supersedes this skill: it owns mode declaration, the merge frontier, stack safety, and the `watch-pr` watcher. This skill stays the standalone `/babysit` entry point for a single PR outside a poteto-mode run.
 
@@ -33,9 +33,9 @@ Inside poteto-mode, the **Babysit** playbook ([`../poteto-mode/playbooks/babysit
    - Review comments: investigate feedback and act on findings supported by current code and evidence. Resolve ordinary implementation choices within existing authorization. When a material product decision or required authority remains missing, complete independent authorized preparation and ask about that specific gap. Reply externally only when messaging is authorized.
    - Review-bot comments: classify fix/dismiss/ask per [`references/bugbot-triage.md`](references/bugbot-triage.md). Severity calls for stronger investigation and verification, not another approval by itself.
 
-3. **Monitor.** Use the Codex recurring mechanism that matches the request:
+3. **Monitor.** Use the runtime's recurring mechanism that matches the request:
    - Active CI run: poll `gh pr checks --watch` (it blocks until checks finish, so no separate loop interval needed).
-   - Awaiting reviewer: a 20 to 30 minute heartbeat automation.
+   - Awaiting reviewer: a 20 to 30 minute heartbeat automation (Codex) or wakeup (Claude Code).
    - Idle but want to catch new comments: hourly.
 
 4. **When to stop.**

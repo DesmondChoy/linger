@@ -1,6 +1,6 @@
 interface:
   display_name: "Poteto mode"
-  short_description: "Use pstack's opinionated Codex workflow"
+  short_description: "Use pstack's opinionated workflow"
   default_prompt: "Use $poteto-mode for this task."
 policy:
   allow_implicit_invocation: false

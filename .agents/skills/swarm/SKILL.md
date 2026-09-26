@@ -9,11 +9,11 @@ metadata:
 
 Fan out N parallel workers. They may cover separate slices, race the same brief, or mix both. The parent waits, aggregates, and returns one report.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names and `claude-*` slugs named below are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Start
 
-Use Beads when repository instructions require durable tracking. Otherwise use a Codex plan when these phases help.
+Use Beads when repository instructions require durable tracking. Otherwise use the runtime's plan tool when these phases help.
 
 1. Frame
 2. Fan out
@@ -24,13 +24,13 @@ Use Beads when repository instructions require durable tracking. Otherwise use a
 
 1. State the done predicate and the artifact or report the swarm must return.
 2. Choose the shape. Partition into slices, race N workers on identical briefs, or mix both. For a race or mixed shape, declare `first pass`, `rank all`, or `best-of` before spawning.
-3. Set N from the user or derive it from the shape. Codex can run at most three child agents at once. Larger N runs in waves.
-4. Read an optional valid `swarm workers` override from `.agents/pstack-models.md`; otherwise omit the model override and inherit the parent. For a model race, use only models exposed by the current collaboration tool.
+3. Set N from the user or derive it from the shape. Respect the runtime's concurrency limit (three children on Codex). Larger N runs in waves.
+4. Read an optional valid `swarm workers` override from `.agents/pstack-models.md`; otherwise omit the model override and inherit the parent. For a model race, use only models exposed by the current subagent tool.
 5. Give each worker its own writable output under `/tmp/swarm-<slug>/worker-<n>/` or a disjoint repository path. Do not create worktrees in Linger.
 
 ## Phase B: Fan out
 
-Spawn up to three workers with `spawn_agent`; drain completed workers before starting another wave. Every brief stands alone. Codex agents share this checkout, so output ownership is the isolation boundary.
+Spawn one wave of workers with the runtime's subagent tool (`spawn_agent` on Codex, `Agent` on Claude Code); drain completed workers before starting another wave. Every brief stands alone. Agents share this checkout, so output ownership is the isolation boundary.
 
 Do not switch branches for a worker. If a task needs another git state, inspect it read-only with git commands or stop and ask for a compatible workflow.
 
@@ -50,4 +50,4 @@ Return one consolidated in-chat report with the table, issue one-liners, gaps or
 
 ## Models
 
-Swarm workers inherit the parent Codex model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.
+Swarm workers inherit the parent model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.

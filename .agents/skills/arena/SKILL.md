@@ -9,11 +9,11 @@ metadata:
 
 Fan out N parallel attempts at the same task. Read every candidate end to end. Pick the strongest as the base. Graft the best ideas from the others into it. Verify the synthesized result.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names, `claude-*` slugs, and Claude built-in skills named below are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Start
 
-Use Beads when repository instructions require durable tracking. Otherwise use a Codex plan when the phases materially help.
+Use Beads when repository instructions require durable tracking. Otherwise use the runtime's plan tool when the phases materially help.
 
 1. Frame
 2. Fan out
@@ -28,12 +28,12 @@ The N candidates will receive the same prompt, so the prompt is the contract. Ge
 
 1. State the artifact each candidate is producing.
 2. Derive the rubric. State what success looks like for *this* task, then turn it into 3-6 concrete gradeable criteria. Concrete: `Adds a --dry-run flag that skips writes`. Vague: `code is correct`. The rubric is the picker's tool in Phase D; candidates only see the task.
-3. Pick at most three runners. Read optional valid overrides from `.agents/pstack-models.md`; otherwise omit model overrides so the runners inherit the parent. Independent prompts and lenses still matter when all runners use one model.
+3. Pick the runners, within the runtime's concurrency limit (three on Codex). Read optional valid overrides from `.agents/pstack-models.md`; otherwise omit model overrides so the runners inherit the parent. Independent prompts and lenses still matter when all runners use one model.
 4. Assign output paths under `/tmp/arena-<slug>/candidate-<n>/`. Do not create worktrees in Linger. N candidates writing to the same path is shared mutable state and fails the **separate-before-serializing-shared-state** principle skill test.
 
 ## Phase B: Fan out
 
-Spawn all N candidates with `spawn_agent`, each with the task, shared-grounding path, owned output path, and instructions to produce both the artifact and a short rationale. Continue useful main-thread work while they run.
+Spawn all N candidates in parallel with the runtime's subagent tool (`spawn_agent` on Codex, `Agent` on Claude Code), each with the task, shared-grounding path, owned output path, and instructions to produce both the artifact and a short rationale. Continue useful main-thread work while they run.
 
 The rationale is mandatory. Without it, the parent cannot tell whether a candidate's structure is principled or accidental, which makes Phase E grafting unreliable. Each rationale names the alternatives the candidate considered and what it rejected.
 
@@ -75,4 +75,4 @@ One synthesized artifact. One short synthesis note alongside, naming the base, t
 
 ## Models
 
-Arena roles inherit the parent Codex model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.
+Arena roles inherit the parent model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.

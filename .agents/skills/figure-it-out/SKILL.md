@@ -13,7 +13,7 @@ Don't reinvent a playbook you already have. A focused single-unit task that matc
 
 ## Start
 
-Use Beads when repository instructions require durable tracking. Otherwise use a Codex plan when the phases help. Read the Principles section of **poteto-mode** before designing the run.
+Use Beads when repository instructions require durable tracking. Otherwise use the runtime's plan tool when the phases help. Read the Principles section of **poteto-mode** before designing the run.
 
 ## Phase A: Frame
 

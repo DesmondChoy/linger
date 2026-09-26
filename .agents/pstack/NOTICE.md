@@ -13,6 +13,6 @@ The existing project-local `how` skill was adapted separately from [`poteto/how`
 
 ## Project adaptation
 
-The imported files were edited for Codex's supported skill frontmatter, project-local `.agents/skills` discovery, current collaboration tools and capacity, parent-model inheritance, Linger's no-worktree rule, Beads workflow, and the rule that skills never broaden user authorization. Claude and Cursor names that remain in retained upstream reference material resolve through `.agents/skills/poteto-mode/references/codex-tools.md`.
+The imported files were edited for Codex's supported skill frontmatter, project-local `.agents/skills` discovery, current collaboration tools and capacity, parent-model inheritance, Linger's no-worktree rule, Beads workflow, and the rule that skills never broaden user authorization. The same files also run on Claude Code through the `.claude/skills` symlink. Tool, model, and task-history names resolve per runtime through `.agents/skills/poteto-mode/references/runtime-adaptation.md`, including Claude and Cursor names that remain in retained upstream reference material.
 
 Plugin manifests, Claude hooks, command stubs, and the superpowers-derived hook wrapper from the source port were not imported.

@@ -11,11 +11,11 @@ Design before implementing. Sketch the relevant types, signatures, and module bo
 
 Stay within the user's requested mode. A design or architecture request produces a design unless the user also asks for implementation. Commit or pull-request language in this skill is conditional on current authorization.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names, `claude-*` slugs, and Claude built-in skills named below are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Start
 
-Use Beads when repository instructions require durable tracking. Otherwise use a Codex plan when the phases materially help.
+Use Beads when repository instructions require durable tracking. Otherwise use the runtime's plan tool when the phases materially help.
 
 1. Ground
 2. Sketch
@@ -81,4 +81,4 @@ For small changes, provide the caller's usage, relevant types or signatures, and
 
 ## Models
 
-Architect runners inherit the parent Codex model by default. Optional valid project overrides live in `.agents/pstack-models.md`; see `setup-pstack`. Run at most three children at once.
+Architect runners inherit the parent model by default. Optional valid project overrides live in `.agents/pstack-models.md`; see `setup-pstack`. Stay within the runtime's concurrency limit (three children on Codex).

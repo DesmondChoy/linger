@@ -25,7 +25,7 @@ Identify whether the request concerns a subsystem, feature flow, service boundar
 Classify the question:
 
 - **Narrow:** one module, utility, function, or short call chain. Investigate and explain directly in the main agent; do not delegate.
-- **Broad:** a subsystem spanning multiple files or services, a cross-cutting feature, or a runtime flow with independent slices. Use bounded parallel exploration when Codex collaboration agents are available and applicable instructions permit delegation.
+- **Broad:** a subsystem spanning multiple files or services, a cross-cutting feature, or a runtime flow with independent slices. Use bounded parallel exploration when subagents are available and applicable instructions permit delegation.
 
 When uncertain, start narrow. Expand only when the trace demonstrates that more components matter.
 
@@ -36,7 +36,7 @@ For narrow questions, follow the full path yourself: trigger or caller, transfor
 For broad questions:
 
 1. Split the question into two or three non-overlapping angles, limited by the available collaboration slots. Useful angles include entry point and orchestration, domain model and state, persistence or external boundaries, and presentation or delivery.
-2. Spawn internal collaboration agents, not user-visible Codex tasks. Give each agent a standalone, read-only prompt based on [the explorer guide](references/explorer-prompt.md), a distinct angle, and the repository path. Do not hard-code a model unless the user or current instructions require one.
+2. Spawn internal subagents (`spawn_agent` on Codex, `Agent` with `subagent_type: "Explore"` on Claude Code), not user-visible tasks or sessions. Give each agent a standalone, read-only prompt based on [the explorer guide](references/explorer-prompt.md), a distinct angle, and the repository path. Do not hard-code a model unless the user or current instructions require one.
 3. Continue a useful local trace while the explorers work. Wait only for agents whose findings are needed.
 4. Verify important claims and contradictions against the code. The main agent owns synthesis and the final answer.
 
@@ -54,7 +54,7 @@ The answer should usually cover:
 - **Where things live:** a compact map of the few files a maintainer should open first.
 - **Gotchas:** verified sharp edges, surprising behavior, or unresolved gaps.
 
-Use concrete symbol names and precise code references. In Codex desktop, prefer clickable Markdown links with absolute local paths and a line number. Include a Mermaid or ASCII diagram only when a multi-component relationship or sequence is materially easier to understand visually.
+Use concrete symbol names and precise code references. In the Codex or Claude desktop app, prefer clickable Markdown links with a line number (absolute paths on Codex, repository-relative paths on Claude Code). Include a Mermaid or ASCII diagram only when a multi-component relationship or sequence is materially easier to understand visually.
 
 Distinguish confirmed current behavior from inference, historical context, proposals, and unknowns. Do not claim that an unused type, design document, or test helper is part of the live runtime without tracing a real consumer.
 

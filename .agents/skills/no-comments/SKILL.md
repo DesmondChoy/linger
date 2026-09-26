@@ -11,7 +11,7 @@ Spawn a read-only collaboration agent and tell it to read [`references/comment-s
 
 Use the reviewer's fresh perspective to find overlooked issues; accept only findings grounded in current code and the authorized scope.
 
-**Platform note.** On Codex or another non-Claude runtime, the `comment-sicko` subagent and the Claude tool names below are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** `comment-sicko` is not a defined agent type on either runtime. Spawn a general subagent whose brief tells it to read [`references/comment-sicko.md`](references/comment-sicko.md). Resolve other tool names via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## Scope
 

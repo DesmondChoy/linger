@@ -21,7 +21,7 @@ Evals test how a change affects agent behavior before promoting it: a new skill 
 3. **Author one organic prompt.** What a user would type. No leakage of what's being measured.
 4. **Spawn N parallel candidates** on different models per the **arena** skill's Phase B. Each works in its own sanitized dir; same prompt to each.
 5. **Spawn one blinded judge** on a different model family per the **arena** skill's Phase C. Judge sees outputs by sanitized label and the rubric, never a model name.
-6. **Verify the chain from task evidence, not self-report.** Use Codex task-read tools for the exact candidate tasks when available. Do not inspect unrelated tasks. Check which files and tools each candidate actually used. Citing a principle is not reading its leaf skill, and reading it is not applying it. If exact tool history is unavailable, grade only observable artifacts and report the evidence gap.
+6. **Verify the chain from task evidence, not self-report.** Use the runtime's task-history tools for the exact candidate tasks when available. Do not inspect unrelated tasks. Check which files and tools each candidate actually used. Citing a principle is not reading its leaf skill, and reading it is not applying it. If exact tool history is unavailable, grade only observable artifacts and report the evidence gap.
 7. **Read every candidate output yourself** end to end. Compare to the judge's verdict. Disagreement means a model is biased or the rubric is ambiguous. Synthesize.
 
 **Reply:** variant under test, rubric, per-candidate notes, judge's verdict, your synthesis, and a recommendation for whether to promote the variant.

@@ -7,9 +7,9 @@ metadata:
 
 # Create a verification skill
 
-Every serious project needs a scripted way to drive the real app and prove behavior: launch it, exercise a feature the way a user would, and capture evidence. This skill generates a project-local skill under `.agents/skills/verify-<app>/`. Write it for a Codex agent encountering the app cold.
+Every serious project needs a scripted way to drive the real app and prove behavior: launch it, exercise a feature the way a user would, and capture evidence. This skill generates a project-local skill under `.agents/skills/verify-<app>/`. Write it for an agent on either runtime encountering the app cold.
 
-**Platform note.** On Codex, write the generated project-local skill under `.agents/skills/verify-<app>/`. The app-driving harness (browser/CDP, PTY/tmux, HTTP) is platform-neutral; resolve any tool names via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Write the generated project-local skill under `.agents/skills/verify-<app>/`; Claude Code loads it through the `.claude/skills` symlink. The app-driving harness (browser/CDP, PTY/tmux, HTTP) is runtime-neutral; resolve any tool names via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## 1. Interview the repo, not the user
 

@@ -11,7 +11,7 @@ Investigate the motivation and intent behind code. Why was it built this way? Wh
 
 Companion to the `how` skill. `how` answers what the code does and how it works. `why` answers what forces led to its shape.
 
-**Platform note.** On Codex or another non-Claude runtime, the Claude tool names and `claude-*` slugs named below are Claude defaults. Resolve them via [`codex-tools.md`](../poteto-mode/references/codex-tools.md).
+**Runtime note.** Tool, model, and task-history names below resolve per runtime (Codex or Claude Code) via [`runtime-adaptation.md`](../poteto-mode/references/runtime-adaptation.md).
 
 ## How this skill works
 
@@ -101,7 +101,7 @@ Capture this as seed context (file paths, symbols, commits, PR numbers, linked t
 
 ### Discovery
 
-Before spawning investigators, inspect the tools and connectors exposed in the current Codex task. Use the current tool catalog, including `ALL_TOOLS` metadata when available. Do not read Claude configuration or assume an unavailable connector exists.
+Before spawning investigators, inspect the tools and connectors exposed in the current session. Use the current tool catalog, including Codex `ALL_TOOLS` metadata or Claude Code's deferred-tool list and `ToolSearch` when available. Do not infer connectors from configuration files or assume an unavailable connector exists.
 
 Map each available MCP to one evidence category:
 
@@ -117,11 +117,11 @@ Source control is always available through git and `gh`. For the other six, clas
 
 Aim for a complete **coverage map**, not a minimal one. A null result from an issue tracker is evidence the decision was not ticketed, a useful fact in itself. Document the null, don't skip the search.
 
-Launch matching investigators in waves of at most three children, the current Codex capacity. One investigator per category lets each specialize in one tool's query vocabulary and result shape. Do not ask one agent to cover multiple connectors merely to hide a capacity limit.
+Launch matching investigators in waves within the runtime's concurrency limit (three children on Codex). One investigator per category lets each specialize in one tool's query vocabulary and result shape. Do not ask one agent to cover multiple connectors merely to hide a capacity limit.
 
 Subagent config for each investigator:
 
-- Use `spawn_agent` with a bounded evidence category.
+- Use the runtime's subagent tool (`spawn_agent` on Codex, `Agent` on Claude Code) with a bounded evidence category.
 - Omit the model override unless `.agents/pstack-models.md` contains a valid `why investigators` value.
 - State that the task is read-only. Grant no write scope. The brief may use available connector tools but must not mutate external state.
 
@@ -231,4 +231,4 @@ After the Sources Consulted block, if the user's `why` question is a precursor t
 
 ## Models
 
-Why roles inherit the parent Codex model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.
+Why roles inherit the parent model by default. Optional project overrides live in `.agents/pstack-models.md`; see `setup-pstack`.

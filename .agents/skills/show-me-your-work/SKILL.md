@@ -54,7 +54,7 @@ Commit it only when the work is ambitious enough that a reviewer needs the trail
 
 ## Audit the log against the transcript
 
-At the end of the run, check that the log tells the truth. Use the active Codex task context and, when needed, Codex task-read tools for this task only. Do not scan guessed transcript paths or unrelated tasks. Walk the log against what actually happened:
+At the end of the run, check that the log tells the truth. Use the active task context and, when needed, the runtime's task-history tools for this task only. Do not scan guessed transcript paths or unrelated tasks. Walk the log against what actually happened:
 
 - Every row maps to a real action. Cut invented or aspirational entries.
 - Each row's evidence resolves and shows what the row claims.
