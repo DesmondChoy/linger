@@ -41,8 +41,11 @@ three fields are independent; judge each one separately.
   have read or to an outside idea without naming the sources to use ("anything
   I've read", "the books I've been reading this year", "what I'm reading"),
   including whether their own experience, feeling, or something they keep
-  noticing connects to their reading. A message that names one source but also
-  asks about "anything else I've read" is `source_comparison`.
+  noticing connects to their reading, and whether anything they have already
+  read speaks to, explains, or supports their situation. Their own reading is
+  `source_comparison`; a new work they have not read is
+  `outside_recommendation`. A message that names one source but also asks
+  about "anything else I've read" is `source_comparison`.
 - `outside_recommendation`: the reader explicitly asks for an essay, artwork,
   song, thinker, or similar outside work, or asks whether anything has been
   written, painted, or sung about their situation.
@@ -53,7 +56,8 @@ three fields are independent; judge each one separately.
 - `unsure`: the reader describes a standing state about themselves — how they
   are, what they habitually do, or a decision they are holding open — with no
   recurrence word and no other sign of whether it is long-running.
-An explicit ask whether the reader's experience links to a source, or for an
+An explicit ask whether the reader's experience links to a source, whether
+anything they have read speaks to or supports their situation, or for an
 outside work, decides `memory` (`named_sources`, `source_comparison`, or
 `outside_recommendation`) even when the message also returns to a personal
 theme or contains a recurrence word: that answer needs a comparison or a
@@ -95,6 +99,9 @@ Contrasts:
   `named_sources`.
 - "I still can't stop replaying the argument. Has anyone written well about
   that?" → book_content `no`; memory `outside_recommendation`.
+- "Every time a free evening comes up I skip the practice I promised myself.
+  Does anything I've read speak to that?" → book_content `yes`; memory
+  `source_comparison`.
 - "It rained all through the match today." → book_content `no`; memory `none`.
 - "I've stopped checking my payslip against my old salary. I decided a while
   back that the comparison wasn't doing me any good." → book_content `no`;

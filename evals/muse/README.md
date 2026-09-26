@@ -247,6 +247,13 @@ runs in `da397f5` and two of three in `6964b83`: its comparison to "the main cha
 a book question. The label stays as written, so this remains an open fairness
 finding.
 
+`source_comparison` also covers asking whether anything the reader has already
+read speaks to or supports their situation. On 2026-09-26
+([report](reports/turn-triage-2026-09-26-read-connection.json); `gpt-6-luna`,
+94 cases × 3 runs), `memory` was acceptable on 100% of scored calls against
+99.3% for the previous skill; `book_content` and `override_attempt` were
+unchanged.
+
 ## Dialect fairness
 
 `cases/triage/dialect_fairness_cases.json` labels Singlish, Indian English, code-mixed, and
