@@ -15,7 +15,7 @@ from src.linger.agents.librarian.models import (
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.session import ReaderStatement
-from src.linger.corpus import registry
+from src.linger.corpus.registry import CORPORA
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge, assess_book_evidence, judge_evidence_strength, plan_book_request,
@@ -95,67 +95,47 @@ async def judge_records(
         raise EvidenceJudgementError("Evidence judgment unavailable") from error
 
 
-def _author_names(scope: BookScope) -> tuple[str, ...]:
-    corpus = registry.CORPORA.get(scope.work_id)
-    author = getattr(getattr(corpus, "book", None), "author", None)
-    return (author.strip(), author.split()[-1]) if author else ()
-
-
-def _names_pattern(names: set[str]) -> re.Pattern[str] | None:
-    if not names:
-        return None
-    alternatives = "|".join(re.escape(name) for name in sorted(names, key=len, reverse=True))
-    return re.compile(rf"\b(?:{alternatives})(?:['’]s)?\b", re.IGNORECASE)
-
-
-def _named_scopes(text: str, book_scopes: tuple[BookScope, ...]) -> tuple[BookScope, ...]:
-    """The granted books a planned part names by author or full title."""
-    named = []
-    for scope in book_scopes:
-        corpus = registry.CORPORA.get(scope.work_id)
-        title = getattr(getattr(corpus, "book", None), "title", None)
-        names = set(_author_names(scope)) | ({title} if title else set())
-        pattern = _names_pattern(names)
-        if pattern is not None and pattern.search(text):
-            named.append(scope)
-    return tuple(named)
-
-
-def _search_requests(
-    plan: BookRequestPlan,
-    original: LibrarianBookRequestInput,
-    book_scopes: tuple[BookScope, ...],
-) -> tuple[tuple[str, tuple[BookScope, ...]], ...]:
-    """Pair each search text with the books it searches.
-
-    An author's name says which book the reader means, not what happens in it,
-    and it rarely appears in the author's own text: left in a query it ranks
-    passages that merely mention it (Keller's ancestry, say) above the passage
-    the reader described. So a planned part that names a granted book's author
-    or title searches only that book, and the author's name is removed from the
-    search text. The reader's own words are still searched intact across every
-    granted book.
-    """
-    authors = _names_pattern({name for scope in book_scopes for name in _author_names(scope)})
-    pairs: list[tuple[str, tuple[BookScope, ...]]] = []
-    for part in plan.parts:
-        text = " ".join(dict.fromkeys((*part.context_spans, *part.reader_spans)))
-        scopes = _named_scopes(text, book_scopes) or book_scopes
-        if authors is not None:
-            text = " ".join(authors.sub(" ", text).split())
-        pairs.append((text, scopes))
-    pairs.extend(
-        (text, book_scopes)
-        for text in (original.current_line, *(s.text for s in original.prior_reader_statements))
-    )
-    requests = tuple(dict.fromkeys(
-        (text[start:start + MAX_QUERY_CHARACTERS].strip(), scopes)
-        for text, scopes in pairs for start in range(0, len(text), MAX_QUERY_CHARACTERS)
+def _search_queries(plan: BookRequestPlan, original: LibrarianBookRequestInput) -> tuple[str, ...]:
+    texts = [
+        " ".join(dict.fromkeys((*part.context_spans, *part.reader_spans)))
+        for part in plan.parts
+    ]
+    texts.extend((original.current_line, *(s.text for s in original.prior_reader_statements)))
+    queries = tuple(dict.fromkeys(
+        text[start:start + MAX_QUERY_CHARACTERS].strip()
+        for text in texts for start in range(0, len(text), MAX_QUERY_CHARACTERS)
         if text[start:start + MAX_QUERY_CHARACTERS].strip()
     ))
-    if len(requests) > MAX_SEARCH_QUERIES:
+    if len(queries) > MAX_SEARCH_QUERIES:
         raise EvidenceJudgementError("The complete request exceeds the retrieval query budget")
-    return requests
+    return queries
+
+
+def _without_author(query: str, work_id: str) -> str:
+    """Drop the searched book's author name, which reader text uses only to name the book.
+
+    Name words that also appear in the book's title or aliases are kept, so a
+    title mention such as "Narrative of the Life of Frederick Douglass" survives.
+    """
+    registration = CORPORA.get(work_id)
+    if registration is None:
+        return query
+    title_words = {
+        word.casefold()
+        for name in (registration.book.title, *registration.aliases)
+        for word in re.findall(r"\w+", name)
+    }
+    names = [
+        word for word in re.findall(r"\w+", registration.book.author)
+        if len(word) > 2 and word.casefold() not in title_words
+    ]
+    if not names:
+        return query
+    stripped = re.sub(
+        r"\b(?:" + "|".join(map(re.escape, names)) + r")(?:['’]s)?\b", "", query, flags=re.IGNORECASE,
+    )
+    stripped = re.sub(r"\s{2,}", " ", stripped).strip()
+    return stripped or query
 
 
 def _merge_candidates(
@@ -170,7 +150,7 @@ def _merge_candidates(
             if prior is not None and evidence_record_from_item(prior) != evidence_record_from_item(item):
                 raise EvidenceJudgementError("Conflicting retrieved content for one evidence ID")
             by_id.setdefault(item.evidence_id, item)
-    return tuple(by_id.values())[:MAX_BOOK_CANDIDATES]
+    return tuple(by_id.values())
 
 
 async def retrieve_book_evidence(
@@ -202,32 +182,37 @@ async def retrieve_book_evidence(
         except Exception:
             logfire.warning("librarian.book_request_fallback", reason="planning_unavailable")
             plan = BookRequestPlan(parts=())
-    searches = _search_requests(plan or BookRequestPlan(parts=()), original, tuple(book_scopes))
-    try:
-        requests = [LibrarianRequest(
-            query=query, book_scopes=list(scopes),
-            retrieval_score_threshold=retrieval_score_threshold,
-            max_results=max_results, purpose=purpose,
-        ) for query, scopes in searches]
-    except ValueError as error:
-        raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
-    streams = []
-    for request in requests:
-        requested_work_ids = tuple(scope.work_id for scope in request.book_scopes)
-        if purpose == "connection_discovery":
-            record_connection_event(ConnectionEvaluationEvent(
-                kind="book_retrieval", status="attempted", source="book_corpus",
-                operation="search_librarian", requested_work_ids=requested_work_ids,
-            ))
-        candidates = tuple(librarian.retrieve_for_judgement(request).items)
-        if purpose == "connection_discovery":
-            record_connection_event(ConnectionEvaluationEvent(
-                kind="book_retrieval", status="ok", source="book_corpus",
-                operation="search_librarian", requested_work_ids=requested_work_ids,
-                retrieved_work_ids=tuple(item.work_id for item in candidates),
-            ))
-        streams.append(candidates)
-    items = _merge_candidates(streams, book_scopes)
+    queries = _search_queries(plan or BookRequestPlan(parts=()), original)
+    # Each book gets its own search and candidate budget so that one book's
+    # passages cannot crowd another's out of a multi-book request.
+    per_book: list[tuple[EvidenceItem, ...]] = []
+    for scope in book_scopes:
+        try:
+            requests = [LibrarianRequest(
+                query=_without_author(query, scope.work_id), book_scopes=[scope],
+                retrieval_score_threshold=retrieval_score_threshold,
+                max_results=max_results, purpose=purpose,
+            ) for query in queries]
+        except ValueError as error:
+            raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
+        streams = []
+        for request in requests:
+            requested_work_ids = (scope.work_id,)
+            if purpose == "connection_discovery":
+                record_connection_event(ConnectionEvaluationEvent(
+                    kind="book_retrieval", status="attempted", source="book_corpus",
+                    operation="search_librarian", requested_work_ids=requested_work_ids,
+                ))
+            candidates = tuple(librarian.retrieve_for_judgement(request).items)
+            if purpose == "connection_discovery":
+                record_connection_event(ConnectionEvaluationEvent(
+                    kind="book_retrieval", status="ok", source="book_corpus",
+                    operation="search_librarian", requested_work_ids=requested_work_ids,
+                    retrieved_work_ids=tuple(item.work_id for item in candidates),
+                ))
+            streams.append(candidates)
+        per_book.append(_merge_candidates(streams, (scope,))[:MAX_BOOK_CANDIDATES])
+    items = _merge_candidates(per_book, book_scopes)
     records = tuple(evidence_record_from_item(item) for item in items)
     if len({record.evidence_id for record in records}) != len(records):
         raise ValueError("retrieved evidence IDs must be unique")

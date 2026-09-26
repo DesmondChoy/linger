@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.linger.agents.muse.models import (
-    MuseCandidate, source_application_errors, supported_claim_errors,
+    MuseCandidate, memory_attribution_errors, source_application_errors, supported_claim_errors,
 )
 from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview
 from src.linger.agents.provenance.review_context import reset_review_input, set_review_input
@@ -119,3 +119,78 @@ def test_a_rejected_limit_needs_a_finding_and_the_validator_derives_it(verdict):
     assert (derived.location.source_field, derived.location.path) == (
         "candidate.evidence_uses", "/0/limit_claims/0",
     )
+
+
+MEMORY_ID = "mem_host"
+NOTE = "Your note says you still want to host the reading circle when your mood shifts."
+
+
+def memory_candidate(reply, *, claims=(NOTE,)):
+    return MuseCandidate.model_validate({
+        "reply": reply,
+        "evidence_uses": [{"source_kind": "memory", "evidence_id": MEMORY_ID,
+                           "supported_claims": list(claims)}] if claims else [],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+
+def test_unmapped_report_of_the_stored_note_is_rejected():
+    extra = "Your mood may change, but your note records continued ownership of it."
+    candidate = memory_candidate(f"{NOTE} {extra} What would help?")
+    error, = memory_attribution_errors(candidate.reply, candidate.evidence_uses)
+    assert error["value"] == extra
+    assert error["note_reference"] == "your note"
+
+
+def test_reflection_that_refers_back_to_mapped_note_details_is_allowed():
+    for reply in (
+        f"{NOTE} Perhaps the promise can belong to the ongoing pattern of you.",
+        f"{NOTE} The useful question for your notes might be what still feels like yours.",
+        f"{NOTE} As you said just now, the pull is strong.",
+    ):
+        candidate = memory_candidate(reply)
+        assert memory_attribution_errors(candidate.reply, candidate.evidence_uses) == []
+
+
+def test_note_attribution_check_applies_only_when_a_memory_is_declared():
+    candidate = memory_candidate("You previously said you would host.", claims=())
+    assert memory_attribution_errors(candidate.reply, candidate.evidence_uses) == []
+
+
+def test_claim_audit_error_names_a_stale_non_member_to_remove():
+    request = task()
+    stale = review(request).model_dump(mode="json")
+    # A revision can drop a declaration from a claim; the prior audit entry must then go.
+    stale["claim_audit"][0]["source_contributions"].append(
+        {"declaration_index": 1, "claim_index": 0, "contributes": False, "source_excerpt": None},
+    )
+    errors = []
+    request._audit_errors(ProvenanceReview.model_validate(stale), errors)
+
+    error, = (error for error in errors if error["path"] == "claim_audit[0].source_contributions")
+    assert error["remove_members"] == [[1, 0]]
+    assert "add_members" not in error
+
+
+def test_a_limit_only_repeat_declaration_folds_into_the_record_it_names():
+    candidate = MuseCandidate.model_validate({
+        "reply": REPLY,
+        "evidence_uses": [use(limits=()), {"source_kind": "web", "evidence_id": URL, "limit_claims": [LIMIT]}],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+    [declaration] = candidate.evidence_uses
+    assert declaration.supported_claims == (CLAIM,)
+    assert declaration.limit_claims == (LIMIT,)
+    assert supported_claim_errors(candidate.reply, candidate.evidence_uses) == []
+
+
+
+def test_a_repeat_declaration_that_maps_claims_stays_separate():
+    candidate = MuseCandidate.model_validate({
+        "reply": REPLY,
+        "evidence_uses": [use(limits=()), {**use(limits=()), "supported_claims": [REFLECTION]}],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+    assert len(candidate.evidence_uses) == 2

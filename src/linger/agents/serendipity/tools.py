@@ -271,6 +271,8 @@ async def search_librarian(
     books, select plausible sources; the whole granted library may be explored.
     work_ids selects a nonempty, unique subset of the available book IDs. It is
     required when multiple books are available; permission does not request a survey.
+    When scope.search_all_granted_books is true, every granted book is searched
+    and work_ids is ignored.
     max_results_per_source limits the selected records, not reading permission.
     """
     if "book_corpus" not in ctx.deps.task.scope.allowed_sources:
@@ -278,7 +280,10 @@ async def search_librarian(
 
     book_scopes = ctx.deps.task.scope.book_scopes
     granted_work_ids = {scope.work_id for scope in book_scopes}
-    if work_ids is None:
+    if ctx.deps.task.scope.search_all_granted_books:
+        # The reader named no books, so the application searches all of them.
+        work_ids = None
+    elif work_ids is None:
         if len(granted_work_ids) > 1:
             raise ModelRetry("Select books with work_ids when multiple books are available.")
     else:

@@ -413,7 +413,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             [tool.name for tool in parameters.function_tools],
         )
         self.assertEqual(
-            ["ConnectionProposal", "ConnectionDecline", "MemoryRecall"],
+            ["ConnectionProposal", "ConnectionDecline", "MemoryRecall", "SourceBundle"],
             [tool.name.removeprefix("final_result_") for tool in parameters.output_tools],
         )
         self.assertEqual("canonical", deps.evidence["chapter-4"].trust_level)

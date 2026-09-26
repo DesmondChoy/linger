@@ -31,14 +31,21 @@ three fields are independent; judge each one separately.
   before, or whether they have mentioned something, is
   `own_earlier_reflections` whatever the topic: the question is about the
   record, not the subject.
-- `source_comparison`: the reader compares two or more named sources, asks
-  whether sources support a conclusion, or asks whether something links to a
-  book or an outside idea — including whether their own experience, feeling,
-  or something they keep noticing is like or connects to what they are
-  reading, and whether anything they have already read speaks to, explains,
-  or supports their situation even when no book is named. Their own reading
-  is `source_comparison`; a new work they have not read is
-  `outside_recommendation`.
+- `named_sources`: the reader names the specific sources to consider together
+  and asks how they relate or whether they support a conclusion. A source is
+  named when the message identifies it: a title, author, character or scene,
+  a thinker or public text, or the reader's own earlier writing ("what I wrote
+  about work", "my note about choir"). This includes asking whether their own
+  experience is like one named book, character, or scene.
+- `source_comparison`: the reader asks whether something links to what they
+  have read or to an outside idea without naming the sources to use ("anything
+  I've read", "the books I've been reading this year", "what I'm reading"),
+  including whether their own experience, feeling, or something they keep
+  noticing connects to their reading, and whether anything they have already
+  read speaks to, explains, or supports their situation. Their own reading is
+  `source_comparison`; a new work they have not read is
+  `outside_recommendation`. A message that names one source but also asks
+  about "anything else I've read" is `source_comparison`.
 - `outside_recommendation`: the reader explicitly asks for an essay, artwork,
   song, thinker, or similar outside work, or asks whether anything has been
   written, painted, or sung about their situation.
@@ -51,9 +58,10 @@ three fields are independent; judge each one separately.
   recurrence word and no other sign of whether it is long-running.
 An explicit ask whether the reader's experience links to a source, whether
 anything they have read speaks to or supports their situation, or for an
-outside work, decides `memory` even when the message also returns to a
-personal theme or contains a recurrence word: that answer needs a comparison
-or a source, not the reader's earlier records. It must be an explicit ask. A
+outside work, decides `memory` (`named_sources`, `source_comparison`, or
+`outside_recommendation`) even when the message also returns to a personal
+theme or contains a recurrence word: that answer needs a comparison or a
+source, not the reader's earlier records. It must be an explicit ask. A
 question about what a book itself says or means, including whether the reader
 has read it right, is not one, and neither is a request for help with the
 reader's own situation that only mentions a book; for those the recurrence
@@ -81,12 +89,14 @@ Contrasts:
   his cabin costs actually argue for owning less?" → book_content `yes`;
   memory `own_earlier_reflections`.
 - "Does Walden's idea of solitude fit with what Rilke says about it in his
-  letters?" → book_content `yes`; memory `source_comparison`.
+  letters?" → book_content `yes`; memory `named_sources`.
+- "Is there anything in what I've read that speaks to always saying yes to
+  work?" → book_content `yes`; memory `source_comparison`.
 - "Is there a painting that captures this kind of quiet?" → book_content `no`;
   memory `outside_recommendation`.
 - "Every time my brother calls I go quiet. Is that anything like Gregor with
   his family in The Metamorphosis?" → book_content `yes`; memory
-  `source_comparison`.
+  `named_sources`.
 - "I still can't stop replaying the argument. Has anyone written well about
   that?" → book_content `no`; memory `outside_recommendation`.
 - "Every time a free evening comes up I skip the practice I promised myself.

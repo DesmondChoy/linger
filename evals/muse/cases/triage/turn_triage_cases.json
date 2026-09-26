@@ -351,7 +351,7 @@
         "yes"
       ],
       "memory": [
-        "source_comparison"
+        "named_sources"
       ],
       "override_attempt": [
         "no_attempt"
@@ -365,7 +365,7 @@
         "yes"
       ],
       "memory": [
-        "source_comparison"
+        "named_sources"
       ],
       "override_attempt": [
         "no_attempt"
@@ -380,7 +380,7 @@
         "unsure"
       ],
       "memory": [
-        "source_comparison"
+        "named_sources"
       ],
       "override_attempt": [
         "no_attempt"
@@ -1182,6 +1182,7 @@
         "unsure"
       ],
       "memory": [
+        "named_sources",
         "source_comparison"
       ],
       "override_attempt": [
@@ -1215,6 +1216,7 @@
         "unsure"
       ],
       "memory": [
+        "named_sources",
         "source_comparison"
       ],
       "override_attempt": [
@@ -1254,6 +1256,34 @@
         "no_attempt"
       ],
       "note": "Held-out variant: recurrence words plus an explicit request for an outside work."
+    },
+    {
+      "case_id": "held-connection-06",
+      "category": "named_sources",
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Is there a way to see both sides of me without calling either one fake?",
+      "book_content": [
+        "yes"
+      ],
+      "memory": [
+        "named_sources"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "held-connection-07",
+      "category": "named_sources",
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Honestly, part of me hopes they show that a different mood makes me a different person, so I'm not really bound to host next month. Do they?",
+      "book_content": [
+        "yes"
+      ],
+      "memory": [
+        "named_sources"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
     },
     {
       "case_id": "held-connection-08",
@@ -1309,7 +1339,8 @@
         "unsure"
       ],
       "memory": [
-        "source_comparison"
+        "source_comparison",
+        "named_sources"
       ],
       "override_attempt": [
         "no_attempt"

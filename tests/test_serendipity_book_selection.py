@@ -102,9 +102,11 @@ def test_agent_selects_three_named_books_from_five_available_titles():
 
     assert result.output.reason == "no_permitted_evidence"
     assert len(descriptions) == 2
-    assert [request.query for request in librarian.requests] == [LINE, PRIOR.text]
     selected_scopes = [scope for scope in SCOPES if scope.work_id in REQUESTED_WORKS]
-    assert all(request.book_scopes == selected_scopes for request in librarian.requests)
+    # Each selected book is searched on its own, so books never share a candidate budget.
+    assert [(request.book_scopes, request.query) for request in librarian.requests] == [
+        ([scope], query) for scope in selected_scopes for query in (LINE, PRIOR.text)
+    ]
     assert deps.task.scope.book_scopes == SCOPES
     assert deps.prior_reader_statements == (PRIOR,)
 
@@ -158,8 +160,9 @@ def test_title_free_discovery_can_explore_all_grants_and_return_only_relevant_su
             SimpleNamespace(deps=deps), work_ids=tuple(scope.work_id for scope in SCOPES),
         ))
 
-    assert [request.query for request in requests] == [cue, PRIOR.text]
-    assert all(request.book_scopes == list(SCOPES) for request in requests)
+    assert [(request.book_scopes, request.query) for request in requests] == [
+        ([scope], query) for scope in SCOPES for query in (cue, PRIOR.text)
+    ]
     assert result.evidence == (chosen,)
     raw_results = [event for event in events if event.kind == "book_retrieval" and event.status == "ok"]
     assert all(set(event.retrieved_work_ids) == {scope.work_id for scope in SCOPES} for event in raw_results)
@@ -224,3 +227,138 @@ def test_private_book_attempts_survive_empty_or_failed_retrieval(unavailable):
     assert all(event.retrieved_work_ids == () and event.evidence_json == () for event in retrieval_events)
     assert result.outcome == ("retrieval_unavailable" if unavailable else "no_evidence")
     assert deps.evidence == {}
+
+
+def test_each_book_keeps_its_own_candidate_budget_in_a_multibook_search():
+    from src.linger.orchestration.book_evidence import MAX_BOOK_CANDIDATES
+
+    scopes = tuple(scope for scope in SCOPES if scope.work_id in ("pg11", "pg2397"))
+    seen = []
+
+    def many(scope, count):
+        base = passage(scope)
+        return [base.model_copy(update={"evidence_id": f"{scope.work_id}-{index}"}) for index in range(count)]
+
+    class Librarian:
+        def retrieve_for_judgement(self, request):
+            # The first book floods every search; only a per-book budget keeps the second visible.
+            return EvidenceBundle(items=many(request.book_scopes[0], 40), retrieval_note="Ranked candidates.")
+
+    async def judge(query, candidates, *, max_evidence_records):
+        seen.extend(candidates)
+        return EvidenceStrengthDecision(evidence_strength="none", strength_reason="Budget check only.")
+
+    asyncio.run(retrieve_book_evidence(LINE, book_scopes=scopes, librarian=Librarian(), strength_judge=judge))
+
+    by_work = {scope.work_id: sum(record.work_id == scope.work_id for record in seen) for scope in scopes}
+    assert by_work == {"pg11": MAX_BOOK_CANDIDATES, "pg2397": MAX_BOOK_CANDIDATES}
+
+
+@pytest.mark.parametrize(("work_id", "query", "expected"), [
+    ("pg2397", "Keller forgetting all about college at the lake",
+     "forgetting all about college at the lake"),
+    ("pg2397", "Helen Keller's first word", "first word"),
+    ("pg2397", "Helen Keller", "Helen Keller"),
+    ("pg23", "Narrative of the Life of Frederick Douglass learning to read",
+     "Narrative of the Life of Frederick Douglass learning to read"),
+    ("pg500", "Pinocchio promising the Fairy", "Pinocchio promising the Fairy"),
+    ("unregistered", "Keller at the lake", "Keller at the lake"),
+])
+def test_book_queries_drop_only_the_searched_authors_name(work_id, query, expected):
+    from src.linger.orchestration.book_evidence import _without_author
+
+    assert _without_author(query, work_id) == expected
+
+
+def unnamed_discovery(librarian, *, search_all=True):
+    deps = dependencies(librarian)
+    deps.task = deps.task.model_copy(update={
+        "scope": deps.task.scope.model_copy(update={"search_all_granted_books": search_all}),
+    })
+    return deps
+
+
+def test_unnamed_discovery_searches_every_granted_book_whatever_the_selection():
+    # Run 7: a title-free Line searched only one book and missed the relevant one.
+    librarian = EmptyLibrarian()
+    asyncio.run(search_librarian(SimpleNamespace(deps=unnamed_discovery(librarian)), work_ids=("pg11",)))
+
+    searched = {scope.work_id for request in librarian.requests for scope in request.book_scopes}
+    assert searched == {scope.work_id for scope in SCOPES}
+
+
+def test_unnamed_discovery_must_search_books_before_answering():
+    from src.linger.agents.serendipity.agent import validate_serendipity_output
+    from src.linger.agents.serendipity.models import ConnectionDecline
+
+    decline = ConnectionDecline(reason="insufficient_evidence", safe_next_step="Reply plainly.")
+    deps = unnamed_discovery(EmptyLibrarian())
+    with pytest.raises(ModelRetry, match="search_librarian"):
+        validate_serendipity_output(SimpleNamespace(deps=deps), decline)
+
+    asyncio.run(search_librarian(SimpleNamespace(deps=deps)))
+    assert validate_serendipity_output(SimpleNamespace(deps=deps), decline) == decline
+    unflagged = unnamed_discovery(EmptyLibrarian(), search_all=False)
+    assert validate_serendipity_output(SimpleNamespace(deps=unflagged), decline) == decline
+
+
+@pytest.mark.parametrize(("intent", "pinned", "expected"), [
+    ("find_connection", "find_connection", True),
+    ("find_connection", None, False),
+    ("gather_sources", "gather_sources", False),
+])
+def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pinned, expected):
+    from apps.backend.contracts import ConnectionBrief
+    from apps.backend.librarian import Librarian
+    from unittest.mock import patch
+    from src.linger.orchestration.connection import _build_task
+    from src.linger.orchestration.turn_context import (
+        ToolExposure, reset_tool_exposure, set_tool_exposure,
+    )
+
+    token = set_tool_exposure(ToolExposure(tools=frozenset({"serendipity_explore"}), pinned_intent=pinned))
+    try:
+        with (
+            patch("src.linger.orchestration.connection.connection_book_scopes", return_value=SCOPES),
+            patch("src.linger.orchestration.connection.web_reach_permitted", return_value=False),
+        ):
+            task = _build_task(ConnectionBrief(cue=LINE, intent=intent), librarian=Librarian())
+    finally:
+        reset_tool_exposure(token)
+
+    assert task.scope.search_all_granted_books is expected
+
+
+def test_unnamed_discovery_winner_must_cite_a_book_and_the_named_public_text():
+    # Runs 10-11: the winner paired Hume with a memory and left out the book that spoke to the question.
+    from src.linger.agents.serendipity.agent import validate_serendipity_output
+    from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
+    from tests.test_serendipity import candidate, proposal
+
+    url = "https://example.org/bundle"
+    book = passage(SCOPES[0])
+    page = WebConnectionEvidence(evidence_id=url, title="Essay", excerpt="A bundle of perceptions.")
+    note = MemoryConnectionEvidence(evidence_id="mem-1", excerpt="I promised to host.")
+    deps = unnamed_discovery(EmptyLibrarian())
+    deps.task = deps.task.model_copy(update={"scope": deps.task.scope.model_copy(update={
+        "allowed_sources": ("book_corpus", "memory", "web"), "web_source_urls": (url,),
+    })})
+    deps.record("book_corpus", "search_librarian", "evidence_found", (book,))
+    deps.record("web", "get_page", "evidence_found", (page,))
+    deps.opened_web_evidence[url] = page
+    deps.record("memory", "search_memories", "evidence_found", (note,))
+    ctx = SimpleNamespace(deps=deps)
+
+    def ranked(first, second):
+        return proposal(
+            shortlist=(candidate("candidate-first", 1, evidence_ids=first), candidate("candidate-second", 2, evidence_ids=second)),
+            selected_candidate_id="candidate-first", policy_flags=("contains_web_claim",),
+        )
+
+    with pytest.raises(ModelRetry, match=book.evidence_id):
+        validate_serendipity_output(ctx, ranked((url, note.evidence_id), (book.evidence_id, url)))
+    with pytest.raises(ModelRetry, match=url):
+        validate_serendipity_output(ctx, ranked((book.evidence_id, note.evidence_id), (url,)).model_copy(
+            update={"policy_flags": ()}))
+    accepted = ranked((book.evidence_id, url, note.evidence_id), (url, note.evidence_id))
+    assert validate_serendipity_output(ctx, accepted) == accepted

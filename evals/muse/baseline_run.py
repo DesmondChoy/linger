@@ -458,7 +458,7 @@ def _current_tools(case: MuseEvalCase) -> list[Tool]:
         )
 
     async def serendipity_explore(
-        intent: Literal["find_connection", "get_recommendation", "recall_memory"],
+        intent: Literal["find_connection", "gather_sources", "get_recommendation", "recall_memory"],
     ):
         exposure = tool_exposure()
         if exposure is not None and exposure.pinned_intent not in (None, intent):

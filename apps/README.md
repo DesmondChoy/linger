@@ -128,6 +128,13 @@ reader's earlier words. Memories do not support claims about the world. A
 `no_matching_memory` decline lets Muse answer without inventing a prior record.
 Recall needs neither a book selection nor public-web access.
 
+When the reader names the sources to consider together (scenes from their
+books, a named public text, their own earlier note), triage pins
+`gather_sources`. Serendipity inspects each named source and returns one bundle
+with every supporting record and the named sources it could not find; Muse
+writes the comparison. A request that names no sources ("anything I've read")
+uses `find_connection`.
+
 The application returns whole replies only after release approval. Clear
 first-person disclosures of intense distress receive the fixed application-owned
 emotional boundary.

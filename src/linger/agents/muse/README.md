@@ -30,8 +30,11 @@ retrieval scope, and storage.
 
 `serendipity_explore(intent="recall_memory")` retrieves one to three matching
 stored records for a request about the reader's earlier words. A single record
-can answer that request. `find_connection` asks Serendipity to compare possible
-connections, and `get_recommendation` requests a direct recommendation. Ordinary
+can answer that request. `gather_sources` asks Serendipity for the records of
+every source the reader named, which Muse then relates itself;
+`find_connection` asks Serendipity to find and compare possible connections
+when the reader names no sources; and `get_recommendation` requests a direct
+recommendation. Ordinary
 public facts do not justify searching personal memories. Memory evidence
 supports attributed personal context and cannot establish public or book facts.
 

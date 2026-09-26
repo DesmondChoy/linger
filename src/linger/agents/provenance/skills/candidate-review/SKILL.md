@@ -220,7 +220,14 @@ Return three compact audits as part of this same review:
   unsupported assertions of established personal causes.
   A used stored memory needs its memory declaration even if the reply says
   "your note"; the current-Line exemption does not cover details supplied only
-  by that memory. Do not demand a visible private-memory citation or require
+  by that memory. Once a detail sits inside a span mapped to that memory, a
+  later sentence that only refers back to it and adds tentative interpretation,
+  a possibility, or a question is `reader_reflection`; do not ask to extend the
+  memory mapping over it, since the memory cannot establish the interpretation.
+  It stays `source_dependent` when it adds a note detail absent from every
+  mapped span of that memory, reports what the note says or records, or asserts
+  an interpretation as established fact about the reader. Apply this the same
+  way in every review of a reply. Do not demand a visible private-memory citation or require
   all selected evidence to be used. An already declared exact quote needs no
   duplicate claim mapping. Coverage is mechanical, not proof of correctness:
   review all covered claims and quotations too, including contextual meaning.
@@ -410,6 +417,8 @@ in `canonical_book_evidence`; selected memory and opened public pages require
 matching IDs and text in `canonical_connection_evidence`. Every source used
 must have a declaration of its actual source kind. A public factual claim
 requires a supporting opened page and its exact URL visibly cited in the reply.
+A Markdown link whose target is that exact URL, such as `[Title](URL)`, is a
+visible citation; do not ask for the URL to be repeated as plain text.
 Check that the page supports the particular claim, not merely the same theme.
 Distinguish a study's own measured results from theories, definitions and prior
 research discussed in its background. A factor discussed as a possible mechanism

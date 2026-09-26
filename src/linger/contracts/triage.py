@@ -9,6 +9,7 @@ from src.linger.contracts.base import StrictModel
 BookContentNeed = Literal["yes", "no", "unsure"]
 MemoryNeed = Literal[
     "own_earlier_reflections",
+    "named_sources",
     "source_comparison",
     "outside_recommendation",
     "none",

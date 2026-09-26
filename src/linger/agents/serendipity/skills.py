@@ -6,6 +6,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     MemoryRecall,
     SerendipityResponse,
+    SourceBundle,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
 from src.linger.prompts import load_prompt
@@ -45,4 +46,21 @@ MEMORY_RECALL: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse] = Run
     tool_retries=2,
 )
 
-SKILLS = (CONNECTION_DISCOVERY, MEMORY_RECALL)
+SOURCE_GATHERING: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse] = RuntimeSkill(
+    role="Serendipity",
+    name="source-gathering",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(
+        "src.linger.agents.serendipity", "skills/source-gathering/SKILL.md"
+    ),
+    input_type=ConnectionDiscoveryInput,
+    output_type=(SourceBundle, ConnectionDecline),
+    override_output=False,
+    tools=("search_librarian", "search_memories"),
+    capabilities=("GuardedExaSearch",),
+    validators=("validate_serendipity_output",),
+    output_retries=2,
+    tool_retries=2,
+)
+
+SKILLS = (CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING)

@@ -12,7 +12,7 @@ from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 
 
-ConnectionIntent = Literal["find_connection", "get_recommendation", "recall_memory"]
+ConnectionIntent = Literal["find_connection", "gather_sources", "get_recommendation", "recall_memory"]
 PresentationMode = Literal["direct", "ask_before_showing"]
 SearchSourceKind = Literal["memory", "book_corpus", "web"]
 DeclineReason = Literal[
@@ -47,6 +47,9 @@ class ConnectionScope(StrictModel):
     book_scopes: tuple[BookScope, ...] = ()
     # Exact application-known public pages may be opened directly; None requires search leads.
     web_source_urls: tuple[str, ...] | None = None
+    # Set when the reader asked about their reading without naming books: every
+    # granted book is searched, so a narrow selection cannot skip the relevant one.
+    search_all_granted_books: bool = False
 
     @model_validator(mode="after")
     def require_coherent_source_grant(self) -> Self:
@@ -56,6 +59,8 @@ class ConnectionScope(StrictModel):
             raise ValueError("book-corpus access requires at least one book scope")
         if self.book_scopes and "book_corpus" not in self.allowed_sources:
             raise ValueError("book scopes require book-corpus access")
+        if self.search_all_granted_books and not self.book_scopes:
+            raise ValueError("searching all granted books requires a book grant")
         if self.web_source_urls is not None:
             if len(self.web_source_urls) != len(set(self.web_source_urls)):
                 raise ValueError("public source URLs must be unique")
@@ -258,7 +263,35 @@ class MemoryRecall(StrictModel):
         return self
 
 
-SerendipityResponse = ConnectionProposal | ConnectionDecline | MemoryRecall
+class SourceBundle(StrictModel):
+    """Records for every source the reader named, gathered without choosing among them."""
+
+    status: Literal["gathered"] = "gathered"
+    evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
+    unfound_sources: tuple[
+        Annotated[str, Field(min_length=1, max_length=200)], ...
+    ] = Field(
+        default=(),
+        max_length=6,
+        description=(
+            "The reader's own names for requested sources that no returned record "
+            "supports, so the reply can say plainly what could not be found."
+        ),
+    )
+    relevance_note: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def require_unique_evidence(self) -> Self:
+        if any(not evidence_id or len(evidence_id) > 2_000 for evidence_id in self.evidence_ids):
+            raise ValueError("gathered evidence IDs must be non-empty and bounded")
+        if len(self.evidence_ids) != len(set(self.evidence_ids)):
+            raise ValueError("gathered evidence IDs must be unique")
+        if len(self.unfound_sources) != len(set(self.unfound_sources)):
+            raise ValueError("unfound sources must be unique")
+        return self
+
+
+SerendipityResponse = ConnectionProposal | ConnectionDecline | MemoryRecall | SourceBundle
 SERENDIPITY_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[SerendipityResponse, Field(discriminator="status")]
 )

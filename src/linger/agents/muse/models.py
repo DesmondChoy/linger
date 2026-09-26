@@ -150,6 +150,37 @@ class MuseCandidate(StrictModel):
     evidence_uses: tuple[EvidenceUse, ...] = ()
     memory: MemoryNomination
 
+    @model_validator(mode="before")
+    @classmethod
+    def fold_claimless_repeat_declarations(cls, data: object) -> object:
+        """Fold a repeat declaration that maps no supported claim, such as a limit-only entry, into the record's first declaration."""
+        if not isinstance(data, dict) or not isinstance(data.get("evidence_uses"), (list, tuple)):
+            return data
+        kept: list[object] = []
+        first_by_record: dict[tuple[str, str], dict] = {}
+        for use in data["evidence_uses"]:
+            key = _record_key(use)
+            first = first_by_record.get(key) if key else None
+            if first is not None and not use.get("supported_claims") and use.get("exact_quote") is None:
+                limits = list(first.get("limit_claims") or ())
+                first["limit_claims"] = limits + [
+                    claim for claim in use.get("limit_claims") or () if claim not in limits
+                ]
+                continue
+            if key and first is None:
+                use = first_by_record[key] = dict(use)
+            kept.append(use)
+        return {**data, "evidence_uses": kept}
+
+
+def _record_key(use: object) -> tuple[str, str] | None:
+    if not isinstance(use, dict):
+        return None
+    kind, evidence_id = use.get("source_kind"), use.get("evidence_id")
+    if kind in ("book_corpus", "memory", "web") and isinstance(evidence_id, str):
+        return kind, evidence_id
+    return None
+
 
 def _has_bounded_span(fragment: str, reply: str) -> bool:
     start = r"(?<![\w.,:/’'-])" if fragment[:1].isdigit() else r"(?<![\w’'-])"
@@ -263,6 +294,53 @@ def source_application_errors(
                     "Do not merely swap 'you' for 'the reader' or 'one'; separate the application."
                 ),
             })
+    return errors
+
+
+_NOTE_ATTRIBUTION = re.compile(
+    r"\b(?:your\s+(?:saved|earlier|stored|previous|past)\s+notes?|your\s+note\b"
+    r"|you(?:\s+have|['’]ve)\s+(?:previously|already|earlier)\s+(?:said|written|noted|described|mentioned)"
+    r"|you\s+(?:previously|earlier)\s+(?:said|wrote|noted|described|mentioned))\b",
+    re.IGNORECASE,
+)
+
+
+def memory_attribution_errors(
+    reply: str, evidence_uses: tuple[EvidenceUse, ...]
+) -> list[dict[str, object]]:
+    """Flag wording that reports the stored note outside every memory mapping."""
+    spans = [
+        claim for use in evidence_uses if use.source_kind == "memory"
+        for claim in (*use.supported_claims, *limit_claim_texts(use))
+    ]
+    if not spans:
+        return []
+    covered: list[tuple[int, int]] = []
+    for claim in spans:
+        start = reply.find(claim)
+        while start != -1:
+            covered.append((start, start + len(claim)))
+            start = reply.find(claim, start + 1)
+    errors: list[dict[str, object]] = []
+    for match in _NOTE_ATTRIBUTION.finditer(reply):
+        if any(start <= match.start() and match.end() <= end for start, end in covered):
+            continue
+        sentence_start = max(reply.rfind(mark, 0, match.start()) for mark in (". ", "? ", "! ", "\n"))
+        sentence_end = min(
+            (i for i in (reply.find(mark, match.end()) for mark in (".", "?", "!", "\n")) if i != -1),
+            default=len(reply),
+        )
+        errors.append({
+            "path": "reply",
+            "value": reply[sentence_start + 1:sentence_end + 1].strip(),
+            "note_reference": match.group(0),
+            "error": (
+                "This sentence reports what the reader's stored note says, but no memory "
+                "declaration maps it. Add the complete sentence to that memory's supported_claims, "
+                "or remove the report. Tentative reflection that only refers back to details "
+                "already in a mapped memory sentence may stay unmapped."
+            ),
+        })
     return errors
 
 

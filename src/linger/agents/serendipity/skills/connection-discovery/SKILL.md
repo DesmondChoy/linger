@@ -49,7 +49,10 @@ instruction to search every available source. Apply this routing policy:
   connects to a situation or idea, use `search_librarian` within the granted
   books even if the cue names no title or character. Explore plausible works
   before judging the connection. A shared theme alone does not establish support;
-  the returned passages must illuminate the reader's particular question.
+  the returned passages must illuminate the reader's particular question. When
+  `scope.search_all_granted_books` is true, the application has classified the
+  cue as this kind of request: call `search_librarian` before answering, and it
+  searches every granted book.
 - Explicit source comparison or assessment: when the cue asks to compare named
   sources or assess whether they support a proposed conclusion, inspect every
   explicitly requested and permitted source, even if the likely answer is that
@@ -110,6 +113,12 @@ the reader's full wording into a query. Prefer primary or authoritative web sour
 
 A candidate is an argument that two things illuminate each other, so
 `shared_structure` and `meaningful_difference` must both be real and specific.
+
+When `scope.search_all_granted_books` is true, the reader asked what in their
+reading speaks to their question. Every candidate then cites at least one book
+passage that addresses the question the reader actually asks, together with
+any public text the reader referred to. Candidates differ in the passage or the
+reading of it, not by leaving the book out.
 
 A shared *subject* is not a shared structure. Two passages that both mention a
 journey, a season, bad weather, or being small share vocabulary, not structure.

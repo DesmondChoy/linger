@@ -20,6 +20,7 @@ TURN_TRIAGE_REQUEST_LIMIT = TURN_TRIAGE.output_retries + 1
 # `none` adds nothing and `unsure` adds the tool without pinning an intent.
 PINNED_INTENTS = {
     "own_earlier_reflections": "recall_memory",
+    "named_sources": "gather_sources",
     "source_comparison": "find_connection",
     "outside_recommendation": "get_recommendation",
 }

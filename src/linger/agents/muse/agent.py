@@ -21,6 +21,7 @@ from pydantic_ai.tools import ToolDefinition
 from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import (
     MuseCandidate,
+    memory_attribution_errors,
     source_application_errors,
     supported_claim_errors,
 )
@@ -51,6 +52,7 @@ def validate_muse_output(
     """Report every checkable citation error while the model can still repair it."""
     errors = supported_claim_errors(output.reply, output.evidence_uses)
     errors.extend(source_application_errors(output.reply, output.evidence_uses))
+    errors.extend(memory_attribution_errors(output.reply, output.evidence_uses))
     revision = None
     prompt = getattr(_ctx, "prompt", None)
     if isinstance(prompt, str):

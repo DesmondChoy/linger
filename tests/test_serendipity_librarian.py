@@ -244,11 +244,8 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
     model_inputs = []
     injected_calls = []
     retrieval_inputs = []
-    # The planned part drops the searched book's author name; the reader's
-    # own words below are still searched as written.
-    planned_query = "Why does Hugh Auld’s opposition to teaching to read make more determined to learn?"
     expected_queries = list(dict.fromkeys([
-        *([] if custom_judge else [planned_query]),
+        *([] if custom_judge else [QUESTION]),
         *(original_reader[start:start + 2000].strip() for start in range(0, len(original_reader), 2000)),
     ]))
 

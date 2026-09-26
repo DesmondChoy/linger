@@ -334,3 +334,68 @@ def test_application_still_rejects_invalid_spans_from_an_injected_agent():
     )))
     with pytest.raises(ValueError, match="reader span"):
         asyncio.run(plan_book_request("The gardeners paint.", agent=agent))
+
+
+def test_mistyped_selected_evidence_id_is_repaired_within_the_assessment_run():
+    from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
+    from src.linger.orchestration.evidence_strength import assess_book_evidence
+
+    lake = record("pg2397-sec024-ln3115-3140", "All thoughts of work and college were thrust into the background.")
+    other = record("pg2397-sec022-ln2441-2467", "College left little time for solitude.")
+    plan = BookRequestPlan.model_validate({"parts": [{
+        "context_spans": [], "purpose": "reference", "reader_spans": ["forgetting all about college at the lake"],
+    }]})
+    attempts = []
+
+    def model(messages, info):
+        # Run 4 spliced one record's section onto another record's line range.
+        if attempts:
+            retry = str(messages[-1].parts[0].content)
+            assert "closest_supplied_ids" in retry and lake.evidence_id in retry
+        evidence_id = "pg2397-sec022-ln3115-3140" if not attempts else lake.evidence_id
+        attempts.append(evidence_id)
+        # The first attempt also leaves a selected record without support, which the
+        # schema rejects; the ID fault must still be reported in that same retry.
+        selected = [evidence_id, other.evidence_id] if len(attempts) == 1 else [evidence_id]
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+            "evidence_strength": "sufficient", "strength_reason": "The lake passage answers the need.",
+            "relevant_evidence_ids": selected, "additional_parts": [],
+            "support": [{"evidence_id": evidence_id, "part_index": 0, "necessary_support": "Work and college recede at the lake."}],
+        })])
+
+    decision = asyncio.run(assess_book_evidence(
+        plan, (lake, other),
+        original_request=LibrarianBookRequestInput(current_line="Keller forgetting all about college at the lake"),
+        agent=build_librarian_agent(FunctionModel(model)),
+    ))
+
+    assert decision.relevant_evidence_ids == (lake.evidence_id,)
+    assert len(attempts) == 2
+
+
+def test_assessment_id_errors_name_the_closest_supplied_record():
+    from src.linger.agents.librarian.models import (
+        BookRequestPlan, LibrarianBookRequestInput, LibrarianEvidenceStrengthInput,
+        evidence_assessment_errors,
+    )
+
+    lake = record("pg2397-vb3cc1e13-sec024-ln3115-3140", "Lake text.")
+    other = record("pg2397-vb3cc1e13-sec022-ln2441-2467", "College text.")
+    request = LibrarianEvidenceStrengthInput(
+        original_request=LibrarianBookRequestInput(current_line="the lake"),
+        request=BookRequestPlan(parts=()), evidence=(lake, other), max_evidence_records=1,
+    )
+    # Run 5 recorded both faults at once: a spliced ID and support drifting from the selection.
+    wrong = "pg2397-vb3cc1e13-sec022-ln3115-3140"
+    drifted = "pg2397-vb3cc1e13-sec022-ln2441-2475"
+
+    errors = evidence_assessment_errors([wrong, other.evidence_id], [wrong, drifted], request)
+
+    assert [error["path"] for error in errors] == [
+        "relevant_evidence_ids", "relevant_evidence_ids[0]",
+        "support[0].evidence_id", "support[1].evidence_id", "support",
+    ]
+    assert lake.evidence_id in errors[1]["closest_supplied_ids"]
+    assert other.evidence_id in errors[3]["closest_supplied_ids"]
+    assert errors[4]["selected_without_support"] == [other.evidence_id]
+    assert errors[4]["support_not_selected"] == [drifted]
