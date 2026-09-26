@@ -21,6 +21,7 @@ from src.linger.agents.sculptor.surfacing_models import (
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.surfacing import MemorySurfacingHandoff
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.curation import CurationLoopResult, run_curation_loop
 from src.linger.orchestration.surfacing import propose_surfacing
 from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
@@ -115,6 +116,11 @@ async def prepare_surfacing_handoff(
         )
         for memory_id in decision.source_memory_ids
     )
+    # Muse may cite a surfaced memory, so evaluation must see the exact record it was handed.
+    record_connection_event(ConnectionEvaluationEvent(
+        kind="surfacing", status="surfaced", source="memory",
+        evidence_json=tuple(item.model_dump_json() for item in sources),
+    ))
     return MemorySurfacingHandoff(
         suggestion=decision.suggestion,
         source_memory_ids=decision.source_memory_ids,

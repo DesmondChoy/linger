@@ -88,6 +88,31 @@ def test_surface_now_becomes_a_typed_handoff_with_exact_sources() -> None:
     assert request.context.current_context == "I am choosing tea for this reading session."
 
 
+def test_a_surfaced_memory_is_observed_as_citable_evaluation_evidence() -> None:
+    from evals.synthetic_journals.connection_replay import _evidence_ledger
+    from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+
+    memory = _memory("memory-1", "I prefer mint tea while reading.")
+    decide = AsyncMock(return_value=SurfaceNow(
+        decision="surface_now", source_memory_ids=(memory.memory_id,),
+        suggestion="Mint tea may suit this reading session.",
+        rationale="The saved preference is relevant now.",
+    ))
+    events = []
+    sink = SimpleNamespace(record_connection_event=events.append)
+
+    with bind_evaluation_transcript_sink(sink):
+        asyncio.run(prepare_surfacing_handoff(
+            account_scope="private-account", current_context="I am choosing tea for this reading session.",
+            memories=(memory,), now=NOW, decide=decide,
+        ))
+
+    [event] = events
+    assert event.kind == "surfacing"
+    record = _evidence_ledger(events)[memory.memory_id]
+    assert (record["source_kind"], record["excerpt"]) == ("memory", memory.text)
+
+
 @pytest.mark.parametrize(
     "decision",
     [
