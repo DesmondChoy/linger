@@ -34,6 +34,20 @@ task contracts. Preserve each role's tool, context, validation, release, and
 storage authority boundaries. Follow the maintained
 [agent runtime skills architecture](docs/agent-skills.md).
 
+### Cross-agent impact
+
+Whenever you propose a solution that changes agent behavior, include a brief,
+high-level cross-agent impact analysis with the proposal, before implementation.
+A fix for one agent must not silently break another.
+
+- Cover each of Muse, Librarian, Serendipity, Provenance, and Sculptor in one
+  line: affected or not, and how. Say "no effect" when there is none.
+- Look at shared surfaces: typed contracts and handoffs, tool exposure and
+  pinned intents, skill instructions another agent relies on, orchestration
+  and release checks, and evals or Ground truth that grade another agent.
+- Name the tests or evals that would catch a regression in each affected agent.
+- Keep it short. This is an awareness check, not a design review.
+
 Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
 
 ## GitHub CLI
