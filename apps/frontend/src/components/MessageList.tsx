@@ -1,9 +1,17 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import type { Message, ProgressEvent } from '../types'
 import { formatMachineLabel } from './formatMachineLabel'
+import { ReplyText } from './ReplyText'
 import { formatSourceLabel } from './sourceLabel'
 
-type Props = { messages: Message[]; pending: boolean; progress?: ProgressEvent }
+type Props = {
+  messages: Message[]
+  pending: boolean
+  progress?: ProgressEvent
+  onDeleteConversation?: (sessionId: string) => void
+}
+
+const dividerDate = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
 const HTTP_URL = /^https?:\/\//i
 
@@ -15,7 +23,7 @@ function progressLabel(progress: ProgressEvent | undefined) {
     : `${progress.agent} finished ${stage}.`
 }
 
-export function MessageList({ messages, pending, progress }: Props) {
+export function MessageList({ messages, pending, progress, onDeleteConversation }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -32,15 +40,17 @@ export function MessageList({ messages, pending, progress }: Props) {
 
       {messages.length === 0 && !pending && <p className="empty">Start the conversation below.</p>}
 
-      {messages.map((message, index) =>
-        message.role === 'assistant' && message.content === '' ? (
+      {messages.map((message, index) => {
+        const startsConversation = message.sessionId !== undefined
+          && message.sessionId !== messages[index - 1]?.sessionId
+        const bubble = message.role === 'assistant' && message.content === '' ? (
           <div key={index} className="bubble assistant thinking" aria-live="polite">
             <span>{progressLabel(progress)}</span>
             {progress && <small>{(progress.elapsed_ms / 1000).toFixed(1)}s</small>}
           </div>
         ) : (
           <div key={message.id} className={`bubble ${message.role}`}>
-            <div>{message.content}</div>
+            {message.role === 'assistant' ? <ReplyText text={message.content} /> : <div>{message.content}</div>}
             {message.sources && message.sources.length > 0 && (
               <div className="sources">
                 <span className="sources-label">Sources</span>
@@ -60,8 +70,31 @@ export function MessageList({ messages, pending, progress }: Props) {
               </div>
             )}
           </div>
-        ),
-      )}
+        )
+        if (!startsConversation) return bubble
+        const { sessionId } = message
+        return (
+          <Fragment key={`${sessionId}-start`}>
+            <div className="conversation-divider">
+              <span>{message.createdAt ? dividerDate.format(new Date(message.createdAt)) : 'Conversation'}</span>
+              {onDeleteConversation && sessionId && !pending && (
+                <button
+                  type="button"
+                  className="quiet-button"
+                  onClick={() => {
+                    if (window.confirm('Delete this conversation? This cannot be undone.')) {
+                      onDeleteConversation(sessionId)
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+            {bubble}
+          </Fragment>
+        )
+      })}
 
       <div ref={bottomRef} />
     </div>

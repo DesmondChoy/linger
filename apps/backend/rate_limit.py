@@ -1,4 +1,4 @@
-"""Deterministic per-client request rate limiting for the chat endpoints."""
+"""Deterministic per-account request rate limiting for the chat endpoints."""
 
 from collections import deque
 from math import ceil
@@ -6,14 +6,18 @@ from threading import Lock
 from time import monotonic
 
 import logfire
-from fastapi import HTTPException, Request
+from typing import Annotated
 
+from fastapi import Depends, HTTPException
+
+from src.linger.services.memory import AccountContext
+
+from .auth import current_account
 from .telemetry import failure_attrs
 
 MAX_REQUESTS_PER_WINDOW = 10
 WINDOW_SECONDS = 60.0
 
-_FALLBACK_KEY = "no-client-address"
 _REFUSAL_DETAIL = "Too many requests. Please wait a moment and try again."
 
 
@@ -63,14 +67,11 @@ def reset_rate_limit() -> None:
     _limiter.reset()
 
 
-def _client_key(request: Request) -> str:
-    client = request.client
-    return client.host if client is not None else _FALLBACK_KEY
-
-
-def enforce_chat_rate_limit(request: Request) -> None:
+def enforce_chat_rate_limit(
+    account: Annotated[AccountContext, Depends(current_account)],
+) -> None:
     """Refuse the request before any pipeline or model work when over budget."""
-    retry_after = _limiter.check(_client_key(request), monotonic())
+    retry_after = _limiter.check(account.account_id, monotonic())
     if retry_after is None:
         return
     logfire.warning(

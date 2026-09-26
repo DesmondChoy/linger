@@ -7,10 +7,14 @@ owns session scope, specialist grants, output release, capture policy, and
 application telemetry; FastAPI only supplies trusted dependencies and maps the
 result to HTTP.
 
-The prototype has no end-user authentication or database. Conversation sessions
-live in the backend process and disappear on restart. Automatic memory captures
-use account-scoped Markdown storage under `memories/`. The public API exposes
-no memory CRUD operations.
+The landing page offers a live path (username and password sign-in) and a
+synthetic path (saved persona evaluations, no sign-in). Accounts and login
+tokens live in `data/accounts.sqlite3` (prototype-grade: salted scrypt
+hashes, no resets or lockouts). Every chat and session route derives the
+account from the bearer token. Released chat turns are saved per account in
+`data/transcripts.sqlite3` and reopen from Past chats; a conversation belongs to
+exactly one account. Automatic memory captures use account-scoped Markdown
+storage under `memories/`. The public API exposes no memory CRUD operations.
 
 ## Setup
 
@@ -30,7 +34,6 @@ The remaining backend settings are:
 
 | Setting | Purpose | Default |
 |---|---|---|
-| `LINGER_ACCOUNT_ID` | Server-owned account for the single-user prototype | `local-prototype-user` |
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
 | `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | All five revisions in [`Settings`](backend/config.py) |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
