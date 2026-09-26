@@ -417,6 +417,8 @@ in `canonical_book_evidence`; selected memory and opened public pages require
 matching IDs and text in `canonical_connection_evidence`. Every source used
 must have a declaration of its actual source kind. A public factual claim
 requires a supporting opened page and its exact URL visibly cited in the reply.
+A Markdown link whose target is that exact URL, such as `[Title](URL)`, is a
+visible citation; do not ask for the URL to be repeated as plain text.
 Check that the page supports the particular claim, not merely the same theme.
 Distinguish a study's own measured results from theories, definitions and prior
 research discussed in its background. A factor discussed as a possible mechanism
