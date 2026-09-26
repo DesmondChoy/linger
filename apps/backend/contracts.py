@@ -139,7 +139,7 @@ class ConnectionBrief(BaseModel):
 
     cue: str = Field(min_length=1, max_length=8000)
     intent: Literal[
-        "find_connection", "get_recommendation", "recall_memory"
+        "find_connection", "gather_sources", "get_recommendation", "recall_memory"
     ] = "find_connection"
 
 

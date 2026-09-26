@@ -91,20 +91,24 @@ async def librarian_route() -> LibrarianRoutingResponse:
 
 
 async def serendipity_explore(
-    intent: Literal["find_connection", "get_recommendation", "recall_memory"],
+    intent: Literal["find_connection", "gather_sources", "get_recommendation", "recall_memory"],
 ) -> ConnectionExplorationResult:
-    """Recall the reader's own stored reflections or explore an evidence-backed connection.
+    """Recall stored reflections, gather named sources, or explore a connection.
 
     Use `recall_memory` to recall the reader's own stored reflections when they
     return to an ongoing personal theme, decision, or preference. It searches
     only the account's authorized memories and returns a recall carrying the
     reader's exact earlier records, or a `no_matching_memory` decline; one
     matching record is a complete recall.
-    Use `find_connection` when answering requires comparing named sources or
-    assessing whether those sources support the reader's proposed conclusion,
-    including when the supported answer may be a decline. Also use it when a
-    connection to a confirmed book or wider public resonance could deepen
-    reflection.
+    Use `gather_sources` when the reader names the specific sources to consider
+    together (books or scenes, a named public text, their own earlier writing)
+    and asks how they relate or whether they support a conclusion. It returns
+    one bundle with the records for every named source it found, and names any
+    it could not find; you write the comparison.
+    Use `find_connection` when the reader asks whether anything connects without
+    naming the sources, or when a connection to a confirmed book or wider public
+    resonance could deepen reflection, including when the supported answer may
+    be a decline.
     Routine book grounding uses `librarian_search`. Personal wording requests
     without source comparison or source support do not require exploration.
     The application supplies the exact current reader message as the cue;
@@ -112,11 +116,11 @@ async def serendipity_explore(
     and source scope are also fixed by the application. Passage-only permission
     does not grant Serendipity book search. Serendipity chooses bounded Librarian
     and optional Exa searches within its authorized sources,
-    compares a shortlist, and returns a validated proposal, recall, or decline
-    together with its request-local evidence. Use `get_recommendation` when the reader
+    compares a shortlist, and returns a validated proposal, recall, bundle, or
+    decline together with its request-local evidence. Use `get_recommendation` when the reader
     explicitly asks for an essay, artwork, song, thinker, or other outside
-    source; use `find_connection` for source comparison, assessment of a
-    proposed conclusion, or an optional reflective resonance. Never
+    source; use `gather_sources` for named sources; use `find_connection` for
+    open-ended discovery or an optional reflective resonance. Never
     invent a connection when the decision is a decline — relay the safe next
     step instead.
     """

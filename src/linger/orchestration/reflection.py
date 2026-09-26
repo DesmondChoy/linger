@@ -58,6 +58,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionExplorationResult,
     MemoryRecall,
+    SourceBundle,
 )
 from src.linger.contracts.emotional import BoundaryDecision, boundary_response
 from src.linger.contracts.language import LANGUAGE_BOUNDARY_RESPONSE
@@ -649,6 +650,8 @@ def _validated_book_evidence(
             selected_ids = set(decision.evidence_ids)
             if any(item.source_kind != "memory" for item in exploration.evidence):
                 raise ReleaseValidationError("A Serendipity recall returned non-memory evidence")
+        elif isinstance(decision, SourceBundle):
+            selected_ids = set(decision.evidence_ids)
         else:
             selected_ids = set(decision.selected_candidate.evidence_ids)
         returned_ids = {item.evidence_id for item in exploration.evidence}

@@ -286,7 +286,11 @@ def grade_connection_scene(
                 failures.append("unexpected_exploration")
         elif final is None:
             failures.append("missing_connection_decision")
-        elif final.status not in ({"proposal", "decline"} if decision == "restraint" else {decision}):
+        elif final.status not in {
+            # A gathered bundle surfaces the reader's named sources, as a proposal does.
+            "proposal": {"proposal", "gathered"},
+            "restraint": {"proposal", "gathered", "decline"},
+        }.get(decision, {decision}):
             failures.append("connection_decision_mismatch")
         if decision != "not_requested" and not searches:
             failures.append("missing_source_inspection")
@@ -327,13 +331,19 @@ def grade_connection_scene(
         for evidence_id in expectation.required_evidence_ids:
             if not (accepted_ids(evidence_id) & cited):
                 failures.append(f"missing_required_citation:{evidence_id}")
-        if final is not None and final.status == "proposal":
+        if final is not None and final.status in {"proposal", "gathered"}:
             try:
-                from src.linger.agents.serendipity.models import SERENDIPITY_RESPONSE_ADAPTER, ConnectionProposal
+                from src.linger.agents.serendipity.models import (
+                    SERENDIPITY_RESPONSE_ADAPTER, ConnectionProposal, SourceBundle,
+                )
                 selected = SERENDIPITY_RESPONSE_ADAPTER.validate_json(final.decision_json or "null")
-                if not isinstance(selected, ConnectionProposal):
-                    raise ValueError("expected a proposal")
-                if not set(selected.selected_candidate.evidence_ids) <= permitted:
+                if isinstance(selected, ConnectionProposal):
+                    selected_ids = set(selected.selected_candidate.evidence_ids)
+                elif isinstance(selected, SourceBundle):
+                    selected_ids = set(selected.evidence_ids)
+                else:
+                    raise ValueError("expected a proposal or a gathered bundle")
+                if not selected_ids <= permitted:
                     failures.append("unpermitted_selected_evidence")
             except ValueError:
                 failures.append("invalid_connection_proposal")

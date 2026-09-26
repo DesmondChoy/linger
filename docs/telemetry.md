@@ -277,7 +277,8 @@ case
 
 A no-change decision ends after Sculptor. A Provenance `revise` or `reject`
 verdict prevents application. Memory recall uses `serendipity.recall` with
-`agent.skill=memory-recall`; connection discovery uses `serendipity.discovery`
+`agent.skill=memory-recall`; source gathering uses `serendipity.gather` with
+`agent.skill=source-gathering`; connection discovery uses `serendipity.discovery`
 with `agent.skill=connection-discovery`.
 
 The combined capture-and-curation runner injects Sculptor's proposal handler

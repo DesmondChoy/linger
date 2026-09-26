@@ -5,7 +5,8 @@ permitted sources, removes ineligible evidence, constructs possible
 connections, compares the strongest two or three with an anchored rubric, and
 returns exactly one `ConnectionProposal` or one `ConnectionDecline`. A separate
 recall skill returns the reader's own earlier records as one `MemoryRecall`, or
-declines.
+declines. A separate gathering skill returns the records for every source the
+reader named as one `SourceBundle`, without ranking them, or declines.
 
 Serendipity can search active account-scoped curated memories, spoiler-bounded
 book evidence, and optional public-web sources. Selected evidence may enter
@@ -18,9 +19,10 @@ code owns access grants, and Provenance reviews every complete Muse draft.
 
 ## Assigned runtime skills
 
-One reusable PydanticAI Agent, `serendipity_agent`, owns two runtime skills,
-[`connection-discovery`](skills/connection-discovery/SKILL.md) and
-[`memory-recall`](skills/memory-recall/SKILL.md). Application code
+One reusable PydanticAI Agent, `serendipity_agent`, owns three runtime skills,
+[`connection-discovery`](skills/connection-discovery/SKILL.md),
+[`memory-recall`](skills/memory-recall/SKILL.md), and
+[`source-gathering`](skills/source-gathering/SKILL.md). Application code
 selects one from the brief's intent before a model run; the model then chooses permitted searches and
 domain decisions within that skill. An Agent object is reusable configuration.
 A model run is an invocation that can include several searches and retries.
@@ -29,6 +31,7 @@ A model run is an invocation that can include several searches and retries.
 | --- | --- | --- | --- |
 | `connection-discovery` | `ConnectionDiscoveryInput` | `ConnectionProposal` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat; `evals.serendipity.runner.run_case` with controlled tool evidence |
 | `memory-recall` | `ConnectionDiscoveryInput` with `intent="recall_memory"` and a memory-only scope | `MemoryRecall` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat |
+| `source-gathering` | `ConnectionDiscoveryInput` with `intent="gather_sources"` | `SourceBundle` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat |
 
 `memory-recall` searches only `search_memories` and returns the one to three
 records that are the reader's own earlier words on what the cue asks about;
@@ -36,6 +39,17 @@ one record is a complete recall. A record that only shares vocabulary or
 offers a transferable lesson is not a match, and no match is a decline with
 reason `no_matching_memory`. Recall never interprets, ranks interpretations, or
 drafts the reply.
+
+`source-gathering` serves a reader who has already chosen the sources to
+consider together, such as named scenes, a named public text, and their own
+earlier note. It inspects each named, permitted source with the same tools as
+discovery and returns one `SourceBundle`: every record that supports a named
+source, plus `unfound_sources` naming what it could not find. It does not build
+or rank competing connections, because a shortlist that must pick one winner
+drops some of the sources the reader asked for; Muse writes the comparison.
+Every book passage `search_librarian` returned must stay in the bundle, since
+Librarian already judged it relevant to the reader's named needs, and so must
+every page opened with `get_page`, cited by its exact URL.
 
 [`skills.py`](skills.py) binds the instructions, contracts, tools, optional Exa
 capability, validator, and retry limits. `agents.serendipity` in the
@@ -45,11 +59,12 @@ the selected skill. Both resources load from the package without a
 working-directory dependency. See the
 [runtime skills architecture](../../../../docs/agent-skills.md).
 
-The Agent keeps one fixed output schema (proposal, decline, or recall) and its
-registered `validate_serendipity_output` validator. Neither skill overrides
-`output_type`; the validator retries a proposal on a `recall_memory` task, a
-recall on any other intent, and a recall citing a record this run's
-`search_memories` did not return. It preserves two output retries, the existing default tool retry
+The Agent keeps one fixed output schema (proposal, decline, recall, or bundle)
+and its registered `validate_serendipity_output` validator. No skill overrides
+`output_type`; the validator retries any result that does not match the task's
+intent, a recall citing a record this run's `search_memories` did not return,
+and a bundle that cites an unreturned record or omits a returned book passage
+or an opened page. It preserves two output retries, the existing default tool retry
 budget of two, and the bounded internal tools' individual limit of one retry.
 `build_serendipity_agent(model)` preserves model injection for tests and
 evaluation. No account, search ledger, or capability instance is stored on the
@@ -89,8 +104,8 @@ retrieval view contains records. It grants `book_corpus` only with confirmed
 chapter or named-unit context; an exact-passage grant does not permit Serendipity
 book search.
 Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
-`get_recommendation` uses `presentation=direct`, while `find_connection` uses
-`ask_before_showing`. `recall_memory` grants memory only, never the book corpus
+`get_recommendation` and `gather_sources` use `presentation=direct`, while
+`find_connection` uses `ask_before_showing`. `recall_memory` grants memory only, never the book corpus
 or the web, and its result carries no presentation policy. Presentation policy does not bypass release checks.
 
 ## Search ownership
@@ -274,8 +289,8 @@ returns, orchestration verifies that:
 - web flags match the winner's actual cited sources; and
 - presentation policy is unchanged.
 
-Only the exact records cited by the selected candidate or memory recall leave
-this ledger. If they include book-corpus records, orchestration converts those records to the
+Only the exact records cited by the selected candidate, memory recall, or
+source bundle leave this ledger. If they include book-corpus records, orchestration converts those records to the
 canonical `EvidenceRecord` contract and adds them to the request-scoped book
 evidence index. Selected memory and web records use the separate request-scoped
 connection evidence registry. Their declarations must resolve to those exact
@@ -315,7 +330,8 @@ spoiler boundary. Web, stored-memory, and image evidence never enter this map.
 ## Where authority ends
 
 A proposal is untrusted material for Muse, not a user-facing response. The
-selected skill returns a connection proposal or decline, or a memory recall.
+selected skill returns a connection proposal or decline, a memory recall, or a
+source bundle.
 After deterministic validation, application orchestration wraps the decision
 with the exact evidence cited by the selected candidate or recall for the Muse
 tool handshake. Losing-candidate evidence stays inside the Serendipity run and
@@ -357,8 +373,8 @@ a component pass does not establish a product objective result.
 - `src/linger/agents/serendipity/tools.py` — bounded Librarian tool and guarded
   maintained Exa capability.
 - `src/linger/agents/serendipity/agent.py` — reusable Agent and output validator.
-- `src/linger/agents/serendipity/skills.py` — assigned connection-discovery and
-  memory-recall tasks.
+- `src/linger/agents/serendipity/skills.py` — assigned connection-discovery,
+  memory-recall, and source-gathering tasks.
 - `src/linger/agents/serendipity/prompt.py` — effective instruction and contract
   fingerprint exports.
 - `src/linger/orchestration/connection.py` — trusted dependency construction,

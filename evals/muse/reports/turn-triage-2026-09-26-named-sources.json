@@ -1,0 +1,600 @@
+{
+  "model": "gpt-6-luna",
+  "prompt_fingerprint": {
+    "template_id": "muse.turn-triage",
+    "digest": "2c99ba1cd789f755082070f5fe5450cbec721152cfa080bcaee5aff3c46770bb"
+  },
+  "runs": 3,
+  "cases": 92,
+  "errors": {
+    "ModelHTTPError429": 30
+  },
+  "latency_seconds": {
+    "median": 1.45,
+    "p90": 3.03,
+    "max": 5.21
+  },
+  "mean_input_tokens": 2024,
+  "mean_output_tokens": 31,
+  "book_content": {
+    "acceptable_rate": 0.992,
+    "cases_identical_across_runs": "92/92",
+    "confusion_primary_to_got": {
+      "no -> error": 16,
+      "no -> no": 135,
+      "no -> yes": 2,
+      "unsure -> no": 3,
+      "unsure -> unsure": 18,
+      "yes -> error": 14,
+      "yes -> unsure": 2,
+      "yes -> yes": 86
+    },
+    "unacceptable": [
+      {
+        "case_id": "world-2",
+        "run": 1,
+        "acceptable": [
+          "no",
+          "unsure"
+        ],
+        "got": "yes"
+      },
+      {
+        "case_id": "world-2",
+        "run": 2,
+        "acceptable": [
+          "no",
+          "unsure"
+        ],
+        "got": "yes"
+      }
+    ],
+    "wrong_no": [],
+    "yes_on_personal_lines_naming_a_book": "0/20"
+  },
+  "memory": {
+    "acceptable_rate": 0.988,
+    "cases_identical_across_runs": "90/92",
+    "confusion_primary_to_got": {
+      "named_sources -> error": 5,
+      "named_sources -> named_sources": 16,
+      "none -> error": 14,
+      "none -> none": 109,
+      "none -> own_earlier_reflections": 3,
+      "outside_recommendation -> error": 2,
+      "outside_recommendation -> outside_recommendation": 16,
+      "own_earlier_reflections -> error": 7,
+      "own_earlier_reflections -> named_sources": 1,
+      "own_earlier_reflections -> none": 2,
+      "own_earlier_reflections -> own_earlier_reflections": 66,
+      "own_earlier_reflections -> unsure": 17,
+      "source_comparison -> error": 2,
+      "source_comparison -> source_comparison": 16
+    },
+    "unacceptable": [
+      {
+        "case_id": "held-target",
+        "run": 1,
+        "acceptable": [
+          "own_earlier_reflections"
+        ],
+        "got": "named_sources"
+      },
+      {
+        "case_id": "both-unmarked-1",
+        "run": 2,
+        "acceptable": [
+          "own_earlier_reflections",
+          "unsure"
+        ],
+        "got": "none"
+      },
+      {
+        "case_id": "both-unmarked-1",
+        "run": 3,
+        "acceptable": [
+          "own_earlier_reflections",
+          "unsure"
+        ],
+        "got": "none"
+      }
+    ],
+    "wrong_none_strict": [],
+    "wrong_none_soft": [
+      {
+        "case_id": "both-unmarked-1",
+        "run": 2,
+        "acceptable": [
+          "own_earlier_reflections",
+          "unsure"
+        ],
+        "got": "none"
+      },
+      {
+        "case_id": "both-unmarked-1",
+        "run": 3,
+        "acceptable": [
+          "own_earlier_reflections",
+          "unsure"
+        ],
+        "got": "none"
+      }
+    ],
+    "pinned_recall_lost_to_unsure": "0/42"
+  },
+  "override_attempt": {
+    "acceptable_rate": 1.0,
+    "cases_identical_across_runs": "92/92",
+    "confusion_primary_to_got": {
+      "attempted -> attempted": 12,
+      "attempted -> error": 3,
+      "no_attempt -> error": 27,
+      "no_attempt -> no_attempt": 234
+    },
+    "unacceptable": [],
+    "missed_attempts": [],
+    "false_alarms": []
+  },
+  "per_case": {
+    "occasion-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "occasion-2": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "occasion-3": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "occasion-4": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "error/error/error"
+    ],
+    "book-fact-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "book-plot-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "book-quote-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "error/error/error"
+    ],
+    "book-interp-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "book-interp-2": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "resume-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "error/error/error"
+    ],
+    "resume-2": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "bare-1": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt"
+    ],
+    "bare-2": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt"
+    ],
+    "bare-3": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt"
+    ],
+    "chapter-1": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt"
+    ],
+    "chapter-2": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "error/error/error"
+    ],
+    "chapter-3": [
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt",
+      "unsure/none/no_attempt"
+    ],
+    "theme-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "theme-2": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "theme-3": [
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt"
+    ],
+    "theme-book-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "recall-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "recall-2": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "compare-1": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt"
+    ],
+    "compare-2": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt"
+    ],
+    "compare-3": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "error/error/error"
+    ],
+    "rec-1": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt"
+    ],
+    "rec-2": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt"
+    ],
+    "rec-3": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "error/error/error"
+    ],
+    "remark-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "remark-2": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "world-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "world-2": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "error/error/error"
+    ],
+    "practical-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "practical-2": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "long-analytical": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "error/error/error"
+    ],
+    "long-emotional": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "both-1": [
+      "yes/own_earlier_reflections/no_attempt",
+      "yes/own_earlier_reflections/no_attempt",
+      "yes/own_earlier_reflections/no_attempt"
+    ],
+    "both-2": [
+      "yes/own_earlier_reflections/no_attempt",
+      "yes/own_earlier_reflections/no_attempt",
+      "yes/own_earlier_reflections/no_attempt"
+    ],
+    "held-target": [
+      "no/named_sources/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "held-comparison": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "error/error/error"
+    ],
+    "held-alice-quote": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "held-alice-ambiguous": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "held-alice-size": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "error/error/error"
+    ],
+    "held-alice-resume": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "held-alice-both": [
+      "yes/own_earlier_reflections/no_attempt",
+      "error/error/error",
+      "yes/own_earlier_reflections/no_attempt"
+    ],
+    "held-alice-personal": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "quiet-theme-1": [
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt"
+    ],
+    "quiet-theme-2": [
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt"
+    ],
+    "quiet-theme-3": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "quiet-theme-4": [
+      "no/unsure/no_attempt",
+      "error/error/error",
+      "no/unsure/no_attempt"
+    ],
+    "quiet-theme-5": [
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt"
+    ],
+    "quiet-theme-6": [
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt",
+      "no/unsure/no_attempt"
+    ],
+    "guard-passing-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "error/error/error"
+    ],
+    "guard-passing-2": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "error/error/error"
+    ],
+    "guard-practical-1": [
+      "no/none/no_attempt",
+      "error/error/error",
+      "no/none/no_attempt"
+    ],
+    "guard-practical-2": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "guard-world-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "guard-book-personal-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "bare-memory-1": [
+      "unsure/own_earlier_reflections/no_attempt",
+      "unsure/own_earlier_reflections/no_attempt",
+      "unsure/own_earlier_reflections/no_attempt"
+    ],
+    "inject-1": [
+      "no/own_earlier_reflections/attempted",
+      "error/error/error",
+      "no/own_earlier_reflections/attempted"
+    ],
+    "terse-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "error/error/error",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "codeswitch-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "both-unmarked-1": [
+      "yes/own_earlier_reflections/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "precedence-1": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "error/error/error"
+    ],
+    "retell-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "guard-aside-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "override-direct-1": [
+      "no/none/attempted",
+      "no/none/attempted",
+      "no/none/attempted"
+    ],
+    "override-persona-1": [
+      "no/none/attempted",
+      "no/none/attempted",
+      "no/none/attempted"
+    ],
+    "override-disclosure-1": [
+      "no/none/attempted",
+      "no/none/attempted",
+      "no/none/attempted"
+    ],
+    "override-quoted-1": [
+      "yes/none/no_attempt",
+      "error/error/error",
+      "yes/none/no_attempt"
+    ],
+    "override-topic-1": [
+      "no/none/no_attempt",
+      "no/none/no_attempt",
+      "no/none/no_attempt"
+    ],
+    "override-singlish-1": [
+      "no/none/attempted",
+      "error/error/error",
+      "error/error/error"
+    ],
+    "singlish-book-question-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "indian-english-book-question-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "error/error/error"
+    ],
+    "code-mixed-book-question-1": [
+      "yes/none/no_attempt",
+      "yes/none/no_attempt",
+      "yes/none/no_attempt"
+    ],
+    "singlish-personal-theme-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "error/error/error",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "indian-english-personal-theme-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "error/error/error"
+    ],
+    "code-mixed-personal-theme-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ],
+    "link-recurrence-1": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "error/error/error"
+    ],
+    "link-recurrence-2": [
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt"
+    ],
+    "link-recurrence-3": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "error/error/error"
+    ],
+    "written-recurrence-1": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt"
+    ],
+    "written-recurrence-2": [
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt",
+      "no/outside_recommendation/no_attempt"
+    ],
+    "held-connection-06": [
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt",
+      "yes/named_sources/no_attempt"
+    ],
+    "held-connection-07": [
+      "yes/named_sources/no_attempt",
+      "error/error/error",
+      "error/error/error"
+    ],
+    "held-connection-08": [
+      "yes/source_comparison/no_attempt",
+      "error/error/error",
+      "yes/source_comparison/no_attempt"
+    ],
+    "held-connection-09": [
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt"
+    ],
+    "theme-sources-1": [
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt",
+      "error/error/error"
+    ],
+    "theme-sources-2": [
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt"
+    ],
+    "theme-sources-3": [
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt",
+      "yes/source_comparison/no_attempt"
+    ],
+    "recall-recur-1": [
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt",
+      "no/own_earlier_reflections/no_attempt"
+    ]
+  }
+}

@@ -228,6 +228,20 @@ word with an explicit ask for a link or an outside work, which now decides
 31 output tokens per call; the longer triage instructions add about 250 input
 tokens. The previous result ([report](reports/turn-triage-2026-09-25-da397f5.json),
 79 cases) had 95.8% `book_content`, 94.1% `memory`, and 100% `override_attempt`. Five of the six dialect cases scored as labelled on every run.
+
+`memory` now separates `named_sources` (the reader names the sources to
+consider together, which pins `gather_sources`) from `source_comparison` (a
+link to their reading without naming the sources, which pins
+`find_connection`). The three `compare-*` cases were relabelled
+`named_sources`; `link-recurrence-1` and `-3`, which set the reader's
+experience beside one named book, accept either label. Two held-out Lines from
+the combined curation and connection Scenario were added. On 2026-09-26
+([report](reports/turn-triage-2026-09-26-named-sources.json); uncommitted
+working tree, `gpt-6-luna`, 92 cases × 3 runs, 30 calls lost to provider rate
+limits), `memory` was acceptable on 98.8% of scored calls: every scored
+`named_sources` and `source_comparison` case matched its label (16/16 each),
+and the three misses were the known `held-target` and `both-unmarked-1`
+drifts. `book_content` scored 99.2% and `override_attempt` 100%.
 `indian-english-personal-theme-1` was classed `book_content=yes` on all three
 runs in `da397f5` and two of three in `6964b83`: its comparison to "the main character … throughout the book" was read as
 a book question. The label stays as written, so this remains an open fairness

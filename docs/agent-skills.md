@@ -21,6 +21,7 @@ calls or transfer application authority to a model.
 | Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
 | [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
 | Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
+| Serendipity | [Source gathering](../src/linger/agents/serendipity/skills/source-gathering/SKILL.md) | `ConnectionDiscoveryInput` → `SourceBundle` or `ConnectionDecline` | `connection_exploration` with the `gather_sources` intent; returns every named source it found without ranking, and every Librarian-judged passage and opened public page must stay in the bundle |
 | [Provenance](../src/linger/agents/provenance/README.md) · [assignment](../src/linger/agents/provenance/skills.py) | [Emotional preflight](../src/linger/agents/provenance/skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` → `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse or its tools |
 | Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, on revision, the original candidate and findings to recheck |
 | Provenance | [Curation review](../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` → `CurationProvenanceReview` | `review_curation` binds the verdict to the exact proposal and source snapshot |
@@ -47,6 +48,7 @@ flowchart LR
     Sculptor --> Surfacing[Memory surfacing]
     Serendipity --> Connection[Connection discovery]
     Serendipity --> Recall[Memory recall]
+    Serendipity --> Gathering[Source gathering]
     Provenance --> Preflight[Emotional preflight]
     Provenance --> Candidate[Candidate review]
     Provenance --> CurationReview[Curation review]
@@ -69,9 +71,10 @@ its registered output validator. Muse's candidate checks run in its
 registered validator would forbid the `TurnNeeds` contract that turn triage
 selects per run. Turn triage may also select a smaller per-run model from
 `build_triage_model`, which derives it from the `LINGER_MODEL` provider and
-falls back to `LINGER_MODEL` itself. Serendipity's fixed schema covers both of its skills, and its
+falls back to `LINGER_MODEL` itself. Serendipity's fixed schema covers all three of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
-returns `MemoryRecall` or a decline, and every other intent returns
+returns `MemoryRecall` or a decline, a `gather_sources` task returns
+`SourceBundle` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
 schemas per run. The Provenance candidate-review run also binds its typed input
 in a request-scoped context so its skill-selected output validator can retry
@@ -127,8 +130,9 @@ offered to the draft and to any revision:
 
 `book_content` of `yes` or `unsure` adds `librarian_route` and
 `librarian_search`. Any `memory` value except `none` adds `serendipity_explore`,
-and `own_earlier_reflections`, `source_comparison`, and `outside_recommendation`
-pin its `intent` to `recall_memory`, `find_connection`, and `get_recommendation`.
+and `own_earlier_reflections`, `named_sources`, `source_comparison`, and
+`outside_recommendation` pin its `intent` to `recall_memory`, `gather_sources`,
+`find_connection`, and `get_recommendation`.
 `unsure`, or a tool offered only because it ran earlier, leaves the intent open.
 A confirmed reading context or a pending clarification always adds the book
 tools. Only tools that ran in a released turn are remembered, matching the
@@ -352,13 +356,20 @@ candidate or stored curation, and deterministic application checks still apply.
 
 Chat uses Muse reflection, Librarian boundary inference, independent event
 identification, book-request planning, and evidence assessment when needed,
-optional Serendipity connection discovery or memory recall, and the two
-Provenance conversation skills. Plain personal recall is Serendipity's separate
+optional Serendipity connection discovery, memory recall, or source gathering,
+and the two Provenance conversation skills. Plain personal recall is Serendipity's separate
 memory-recall skill: when Muse passes `intent="recall_memory"` and the account
 has active memories, it searches only the curated retrieval view and returns
 the one to three records that are the reader's own earlier words on the cue,
 or a `no_matching_memory` decline. Recalled records take the ordinary
-Provenance and release path. Reviewed automatic capture stays under the
+Provenance and release path. When the reader names the sources to consider
+together, triage returns `named_sources` and Muse passes
+`intent="gather_sources"`: Serendipity inspects each named book, public text,
+and earlier note, and returns one `SourceBundle` with every supporting record
+plus the named sources it could not find. It does not build or rank competing
+connections, because the reader has already chosen them; Muse writes the
+comparison. Open-ended discovery ("anything I've read") keeps
+`find_connection` and its shortlist. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 
 `run_curation_loop` implements reviewed curation as a callable application

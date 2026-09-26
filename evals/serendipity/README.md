@@ -91,7 +91,9 @@ Each current JSON case contains:
 
 Case files never contain a reader-visible expected reply. The expected output is
 always `ConnectionProposal | MemoryRecall | ConnectionDecline` because that is
-the boundary Serendipity owns.
+the boundary Serendipity owns. The `source-gathering` skill's `SourceBundle`
+has no component cases yet; its contract is covered by unit tests and the
+cross-source connection replay.
 
 Expectations can name evidence in four ways:
 

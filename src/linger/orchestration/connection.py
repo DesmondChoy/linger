@@ -34,12 +34,18 @@ from src.linger.agents.serendipity.models import (
     DeclineReason,
     MemoryRecall,
     SerendipityResponse,
+    SourceBundle,
 )
 from src.linger.agents.serendipity.prompt import (
     MEMORY_RECALL_PROMPT_FINGERPRINT,
     PROMPT_FINGERPRINT,
+    SOURCE_GATHERING_PROMPT_FINGERPRINT,
 )
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.serendipity.skills import (
+    CONNECTION_DISCOVERY,
+    MEMORY_RECALL,
+    SOURCE_GATHERING,
+)
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.agents.serendipity.tools import (
@@ -145,7 +151,9 @@ def _build_task(
         cue=brief.cue,
         intent=brief.intent,
         presentation=(
-            "direct" if brief.intent == "get_recommendation" else "ask_before_showing"
+            # The reader asked for these sources, so they are shown, not offered.
+            "direct" if brief.intent in {"get_recommendation", "gather_sources"}
+            else "ask_before_showing"
         ),
         scope=ConnectionScope(
             allowed_sources=tuple(allowed_sources),
@@ -176,9 +184,17 @@ async def _agent_explorer(
     librarian: Librarian,
 ) -> ExplorationResult:
     """Run the skill the intent selects over its bounded, granted searches."""
-    recalling = task.intent == "recall_memory"
-    skill = MEMORY_RECALL if recalling else CONNECTION_DISCOVERY
-    fingerprint = MEMORY_RECALL_PROMPT_FINGERPRINT if recalling else PROMPT_FINGERPRINT
+    skill, fingerprint, span_name, stage = {
+        "recall_memory": (
+            MEMORY_RECALL, MEMORY_RECALL_PROMPT_FINGERPRINT, "serendipity.recall", "memory_recall",
+        ),
+        "gather_sources": (
+            SOURCE_GATHERING, SOURCE_GATHERING_PROMPT_FINGERPRINT,
+            "serendipity.gather", "source_gathering",
+        ),
+    }.get(task.intent, (
+        CONNECTION_DISCOVERY, PROMPT_FINGERPRINT, "serendipity.discovery", "search_rank_select",
+    ))
     deps = SerendipityDependencies(
         task=task,
         librarian=librarian,
@@ -189,9 +205,9 @@ async def _agent_explorer(
     result = await run_agent_traced(
         serendipity_agent,
         task.model_dump_json(),
-        span_name="serendipity.recall" if recalling else "serendipity.discovery",
+        span_name=span_name,
         role="Serendipity",
-        stage="memory_recall" if recalling else "search_rank_select",
+        stage=stage,
         input_contract=(
             "src.linger.agents.serendipity.models.ConnectionDiscoveryInput"
         ),
@@ -262,8 +278,22 @@ def _validate_response(
             if task.intent == "recall_memory"
             else "No connection cleared the current evidence and safety checks.",
         )
-    if (task.intent == "recall_memory") != isinstance(response, MemoryRecall):
+    expected = {"recall_memory": MemoryRecall, "gather_sources": SourceBundle}.get(
+        task.intent, ConnectionProposal
+    )
+    if not isinstance(response, expected):
         raise InvalidConnectionResponse("Serendipity's result does not match the intent")
+    if isinstance(response, SourceBundle):
+        if not run.searches:
+            raise InvalidConnectionResponse(
+                "Serendipity gathered sources without searching them"
+            )
+        unknown_ids = set(response.evidence_ids) - set(evidence)
+        if unknown_ids:
+            raise InvalidConnectionResponse(
+                f"Serendipity gathered unknown evidence: {sorted(unknown_ids)}"
+            )
+        return response
     if isinstance(response, MemoryRecall):
         if not run.searches:
             raise InvalidConnectionResponse(
@@ -356,7 +386,7 @@ async def connection_exploration(
             result = _validate_response(run, task)
             if isinstance(result, ConnectionProposal):
                 selected_evidence_ids = set(result.selected_candidate.evidence_ids)
-            elif isinstance(result, MemoryRecall):
+            elif isinstance(result, (MemoryRecall, SourceBundle)):
                 selected_evidence_ids = set(result.evidence_ids)
             else:
                 selected_evidence_ids = set()

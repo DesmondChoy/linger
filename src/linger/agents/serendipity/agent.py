@@ -10,6 +10,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     MemoryRecall,
     SerendipityResponse,
+    SourceBundle,
 )
 from src.linger.agents.serendipity.skills import SHARED_INSTRUCTIONS
 from src.linger.agents.serendipity.tools import (
@@ -28,6 +29,40 @@ def _prepare_memory_search(
     return definition if "memory" in ctx.deps.task.scope.allowed_sources else None
 
 
+def _validate_bundle(
+    ctx: RunContext[SerendipityDependencies], output: SourceBundle,
+) -> SourceBundle:
+    """Keep every Librarian-judged passage and opened page; cite only this run's records."""
+    unknown_ids = sorted(set(output.evidence_ids) - set(ctx.deps.evidence))
+    if unknown_ids:
+        urls = [evidence_id for evidence_id in unknown_ids if evidence_id.startswith(("http://", "https://"))]
+        if urls and "web" in ctx.deps.task.scope.allowed_sources:
+            raise ModelRetry(
+                "A web_search result is only a lead. Open each named page with get_page "
+                f"before gathering it: {urls}. Then cite only evidence IDs recorded by get_page."
+            )
+        raise ModelRetry(
+            "Every gathered evidence_id must exactly match evidence returned by a "
+            f"search tool in this run. Remove or replace these unresolved IDs: {unknown_ids}."
+        )
+    omitted_books = sorted(
+        evidence_id for evidence_id, item in ctx.deps.evidence.items()
+        if item.source_kind == "book_corpus" and evidence_id not in output.evidence_ids
+    )
+    if omitted_books:
+        raise ModelRetry(
+            "Librarian already judged these book passages relevant to the sources the "
+            f"reader named. Include every one of them in evidence_ids: {omitted_books}."
+        )
+    omitted_pages = sorted(set(ctx.deps.opened_web_evidence) - set(output.evidence_ids))
+    if omitted_pages:
+        raise ModelRetry(
+            "You opened these pages for the public texts the reader named. An opened "
+            f"page's evidence ID is its exact URL; include each one in evidence_ids: {omitted_pages}."
+        )
+    return output
+
+
 def validate_serendipity_output(
     ctx: RunContext[SerendipityDependencies],
     output: SerendipityResponse,
@@ -35,12 +70,17 @@ def validate_serendipity_output(
     """Retry results that mismatch the task, its evidence, or the winner's flags."""
     if isinstance(output, ConnectionDecline):
         return output
-    recalling = ctx.deps.task.intent == "recall_memory"
-    if recalling != isinstance(output, MemoryRecall):
+    expected = {"recall_memory": MemoryRecall, "gather_sources": SourceBundle}.get(
+        ctx.deps.task.intent, ConnectionProposal
+    )
+    if not isinstance(output, expected):
         raise ModelRetry(
-            "A recall_memory task returns a recall or a decline; every other "
-            "intent returns a proposal or a decline."
+            "A recall_memory task returns a recall or a decline; a gather_sources "
+            "task returns a bundle or a decline; every other intent returns a "
+            "proposal or a decline."
         )
+    if isinstance(output, SourceBundle):
+        return _validate_bundle(ctx, output)
     if isinstance(output, MemoryRecall):
         returned_ids = {
             item.evidence_id
@@ -100,7 +140,7 @@ def build_serendipity_agent(
         model if model is not None else build_model(),
         name="Serendipity",
         deps_type=SerendipityDependencies,
-        output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall],
+        output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall, SourceBundle],
         instructions=SHARED_INSTRUCTIONS,
         tools=[
             Tool(search_librarian, max_retries=1, prepare=prepare_librarian_search),
