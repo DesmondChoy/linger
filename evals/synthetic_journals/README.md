@@ -301,10 +301,10 @@ handler or the curation loop. Capture Scenes start fresh chats and
 retain actual capture state across those chats. Curation receives only its
 designated active Props; those Props never enter capture storage. Captured
 records never become curation inputs. Curation calls production Sculptor, then
-uses a controlled allowing Provenance adapter for application and audit in an
+uses production Provenance for the curation review, application, and audit in an
 isolated store. It grades the proposal, expected loop outcome, and source
-preservation. This combined runner does not measure the production curation
-reviewer's decisions. Semantic quality remains a separate review.
+preservation, including production Provenance rejection or revision decisions.
+Semantic quality remains a separate review.
 
 The same combined runner is registered for the review and guided-run workflows.
 It does not implement conversational capture-triggered curation or surfacing.

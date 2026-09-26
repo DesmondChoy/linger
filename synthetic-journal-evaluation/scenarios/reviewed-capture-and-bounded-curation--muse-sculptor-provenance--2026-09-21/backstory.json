@@ -1,0 +1,517 @@
+{
+  "objective_ids": [
+    "reviewed_automatic_memory_capture",
+    "bounded_memory_curation"
+  ],
+  "run_configuration_ids": [
+    "reviewed-automatic-memory-capture-10-to-1"
+  ],
+  "backstory": {
+    "backstory_id": "backstory-nora-2026-09-22",
+    "person_id": "person-nora",
+    "evaluation_account_id": "eval-account-nora-2026-09-22",
+    "context": "Nora keeps a quiet personal notebook about ordinary routines, drawing, cooking, and evening habits. Over several weeks, she has accumulated short reflections, repeated observations, and practical notes in one evaluation account."
+  },
+  "props": [
+    {
+      "prop_id": "prop-exact-1",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "I usually read for twenty minutes before bed.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-exact",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-exact-2",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "I usually read for twenty minutes before bed.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-exact",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-1",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "Sketching after work helps me settle down.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-paraphrase",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-2",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "I unwind in the evening by drawing for a while.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-paraphrase",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-evolving-1",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "A short walk after work clears my head.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-evolving",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-evolving-2",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "Rain is fine, but I prefer walking without headphones.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-evolving",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-evolving-3",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "I now take the riverside path after work because the quieter route helps me reset.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-evolving",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-evolving-noise",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "The number 14 bus was late this morning.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-evolving",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-related-1",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "A quiet cup of tea helps me shift out of work mode.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-related",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-related-2",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "Reading fiction is another gentle end-of-day ritual.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-related",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-related-3",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "A few minutes of sketching helps me ease into the evening.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-related",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-related-noise",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "I need to replace the kitchen tap washer.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-related",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-1",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "Alice showed me how to book the meeting room.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-superficial",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-2",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "The database book uses Alice as a sample user.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-superficial",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-3",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "person_id": "person-nora",
+      "evaluation_account_id": "eval-account-nora-2026-09-22",
+      "source_text": "The Alice printout is beside the blue folder.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-curation-superficial",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-capture-01",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-01"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-02",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-02"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-03",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-03"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-04",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-04"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-05",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-05"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-06",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 6,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-06"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-07",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 7,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-07"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-08",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 8,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-08"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-09",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 9,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-09"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-10",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 10,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-10"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-capture-11",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 11,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-capture-11"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-curation-exact",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 12,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-exact-1",
+        "prop-exact-2"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-curation-paraphrase",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 13,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-paraphrase-1",
+        "prop-paraphrase-2"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-curation-evolving",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 14,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-evolving-1",
+        "prop-evolving-2",
+        "prop-evolving-3",
+        "prop-evolving-noise"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-curation-related",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 15,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-related-1",
+        "prop-related-2",
+        "prop-related-3",
+        "prop-related-noise"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-curation-superficial",
+      "backstory_id": "backstory-nora-2026-09-22",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 16,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-superficial-1",
+        "prop-superficial-2",
+        "prop-superficial-3"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-capture-01",
+      "scene_id": "scene-capture-01",
+      "order": 1,
+      "text": "I put the lentils on the stove and will check them in ten minutes."
+    },
+    {
+      "line_id": "line-capture-02",
+      "scene_id": "scene-capture-02",
+      "order": 1,
+      "text": "I lost my train of thought for a moment, but it will come back."
+    },
+    {
+      "line_id": "line-capture-03",
+      "scene_id": "scene-capture-03",
+      "order": 1,
+      "text": "The clouds turned pink for a minute after the rain."
+    },
+    {
+      "line_id": "line-capture-04",
+      "scene_id": "scene-capture-04",
+      "order": 1,
+      "text": "I will take the 6:20 train tonight and pick up dinner afterward."
+    },
+    {
+      "line_id": "line-capture-05",
+      "scene_id": "scene-capture-05",
+      "order": 1,
+      "text": "I watered the basil and folded the towels before logging on."
+    },
+    {
+      "line_id": "line-capture-06",
+      "scene_id": "scene-capture-06",
+      "order": 1,
+      "text": "The hallway light flickered once and then stopped."
+    },
+    {
+      "line_id": "line-capture-07",
+      "scene_id": "scene-capture-07",
+      "order": 1,
+      "text": "I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+    },
+    {
+      "line_id": "line-capture-08",
+      "scene_id": "scene-capture-08",
+      "order": 1,
+      "text": "The cafe downstairs has a long queue this afternoon."
+    },
+    {
+      "line_id": "line-capture-09",
+      "scene_id": "scene-capture-09",
+      "order": 1,
+      "text": "I left my tote by the front door for the market later."
+    },
+    {
+      "line_id": "line-capture-10",
+      "scene_id": "scene-capture-10",
+      "order": 1,
+      "text": "Lunch was noodles, cucumber, and a pear today."
+    },
+    {
+      "line_id": "line-capture-11",
+      "scene_id": "scene-capture-11",
+      "order": 1,
+      "text": "My desk feels oddly quiet with the fan switched off."
+    }
+  ],
+  "offline_inputs": []
+}

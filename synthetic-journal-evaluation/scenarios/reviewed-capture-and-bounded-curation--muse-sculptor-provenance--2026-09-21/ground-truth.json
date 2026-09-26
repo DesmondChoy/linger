@@ -1,0 +1,598 @@
+{
+  "backstory_sha256": "ded5b1b32002546810a39395b53b87e663b063948ddb9883aef2ab7fd8c5af38",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-scene-capture-01",
+      "scene_id": "scene-capture-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the temporary cooking logistics as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-02",
+      "scene_id": "scene-capture-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the fleeting conversational filler as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-03",
+      "scene_id": "scene-capture-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the short-lived weather observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-04",
+      "scene_id": "scene-capture-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the one-evening travel plan as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-05",
+      "scene_id": "scene-capture-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the routine household update as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-06",
+      "scene_id": "scene-capture-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the brief ordinary observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-07",
+      "scene_id": "scene-capture-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse nominates exactly the durable reflection as one MemoryCandidate bound to the current Line.",
+        "Provenance allows the policy-compliant candidate after reviewing the complete response.",
+        "The application stores exactly one immutable record whose text equals the nominated Line span when capture is enabled."
+      ],
+      "prohibited_outcomes": [
+        "The nomination is paraphrased, extended beyond the Line, or stored without the Provenance and policy gates.",
+        "The deterministic privacy screen or account policy is bypassed.",
+        "A retry creates a duplicate or changes the original record."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "capture_candidate",
+          "span": {
+            "source_kind": "line",
+            "source_id": "line-capture-07",
+            "start_codepoint": 21,
+            "end_codepoint": 120,
+            "text": "sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+          }
+        },
+        "provenance_decision": "allow_capture"
+      },
+      "pairing": {
+        "paired_scene_id": "scene-capture-08",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-08",
+      "scene_id": "scene-capture-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the temporary queue observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-09",
+      "scene_id": "scene-capture-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the same-day market reminder as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-10",
+      "scene_id": "scene-capture-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the routine lunch update as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-capture-11",
+      "scene_id": "scene-capture-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the short-lived desk observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-curation-exact",
+      "scene_id": "scene-curation-exact",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited_outcomes": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-1",
+          "start_codepoint": 0,
+          "end_codepoint": 45,
+          "text": "I usually read for twenty minutes before bed."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-2",
+          "start_codepoint": 0,
+          "end_codepoint": 45,
+          "text": "I usually read for twenty minutes before bed."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-exact-1",
+          "prop_id": "prop-exact-1"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-exact-2",
+          "prop_id": "prop-exact-2"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-exact-1",
+              "prop-exact-2"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-curation-paraphrase",
+      "scene_id": "scene-curation-paraphrase",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited_outcomes": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-1",
+          "start_codepoint": 0,
+          "end_codepoint": 42,
+          "text": "Sketching after work helps me settle down."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-2",
+          "start_codepoint": 0,
+          "end_codepoint": 47,
+          "text": "I unwind in the evening by drawing for a while."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-paraphrase-1",
+          "prop_id": "prop-paraphrase-1"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-paraphrase-2",
+          "prop_id": "prop-paraphrase-2"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-paraphrase-1",
+              "prop-paraphrase-2"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-curation-evolving",
+      "scene_id": "scene-curation-evolving",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited_outcomes": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-evolving-1",
+          "start_codepoint": 0,
+          "end_codepoint": 39,
+          "text": "A short walk after work clears my head."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-evolving-2",
+          "start_codepoint": 0,
+          "end_codepoint": 54,
+          "text": "Rain is fine, but I prefer walking without headphones."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-evolving-3",
+          "start_codepoint": 0,
+          "end_codepoint": 82,
+          "text": "I now take the riverside path after work because the quieter route helps me reset."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-evolving-noise",
+          "start_codepoint": 0,
+          "end_codepoint": 40,
+          "text": "The number 14 bus was late this morning."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-evolving-1",
+          "prop_id": "prop-evolving-1"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-evolving-2",
+          "prop_id": "prop-evolving-2"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-evolving-3",
+          "prop_id": "prop-evolving-3"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-evolving-noise",
+          "prop_id": "prop-evolving-noise"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-evolving-1",
+              "prop-evolving-3"
+            ],
+            "max_summary_words": 100,
+            "semantic_review": {
+              "criteria": [
+                "The summary faithfully compresses the cited source memories and preserves their material distinctions."
+              ],
+              "forbidden_claims": [
+                "Facts, causes, emotions, preferences, or conclusions unsupported by the cited source memories."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-curation-related",
+      "scene_id": "scene-curation-related",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited_outcomes": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-related-1",
+          "start_codepoint": 0,
+          "end_codepoint": 51,
+          "text": "A quiet cup of tea helps me shift out of work mode."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-related-2",
+          "start_codepoint": 0,
+          "end_codepoint": 52,
+          "text": "Reading fiction is another gentle end-of-day ritual."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-related-3",
+          "start_codepoint": 0,
+          "end_codepoint": 58,
+          "text": "A few minutes of sketching helps me ease into the evening."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-related-noise",
+          "start_codepoint": 0,
+          "end_codepoint": 41,
+          "text": "I need to replace the kitchen tap washer."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-related-1",
+          "prop_id": "prop-related-1"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-related-2",
+          "prop_id": "prop-related-2"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-related-3",
+          "prop_id": "prop-related-3"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-related-noise",
+          "prop_id": "prop-related-noise"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-related-1",
+              "prop-related-2",
+              "prop-related-3"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The topic label names a theme supported by every cited source memory while preserving them as related, distinct records."
+              ],
+              "forbidden_claims": [
+                "Treating related memories as duplicates, grouping unrelated memories, or inventing a theme unsupported by the cited source memories."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-scene-curation-superficial",
+      "scene_id": "scene-curation-superficial",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited_outcomes": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-1",
+          "start_codepoint": 0,
+          "end_codepoint": 45,
+          "text": "Alice showed me how to book the meeting room."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-2",
+          "start_codepoint": 0,
+          "end_codepoint": 46,
+          "text": "The database book uses Alice as a sample user."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-3",
+          "start_codepoint": 0,
+          "end_codepoint": 45,
+          "text": "The Alice printout is beside the blue folder."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-superficial-1",
+          "prop_id": "prop-superficial-1"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-superficial-2",
+          "prop_id": "prop-superficial-2"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-superficial-3",
+          "prop_id": "prop-superficial-3"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        }
+      }
+    }
+  ]
+}

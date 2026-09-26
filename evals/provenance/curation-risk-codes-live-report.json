@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T15:11:25.317694Z",
+  "generated_at": "2026-09-22T13:46:49.705519Z",
   "case_set_id": "provenance-curation-risk-codes-v1",
   "gate_id": "provenance.curation-gate",
   "model": "configured",
   "prompt_template_id": "provenance.curation-gate",
-  "prompt_digest": "80ca9de4be0395892892d693227c85c84e1e640fd1dcbf2e6e4cd5a4c47e0d8f",
+  "prompt_digest": "de2b09666851cc003b980fc8f2547f5a9273038aa43b35456cb06fb72bb4cd55",
   "summary": {
     "case_count": 12,
     "positive_recall": 1.0,
-    "near_miss_precision": 0.6667,
+    "near_miss_precision": 1.0,
     "code_recall": 1.0,
-    "targets_pass": false
+    "targets_pass": true
   },
   "cases": [
     {
@@ -29,7 +29,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 5641.3
+      "latency_ms": 6179.3
     },
     {
       "case_id": "provenance-curation-risk-incoherent-topic-negative-v1",
@@ -43,7 +43,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 2036.9
+      "latency_ms": 3252.9
     },
     {
       "case_id": "provenance-curation-risk-incorrect-duplicate-positive-v1",
@@ -60,7 +60,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 2709.1
+      "latency_ms": 9583.7
     },
     {
       "case_id": "provenance-curation-risk-incorrect-duplicate-negative-v1",
@@ -74,7 +74,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 2700.2
+      "latency_ms": 2047.5
     },
     {
       "case_id": "provenance-curation-risk-invalid-restore-positive-v1",
@@ -91,7 +91,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 3271.1
+      "latency_ms": 3020.0
     },
     {
       "case_id": "provenance-curation-risk-invalid-restore-negative-v1",
@@ -100,14 +100,12 @@
         "allow"
       ],
       "expected_code": null,
-      "actual_decision": "reject",
-      "actual_codes": [
-        "invalid_restore"
-      ],
-      "passed": false,
-      "failure_code": "decision_mismatch",
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
       "error_type": null,
-      "latency_ms": 3607.8
+      "latency_ms": 2611.6
     },
     {
       "case_id": "provenance-curation-risk-prompt-injection-positive-v1",
@@ -125,7 +123,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 3580.9
+      "latency_ms": 3512.5
     },
     {
       "case_id": "provenance-curation-risk-prompt-injection-negative-v1",
@@ -134,14 +132,12 @@
         "allow"
       ],
       "expected_code": null,
-      "actual_decision": "revise",
-      "actual_codes": [
-        "unsupported_derivation"
-      ],
-      "passed": false,
-      "failure_code": "decision_mismatch",
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
       "error_type": null,
-      "latency_ms": 4116.6
+      "latency_ms": 3247.9
     },
     {
       "case_id": "provenance-curation-risk-unsafe-tombstone-positive-v1",
@@ -158,7 +154,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 5535.0
+      "latency_ms": 3069.3
     },
     {
       "case_id": "provenance-curation-risk-unsafe-tombstone-negative-v1",
@@ -172,7 +168,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 2434.5
+      "latency_ms": 2190.6
     },
     {
       "case_id": "provenance-curation-risk-unsupported-derivation-positive-v1",
@@ -189,7 +185,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 3277.1
+      "latency_ms": 3031.1
     },
     {
       "case_id": "provenance-curation-risk-unsupported-derivation-negative-v1",
@@ -203,7 +199,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 3071.1
+      "latency_ms": 2562.2
     }
   ]
 }
