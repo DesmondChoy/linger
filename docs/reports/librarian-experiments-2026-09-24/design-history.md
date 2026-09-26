@@ -1,5 +1,8 @@
 # How the Librarian design evolved
 
+[Open the visual HTML report](design-history.html) for the interactive decision
+timeline, architecture comparison, and illustrated failure examples.
+
 Prepared September 24, 2026 from repository history and Beads, with
 `librarian-attempts` at `1facc55` as the source snapshot. This report explains
 the decisions from the first August 10 design through the September repair
