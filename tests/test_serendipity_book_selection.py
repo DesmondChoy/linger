@@ -327,3 +327,38 @@ def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pi
         reset_tool_exposure(token)
 
     assert task.scope.search_all_granted_books is expected
+
+
+def test_unnamed_discovery_winner_must_cite_a_book_and_the_named_public_text():
+    # Runs 10-11: the winner paired Hume with a memory and left out the book that spoke to the question.
+    from src.linger.agents.serendipity.agent import validate_serendipity_output
+    from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
+    from tests.test_serendipity import candidate, proposal
+
+    url = "https://example.org/bundle"
+    book = passage(SCOPES[0])
+    page = WebConnectionEvidence(evidence_id=url, title="Essay", excerpt="A bundle of perceptions.")
+    note = MemoryConnectionEvidence(evidence_id="mem-1", excerpt="I promised to host.")
+    deps = unnamed_discovery(EmptyLibrarian())
+    deps.task = deps.task.model_copy(update={"scope": deps.task.scope.model_copy(update={
+        "allowed_sources": ("book_corpus", "memory", "web"), "web_source_urls": (url,),
+    })})
+    deps.record("book_corpus", "search_librarian", "evidence_found", (book,))
+    deps.record("web", "get_page", "evidence_found", (page,))
+    deps.opened_web_evidence[url] = page
+    deps.record("memory", "search_memories", "evidence_found", (note,))
+    ctx = SimpleNamespace(deps=deps)
+
+    def ranked(first, second):
+        return proposal(
+            shortlist=(candidate("candidate-first", 1, evidence_ids=first), candidate("candidate-second", 2, evidence_ids=second)),
+            selected_candidate_id="candidate-first", policy_flags=("contains_web_claim",),
+        )
+
+    with pytest.raises(ModelRetry, match=book.evidence_id):
+        validate_serendipity_output(ctx, ranked((url, note.evidence_id), (book.evidence_id, url)))
+    with pytest.raises(ModelRetry, match=url):
+        validate_serendipity_output(ctx, ranked((book.evidence_id, note.evidence_id), (url,)).model_copy(
+            update={"policy_flags": ()}))
+    accepted = ranked((book.evidence_id, url, note.evidence_id), (url, note.evidence_id))
+    assert validate_serendipity_output(ctx, accepted) == accepted

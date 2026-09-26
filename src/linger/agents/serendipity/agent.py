@@ -126,6 +126,31 @@ def validate_serendipity_output(
             "by a search tool in this run. Remove or replace these unresolved "
             f"IDs: {sorted(unknown_ids)}."
         )
+    if scope.search_all_granted_books:
+        winner_ids = set(output.selected_candidate.evidence_ids)
+        if not any(ctx.deps.evidence[evidence_id].source_kind == "book_corpus" for evidence_id in winner_ids):
+            books = sorted(
+                evidence_id for evidence_id, item in ctx.deps.evidence.items()
+                if item.source_kind == "book_corpus"
+            )
+            raise ModelRetry(
+                "The reader asked whether anything they have read speaks to their question, "
+                "so the selected candidate must cite a book passage that addresses the question "
+                f"they actually ask. Librarian judged these passages relevant to it: {books}. "
+                "Build the winning candidate on the one that speaks to that question, keeping "
+                "the other sources the reader referred to."
+                if books else
+                "The reader asked whether anything they have read speaks to their question, but "
+                "no book passage was returned, so no candidate can answer it. Decline."
+            )
+        omitted_pages = sorted(
+            (set(ctx.deps.opened_web_evidence) & set(scope.web_source_urls or ())) - winner_ids
+        )
+        if omitted_pages:
+            raise ModelRetry(
+                "The selected candidate must also cite the public text the reader referred "
+                f"to, whose opened page's evidence ID is its exact URL: {omitted_pages}."
+            )
     winner_has_web = any(
         ctx.deps.evidence[evidence_id].source_kind == "web"
         for evidence_id in output.selected_candidate.evidence_ids
