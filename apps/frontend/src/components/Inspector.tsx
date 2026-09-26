@@ -225,18 +225,6 @@ function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
 export function Inspector({ timeline, selectedTurnId, onSelectTurn }: Props) {
   return (
     <section className="inspector" aria-label="Agent activity inspector">
-      <div className="inspector-heading">
-        <p className="eyebrow">Inspect</p>
-        <h2>How Linger handles each message</h2>
-        <p>
-          Each card is one message and its resulting reply. Books are optional context: a confirmed reading
-          boundary enables spoiler-safe book retrieval, while reflection and permitted public-web connections
-          can proceed without one. Muse drafts ordinary candidates; the application owns fixed boundary and
-          safe-decline responses. Inspect exposes only approved contracts and fixed outcome metadata.
-        </p>
-        <p className="process-key">Reader message → no-tool boundary preflight → source grants → Muse → optional Serendipity handoff → Provenance release decision</p>
-      </div>
-
       <section className="process-timeline" aria-label="Turn-by-turn processing timeline">
         <div className="timeline-heading">
           <p className="eyebrow">Processing timeline</p>

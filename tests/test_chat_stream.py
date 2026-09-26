@@ -21,6 +21,7 @@ with patch.dict(
     },
 ):
     from apps.backend import chat_turn, main
+    from apps.backend.auth import current_account
     from apps.backend.telemetry import run_agent_traced
     from src.linger.contracts.emotional import EmotionalBoundaryAssessment
     from src.linger.orchestration.progress_context import emit_progress
@@ -53,7 +54,10 @@ class ChatStreamTests(unittest.TestCase):
         self._memory_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self._memory_directory.cleanup)
         main.memory_service = MemoryPolicyService(Path(self._memory_directory.name))
-        main.memory_context = AccountContext("chat-stream-test")
+        main.app.dependency_overrides[current_account] = lambda: AccountContext(
+            "chat-stream-test"
+        )
+        self.addCleanup(main.app.dependency_overrides.pop, current_account)
         boundary = patch.object(
             chat_turn,
             "assess_emotional_boundary",

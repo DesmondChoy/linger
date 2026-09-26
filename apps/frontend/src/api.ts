@@ -1,6 +1,70 @@
-import type { ChatResult, ProgressEvent, TraceReference } from './types'
+import type {
+  ChatResult,
+  ProgressEvent,
+  Conversation,
+  TraceReference,
+} from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
+
+let accessToken: string | undefined
+let onUnauthorized: () => void = () => {}
+
+/** Set by the sign-in layer; account-scoped requests carry it as a bearer token. */
+export function setAccessToken(token: string | undefined) {
+  accessToken = token
+}
+
+/** Called when the server no longer accepts the token, so the app can sign out. */
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorized = handler
+}
+
+async function accountFetch(
+  url: string,
+  init: Omit<RequestInit, 'headers'> & { headers?: Record<string, string> } = {},
+): Promise<Response> {
+  const response = await fetch(url, { ...init, headers: { ...init.headers, ...authHeaders() } })
+  if (response.status === 401) onUnauthorized()
+  return response
+}
+
+export type SignedIn = { username: string, token: string }
+
+export class SignInError extends Error {}
+
+/** Create an account (`signup`) or sign in to an existing one (`login`). */
+export async function signIn(
+  mode: 'login' | 'signup',
+  username: string,
+  password: string,
+): Promise<SignedIn> {
+  const response = await fetch(`${BASE_URL}/api/auth/${mode}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
+  const payload: unknown = await response.json().catch(() => null)
+  if (!response.ok) {
+    const detail = isRecord(payload) ? payload.detail : undefined
+    throw new SignInError(
+      typeof detail === 'string'
+        ? detail
+        : response.status === 422
+          ? 'Usernames need 3–32 letters, numbers, dots, dashes or underscores; passwords at least 6 characters.'
+          : `Sign-in failed (${response.status})`,
+    )
+  }
+  return payload as SignedIn
+}
+
+export async function signOut(): Promise<void> {
+  await fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', headers: authHeaders() }).catch(() => {})
+}
+
+function authHeaders(): Record<string, string> {
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+}
 
 export class ChatRequestError extends Error {
   readonly trace?: TraceReference
@@ -27,7 +91,7 @@ export async function sendMessage(
   turnId: string,
   onProgress: (event: ProgressEvent) => void,
 ): Promise<ChatResult> {
-  const response = await fetch(`${BASE_URL}/api/chat/stream`, {
+  const response = await accountFetch(`${BASE_URL}/api/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId, turn_id: turnId, message }),
@@ -126,11 +190,20 @@ function isTraceReference(value: unknown): value is TraceReference {
     && /^[0-9a-f]{32}$/.test(String(value.trace_id))
 }
 
-export async function resetSession(sessionId: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/api/sessions/${encodeURIComponent(sessionId)}`, {
-    method: 'DELETE',
-  })
+function sessionUrl(sessionId: string): string {
+  return `${BASE_URL}/api/sessions/${encodeURIComponent(sessionId)}`
+}
+
+/** Every saved conversation of the signed-in reader, oldest first. */
+export async function loadHistory(): Promise<Conversation[]> {
+  const response = await accountFetch(`${BASE_URL}/api/history`)
+  if (!response.ok) throw new Error(`Could not load earlier chats (${response.status})`)
+  return response.json() as Promise<Conversation[]>
+}
+
+export async function deleteSession(sessionId: string): Promise<void> {
+  const response = await accountFetch(sessionUrl(sessionId), { method: 'DELETE' })
   if (!response.ok) {
-    throw new Error(`Reset failed (${response.status})`)
+    throw new Error(`Delete failed (${response.status})`)
   }
 }

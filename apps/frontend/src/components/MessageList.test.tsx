@@ -110,4 +110,20 @@ describe('MessageList', () => {
     expect(html).not.toContain('<a ')
     expect(html).toContain('javascript:alert(1)')
   })
+
+  it('marks where each saved conversation starts in the one feed', () => {
+    const messages: Message[] = [
+      { id: 'a1', role: 'user', content: 'First visit', sessionId: 's1', createdAt: '2026-09-20T10:00:00Z' },
+      { id: 'a1-r', role: 'assistant', content: 'Reply one', sessionId: 's1' },
+      { id: 'b1', role: 'user', content: 'Second visit', sessionId: 's2', createdAt: '2026-09-25T10:00:00Z' },
+      { id: 'b1-r', role: 'assistant', content: 'Reply two', sessionId: 's2' },
+    ]
+    const html = renderToStaticMarkup(
+      <MessageList messages={messages} pending={false} onDeleteConversation={() => {}} />,
+    )
+
+    expect(html.match(/conversation-divider/g)).toHaveLength(2)
+    expect(html.indexOf('First visit')).toBeLessThan(html.indexOf('Second visit'))
+    expect(html).toContain('Delete')
+  })
 })

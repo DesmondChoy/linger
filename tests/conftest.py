@@ -82,3 +82,24 @@ def offline_retrieval_models(request, monkeypatch):
     monkeypatch.setattr(
         HybridLibrarian, "_reranker_model", lambda self: reranker if self._reranker is None else self._reranker
     )
+
+
+@pytest.fixture(autouse=True)
+def isolated_accounts_and_transcripts(tmp_path_factory, monkeypatch):
+    """Keep tests off the repository's databases, signed in as one test reader."""
+    import sys
+
+    main = sys.modules.get("apps.backend.main")
+    if main is None:
+        yield
+        return
+    from apps.backend import auth
+    from apps.backend.accounts import AccountStore
+    from apps.backend.transcripts import TranscriptStore
+
+    directory = tmp_path_factory.mktemp("stores")
+    monkeypatch.setattr(main, "transcript_store", TranscriptStore(directory / "t.sqlite3"))
+    monkeypatch.setattr(auth, "account_store", AccountStore(directory / "a.sqlite3"))
+    main.app.dependency_overrides[auth.current_username] = lambda: "test-reader"
+    yield
+    main.app.dependency_overrides.pop(auth.current_username, None)

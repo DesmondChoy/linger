@@ -27,6 +27,7 @@ _book_selections: dict[str, "BookSelection"] = {}
 _reading_candidates: dict[str, "ReadingCandidate"] = {}
 _pending_clarifications: dict[str, "PendingClarification"] = {}
 _turn_records: dict[str, list["TurnRecord"]] = {}
+_owners: dict[str, str] = {}
 
 
 class BookSelection(BaseModel):
@@ -68,6 +69,27 @@ class TurnRecord:
     evidence_ids: tuple[str, ...]
     review_finding_codes: tuple[tuple[str, ...], ...]
     tool_names: tuple[str, ...] = ()
+
+
+def claim(session_id: str, account_id: str) -> bool:
+    """Bind a new session to its account; refuse one another account owns."""
+    return _owners.setdefault(session_id, account_id) == account_id
+
+
+def owner(session_id: str) -> str | None:
+    return _owners.get(session_id)
+
+
+def restore_history(session_id: str, turns: list[tuple[str, str]]) -> None:
+    """Seed released chat history from saved (reader, reply) pairs after a restart."""
+    _sessions[session_id] = [
+        message
+        for user_message, assistant_message in turns
+        for message in (
+            ModelRequest(parts=[UserPromptPart(content=user_message)]),
+            ModelResponse(parts=[TextPart(content=assistant_message)]),
+        )
+    ]
 
 
 def history(session_id: str) -> list[ModelMessage]:
@@ -183,7 +205,8 @@ def called_tools(session_id: str) -> frozenset[str]:
 
 
 def clear(session_id: str) -> bool:
-    """Drop a session's messages, records, and evidence handles."""
+    """Drop a session's messages, records, evidence handles, and owner."""
+    _owners.pop(session_id, None)
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
     _pending_clarifications.pop(session_id, None)

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ChatRequestError, resetSession, sendMessage } from './api'
+import { ChatRequestError, deleteSession, sendMessage, setAccessToken } from './api'
 import type { ProgressEvent } from './types'
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -188,12 +188,27 @@ describe('chat API', () => {
 })
 
 describe('session API', () => {
-  it('resets only the selected conversation', async () => {
+  afterEach(() => setAccessToken(undefined))
+
+  it('deletes only the selected conversation', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await resetSession('session / 1')
+    await deleteSession('session / 1')
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/sessions/session%20%2F%201', { method: 'DELETE' })
+    expect(fetchMock).toHaveBeenCalledWith('/api/sessions/session%20%2F%201', {
+      method: 'DELETE',
+      headers: {},
+    })
+  })
+
+  it('sends the signed-in token with account-scoped requests', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+    setAccessToken('token-123')
+
+    await deleteSession('s1')
+
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({ Authorization: 'Bearer token-123' })
   })
 })

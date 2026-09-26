@@ -19,16 +19,21 @@ type Props = {
  */
 export function InputTray({ disabled, onFill, onOpenEvaluations, evaluationCount }: Props) {
   const [workId, setWorkId] = useState(DEMO_BOOKS[0].workId)
+  const [used, setUsed] = useState<Set<string>>(new Set())
   const [previewed, setPreviewed] = useState<string | null>(null)
   const book = DEMO_BOOKS.find((item) => item.workId === workId) ?? DEMO_BOOKS[0]
 
   return (
     <div className="input-tray">
       <div className="tray-head">
-        <p className="eyebrow">Try a line</p>
+        <p className="eyebrow">Try a conversation</p>
         <label className="tray-book">
           <span className="visually-hidden">Book</span>
-          <select value={workId} onChange={(event) => setWorkId(event.target.value)} disabled={disabled}>
+          <select
+            value={workId}
+            onChange={(event) => { setWorkId(event.target.value); setUsed(new Set()) }}
+            disabled={disabled}
+          >
             {DEMO_BOOKS.map((item) => (
               <option key={item.workId} value={item.workId}>{item.title}</option>
             ))}
@@ -37,27 +42,31 @@ export function InputTray({ disabled, onFill, onOpenEvaluations, evaluationCount
       </div>
 
       <div className="tray-chips">
-        {book.prompts.map((prompt) => (
+        {book.lines.map((line) => (
           <button
-            key={prompt.label}
+            key={line.label}
             type="button"
-            className="tray-chip"
+            className={`tray-chip${used.has(line.label) ? ' is-used' : ''}`}
             disabled={disabled}
-            title={prompt.text}
-            onMouseEnter={() => setPreviewed(prompt.label)}
+            title={line.text}
+            onMouseEnter={() => setPreviewed(line.label)}
             onMouseLeave={() => setPreviewed(null)}
-            onFocus={() => setPreviewed(prompt.label)}
+            onFocus={() => setPreviewed(line.label)}
             onBlur={() => setPreviewed(null)}
-            onClick={() => onFill(prompt.text)}
+            onClick={() => {
+              onFill(line.text)
+              setUsed((current) => new Set(current).add(line.label))
+            }}
           >
-            {prompt.label}
+            {used.has(line.label) && <span aria-hidden="true">✓</span>}
+            {line.label}
           </button>
         ))}
       </div>
 
       <p className="tray-watch" aria-live="polite">
-        {book.prompts.find((prompt) => prompt.label === previewed)?.watch
-          ?? 'Pick one to fill the box. You can edit it, and nothing is sent until you press Send.'}
+        {book.lines.find((line) => line.label === previewed)?.watch
+          ?? 'Pick lines in any order, or type your own, to build up one conversation. Each fills the box; nothing is sent until you press Send.'}
       </p>
 
       <button type="button" className="tray-evaluations" onClick={onOpenEvaluations}>

@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Graph, Icon } from '@linger/architecture-map'
 import type { ComponentId } from '@linger/architecture-map'
 import type { ProgressEvent, TurnRecord } from '../../types'
-import { formatMachineLabel } from '../formatMachineLabel'
 import { Inspector } from '../Inspector'
 import { buildLiveTurn } from './liveScene'
 import { detailFor, type ComponentDetail } from './turnDetail'
@@ -65,7 +64,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
   const index = live ? null : Math.min(selectedTurn ?? timeline.length - 1, timeline.length - 1)
   const turn = index === null || index < 0 ? undefined : timeline[index]
 
-  const { scene, activity, active, running } = useMemo(() => buildLiveTurn({
+  const { scene, active, running } = useMemo(() => buildLiveTurn({
     events: live ? progress : turn?.progress ?? [],
     userMessage: live ? pendingMessage : turn?.inspection.muse_turn.user_message ?? '',
     turn,
@@ -119,6 +118,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
         </div>
 
         <div className="scene-caption"><p>{scene.summary}</p></div>
+        <p className="map-hint">Click any component or connection to see the contract it carried on this turn.</p>
         <div className="map-stage">
           <Graph
             key={scene.id}
@@ -133,26 +133,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
       </div>
 
       <div className="analysis-detail">
-        {detail ? (
-          <DetailPanel detail={detail} onClear={() => setSelection(null)} />
-        ) : (
-          <section className="live-activity" aria-label="Components this turn used">
-            <h4>What ran, in order</h4>
-            <ul>
-              {activity.map((item) => (
-                <li key={item.id} className={item.status}>
-                  <b>{item.id.replaceAll('_', ' ')}</b>
-                  <span className={`trace-status ${item.status}`}>{formatMachineLabel(item.status)}</span>
-                  <small>{item.stages.map((stage) => formatMachineLabel(stage.stage)).join(' · ')}</small>
-                </li>
-              ))}
-              {activity.length === 0 && <li className="running"><b>waiting</b><small>No stage has been reported yet.</small></li>}
-            </ul>
-            <p className="muted">
-              Click any component or connection above to see the contract it carried on this turn.
-            </p>
-          </section>
-        )}
+        {detail && <DetailPanel detail={detail} onClear={() => setSelection(null)} />}
 
         {/* Every turn stays listed; the mapped one is opened and marked. */}
         <Inspector

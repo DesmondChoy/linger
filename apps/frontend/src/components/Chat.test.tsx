@@ -4,7 +4,7 @@ import { Chat } from './Chat'
 
 /** The single page has to assemble: conversation, tray, composer and map. */
 describe('Chat page', () => {
-  const html = renderToStaticMarkup(<Chat />)
+  const html = renderToStaticMarkup(<Chat username="reader" onHome={() => {}} onSignOut={() => {}} />)
 
   it('shows the conversation and the analysis surface on one page', () => {
     expect(html).toContain('Reflection chat')
@@ -14,8 +14,9 @@ describe('Chat page', () => {
   })
 
   it('offers prompts that fill the composer, and a way into saved evaluations', () => {
-    expect(html).toContain('Try a line')
+    expect(html).toContain('Try a conversation')
     expect(html).toContain('Asks for an exact quote')
+    expect(html).toContain('Says where they are')
     // Labels say what the reader is doing, in their words, not ours.
     expect(html).not.toContain('boundary')
     expect(html).toContain('Open a saved evaluation')

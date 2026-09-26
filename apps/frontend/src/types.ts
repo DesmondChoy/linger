@@ -165,6 +165,8 @@ export type ChatResult = {
 /** One completed turn plus the progress events observed while it ran. */
 export type TurnRecord = ChatResult & {
   progress: ProgressEvent[]
+  /** The conversation the turn belongs to, so deleting one drops its records. */
+  sessionId?: string
 }
 
 export type MemoryCaptureNotice = {
@@ -177,4 +179,23 @@ export type Message = {
   content: string
   /** Sources the released reply used; absent or empty for a decline or an uncited reply. */
   sources?: ChatSource[]
+  /** The conversation this message belongs to; the feed marks where each one starts. */
+  sessionId?: string
+  createdAt?: string
+}
+
+export type TranscriptTurn = {
+  turn_id: string
+  user_message: string
+  assistant_message: string
+  created_at: string
+  /** What Inspect showed for the turn, when the server saved it. */
+  details?: { response: ChatResult, progress: ProgressEvent[] } | null
+}
+
+/** One saved conversation, as the history feed receives it. */
+export type Conversation = {
+  session_id: string
+  created_at: string
+  turns: TranscriptTurn[]
 }

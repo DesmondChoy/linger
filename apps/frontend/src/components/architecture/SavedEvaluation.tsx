@@ -3,7 +3,7 @@ import { Graph, Inspector, playableScenarios } from '@linger/architecture-map'
 import type { EvaluationRun, EvaluationScenario, InspectorSelection } from '@linger/architecture-map'
 import { buildEvaluationView, failureProse } from './evaluationScene'
 
-type Props = { onClose: () => void }
+type Props = { onClose: () => void, closeLabel?: string }
 
 function scenarioTitle(scenario: EvaluationScenario): string {
   return scenario.id
@@ -22,7 +22,7 @@ function tone(run: EvaluationRun): string {
   return run.passed === 0 ? 'bad' : 'partial'
 }
 
-export function SavedEvaluation({ onClose }: Props) {
+export function SavedEvaluation({ onClose, closeLabel = 'Back to chat' }: Props) {
   const [scenarioId, setScenarioId] = useState(playableScenarios[0]?.id ?? '')
   const scenario = playableScenarios.find((item) => item.id === scenarioId) ?? playableScenarios[0]
 
@@ -61,7 +61,7 @@ export function SavedEvaluation({ onClose }: Props) {
             decided a good answer must do.
           </p>
         </div>
-        <button type="button" className="quiet-button" onClick={onClose}>Back to chat</button>
+        <button type="button" className="quiet-button" onClick={onClose}>{closeLabel}</button>
       </header>
 
       <div className="evaluation-pickers">

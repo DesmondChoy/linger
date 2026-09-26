@@ -1,4 +1,4 @@
-"""Tests for the deterministic per-client chat request rate limit."""
+"""Tests for the deterministic per-account chat request rate limit."""
 
 import json
 import os
@@ -19,7 +19,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import chat_turn, main, rate_limit
+    from apps.backend import auth, chat_turn, main, rate_limit
     from src.linger.contracts.emotional import EmotionalBoundaryAssessment
     from src.linger.orchestration.reflection import ReflectionRelease
 
@@ -146,17 +146,20 @@ class ChatRateLimitTests(unittest.TestCase):
         self.assertEqual({30}, {int(r.headers["Retry-After"]) for r in refusals})
         self.assertEqual(200, served.status_code)
 
-    def test_separate_clients_have_separate_budgets(self) -> None:
-        with TestClient(main.app, client=("10.0.0.1", 1)) as client_a, TestClient(
-            main.app, client=("10.0.0.2", 2)
-        ) as client_b:
+    def sign_in_as(self, username: str) -> None:
+        main.app.dependency_overrides[auth.current_username] = lambda: username
+
+    def test_separate_accounts_have_separate_budgets(self) -> None:
+        with TestClient(main.app) as client:
+            self.sign_in_as("reader-a")
             responses_a = [
-                self.post_chat(client_a, "shared-session", f"turn-{index}")
+                self.post_chat(client, "session-a", f"turn-{index}")
                 for index in range(10)
             ]
-            eleventh_a = self.post_chat(client_a, "shared-session", "turn-10")
+            eleventh_a = self.post_chat(client, "session-a", "turn-10")
+            self.sign_in_as("reader-b")
             responses_b = [
-                self.post_chat(client_b, "shared-session", f"turn-{index}")
+                self.post_chat(client, "session-b", f"turn-{index}")
                 for index in range(10)
             ]
 
@@ -174,21 +177,17 @@ class ChatRateLimitTests(unittest.TestCase):
         self.assertNotIn("text/event-stream", refused.headers.get("content-type", ""))
         self.assertIn("Retry-After", refused.headers)
 
-    def test_forwarded_for_headers_cannot_split_one_client_budget(self) -> None:
-        with TestClient(main.app, client=("10.0.0.4", 4)) as client:
-            for index in range(10):
+    def test_changing_client_address_does_not_split_one_account_budget(self) -> None:
+        for index in range(10):
+            with TestClient(main.app, client=(f"10.0.0.{index}", index)) as client:
                 self.post_chat(
                     client,
-                    "forwarded-test",
+                    "moving-test",
                     f"turn-{index}",
                     headers={"X-Forwarded-For": f"203.0.113.{index}"},
                 )
-            refused = self.post_chat(
-                client,
-                "forwarded-test",
-                "turn-10",
-                headers={"X-Forwarded-For": "203.0.113.99"},
-            )
+        with TestClient(main.app, client=("10.0.0.99", 99)) as client:
+            refused = self.post_chat(client, "moving-test", "turn-10")
 
         self.assertEqual(429, refused.status_code)
 
@@ -224,19 +223,9 @@ class ChatRateLimitTests(unittest.TestCase):
         self.assertIn("chat.rate_limit", payload)
         self.assertIn('"failure.code": "rate_limited"', payload)
         self.assertNotIn(address_marker, payload)
+        self.assertNotIn("test-reader", payload)
         self.assertNotIn(session_marker, payload)
         self.assertNotIn("HTTPException", payload)
-
-    def test_requests_without_a_client_address_share_the_fallback_budget(self) -> None:
-        with TestClient(main.app, client=None) as client:  # type: ignore[arg-type]
-            served = [
-                self.post_chat(client, "fallback-test", f"turn-{index}")
-                for index in range(10)
-            ]
-            refused = self.post_chat(client, "fallback-test", "turn-10")
-
-        self.assertTrue(all(r.status_code == 200 for r in served))
-        self.assertEqual(429, refused.status_code)
 
 
 if __name__ == "__main__":

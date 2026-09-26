@@ -10,6 +10,8 @@
   --accent-soft: #eceefa;
   --thread: #9ca8d6;
   --danger: #a84238;
+  --paper: #fbf8f1;
+  --ink: #2a2622;
 
   font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   color: var(--text);
@@ -31,6 +33,8 @@
     --accent-soft: #292d45;
     --thread: #6f78af;
     --danger: #f08d82;
+    --paper: #1e1b17;
+    --ink: #e8e1d6;
   }
 }
 
@@ -113,38 +117,6 @@ textarea::placeholder {
   overflow: hidden;
 }
 
-.reader {
-  position: relative;
-  flex: 0 0 clamp(18rem, 24vw, 22rem);
-  width: clamp(18rem, 24vw, 22rem);
-  min-width: 0;
-  overflow: auto;
-  padding: 1.35rem;
-  border-left: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, var(--accent-soft));
-  transition: flex-basis 180ms ease, width 180ms ease;
-}
-
-.reader.expanded {
-  flex-basis: clamp(28rem, 42vw, 42rem);
-  width: clamp(28rem, 42vw, 42rem);
-}
-
-.reader-toggle { width: 100%; margin-bottom: 1rem; }
-
-.library-list { display: grid; gap: 0.85rem; margin-top: 1rem; }
-.book-card { display: grid; grid-template-columns: 3.5rem 1fr; gap: 0.75rem; align-items: center; padding: 0.7rem; border: 1px solid var(--border); border-radius: 0.7rem; background: var(--surface); }
-.book-card h3, .book-card p { margin: 0; }
-.book-card p, .reader-author, .book-source, .chapter-summary small { color: var(--muted); font-size: 0.8rem; }
-.book-cover { display: grid; place-items: center; width: 3.5rem; height: 4.8rem; border-radius: 0.25rem; border-left: 0.3rem solid var(--accent); background: var(--accent-soft); color: var(--text); font: 2rem Georgia, serif; }
-.choose-book { grid-column: 1 / -1; }
-.chapter-summary { margin-top: 1rem; padding: 0.85rem; border: 1px dashed var(--border); border-radius: 0.7rem; }
-.reader-progress { display: grid; gap: 0.75rem; }
-.reader-progress h2 { margin: 0.2rem 0; font-size: 1.15rem; }
-.chapter-select { display: grid; width: 100%; min-width: 0; gap: 0.3rem; font-size: 0.78rem; }
-.chapter-select select { width: 100%; min-width: 0; }
-.chapter-text { white-space: pre-wrap; overflow-wrap: anywhere; font-family: Georgia, serif; line-height: 1.75; }
-.back-to-library { margin-bottom: 1rem; }
 
 .view-tabs { display: inline-flex; gap: 0.2rem; padding: 0.2rem; border: 1px solid var(--border); border-radius: 0.55rem; }
 .view-tabs button[aria-selected='true'] { background: var(--accent); color: #fff; }
@@ -220,7 +192,7 @@ textarea::placeholder {
   gap: 0.72rem;
 }
 
-.brand > span {
+.brand > span:first-child {
   display: grid;
   width: 2.1rem;
   height: 2.1rem;
@@ -232,18 +204,23 @@ textarea::placeholder {
   font-size: 1.15rem;
 }
 
-.brand h1 {
+.brand h1,
+.brand .brand-name {
   margin: 0;
   font-family: Charter, 'Iowan Old Style', Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
 
-.brand h1 {
+.brand h1,
+.brand .brand-name {
   font-size: 1.22rem;
 }
 
-.brand p {
+.brand-text { display: flex; flex-direction: column; }
+
+.brand p,
+.brand .brand-tagline {
   margin: 0.08rem 0 0;
   color: var(--muted);
   font-size: 0.76rem;
@@ -423,9 +400,6 @@ textarea::placeholder {
   }
 
   .workspace { display: block; height: auto; }
-  .reader, .reader.expanded { width: auto; border: 0; border-bottom: 1px solid var(--border); }
-  .reader-progress { align-items: flex-start; }
-  .chapter-select select { max-width: 12rem; }
 
   .brand p {
     display: none;
@@ -564,54 +538,6 @@ textarea::placeholder {
   color: #1f2937;
 }
 
-.architecture-panel .live-activity {
-  margin-top: 1.1rem;
-}
-
-.architecture-panel .live-activity h4 {
-  margin: 0 0 0.6rem;
-  color: #26354a;
-  font-size: 0.9rem;
-}
-
-.architecture-panel .live-activity ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.architecture-panel .live-activity li {
-  display: grid;
-  gap: 0.15rem;
-  min-width: 11rem;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid #dbe3ec;
-  border-left: 3px solid #b4c3d6;
-  border-radius: 0.5rem;
-  background: #fff;
-}
-
-.architecture-panel .live-activity li.running { border-left-color: #0766eb; }
-.architecture-panel .live-activity li.complete { border-left-color: #3f8f6b; }
-.architecture-panel .live-activity li.declined { border-left-color: #b08a3a; }
-.architecture-panel .live-activity li.failed { border-left-color: #a84238; }
-
-.architecture-panel .live-activity b {
-  font-size: 0.85rem;
-  text-transform: capitalize;
-}
-
-.architecture-panel .live-activity small,
-.architecture-panel .muted,
-.architecture-panel .subtle {
-  color: #53647c;
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
-
 .architecture-panel .live-empty {
   max-width: 34rem;
   margin: auto;
@@ -683,7 +609,8 @@ textarea::placeholder {
   box-shadow: -18px 0 60px #1f38562e;
 }
 
-.library-drawer .reader { flex: 1 1 auto; width: auto; border-left: 0; }
+/* Reading needs a page-width column; the shelf does not. */
+.library-drawer:has(.is-reading) { width: min(48rem, 96vw); }
 
 /* Input tray ---------------------------------------------------------------- */
 
@@ -716,6 +643,9 @@ textarea::placeholder {
 }
 
 .tray-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0 0.7rem 0.6rem; }
+
+.tray-chip { display: inline-flex; align-items: center; gap: 0.3rem; }
+.tray-chip.is-used { color: var(--accent); }
 
 .tray-chip {
   padding: 0.3rem 0.6rem;
@@ -835,7 +765,7 @@ textarea::placeholder {
 
 .tray-watch {
   margin: 0;
-  padding: 0 0.7rem 0.55rem;
+  padding: 0 0.7rem 0.3rem;
   min-height: 2.1rem;
   color: var(--muted);
   font-size: 0.75rem;
@@ -845,18 +775,19 @@ textarea::placeholder {
 /* The map holds its place while the record scrolls beneath it, so reading the
    detail never costs you the picture it belongs to. */
 .map-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  flex: none;
   padding: 0.9rem 1.2rem 0.5rem;
   background: var(--canvas);
   border-bottom: 1px solid var(--border);
 }
 
 .map-sticky .scene-caption p { font-size: 0.86rem; }
+.map-sticky .map-hint { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.78rem; }
 .map-sticky .graph-scroll { max-height: 22rem; }
 
-.analysis-detail { padding: 0 1.2rem 1.4rem; }
+/* The diagram stays put; only the contract and timeline below it scroll. */
+.architecture-panel:has(> .map-sticky) { overflow: hidden; }
+.analysis-detail { flex: 1; min-height: 0; overflow: auto; padding: 0 1.2rem 1.4rem; }
 .analysis-detail .inspector { padding-top: 0.6rem; }
 
 .component-detail {
@@ -894,3 +825,369 @@ textarea::placeholder {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
+
+.landing {
+  display: flex;
+  max-width: 64rem;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  margin: 0 auto;
+  padding: 2rem 16px;
+}
+
+.landing-intro {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.landing-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+
+.landing-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.landing-card > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.landing-footer {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.sign-in-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.sign-in-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sign-in-form input {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sign-in-form .error {
+  margin: 0;
+}
+
+.link-button,
+.link-button:hover:not(:disabled) {
+  padding: 0;
+  background: none;
+  border-color: transparent;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.synthetic-view {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header-actions button {
+  padding-inline: 0.6rem;
+  white-space: nowrap;
+}
+
+.chat-header .brand .brand-tagline {
+  display: none;
+}
+
+.conversation-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.conversation-divider::before,
+.conversation-divider::after {
+  flex: 1;
+  border-top: 1px solid var(--border);
+  content: '';
+}
+
+.conversation-divider button {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+}
+
+/* Library: a shelf of covers, then a paper page for reading ----------------- */
+
+.reader {
+  min-height: 100%;
+  padding: 1.25rem 16px 2rem;
+}
+
+.shelf-header,
+.reader-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.shelf-header { justify-content: space-between; margin-bottom: 1.25rem; }
+.shelf-header h2 { margin: 0; font-size: 1.3rem; }
+.shelf-header p { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.8rem; }
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 1.6rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shelf-book,
+.shelf-book:hover:not(:disabled) {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: 0;
+}
+
+.shelf-book:hover:not(:disabled) .book-cover { transform: translateY(-3px); box-shadow: 0 10px 22px #1f385640; }
+.shelf-book:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.book-cover {
+  position: relative;
+  display: flex;
+  aspect-ratio: 2 / 3;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-bottom: 0.4rem;
+  padding: 1rem 0.8rem 1rem 1.1rem;
+  overflow: hidden;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cover) 82%, #fff), var(--cover) 55%, color-mix(in srgb, var(--cover) 70%, #000));
+  border-radius: 0.2rem 0.45rem 0.45rem 0.2rem;
+  box-shadow: 0 4px 12px #1f385633;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+/* The spine: a darker band and a crease down the left edge. */
+.book-cover::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.45rem;
+  background: linear-gradient(90deg, #0000004d, #ffffff26 70%, #0000001a);
+  content: '';
+}
+
+.cover-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 600 0.95rem/1.25 Georgia, serif;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.cover-rule { align-self: center; width: 1.6rem; border-top: 1px solid #ffffffa6; }
+.cover-author { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+
+.shelf-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.shelf-author,
+.shelf-progress { color: var(--muted); font-size: 0.75rem; }
+
+.progress-track {
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.progress-track > span { display: block; height: 100%; background: var(--accent); }
+
+.reader-bar {
+  position: sticky;
+  top: -1.25rem;
+  z-index: 1;
+  margin: -1.25rem -16px 0;
+  padding: 0.75rem 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.reader-bar button { padding: 0.4rem 0.65rem; white-space: nowrap; }
+
+.reader-bar-title {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.reader-bar-title strong,
+.reader-bar-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reader-bar-title strong { font: 600 0.95rem Georgia, serif; }
+.reader-bar-title span { color: var(--muted); font-size: 0.75rem; }
+
+.reader-progress {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.9rem 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.contents {
+  display: grid;
+  gap: 0.8rem;
+  max-height: 22rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+
+.contents ol { display: grid; gap: 0.1rem; margin: 0.3rem 0 0; padding: 0; list-style: none; }
+
+.contents button,
+.contents button:hover:not(:disabled) {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border-color: transparent;
+}
+
+.contents button:hover:not(:disabled) { background: var(--surface); }
+.contents button[aria-current] { color: var(--accent); font-weight: 600; background: var(--surface); }
+
+.page {
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 5vw, 2.75rem) 2.5rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  box-shadow: 0 2px 10px #1f38561a;
+}
+
+.page .eyebrow { text-align: center; }
+.page h3 { margin: 0.2rem 0 1.2rem; font: 600 1.35rem/1.3 Georgia, serif; text-align: center; }
+
+.chapter-summary {
+  margin-bottom: 1.6rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.45rem;
+}
+
+.chapter-summary summary { color: var(--muted); cursor: pointer; }
+.chapter-summary p { margin: 0.6rem 0 0.4rem; line-height: 1.55; }
+.chapter-summary small { color: var(--muted); font-size: 0.75rem; }
+
+.chapter-text {
+  overflow-wrap: break-word;
+  font: 1.05rem/1.75 Georgia, 'Iowan Old Style', serif;
+}
+
+.chapter-text p { margin: 0 0 1.05em; hyphens: auto; }
+.chapter-text p + p:not(.verse) { text-indent: 1.4em; }
+.chapter-text .verse { margin: 0 0 1.05em 1.5em; }
+.chapter-text .verse span { display: block; white-space: pre-wrap; }
+
+.page-turns {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  max-width: 38rem;
+  margin: 1.2rem auto 0;
+}
+
+.brand-home,
+.brand-home:hover:not(:disabled) {
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+}
+
+/* Muse replies render as light Markdown; source line breaks inside a paragraph become spaces. */
+.reply-text { white-space: normal; }
+.reply-text > :first-child { margin-top: 0; }
+.reply-text > :last-child { margin-bottom: 0; }
+.reply-text p { margin: 0 0 0.7em; }
+.reply-text ul,
+.reply-text ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+
+.reply-text blockquote {
+  margin: 0.2em 0 0.8em;
+  padding: 0.55em 0.9em;
+  font-family: Georgia, 'Iowan Old Style', serif;
+  font-style: italic;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 0.4rem 0.4rem 0;
+}
+
+.reply-text blockquote p { margin: 0; }
+.reply-text blockquote em { font-style: normal; }

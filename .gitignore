@@ -33,3 +33,6 @@ build/
 
 # Logfire local project credentials (from `logfire projects use`)
 .logfire/
+
+# Accounts and per-account chat transcripts (SQLite, with WAL side files)
+data/*.sqlite3*
