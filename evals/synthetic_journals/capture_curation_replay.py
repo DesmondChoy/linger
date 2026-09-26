@@ -19,7 +19,6 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.sculptor.models import AccountScopedMemories
-from src.linger.orchestration.curation import propose_curation
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 from .adoption import GroundTruthAdoptionError, validate_ground_truth_adoption_files
@@ -208,7 +207,6 @@ async def replay_capture_curation_scenes(
     if chat_handler is None or curation_handler is None:
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     chat = chat_handler or _production_chat_turn_handler()
-    curate = curation_handler or propose_curation
     identities = build_curation_identities(configured_model=configured_model)
     observations: list[CombinedObservation] = []
     with tempfile.TemporaryDirectory(prefix="linger-synthetic-eval-") as directory:
@@ -249,8 +247,9 @@ async def replay_capture_curation_scenes(
                     inputs.scene_id,
                     curation_batches[inputs.scene_id],
                     expected.curation,
-                    handler=curate,
+                    handler=curation_handler,
                     ground_truth_status=status,
+                    use_production_provenance=curation_handler is None,
                 )
                 observations.append(curation)
                 return CurationEvaluationOutput(

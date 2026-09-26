@@ -17,6 +17,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from apps.backend import sessions
 from apps.backend.schemas import ChatRequest, ChatResponse
+from evals.sculptor.harness import CurationOutcomeExpectation
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.capture_curation_replay import (
     EVALUATION_NAME,
@@ -27,6 +28,7 @@ from evals.synthetic_journals.capture_curation_replay import (
 )
 from evals.synthetic_journals.curation_replay import (
     CurationSceneObservation,
+    replay_curation_scene,
     replay_curation_scenes,
 )
 from evals.synthetic_journals.models import (
@@ -331,6 +333,120 @@ def test_combined_replay_emits_one_ordered_native_evaluation() -> None:
     } == {
         "matches_proposal", "differs_from_proposal",
     }
+
+
+def test_combined_replay_uses_production_curation_dispatch_by_default() -> None:
+    backstory, ground_truth, _, _ = _combined_models()
+    curation_first = backstory.model_copy(update={
+        "scenes": tuple(
+            sorted(backstory.scenes, key=lambda scene: scene.objective_ids != (OBJECTIVE_IDS[1],))
+        )
+    })
+    loop = AsyncMock(side_effect=RuntimeError("Stopped before production model calls"))
+
+    with (
+        patch("evals.synthetic_journals.capture_curation_replay.configure_synthetic_evaluation_telemetry"),
+        patch(
+            "evals.synthetic_journals.capture_curation_replay.replay_curation_scene",
+            wraps=replay_curation_scene,
+        ) as scene_replay,
+        patch("evals.synthetic_journals.curation_replay.run_curation_loop", loop),
+    ):
+        with pytest.raises(RuntimeError, match="synthetic evaluation cases failed"):
+            asyncio.run(replay_capture_curation_scenes(
+                curation_first,
+                ground_truth,
+                chat_handler=AsyncMock(return_value=_no_capture_response()),
+            ))
+
+    assert scene_replay.await_count == loop.await_count == 1
+    assert scene_replay.await_args.kwargs["handler"] is None
+    assert scene_replay.await_args.kwargs["use_production_provenance"] is True
+    assert loop.await_args.kwargs.get("provenance") is None
+    assert loop.await_args.kwargs.get("sculptor") is None
+
+
+def test_combined_replay_does_not_save_a_provenance_rejected_change() -> None:
+    backstory, ground_truth, _, _ = _combined_models()
+    curation_first = backstory.model_copy(update={
+        "scenes": tuple(
+            sorted(
+                backstory.scenes,
+                key=lambda scene: scene.objective_ids != (OBJECTIVE_IDS[1],),
+            )
+        )
+    })
+    rejected_scene = next(
+        proposal
+        for proposal in ground_truth.proposals
+        if proposal.scene_id == "scene-exact"
+    )
+    assert rejected_scene.curation is not None
+    rejected_ground_truth = ground_truth.model_copy(update={
+        "proposals": tuple(
+            proposal.model_copy(update={
+                "curation": proposal.curation.model_copy(update={
+                    "outcome": CurationOutcomeExpectation(
+                        provenance_decision="reject",
+                        status="provenance_reject",
+                        application_created=False,
+                        audit_verified=False,
+                        retrieval_memory_ids=(),
+                    )
+                })
+            })
+            if proposal.scene_id == rejected_scene.scene_id
+            else proposal
+            for proposal in ground_truth.proposals
+        )
+    })
+
+    def sculptor(messages: list[object], info: AgentInfo) -> ModelResponse:
+        payload = _payload(messages)
+        batch = AccountScopedMemories(account_scope="test-only", memories=payload["memories"])
+        response = _response_for(batch, rejected_ground_truth)
+        output_tool = next(
+            tool for tool in info.output_tools if type(response).__name__ in tool.name
+        )
+        return ModelResponse(
+            parts=[ToolCallPart(output_tool.name, response.model_dump(mode="json"))]
+        )
+
+    def provenance(messages: list[object], info: AgentInfo) -> ModelResponse:
+        payload = _payload(messages)
+        rejected = payload["proposal"]["action"]["action"] == "link_duplicates"
+        review = {
+            "proposal_digest": payload["proposal_digest"],
+            "decision": "reject" if rejected else "allow",
+            "findings": ([{
+                "code": "incorrect_duplicate",
+                "source_memory_ids": payload["proposal"]["action"]["source_memory_ids"],
+                "explanation": "The proposed duplicate link is intentionally unsafe.",
+            }] if rejected else []),
+        }
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, review)])
+
+    with (
+        patch("evals.synthetic_journals.capture_curation_replay.configure_synthetic_evaluation_telemetry"),
+        sculptor_agent.override(model=FunctionModel(sculptor)),
+        provenance_agent.override(model=FunctionModel(provenance)),
+    ):
+        result = asyncio.run(replay_capture_curation_scenes(
+            curation_first,
+            rejected_ground_truth,
+            chat_handler=AsyncMock(return_value=_no_capture_response()),
+        ))
+
+    rejected = next(
+        scene
+        for scene in result.scenes
+        if isinstance(scene, CurationSceneObservation)
+        and scene.scene_id == "scene-exact"
+    )
+    assert rejected.curation_status == "provenance_reject"
+    assert rejected.actual_outcome.application_created is False
+    assert rejected.actual_outcome.audit_verified is False
+    assert result.final_active_memory_ids == ()
 
 
 @pytest.mark.parametrize("objective_ids", [(OBJECTIVE_IDS[0],), (OBJECTIVE_IDS[1],),
