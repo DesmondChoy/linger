@@ -170,3 +170,27 @@ def test_claim_audit_error_names_a_stale_non_member_to_remove():
     error, = (error for error in errors if error["path"] == "claim_audit[0].source_contributions")
     assert error["remove_members"] == [[1, 0]]
     assert "add_members" not in error
+
+
+def test_a_limit_only_repeat_declaration_folds_into_the_record_it_names():
+    candidate = MuseCandidate.model_validate({
+        "reply": REPLY,
+        "evidence_uses": [use(limits=()), {"source_kind": "web", "evidence_id": URL, "limit_claims": [LIMIT]}],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+    [declaration] = candidate.evidence_uses
+    assert declaration.supported_claims == (CLAIM,)
+    assert declaration.limit_claims == (LIMIT,)
+    assert supported_claim_errors(candidate.reply, candidate.evidence_uses) == []
+
+
+
+def test_a_repeat_declaration_that_maps_claims_stays_separate():
+    candidate = MuseCandidate.model_validate({
+        "reply": REPLY,
+        "evidence_uses": [use(limits=()), {**use(limits=()), "supported_claims": [REFLECTION]}],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+    assert len(candidate.evidence_uses) == 2

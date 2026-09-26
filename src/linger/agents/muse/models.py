@@ -150,6 +150,37 @@ class MuseCandidate(StrictModel):
     evidence_uses: tuple[EvidenceUse, ...] = ()
     memory: MemoryNomination
 
+    @model_validator(mode="before")
+    @classmethod
+    def fold_claimless_repeat_declarations(cls, data: object) -> object:
+        """Fold a repeat declaration that maps no supported claim, such as a limit-only entry, into the record's first declaration."""
+        if not isinstance(data, dict) or not isinstance(data.get("evidence_uses"), (list, tuple)):
+            return data
+        kept: list[object] = []
+        first_by_record: dict[tuple[str, str], dict] = {}
+        for use in data["evidence_uses"]:
+            key = _record_key(use)
+            first = first_by_record.get(key) if key else None
+            if first is not None and not use.get("supported_claims") and use.get("exact_quote") is None:
+                limits = list(first.get("limit_claims") or ())
+                first["limit_claims"] = limits + [
+                    claim for claim in use.get("limit_claims") or () if claim not in limits
+                ]
+                continue
+            if key and first is None:
+                use = first_by_record[key] = dict(use)
+            kept.append(use)
+        return {**data, "evidence_uses": kept}
+
+
+def _record_key(use: object) -> tuple[str, str] | None:
+    if not isinstance(use, dict):
+        return None
+    kind, evidence_id = use.get("source_kind"), use.get("evidence_id")
+    if kind in ("book_corpus", "memory", "web") and isinstance(evidence_id, str):
+        return kind, evidence_id
+    return None
+
 
 def _has_bounded_span(fragment: str, reply: str) -> bool:
     start = r"(?<![\w.,:/’'-])" if fragment[:1].isdigit() else r"(?<![\w’'-])"
