@@ -14,20 +14,20 @@ from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIResponsesModel
 
 from apps.backend.config import Settings
-from src.linger.agents.build import build_model
+from src.linger.agents.build import STANDARD_MODEL, _warn_if_nonstandard, build_model
 
 
 class BuildModelTests(unittest.TestCase):
     def test_luna_reasoning_setting_reaches_responses_request(self) -> None:
         settings = Settings(
-            _env_file=None, linger_model="openai:gpt-5.6-luna",
+            _env_file=None, linger_model="openai:gpt-6-luna",
             openai_api_key="test-key",
         )
         with patch("src.linger.agents.build.get_settings", return_value=settings):
             model = build_model()
         response = Response.model_validate({
             "id": "resp_local", "created_at": 0, "object": "response",
-            "model": "gpt-5.6-luna", "status": "completed",
+            "model": "gpt-6-luna", "status": "completed",
             "parallel_tool_calls": True, "tool_choice": "auto", "tools": [],
             "output": [{
                 "id": "msg_local", "type": "message", "role": "assistant",
@@ -40,7 +40,7 @@ class BuildModelTests(unittest.TestCase):
         with patch.object(model.client.responses, "create", create), override_allow_model_requests(True):
             result = asyncio.run(Agent(model).run("Check configured reasoning."))
         self.assertEqual("Local response", result.output)
-        self.assertEqual("medium", create.await_args.kwargs["reasoning"]["effort"])
+        self.assertEqual("low", create.await_args.kwargs["reasoning"]["effort"])
         create.assert_awaited_once()
 
     def test_requires_explicit_model_configuration(self) -> None:
@@ -113,3 +113,24 @@ class BuildModelTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StandardModelWarningTests(unittest.TestCase):
+    def setUp(self) -> None:
+        _warn_if_nonstandard.cache_clear()
+
+    def _build(self, linger_model: str, **keys: str) -> None:
+        settings = Settings(_env_file=None, linger_model=linger_model, **keys)
+        with patch("src.linger.agents.build.get_settings", return_value=settings):
+            build_model()
+
+    def test_a_nonstandard_model_warns_once(self) -> None:
+        with self.assertLogs("linger.models", level="WARNING") as logs:
+            self._build("openai:gpt-5.6-luna", openai_api_key="k")
+            self._build("openai:gpt-5.6-luna", openai_api_key="k")
+        self.assertEqual(1, len(logs.output))
+        self.assertIn(STANDARD_MODEL, logs.output[0])
+
+    def test_the_standard_model_does_not_warn(self) -> None:
+        with self.assertNoLogs("linger.models", level="WARNING"):
+            self._build(STANDARD_MODEL, openai_api_key="k")

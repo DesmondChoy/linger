@@ -23,7 +23,7 @@ pnpm install --dir apps/frontend
 ```
 
 Set `LINGER_MODEL` and the matching provider key in `.env`. The checked-in
-default is `openai:gpt-5.6-luna` with `OPENAI_API_KEY`; `google` models use
+default is `openai:gpt-6-luna` with `OPENAI_API_KEY`; `google` models use
 `GOOGLE_API_KEY`, and `anthropic` models use `ANTHROPIC_API_KEY`.
 
 The remaining backend settings are:

@@ -1377,7 +1377,7 @@ def test_continuity_replay_threads_history_through_the_production_pipeline() -> 
         with patch.dict(
             os.environ,
             {
-                "LINGER_MODEL": "openai:gpt-5.6-luna",
+                "LINGER_MODEL": "openai:gpt-6-luna",
                 "OPENAI_API_KEY": "test-key",
             },
         ):

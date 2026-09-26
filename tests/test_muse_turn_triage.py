@@ -84,7 +84,7 @@ def test_an_override_attempt_keeps_the_session_and_deterministic_baseline() -> N
 @pytest.mark.parametrize(
     ("linger_model", "credentials", "expected_type", "expected_name"),
     (
-        ("openai:gpt-5.6-luna", {"openai_api_key": "k"}, OpenAIResponsesModel, "gpt-5.4-mini"),
+        ("openai:gpt-6-luna", {"openai_api_key": "k"}, OpenAIResponsesModel, "gpt-6-luna"),
         ("google:gemini-3.8-pro", {"google_api_key": "k"}, GoogleModel, "gemini-2.5-flash"),
         # No small tier is named for this provider, so triage uses the main model.
         (

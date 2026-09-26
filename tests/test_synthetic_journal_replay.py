@@ -906,7 +906,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
         with patch.dict(
             os.environ,
             {
-                "LINGER_MODEL": "openai:gpt-5.6-luna",
+                "LINGER_MODEL": "openai:gpt-6-luna",
                 "OPENAI_API_KEY": "test-key",
             },
         ):

@@ -36,7 +36,7 @@ jobs:
       - name: Configure offline settings
         run: |
           printf '%s\n' \
-            'LINGER_MODEL=openai:gpt-5.6-luna' \
+            'LINGER_MODEL=openai:gpt-6-luna' \
             'OPENAI_API_KEY=ci-offline-placeholder' > .env
 
       - name: Cache fastembed models

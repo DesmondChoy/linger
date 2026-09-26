@@ -15,7 +15,7 @@ Run these commands from the repository root:
 
 ```bash
 uv sync
-export LINGER_MODEL=openai:gpt-5.6-luna
+export LINGER_MODEL=openai:gpt-6-luna
 export OPENAI_API_KEY=<your-key>
 ```
 

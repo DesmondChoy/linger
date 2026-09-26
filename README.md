@@ -101,7 +101,7 @@ pnpm install --dir apps/frontend
 ```
 
 Edit `.env` to set `LINGER_MODEL` and the matching API key. The example selects
-`openai:gpt-5.6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
+`openai:gpt-6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
 prefix use `GOOGLE_API_KEY`; models with `anthropic:` use `ANTHROPIC_API_KEY`.
 Only the selected provider's key is needed.
 

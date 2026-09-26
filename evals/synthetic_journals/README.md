@@ -105,7 +105,7 @@ Objective ID. Generic `grounding` belongs only to
 
 Provider-backed runners use `LINGER_MODEL` and the matching API key from the
 repository-root `.env`. The example configuration selects
-`openai:gpt-5.6-luna`. The application requires an explicit model setting.
+`openai:gpt-6-luna`. The application requires an explicit model setting.
 Supported prefixes are `google:`, `openai:`, and `anthropic:`, paired with
 `GOOGLE_API_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Direct replay
 commands read this configuration. The guided `run_scenario run` command accepts
