@@ -1254,6 +1254,95 @@
         "no_attempt"
       ],
       "note": "Held-out variant: recurrence words plus an explicit request for an outside work."
+    },
+    {
+      "case_id": "held-connection-08",
+      "category": "theme_asks_sources",
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "held-connection-09",
+      "category": "theme_asks_sources",
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "theme-sources-1",
+      "category": "theme_asks_sources",
+      "current_line": "I keep putting off calling my dad back and telling myself tomorrow will be a better day for it. Is there anything in what I've been reading that speaks to that kind of stalling?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "theme-sources-2",
+      "category": "theme_asks_sources",
+      "current_line": "Every time a deadline slips I tell myself I work better under pressure. Does Seneca, or anything else I've read, actually back that up?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "theme-sources-3",
+      "category": "theme_asks_sources",
+      "current_line": "Still stuck on whether wanting quiet weekends makes me antisocial. Do the books I've been reading this year say anything about that, or am I just looking for permission?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
+    },
+    {
+      "case_id": "recall-recur-1",
+      "category": "asks_what_they_said",
+      "current_line": "I keep thinking about my grandfather's workshop again. What did I tell you before about the smell of it?",
+      "book_content": [
+        "no"
+      ],
+      "memory": [
+        "own_earlier_reflections"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ]
     }
   ]
 }
