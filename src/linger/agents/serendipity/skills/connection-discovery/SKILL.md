@@ -129,7 +129,11 @@ connection. A decline is a complete answer.
 A proposal requires two or three distinct, eligible candidates. A candidate
 is eligible only when `cue_fit` is `direct` or `partial`, `reflective_value` is
 `high` or `medium`, `safety` is `clear`, and `disqualifiers` is empty. Never pad
-the shortlist with an ineligible candidate.
+the shortlist with an ineligible candidate. Distinct means different
+interpretations, not different passages: two candidates may read the same pair
+of records differently, as long as the shortlist as a whole cites at least two
+records. Do not decline only because the evidence holds one earlier scene
+rather than several.
 
 Rubric anchors are ordinal judgments, not probabilities and not numbers to add:
 - `cue_fit`: direct means it answers this exact cue; partial needs an inferential

@@ -5,9 +5,9 @@
   "primary_behavior": "expand_source_only_when_justified",
   "contrast_group": "granted-url",
   "tier": "regression",
-  "description": "When the application supplies exact public URLs, those are the only pages that may become evidence and no search lead is needed to reach them. The case checks that the agent opens the granted URL directly instead of searching for it, which is the branch that bypasses the usual lead-then-open rule. Either order is valid: the skill says to open a granted URL directly, so the case checks that both sources are used, not which comes first.",
+  "description": "When the application supplies exact public URLs, those are the only pages that may become evidence and no search lead is needed to reach them. The case checks that the agent opens the granted URL directly instead of searching for it, which is the branch that bypasses the usual lead-then-open rule. Either order is valid: the skill says to open a granted URL directly, so the case checks that both sources are used, not which comes first. The cue names the scene: an earlier wording said only 'connect this', which gives a component run no referent, and on 24 Sep the agent reasonably asked what 'this' meant instead of searching.",
   "input": {
-    "cue": "Can you connect this to the essay you already have for me?",
+    "cue": "Can you connect the Caterpillar scene I'm reading to the essay you already have for me?",
     "intent": "find_connection",
     "presentation": "ask_before_showing",
     "scope": {
