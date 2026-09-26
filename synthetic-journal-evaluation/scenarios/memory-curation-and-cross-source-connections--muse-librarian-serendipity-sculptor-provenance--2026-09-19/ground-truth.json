@@ -426,6 +426,24 @@
           "start_codepoint": 7929,
           "end_codepoint": 8228,
           "text": "As soon as my examinations were over, Miss Sullivan and I\nhastened to this green nook, where we have a little cottage on one of\nthe three lakes for which Wrentham is famous. Here the long, sunny days\nwere mine, and all thoughts of work and college and the noisy city were\nthrust into the background."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-06-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-06-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -447,6 +465,8 @@
           "evidence-06-pinocchio-promise",
           "evidence-06-pinocchio-delay",
           "evidence-06-pinocchio-dawdling",
+          "evidence-06-pinocchio-keeps-word",
+          "evidence-06-pinocchio-promise-to-be-good",
           "evidence-06-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -478,13 +498,16 @@
           {
             "evidence_id": "evidence-06-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-06-pinocchio-dawdling"
+              "evidence-06-pinocchio-dawdling",
+              "evidence-06-pinocchio-keeps-word",
+              "evidence-06-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-06-pinocchio-delay",
             "accepted_evidence_ids": [
-              "evidence-06-pinocchio-dawdling"
+              "evidence-06-pinocchio-dawdling",
+              "evidence-06-pinocchio-keeps-word"
             ]
           }
         ]
@@ -601,6 +624,24 @@
           "start_codepoint": 7929,
           "end_codepoint": 8228,
           "text": "As soon as my examinations were over, Miss Sullivan and I\nhastened to this green nook, where we have a little cottage on one of\nthe three lakes for which Wrentham is famous. Here the long, sunny days\nwere mine, and all thoughts of work and college and the noisy city were\nthrust into the background."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-07-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-07-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -622,6 +663,8 @@
           "evidence-07-pinocchio-promise",
           "evidence-07-pinocchio-delay",
           "evidence-07-pinocchio-dawdling",
+          "evidence-07-pinocchio-keeps-word",
+          "evidence-07-pinocchio-promise-to-be-good",
           "evidence-07-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -653,13 +696,16 @@
           {
             "evidence_id": "evidence-07-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-07-pinocchio-dawdling"
+              "evidence-07-pinocchio-dawdling",
+              "evidence-07-pinocchio-keeps-word",
+              "evidence-07-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-07-pinocchio-delay",
             "accepted_evidence_ids": [
-              "evidence-07-pinocchio-dawdling"
+              "evidence-07-pinocchio-dawdling",
+              "evidence-07-pinocchio-keeps-word"
             ]
           }
         ]
@@ -813,6 +859,24 @@
           "start_codepoint": 12525,
           "end_codepoint": 12677,
           "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -835,6 +899,8 @@
           "evidence-08-pinocchio-promise",
           "evidence-08-pinocchio-delay",
           "evidence-08-pinocchio-dawdling",
+          "evidence-08-pinocchio-keeps-word",
+          "evidence-08-pinocchio-promise-to-be-good",
           "evidence-08-pinocchio-play-over-study",
           "evidence-08-keller-work-and-recreation",
           "evidence-08-keller-present-joy",
@@ -870,14 +936,17 @@
           {
             "evidence_id": "evidence-08-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-08-pinocchio-dawdling"
+              "evidence-08-pinocchio-dawdling",
+              "evidence-08-pinocchio-keeps-word",
+              "evidence-08-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-08-pinocchio-delay",
             "accepted_evidence_ids": [
               "evidence-08-pinocchio-dawdling",
-              "evidence-08-pinocchio-play-over-study"
+              "evidence-08-pinocchio-play-over-study",
+              "evidence-08-pinocchio-keeps-word"
             ]
           }
         ]
@@ -1029,6 +1098,24 @@
           "start_codepoint": 12525,
           "end_codepoint": 12677,
           "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -1051,6 +1138,8 @@
           "evidence-09-pinocchio-promise",
           "evidence-09-pinocchio-delay",
           "evidence-09-pinocchio-dawdling",
+          "evidence-09-pinocchio-keeps-word",
+          "evidence-09-pinocchio-promise-to-be-good",
           "evidence-09-pinocchio-play-over-study",
           "evidence-09-keller-work-and-recreation",
           "evidence-09-keller-present-joy",
@@ -1086,14 +1175,17 @@
           {
             "evidence_id": "evidence-09-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-09-pinocchio-dawdling"
+              "evidence-09-pinocchio-dawdling",
+              "evidence-09-pinocchio-keeps-word",
+              "evidence-09-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-09-pinocchio-delay",
             "accepted_evidence_ids": [
               "evidence-09-pinocchio-dawdling",
-              "evidence-09-pinocchio-play-over-study"
+              "evidence-09-pinocchio-play-over-study",
+              "evidence-09-pinocchio-keeps-word"
             ]
           }
         ]
