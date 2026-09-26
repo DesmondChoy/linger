@@ -343,6 +343,47 @@ If a Scene raises an execution error, the artifact records its safe error code
 and exception type, and the remaining independent Scenes still run. The command
 writes all Scene results before returning a failing exit status.
 
+Add `--scenes scene-07 scene-09` to replay selected Scenes. The runner still
+validates the complete adopted files and executes the selection in the original
+Scene order. The artifact records `selected_scene_ids`. A successful subset
+does not establish that the full Scenario passes.
+
+To inspect saved agent calls without calling a model, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.captured_stage_replay inspect \
+	path/to/evaluation.json --scene scene-09
+```
+
+The output lists exchange sequence numbers and supported stages. Captured
+replay supports Librarian `book_request`, Librarian `evidence_strength`, and
+Provenance `review`. To repeat one saved input three times, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.captured_stage_replay run \
+	path/to/evaluation.json --scene scene-09 --sequence 8 \
+	--backstory path/to/backstory.json \
+	--ground-truth path/to/ground-truth.json \
+	--adoption path/to/ground-truth-adoption.json \
+	--repetitions 3 --output /tmp/captured-stage-run.json
+```
+
+Replace `8` with the sequence reported by `inspect`. The runner preserves the
+saved input and history, then applies the current role instructions, contracts,
+and validators. Each repetition can make additional paid requests for validation
+retries. Ground truth validates the source artifact and stays outside
+the evaluated role's input. The output records input hashes, model settings,
+code hashes before and after execution, and every attempt's transcript.
+`accepted` means the role returned a valid output. A Provenance decision to
+revise an answer can therefore be an accepted call. Assess semantic correctness
+separately with both correct and incorrect examples.
+
+`muse_stage_replay.py` and `muse_composition.py` are experimental Python adapters.
+They compare authoring formats after fixed, captured retrieval results. They
+repeat the original envelope after those results, expose no retrieval tools,
+and retain Muse's normal candidate validators. Their results describe that
+projected writing step. Production Muse still authors `MuseCandidate` directly.
+
 ## Capture replay
 
 Replay a validated capture-only scenario for either
@@ -869,3 +910,41 @@ from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackst
 backstory_schema = SyntheticBackstory.model_json_schema()
 ground_truth_schema = ProposedGroundTruth.model_json_schema()
 ```
+
+## Saved run review and failure evidence
+
+`scenario_analysis.write_analysis_report` prepares an offline report from a saved
+artifact. Pass `report_dir` to keep a refreshed report outside the scenario
+directory. It leaves the evaluation artifact and its hard grades unchanged.
+
+New reports use schema version 3. Their `facts_sha256` binds the recorded facts,
+including the original artifact hash when its file is supplied. Fill only the
+JSON `review` field, and copy the report's `facts_sha256` into
+`review.facts_sha256`. Rendering rejects edited facts, a review for another
+report, or a changed or missing hashed artifact. Prepare a new report when the
+underlying run changes. Older version 2 reports remain readable with a notice
+that they have no verified facts/review identity binding.
+
+Each Scene review has an independent `semantic_review`, defaulting to
+`{"status": "unreviewed"}`. Hard passes and valid citations never set a semantic
+pass. A reviewer records `passed`, `failed`, or `inconclusive` with a stated
+`scope` and `evidence_refs`. A failure also requires typed `findings`; for
+example, `wrong_attribution`, `missing_required_claim`, or
+`missing_required_context`. This allows a hard pass and a supported semantic
+failure to appear together. Review status is a manual judgment, not another
+model grader or permission to change adopted expectations.
+
+Recorded `execution_diagnostics` distinguish provider HTTP errors from model
+output errors when the artifact supplies that metadata. `model_response_error`
+is a model output error, and HTTP 429 alone does not distinguish quota exhaustion
+from a retryable rate limit. Repair prompts show attempted corrections; their
+presence alone does not establish repair budget exhaustion. A
+`retrieval_unavailable` event without its cause remains `unknown`.
+
+Additional `execution_findings` belong to the review. State their category,
+source (`offline_validation` or `manual_review`), confidence, and evidence
+references. For example, an offline validator can establish that a recorded
+successful model response was rejected after the call. Record that as
+`post_call_rejection` alongside the original unknown retrieval event, with the
+exact input, output, validator, and result identified. Use
+`output_repair_exhausted` only when explicit evidence establishes exhaustion.
