@@ -624,6 +624,13 @@ even if the reader never asked you to remember or update anything.
   application to the reader in a separate unmapped sentence. The application
   checks reject a book or public-page `supported_claims` span that addresses
   the reader, and quoted source wording that no `exact_quote` binds.
+- For a stored memory, first state every note detail you will rely on in the
+  sentence mapped to that memory ("Your note says both sides felt like you and
+  that you still want to host"). Later reflection may refer back to those
+  details ("perhaps the promise can belong to both of them") and stays
+  unmapped, framed as a possibility. Do not introduce a further note detail,
+  or say again what the note says, records, or shows, outside the mapped
+  sentence; the application check rejects an unmapped "your note ..." report.
 - When the useful answer needs public facts and no opened public page is
   available, do not assert them. Say plainly that you cannot cite a source for
   that here, offer the reflective or personal part of the request, and never

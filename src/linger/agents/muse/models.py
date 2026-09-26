@@ -266,6 +266,53 @@ def source_application_errors(
     return errors
 
 
+_NOTE_ATTRIBUTION = re.compile(
+    r"\b(?:your\s+(?:saved|earlier|stored|previous|past)\s+notes?|your\s+note\b"
+    r"|you(?:\s+have|['’]ve)\s+(?:previously|already|earlier)\s+(?:said|written|noted|described|mentioned)"
+    r"|you\s+(?:previously|earlier)\s+(?:said|wrote|noted|described|mentioned))\b",
+    re.IGNORECASE,
+)
+
+
+def memory_attribution_errors(
+    reply: str, evidence_uses: tuple[EvidenceUse, ...]
+) -> list[dict[str, object]]:
+    """Flag wording that reports the stored note outside every memory mapping."""
+    spans = [
+        claim for use in evidence_uses if use.source_kind == "memory"
+        for claim in (*use.supported_claims, *limit_claim_texts(use))
+    ]
+    if not spans:
+        return []
+    covered: list[tuple[int, int]] = []
+    for claim in spans:
+        start = reply.find(claim)
+        while start != -1:
+            covered.append((start, start + len(claim)))
+            start = reply.find(claim, start + 1)
+    errors: list[dict[str, object]] = []
+    for match in _NOTE_ATTRIBUTION.finditer(reply):
+        if any(start <= match.start() and match.end() <= end for start, end in covered):
+            continue
+        sentence_start = max(reply.rfind(mark, 0, match.start()) for mark in (". ", "? ", "! ", "\n"))
+        sentence_end = min(
+            (i for i in (reply.find(mark, match.end()) for mark in (".", "?", "!", "\n")) if i != -1),
+            default=len(reply),
+        )
+        errors.append({
+            "path": "reply",
+            "value": reply[sentence_start + 1:sentence_end + 1].strip(),
+            "note_reference": match.group(0),
+            "error": (
+                "This sentence reports what the reader's stored note says, but no memory "
+                "declaration maps it. Add the complete sentence to that memory's supported_claims, "
+                "or remove the report. Tentative reflection that only refers back to details "
+                "already in a mapped memory sentence may stay unmapped."
+            ),
+        })
+    return errors
+
+
 def validate_supported_claims(reply: str, evidence_uses: tuple[EvidenceUse, ...]) -> None:
     """Check mapping structure, not whether the source entails the claim."""
     if supported_claim_errors(reply, evidence_uses):
