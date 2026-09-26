@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any, Literal, Protocol
 
 import logfire
@@ -13,6 +14,7 @@ from src.linger.agents.librarian.models import (
     BookRequestPlan,
     book_request_span_errors,
     EvidenceStrengthDecision,
+    evidence_assessment_errors,
     LibrarianBookRequestInput,
     LibrarianEvidenceStrengthInput,
 )
@@ -112,27 +114,13 @@ async def assess_book_evidence(
         usage_limits=UsageLimits(request_limit=EVIDENCE_ASSESSMENT_REQUEST_LIMIT),
         **EVIDENCE_ASSESSMENT.run_options(),
     )
-    assessment: BookEvidenceAssessment = result.output
-    additions = BookRequestPlan(parts=assessment.additional_parts)
-    if book_request_span_errors(additions, original_request):
-        raise ValueError("additional book needs contain an invented reader span")
-    supported_parts = {item.part_index for item in assessment.support}
-    requested_parts = set(range(len(plan.parts) + len(assessment.additional_parts)))
-    if not supported_parts.issubset(requested_parts):
-        raise ValueError("evidence assessment introduced an unknown requested part")
-    if assessment.evidence_strength == "sufficient" and supported_parts != requested_parts:
-        raise ValueError("sufficient evidence must support every requested part")
-    decision = EvidenceStrengthDecision.model_validate(
+    assessment = BookEvidenceAssessment.model_validate(result.output.model_dump(mode="json"))
+    errors = evidence_assessment_errors(assessment, task)
+    if errors:
+        raise ValueError(json.dumps({"error": "Invalid evidence assessment.", "errors": errors}, ensure_ascii=False))
+    return EvidenceStrengthDecision.model_validate(
         assessment.model_dump(exclude={"support", "additional_parts"})
     )
-
-    available_ids = {record.evidence_id for record in evidence}
-    selected_ids = set(decision.relevant_evidence_ids)
-    if not selected_ids.issubset(available_ids):
-        raise ValueError("evidence-strength judge returned an unknown evidence ID")
-    if len(decision.relevant_evidence_ids) != len(selected_ids) or len(selected_ids) > max_evidence_records:
-        raise ValueError("evidence-strength judge exceeded the unique evidence selection budget")
-    return decision
 
 
 async def judge_evidence_strength(

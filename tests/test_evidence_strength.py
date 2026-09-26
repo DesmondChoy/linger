@@ -7,16 +7,24 @@ from types import ModuleType, SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from pydantic import ValidationError
+from pydantic_ai.exceptions import UnexpectedModelBehavior
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart
+from pydantic_ai.models.function import FunctionModel
 
+from src.linger.agents.librarian.agent import build_librarian_agent
 from src.linger.agents.librarian.models import (
     BookEvidenceAssessment,
     BookRequestPart,
     BookRequestPlan,
     EvidenceStrengthDecision,
+    LibrarianBookRequestInput,
+    LibrarianEvidenceStrengthInput,
     RequestedBookSupport,
 )
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.orchestration.evidence_strength import judge_evidence_strength
+from src.linger.orchestration.evidence_strength import (
+    EVIDENCE_ASSESSMENT_REQUEST_LIMIT, assess_book_evidence, judge_evidence_strength,
+)
 
 
 class EvidenceStrengthDecisionTests(unittest.TestCase):
@@ -108,6 +116,183 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(ValueError, "unknown evidence ID"):
                 await judge_evidence_strength("query", (self.evidence(),))
         self.assertEqual(2, agent.run.await_count)
+
+    async def test_assessment_repairs_missing_support_and_invented_span_together(self) -> None:
+        question = "Who questions Alice? What does Alice say?"
+        plan = BookRequestPlan(parts=(BookRequestPart(
+            context_spans=(), purpose="answer", reader_spans=("Who questions Alice?",),
+        ),))
+        questioner = self.evidence()
+        answer = questioner.model_copy(update={"evidence_id": "alice-answer", "text": "Alice says she is confused."})
+        attempts = []
+
+        def model(messages, info):
+            retries = [part.content for part in messages[-1].parts if isinstance(part, RetryPromptPart)]
+            if attempts:
+                feedback = json.loads(retries[0])
+                self.assertTrue(any(error["path"] == "additional_parts[0].reader_spans[0]"
+                                    for error in feedback["errors"]))
+                self.assertTrue(any(error.get("missing_part_indices") == [1]
+                                    for error in feedback["errors"]))
+            repaired = bool(attempts)
+            attempts.append(repaired)
+            output = {
+                "evidence_strength": "sufficient", "strength_reason": "Both requested answers are present.",
+                "relevant_evidence_ids": [questioner.evidence_id, *([answer.evidence_id] if repaired else [])],
+                "additional_parts": [{"context_spans": [], "purpose": "answer",
+                                      "reader_spans": ["What does Alice say?" if repaired else "Who answers him?"]}],
+                "support": [{"evidence_id": questioner.evidence_id, "part_index": 0,
+                             "necessary_support": "The Caterpillar asks the question."}],
+            }
+            if repaired:
+                output["support"].append({"evidence_id": answer.evidence_id, "part_index": 1,
+                                          "necessary_support": "Alice answers that she is confused."})
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+        decision = await assess_book_evidence(
+            plan, (questioner, answer), original_request=LibrarianBookRequestInput(current_line=question),
+            agent=build_librarian_agent(FunctionModel(model)),
+        )
+
+        self.assertEqual([False, True], attempts)
+        self.assertEqual("sufficient", decision.evidence_strength)
+        self.assertEqual((questioner.evidence_id, answer.evidence_id), decision.relevant_evidence_ids)
+
+    async def test_weak_assessment_can_leave_a_requested_part_unsupported(self) -> None:
+        plan = BookRequestPlan(parts=tuple(BookRequestPart(
+            context_spans=(), purpose="answer", reader_spans=(span,),
+        ) for span in ("Who questions Alice?", "What does Alice say?")))
+        output = BookEvidenceAssessment(
+            evidence_strength="weak", strength_reason="Only the questioner is identified.",
+            relevant_evidence_ids=(self.evidence().evidence_id,), limitations=("Alice's answer is absent.",),
+            support=(RequestedBookSupport(evidence_id=self.evidence().evidence_id, part_index=0,
+                                          necessary_support="The Caterpillar asks the question."),),
+        )
+        attempts = []
+
+        def model(messages, info):
+            attempts.append(messages)
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output.model_dump(mode="json"))])
+
+        result = await assess_book_evidence(
+            plan, (self.evidence(),), original_request=LibrarianBookRequestInput(
+                current_line="Who questions Alice? What does Alice say?",
+            ), agent=build_librarian_agent(FunctionModel(model)),
+        )
+        self.assertEqual(1, len(attempts))
+        self.assertEqual("weak", result.evidence_strength)
+        self.assertEqual(output.limitations, result.limitations)
+        self.assertEqual(output.relevant_evidence_ids, result.relevant_evidence_ids)
+
+    async def test_unknown_requested_part_exhausts_only_the_existing_retry_budget(self) -> None:
+        plan = BookRequestPlan(parts=(BookRequestPart(
+            context_spans=(), purpose="answer", reader_spans=("Who questions Alice?",),
+        ),))
+        output = BookEvidenceAssessment(
+            evidence_strength="sufficient", strength_reason="The questioner is identified.",
+            relevant_evidence_ids=(self.evidence().evidence_id,),
+            support=(RequestedBookSupport(evidence_id=self.evidence().evidence_id, part_index=9,
+                                          necessary_support="The Caterpillar asks the question."),),
+        )
+        attempts = []
+
+        def model(messages, info):
+            if attempts:
+                feedback = json.loads(next(part.content for part in messages[-1].parts
+                                           if isinstance(part, RetryPromptPart)))
+                self.assertTrue(any(error["path"] == "support[0].part_index" for error in feedback["errors"]))
+                self.assertTrue(any(error.get("missing_part_indices") == [0] for error in feedback["errors"]))
+            attempts.append(messages)
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output.model_dump(mode="json"))])
+
+        with self.assertRaises(UnexpectedModelBehavior):
+            await assess_book_evidence(
+                plan, (self.evidence(),), original_request=LibrarianBookRequestInput(current_line="Who questions Alice?"),
+                agent=build_librarian_agent(FunctionModel(model)),
+            )
+        self.assertEqual(EVIDENCE_ASSESSMENT_REQUEST_LIMIT, len(attempts))
+
+    async def test_numeric_string_part_indices_receive_typed_validation(self) -> None:
+        plan = BookRequestPlan(parts=(BookRequestPart(
+            context_spans=(), purpose="answer", reader_spans=("Who questions Alice?",),
+        ),))
+        for strength, initial_index, expected_attempts in (
+            ("weak", "9", 2), ("weak", "0", 1),
+            ("sufficient", "9", 2), ("sufficient", "0", 1),
+        ):
+            with self.subTest(strength=strength, initial_index=initial_index):
+                attempts = []
+
+                def model(messages, info):
+                    if attempts:
+                        feedback = json.loads(next(part.content for part in messages[-1].parts
+                                                   if isinstance(part, RetryPromptPart)))
+                        self.assertTrue(any(error["path"] == "support[0].part_index" and error["value"] == 9
+                                            for error in feedback["errors"]))
+                    part_index = 0 if attempts else initial_index
+                    attempts.append(part_index)
+                    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+                        "evidence_strength": strength, "strength_reason": "The questioner is named, with little context.",
+                        "limitations": ["Only the question is supplied."],
+                        "relevant_evidence_ids": [self.evidence().evidence_id],
+                        "support": [{"evidence_id": self.evidence().evidence_id, "part_index": part_index,
+                                     "necessary_support": "The Caterpillar asks the question."}],
+                    })])
+
+                result = await assess_book_evidence(
+                    plan, (self.evidence(),), original_request=LibrarianBookRequestInput(current_line="Who questions Alice?"),
+                    agent=build_librarian_agent(FunctionModel(model)),
+                )
+                self.assertEqual(expected_attempts, len(attempts))
+                self.assertEqual(strength, result.evidence_strength)
+                self.assertEqual(("Only the question is supplied.",), result.limitations)
+
+    async def test_application_and_captured_replay_recheck_domain_faults(self) -> None:
+        from evals.synthetic_journals.captured_stage_tasks import _validate_application_result
+
+        first = self.evidence()
+        second = first.model_copy(update={"evidence_id": "alice-answer", "text": "Alice answers."})
+        task = LibrarianEvidenceStrengthInput(
+            original_request=LibrarianBookRequestInput(current_line="Who questions Alice? What does Alice say?"),
+            request=BookRequestPlan(parts=(BookRequestPart(
+                context_spans=(), purpose="answer", reader_spans=("Who questions Alice?",),
+            ),)), evidence=(first, second), max_evidence_records=1,
+        )
+        valid = BookEvidenceAssessment(
+            evidence_strength="sufficient", strength_reason="The questioner is identified.",
+            relevant_evidence_ids=(first.evidence_id,), support=(RequestedBookSupport(
+                evidence_id=first.evidence_id, part_index=0, necessary_support="The Caterpillar asks the question.",
+            ),),
+        )
+        additions = (BookRequestPart(context_spans=(), purpose="answer", reader_spans=("What does Alice say?",)),)
+        faults = {
+            "span": valid.model_copy(update={"additional_parts": (
+                additions[0].model_copy(update={"reader_spans": ("Invented question",)}),
+            )}),
+            "coverage": valid.model_copy(update={"additional_parts": additions}),
+            "part": valid.model_copy(update={"support": (valid.support[0].model_copy(update={"part_index": 9}),)}),
+            "unknown_id": valid.model_copy(update={"relevant_evidence_ids": ("unknown",), "support": (
+                valid.support[0].model_copy(update={"evidence_id": "unknown"}),
+            )}),
+            "duplicate": valid.model_copy(update={"relevant_evidence_ids": (first.evidence_id, first.evidence_id)}),
+            "budget": valid.model_copy(update={"relevant_evidence_ids": (first.evidence_id, second.evidence_id),
+                                                "support": (valid.support[0], valid.support[0].model_copy(
+                                                    update={"evidence_id": second.evidence_id},
+                                                ))}),
+        }
+        for fault, output in faults.items():
+            with self.subTest(fault=fault):
+                agent = AsyncMock()
+                agent.run.return_value = SimpleNamespace(output=output)
+                with self.assertRaises(ValueError) as application_error:
+                    await assess_book_evidence(
+                        task.request, task.evidence, original_request=task.original_request,
+                        max_evidence_records=task.max_evidence_records, agent=agent,
+                    )
+                with self.assertRaises(ValueError) as replay_error:
+                    _validate_application_result(task, output)
+                self.assertEqual(str(application_error.exception), str(replay_error.exception))
+                self.assertTrue(json.loads(str(application_error.exception))["errors"])
 
     def test_weak_requires_an_explicit_limitation(self) -> None:
         with self.assertRaises(ValidationError):

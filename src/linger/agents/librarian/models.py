@@ -212,12 +212,20 @@ class BookEvidenceAssessment(EvidenceStrengthDecision):
 
 
 def evidence_assessment_errors(
-    selected: list[str], support_ids: list[str], request: LibrarianEvidenceStrengthInput,
+    assessment: BookEvidenceAssessment | dict[str, object], request: LibrarianEvidenceStrengthInput,
 ) -> list[dict[str, object]]:
-    """Report every selection fault together, while the model can still repair them."""
+    """Check source selection and requested coverage before and after schema validation."""
+    candidate = assessment.model_dump(mode="json") if isinstance(assessment, BookEvidenceAssessment) else assessment
+    selected_raw, support = candidate.get("relevant_evidence_ids"), candidate.get("support")
+    if not isinstance(selected_raw, list) or not isinstance(support, list):
+        return []  # The output schema reports malformed field types.
+    selected = [str(item) for item in selected_raw]
+    support_ids = [str(item.get("evidence_id")) for item in support if isinstance(item, dict)]
     available = tuple(record.evidence_id for record in request.evidence)
     known = set(available)
     errors: list[dict[str, object]] = []
+    if len(selected) != len(set(selected)):
+        errors.append({"path": "relevant_evidence_ids", "error": "Selected evidence IDs must be unique."})
     if len(selected) > request.max_evidence_records:
         errors.append({
             "path": "relevant_evidence_ids",
@@ -230,7 +238,7 @@ def evidence_assessment_errors(
             continue
         error: dict[str, object] = {
             "path": path, "value": evidence_id,
-            "error": "Evidence ID is not one of the supplied records; copy it exactly from evidence.",
+            "error": "Assessment returned an unknown evidence ID; copy it exactly from the supplied evidence.",
         }
         close = get_close_matches(evidence_id, available, n=3, cutoff=0.8)
         if close:
@@ -242,6 +250,32 @@ def evidence_assessment_errors(
             "error": "Every selected record needs a support entry, and every support entry must be selected.",
             "selected_without_support": sorted(set(selected) - set(support_ids)),
             "support_not_selected": sorted(set(support_ids) - set(selected)),
+        })
+    try:
+        additions = BookRequestPlan.model_validate({"parts": candidate.get("additional_parts", [])})
+    except ValueError:
+        return errors  # Keep selection feedback; the schema checks malformed parts.
+    for error in book_request_span_errors(additions, request.original_request):
+        errors.append({**error, "path": str(error["path"]).replace("parts[", "additional_parts[", 1)})
+    try:
+        normalized_support = tuple(RequestedBookSupport.model_validate(item) for item in support)
+    except ValueError:
+        return errors  # The schema reports malformed support without inferring missing coverage.
+    requested = set(range(len(request.request.parts) + len(additions.parts)))
+    supported = set()
+    for index, item in enumerate(normalized_support):
+        part_index = item.part_index
+        supported.add(part_index)
+        if part_index not in requested:
+            errors.append({
+                "path": f"support[{index}].part_index", "value": part_index,
+                "error": "Evidence assessment introduced an unknown requested part.",
+            })
+    missing = sorted(requested - supported)
+    if candidate.get("evidence_strength") == "sufficient" and missing:
+        errors.append({
+            "path": "support", "missing_part_indices": missing,
+            "error": "Sufficient evidence must support every requested part.",
         })
     return errors
 

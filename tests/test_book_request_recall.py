@@ -5,7 +5,8 @@ import json
 from unittest.mock import patch
 
 import pytest
-from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.exceptions import UnexpectedModelBehavior
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart, UserPromptPart
 from pydantic_ai.models.function import FunctionModel
 
 from apps.backend.contracts import BookScope, EvidenceBundle, EvidenceItem
@@ -33,9 +34,12 @@ def item(identity, chapter=3):
     )
 
 
-def assessment_model(additional=(), *, strength="sufficient", support_ids=("refusal", "response")):
+def assessment_model(additional=(), *, strength="sufficient", support_ids=("refusal", "response"), retries=None):
     def model(messages, info):
-        payload = json.loads(messages[-1].parts[0].content)
+        payload = json.loads(next(part.content for message in messages for part in message.parts
+                                  if isinstance(part, UserPromptPart)))
+        if retries is not None:
+            retries.extend(part.content for part in messages[-1].parts if isinstance(part, RetryPromptPart))
         assert payload["original_request"]["current_line"] == LINE
         assert {e["evidence_id"] for e in payload["evidence"]} == {"refusal", "response"}
         output = {
@@ -103,14 +107,17 @@ def test_a_newly_noticed_but_unsupported_need_prevents_a_sufficient_result():
         chapter_id=i.chapter_id, chapter_number=i.chapter, location=i.location,
         source_sha256=i.source_sha256, source_lines=i.source_lines, text=i.excerpt,
     ) for i in (item("refusal"), item("response")))
+    retries = []
     with (
         patch("src.linger.orchestration.evidence_strength.plan_book_request",
               return_value=BookRequestPlan(parts=(part(REFUSAL),))),
-        pytest.raises(ValueError, match="every requested part"),
+        pytest.raises(UnexpectedModelBehavior),
     ):
         asyncio.run(judge_evidence_strength(
-            LINE, records, agent=assessment_model((RESPONSE,), support_ids=("refusal",)),
+            LINE, records, agent=assessment_model((RESPONSE,), support_ids=("refusal",), retries=retries),
         ))
+    assert len(retries) == 1
+    assert any(error.get("missing_part_indices") == [1] for error in json.loads(retries[0])["errors"])
 
 
 def test_candidate_budget_preserves_later_needs_and_original_fallback():

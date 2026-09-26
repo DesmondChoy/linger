@@ -82,8 +82,7 @@ def test_invented_request_anchors_or_selection_parts_are_rejected(fault):
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
     from pydantic_ai.exceptions import UnexpectedModelBehavior
-    expected_error = UnexpectedModelBehavior if fault == "invented_anchor" else ValueError
-    with pytest.raises(expected_error):
+    with pytest.raises(UnexpectedModelBehavior):
         asyncio.run(judge_evidence_strength(
             "Mara refuses", (record("refusal", "Mara refuses."),),
             agent=build_librarian_agent(FunctionModel(model)),
@@ -138,7 +137,8 @@ def test_sufficient_cannot_omit_an_existing_book_need():
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
-    with pytest.raises(ValueError, match="every requested part"):
+    from pydantic_ai.exceptions import UnexpectedModelBehavior
+    with pytest.raises(UnexpectedModelBehavior):
         asyncio.run(judge_evidence_strength(
             "Compare the refusal with the invitation", (record("refusal", "Mara refused."),),
             agent=build_librarian_agent(FunctionModel(model)),
@@ -178,7 +178,8 @@ def test_assessment_recovers_omitted_need_without_relaxing_span_or_coverage_chec
         agent=build_librarian_agent(FunctionModel(model)),
     )
     if fault:
-        with pytest.raises(ValueError, match="invented reader span" if fault == "invented_span" else "every requested part"):
+        from pydantic_ai.exceptions import UnexpectedModelBehavior
+        with pytest.raises(UnexpectedModelBehavior):
             asyncio.run(invocation)
     else:
         result = asyncio.run(invocation)
@@ -389,7 +390,10 @@ def test_assessment_id_errors_name_the_closest_supplied_record():
     wrong = "pg2397-vb3cc1e13-sec022-ln3115-3140"
     drifted = "pg2397-vb3cc1e13-sec022-ln2441-2475"
 
-    errors = evidence_assessment_errors([wrong, other.evidence_id], [wrong, drifted], request)
+    errors = evidence_assessment_errors({
+        "relevant_evidence_ids": [wrong, other.evidence_id],
+        "support": [{"evidence_id": identity} for identity in (wrong, drifted)],
+    }, request)
 
     assert [error["path"] for error in errors] == [
         "relevant_evidence_ids", "relevant_evidence_ids[0]",
