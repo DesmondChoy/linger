@@ -69,6 +69,7 @@ from src.linger.orchestration.turn_context import (
     connection_book_scopes,
     public_source_urls,
     reader_statements,
+    tool_exposure,
 )
 
 
@@ -147,6 +148,14 @@ def _build_task(
     if not recalling and web_reach_permitted() and public_source_urls() != ():
         allowed_sources.append("web")
 
+    # Triage pins find_connection only when the reader asks about their reading
+    # without naming the sources, so that pin means: search the whole library.
+    exposure = tool_exposure()
+    search_all_granted_books = bool(
+        book_scopes and brief.intent == "find_connection"
+        and exposure is not None and exposure.pinned_intent == "find_connection"
+    )
+
     return ConnectionDiscoveryInput(
         cue=brief.cue,
         intent=brief.intent,
@@ -159,6 +168,7 @@ def _build_task(
             allowed_sources=tuple(allowed_sources),
             book_scopes=book_scopes,
             web_source_urls=public_source_urls() if "web" in allowed_sources else None,
+            search_all_granted_books=search_all_granted_books,
         ),
     )
 

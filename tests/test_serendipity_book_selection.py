@@ -269,3 +269,61 @@ def test_book_queries_drop_only_the_searched_authors_name(work_id, query, expect
 
     assert _without_author(query, work_id) == expected
 
+
+def unnamed_discovery(librarian, *, search_all=True):
+    deps = dependencies(librarian)
+    deps.task = deps.task.model_copy(update={
+        "scope": deps.task.scope.model_copy(update={"search_all_granted_books": search_all}),
+    })
+    return deps
+
+
+def test_unnamed_discovery_searches_every_granted_book_whatever_the_selection():
+    # Run 7: a title-free Line searched only one book and missed the relevant one.
+    librarian = EmptyLibrarian()
+    asyncio.run(search_librarian(SimpleNamespace(deps=unnamed_discovery(librarian)), work_ids=("pg11",)))
+
+    searched = {scope.work_id for request in librarian.requests for scope in request.book_scopes}
+    assert searched == {scope.work_id for scope in SCOPES}
+
+
+def test_unnamed_discovery_must_search_books_before_answering():
+    from src.linger.agents.serendipity.agent import validate_serendipity_output
+    from src.linger.agents.serendipity.models import ConnectionDecline
+
+    decline = ConnectionDecline(reason="insufficient_evidence", safe_next_step="Reply plainly.")
+    deps = unnamed_discovery(EmptyLibrarian())
+    with pytest.raises(ModelRetry, match="search_librarian"):
+        validate_serendipity_output(SimpleNamespace(deps=deps), decline)
+
+    asyncio.run(search_librarian(SimpleNamespace(deps=deps)))
+    assert validate_serendipity_output(SimpleNamespace(deps=deps), decline) == decline
+    unflagged = unnamed_discovery(EmptyLibrarian(), search_all=False)
+    assert validate_serendipity_output(SimpleNamespace(deps=unflagged), decline) == decline
+
+
+@pytest.mark.parametrize(("intent", "pinned", "expected"), [
+    ("find_connection", "find_connection", True),
+    ("find_connection", None, False),
+    ("gather_sources", "gather_sources", False),
+])
+def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pinned, expected):
+    from apps.backend.contracts import ConnectionBrief
+    from apps.backend.librarian import Librarian
+    from unittest.mock import patch
+    from src.linger.orchestration.connection import _build_task
+    from src.linger.orchestration.turn_context import (
+        ToolExposure, reset_tool_exposure, set_tool_exposure,
+    )
+
+    token = set_tool_exposure(ToolExposure(tools=frozenset({"serendipity_explore"}), pinned_intent=pinned))
+    try:
+        with (
+            patch("src.linger.orchestration.connection.connection_book_scopes", return_value=SCOPES),
+            patch("src.linger.orchestration.connection.web_reach_permitted", return_value=False),
+        ):
+            task = _build_task(ConnectionBrief(cue=LINE, intent=intent), librarian=Librarian())
+    finally:
+        reset_tool_exposure(token)
+
+    assert task.scope.search_all_granted_books is expected

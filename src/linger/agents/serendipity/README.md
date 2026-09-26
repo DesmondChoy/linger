@@ -105,7 +105,12 @@ chapter or named-unit context; an exact-passage grant does not permit Serendipit
 book search.
 Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 `get_recommendation` and `gather_sources` use `presentation=direct`, while
-`find_connection` uses `ask_before_showing`. `recall_memory` grants memory only, never the book corpus
+`find_connection` uses `ask_before_showing`. When triage pinned
+`find_connection` (the reader asked about their reading without naming books)
+and books are granted, the scope sets `search_all_granted_books`:
+`search_librarian` then searches every granted book whatever `work_ids` the
+model selects, and the validator retries any answer given before a book
+search. `recall_memory` grants memory only, never the book corpus
 or the web, and its result carries no presentation policy. Presentation policy does not bypass release checks.
 
 ## Search ownership

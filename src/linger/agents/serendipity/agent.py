@@ -68,6 +68,14 @@ def validate_serendipity_output(
     output: SerendipityResponse,
 ) -> SerendipityResponse:
     """Retry results that mismatch the task, its evidence, or the winner's flags."""
+    scope = ctx.deps.task.scope
+    if scope.search_all_granted_books and not any(
+        search.source == "book_corpus" for search in ctx.deps.searches
+    ):
+        raise ModelRetry(
+            "The reader asked about their reading without naming books. Call "
+            "search_librarian before answering; it searches every granted book."
+        )
     if isinstance(output, ConnectionDecline):
         return output
     expected = {"recall_memory": MemoryRecall, "gather_sources": SourceBundle}.get(

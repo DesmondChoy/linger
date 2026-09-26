@@ -47,6 +47,9 @@ class ConnectionScope(StrictModel):
     book_scopes: tuple[BookScope, ...] = ()
     # Exact application-known public pages may be opened directly; None requires search leads.
     web_source_urls: tuple[str, ...] | None = None
+    # Set when the reader asked about their reading without naming books: every
+    # granted book is searched, so a narrow selection cannot skip the relevant one.
+    search_all_granted_books: bool = False
 
     @model_validator(mode="after")
     def require_coherent_source_grant(self) -> Self:
@@ -56,6 +59,8 @@ class ConnectionScope(StrictModel):
             raise ValueError("book-corpus access requires at least one book scope")
         if self.book_scopes and "book_corpus" not in self.allowed_sources:
             raise ValueError("book scopes require book-corpus access")
+        if self.search_all_granted_books and not self.book_scopes:
+            raise ValueError("searching all granted books requires a book grant")
         if self.web_source_urls is not None:
             if len(self.web_source_urls) != len(set(self.web_source_urls)):
                 raise ValueError("public source URLs must be unique")

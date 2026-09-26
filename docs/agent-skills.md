@@ -369,7 +369,9 @@ and earlier note, and returns one `SourceBundle` with every supporting record
 plus the named sources it could not find. It does not build or rank competing
 connections, because the reader has already chosen them; Muse writes the
 comparison. Open-ended discovery ("anything I've read") keeps
-`find_connection` and its shortlist. Reviewed automatic capture stays under the
+`find_connection` and its shortlist; because the reader named no books, that
+pinned request searches every granted book (`search_all_granted_books`) rather
+than a subset the model picks. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 
 `run_curation_loop` implements reviewed curation as a callable application
