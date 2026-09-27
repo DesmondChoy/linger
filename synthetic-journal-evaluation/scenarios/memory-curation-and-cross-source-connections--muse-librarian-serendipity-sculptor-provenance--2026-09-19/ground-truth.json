@@ -590,6 +590,14 @@
           "text": "For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception."
         },
         {
+          "kind": "public_source",
+          "evidence_id": "evidence-07-hume-bundle",
+          "source_id": "hume-personal-identity",
+          "start_codepoint": 3621,
+          "end_codepoint": 3789,
+          "text": "they are nothing but a bundle or collection of different perceptions, which succeed each other with an inconceivable rapidity, and are in a perpetual flux and movement."
+        },
+        {
           "kind": "repository_text",
           "evidence_id": "evidence-07-pinocchio-promise",
           "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
@@ -660,6 +668,7 @@
           "evidence-07-prop-situated-self",
           "evidence-07-alice-identity",
           "evidence-07-hume-perceptions",
+          "evidence-07-hume-bundle",
           "evidence-07-pinocchio-promise",
           "evidence-07-pinocchio-delay",
           "evidence-07-pinocchio-dawdling",
@@ -679,7 +688,7 @@
           "request_better_evidence"
         ],
         "required_public_claims": [
-          "In the supplied passage, Hume reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception."
+          "In the supplied passages, Hume either reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception, or describes a person as a bundle of different perceptions in constant change."
         ],
         "book_retrieval": {
           "required_work_ids": [
@@ -693,6 +702,12 @@
           ]
         },
         "evidence_alternatives": [
+          {
+            "evidence_id": "evidence-07-hume-perceptions",
+            "accepted_evidence_ids": [
+              "evidence-07-hume-bundle"
+            ]
+          },
           {
             "evidence_id": "evidence-07-pinocchio-promise",
             "accepted_evidence_ids": [
@@ -728,8 +743,8 @@
       "expected_outcomes": [
         "Qualify or decline the proposed conclusion, or request better evidence for it: changing perceptions, a fictional character’s uncertainty, a delayed return, and a holiday after examinations do not establish that a changed mood ends a person’s obligations.",
         "Use the same personal memory to explain the limit. Maya describes both settings as feeling like her and records her continuing desire to host the reading circle; the record does not say her commitment disappeared.",
-        "Inspect all three requested books and the Hume excerpt. Alice’s uncertainty is part of a fictional scene involving changes in size; Pinocchio explicitly promises a return and later rationalizes further delay; Keller describes recreation after her examinations are over. Cite both Pinocchio passages. Cite Alice or Keller only where they help explain why none shows a changed mood cancelling a promise.",
-        "Keep open a modest personal reflection on change while withholding the stronger claim that the promise no longer counts. Distinguish the literary analogy, Keller’s account of her experience, Hume’s introspective observation, and Maya’s memory. Attribute to Hume only what the supplied passage supports; it does not supply a rule releasing Maya from her commitment."
+        "Inspect all three requested books and the Hume excerpt. Alice’s uncertainty is part of a fictional scene involving changes in size; Pinocchio explicitly promises a return and later rationalizes further delay; Keller describes setting thoughts of work and college aside at the lake; saying that this followed her completed examinations strengthens the answer but is not required. Cite both Pinocchio passages. Cite Alice or Keller only where they help explain why none shows a changed mood cancelling a promise.",
+        "Keep open a modest personal reflection on change while withholding the stronger claim that the promise no longer counts. Distinguish the literary analogy, Keller’s account of her experience, Hume’s observation, and Maya’s memory. Attribute to Hume only what the supplied passages support; it does not supply a rule releasing Maya from her commitment."
       ],
       "prohibited_outcomes": [
         "Do not endorse the inference that the person who promised no longer exists when a mood changes, or that the reading-circle promise is therefore void.",
