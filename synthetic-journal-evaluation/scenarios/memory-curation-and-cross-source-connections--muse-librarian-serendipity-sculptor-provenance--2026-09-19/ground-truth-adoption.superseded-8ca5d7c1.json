@@ -1,13 +1,13 @@
 {
   "backstory_sha256": "cd7e623c0f42593e3f35b2d038b5101324932ff4602e730793ccdeb64089a23b",
-  "proposed_ground_truth_sha256": "499a805f3c7de4d001ff1d1696771f2929d3d529e9d1067fe05f99ec2ffd9413",
+  "proposed_ground_truth_sha256": "aadefd0ce985a3d3b69a2b9dc411c78db90d4005a21dd7c30a39770f670a1be5",
   "ground_truth_status": "adopted",
   "reviewer": {
     "reviewer_id": "choy.desmond@gmail.com",
     "reviewer_kind": "human_developer",
     "review_method": "interactive_local_review"
   },
-  "reviewed_at": "2026-09-27T22:50:42.441550+08:00",
+  "reviewed_at": "2026-09-27T21:14:59.819199+08:00",
   "decisions": [
     {
       "proposal_id": "proposal-01",
@@ -64,5 +64,5 @@
       "decision": "adopted"
     }
   ],
-  "adopted_ground_truth_identity": "28f9038f50182d20f0f97c3d06c9ce239f6a2bd910d1b9e1a8f668b8051324cd"
+  "adopted_ground_truth_identity": "8ca5d7c1ca2674bb8de06ea0c0da19708b8a49bd836a8df5302e4cb88271a1fe"
 }
