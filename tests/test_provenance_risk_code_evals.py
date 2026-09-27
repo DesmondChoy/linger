@@ -231,10 +231,22 @@ class RiskCodeCaseSetTests(unittest.TestCase):
         self.assertEqual("allow_capture", allowed.expected_capture_decision)
 
     def test_sensitive_content_is_derived_from_the_expected_capture_codes(self) -> None:
+        sensitive_case = self.by_behavior["capture_sensitive_content_positive"]
+        unsupported_case = self.by_behavior["capture_unsupported_claim_positive"]
+        self.assertEqual(
+            ("sensitive_content",), sensitive_case.expected_capture_codes
+        )
+        self.assertIn(
+            "anxiety disorder", sensitive_case.review_input.candidate.memory.text
+        )
+        self.assertEqual(
+            ("unsupported_claim",), unsupported_case.expected_capture_codes
+        )
+        self.assertNotIn(
+            "anxiety disorder", unsupported_case.review_input.candidate.memory.text
+        )
         self.assertTrue(
-            self.by_behavior[
-                "capture_sensitive_content_positive"
-            ].expected_sensitive_content
+            sensitive_case.expected_sensitive_content
         )
         self.assertFalse(
             self.by_behavior[

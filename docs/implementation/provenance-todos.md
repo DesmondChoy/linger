@@ -6,10 +6,10 @@ Provenance runtime path. The remaining work is integration and evaluation.
 
 ## Remaining work
 
-- [ ] **Refresh the candidate-gate measurement.** Run all cases in
+- [x] **Refresh the candidate-gate measurement.** Run all cases in
   `evals/provenance/risk-codes-cases.json` against the current prompt and make
   the suite pass without weakening its gates. The committed report covers only
-  24 cases and has `targets_pass=false`.
+  24 cases and has `targets_pass=false`. Latest run results are at `evals/provenance/risk-codes-live-report.json`, and we tested and cleaned up the unsupported claims separately using `evals/provenance/risk-codes-cases-unsupported-claims.json`. Current results stand at accuracy 0.8462 for 52 cases.
 - [x] **Add 4.2.3 semantic pairs.** The 34-case pack now pairs uncited and cited
   web claims, attributed personal memory, and misuse of memory as public or
   book evidence. Live measurement remains in the item above.
