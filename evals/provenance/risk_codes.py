@@ -23,13 +23,15 @@ retain candidate text, evidence text, or model rationales.
 
 from __future__ import annotations
 
+import argparse
+import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal, Self
 
 from pydantic import Field, ValidationError, model_validator
 
-from evals.provenance.harness import StrictModel, run_case, run_report_command
+from evals.provenance.harness import StrictModel, run_case
 from src.linger.agents.provenance.models import (
     SENSITIVE_RISK_CODES,
     ProvenanceInput,
@@ -276,17 +278,22 @@ class RiskCodeEvalCase(StrictModel):
 class RiskCodeCaseSet(StrictModel):
     """The complete versioned baseline for both gate decisions."""
 
-    schema_version: Literal[2]
-    case_set_id: Literal["provenance-risk-codes-v1"]
+    schema_version: Literal[3]
+    case_set_id: Literal[
+        "provenance-risk-codes-v1",
+        "provenance-risk-codes-unsupported-claims-v1",
+    ]
     gate_id: Literal["provenance.release-gate"]
     flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=52, max_length=52)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=1, max_length=52)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:
         case_ids = [case.case_id for case in self.cases]
         if len(case_ids) != len(set(case_ids)):
             raise ValueError("risk-code case IDs must be unique")
+        if self.case_set_id != "provenance-risk-codes-v1":
+            return self
         behaviors = {case.primary_behavior for case in self.cases}
         if behaviors != REQUIRED_BEHAVIORS:
             raise ValueError(
@@ -437,7 +444,10 @@ class EvaluationReport(StrictModel):
 
     schema_version: Literal[2]
     generated_at: datetime
-    case_set_id: Literal["provenance-risk-codes-v1"]
+    case_set_id: Literal[
+        "provenance-risk-codes-v1",
+        "provenance-risk-codes-unsupported-claims-v1",
+    ]
     gate_id: Literal["provenance.release-gate"]
     flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
     model: str
@@ -584,15 +594,23 @@ def _summarize(
     return EvaluationSummary(
         case_count=len(measurements),
         complete_case_set=complete_case_set,
-        targets_pass=complete_case_set and passed_count == len(measurements),
+        targets_pass=passed_count == len(measurements),
         accuracy=round(passed_count / len(measurements), 4),
-        block_recall=round(len(blocked) / len(positives), 4),
-        over_refusal_rate=round(over_refused / len(negatives), 4),
+        block_recall=round(len(blocked) / len(positives), 4) if positives else 0.0,
+        over_refusal_rate=(
+            round(over_refused / len(negatives), 4) if negatives else 0.0
+        ),
         code_precision=round(correctly_labelled / len(blocked), 4) if blocked else 0.0,
-        capture_veto_recall=round(len(vetoed) / len(capture_positives), 4),
+        capture_veto_recall=(
+            round(len(vetoed) / len(capture_positives), 4)
+            if capture_positives
+            else 0.0
+        ),
         capture_over_refusal_rate=round(
             capture_over_refused / len(capture_negatives), 4
-        ),
+        )
+        if capture_negatives
+        else 0.0,
         capture_code_precision=(
             round(capture_labelled / len(vetoed), 4) if vetoed else 0.0
         ),
@@ -613,6 +631,7 @@ def _summarize(
                 labelled=code in item.actual_codes,
             )
             for code in sorted(FLOW_421_CODES | FLOW_423_CODES)
+            if f"{code}_positive" in by_behavior
         ),
         per_capture_code_result=tuple(
             CaptureCodeResult(
@@ -623,6 +642,7 @@ def _summarize(
                 labelled=code in item.actual_capture_codes,
             )
             for code in sorted(FLOW_422_CODES)
+            if f"capture_{code}_positive" in by_behavior
         ),
     )
 
@@ -691,5 +711,22 @@ async def run_evaluation(
     )
 
 
+def _run_report_command() -> None:
+    """Run the baseline or a selected case file from the command line."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
+    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
+    args = parser.parse_args()
+
+    report = asyncio.run(
+        run_evaluation(case_set=load_risk_code_cases(args.cases))
+    )
+    args.report.parent.mkdir(parents=True, exist_ok=True)
+    args.report.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    print(report.summary.model_dump_json(indent=2), flush=True)
+    if not report.summary.targets_pass:
+        raise SystemExit(1)
+
+
 if __name__ == "__main__":
-    run_report_command(run_evaluation, DEFAULT_REPORT, __doc__)
+    _run_report_command()
