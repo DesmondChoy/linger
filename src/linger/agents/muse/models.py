@@ -180,6 +180,16 @@ class RetainedSource(StrictModel):
     evidence_id: str = Field(min_length=1, max_length=2_000)
 
 
+class DraftSentence(StrictModel):
+    """One sentence of the reviewed draft and what the single revision may do with it."""
+
+    text: str = Field(min_length=1, max_length=20_000)
+    flagged: bool = Field(description="A review finding names this sentence, so the revision may rewrite it.")
+    needs_source: bool = Field(
+        description="The review judged unmapped content here source-dependent: map it or delete it.",
+    )
+
+
 def _record_key(use: object) -> tuple[str, str] | None:
     if not isinstance(use, dict):
         return None

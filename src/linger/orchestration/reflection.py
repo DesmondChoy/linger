@@ -34,6 +34,7 @@ from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCand
 from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.muse.claim_repair import (
     accepted_claims_for_revision,
+    draft_sentences_for_revision,
     retained_sources_for_revision,
 )
 from src.linger.agents.muse.prompt import (
@@ -889,7 +890,7 @@ async def _review(
     previous_response_review: PreviousResponseReview | None = None,
     *,
     required_clarification: str | None = None,
-) -> ProvenanceReview:
+) -> tuple[ProvenanceReview, ProvenanceInput]:
     review_input = _provenance_input(
         candidate,
         review_context,
@@ -928,7 +929,7 @@ async def _review(
         review_input.validate_review(review)
     except Exception:
         raise ReleaseValidationError("Provenance review output is invalid") from None
-    return review
+    return review, review_input
 
 
 def _reviewed_capture(
@@ -1150,7 +1151,7 @@ async def _reflection_reply(
     draft_review_context = _effective_review_context(review_context, draft_routing)
     draft_nomination = _nomination(candidate)
     try:
-        review = await _review(
+        review, review_input = await _review(
             candidate,
             provenance,
             draft_review_context,
@@ -1288,6 +1289,9 @@ async def _reflection_reply(
                 findings=review.response_findings,
                 previously_accepted_claims=accepted_claims_for_revision(candidate, review),
                 retained_sources=retained_sources_for_revision(candidate, review),
+                draft_sentences=draft_sentences_for_revision(
+                    candidate, review, review_input.uncovered_response_spans,
+                ),
                 source_quote_interiors=source_quote_interiors(
                     quoted_response_spans(candidate.reply), review.quotation_audit,
                 ),
@@ -1387,7 +1391,7 @@ async def _reflection_reply(
     revised_nomination = _nomination(revised_candidate)
 
     try:
-        revised_review = await _review(
+        revised_review, _ = await _review(
             revised_candidate,
             provenance,
             revised_review_context,
