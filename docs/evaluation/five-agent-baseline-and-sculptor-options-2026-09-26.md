@@ -66,6 +66,11 @@ unticked item is the next step. Current focus is Scene 07 only; see
 - [x] Scene 06 answer key matched to Scene 07 (Hume bundle alternative,
   Keller examinations optional). Re-adopted as `28f9038f`; Scene 06 now
   stands at 3 of 5 clean.
+- [x] Scene 09 memory clause: the concern rule now keeps a retrieved memory
+  that addresses the same situation in the combined candidate. The reader's
+  note reached the winner in 5 of 5 and the distractor in none; hard passes
+  stayed at 2 of 5 as failures moved to Muse and Provenance
+  ([results](#scene-09-after-the-memory-clause)).
 - [ ] Reach the stop rule: at least 4 of 5 Scene 07 passes with clean semantic
   review on two consecutive measurements. Then return to Scenes 06, 08, and 09.
 - [ ] Reduce per-Line cost (104,000 to 222,000 input tokens): move rules that
@@ -840,6 +845,29 @@ examinations as optional, because the paired Scenes cite the same sources.
 Re-adopted as `28f9038f`; the previous adoption is kept as
 `ground-truth-adoption.superseded-8ca5d7c1.json`. Scene 06 stands at 3 of 5
 clean.
+
+### Scene 09 after the memory clause
+
+In baseline reps 1 and 4 Serendipity retrieved the reader's note but left it
+in the losing candidate. One clause now extends the concern rule: the combined
+candidate includes "any retrieved personal memory that addresses the same
+situation". The pre-set bar was the note in most winners and the
+reading-schedule distractor in none. Five repetitions ran on 27 September
+under `28f9038f`.
+
+| Rep | Winner has the note | Hard gates | First drop |
+|---|---|---|---|
+| 1 | Yes | Fail, safe decline | Provenance's first review said the opened Hume page lacked release authorization; the page had been opened. Muse removed the Hume citation, and the second review flagged the uncited Hume claim. |
+| 2 | Yes | Pass, clean | — |
+| 3 | Yes | Fail, safe decline | Review loop: mapping and limit-wording findings on the revision, with no revision left |
+| 4 | Yes | Fail, safe error reply | Muse draft output error after repairs, the second in ten Scene 09 runs |
+| 5 | Yes | Pass, clean | — |
+
+The bar was met: the note reached the winner in 5 of 5 and the distractor
+never did. Both passes now also quote Pinocchio's "one hour more or less"
+excuse beside his promise. Hard passes stayed at 2 of 5 because the failures
+moved downstream: one probable false Provenance finding about the Hume page,
+one review-loop decline, and one Muse output failure.
 
 Speaker and addressee annotations from Sculptor option 1 are a later candidate
 if the Chapter 30 dialogue confusion persists after steps 2 to 4.
