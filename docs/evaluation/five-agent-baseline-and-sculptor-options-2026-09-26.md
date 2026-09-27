@@ -1,5 +1,54 @@
 # Five-agent Scenario: baseline, stage recall, and Sculptor options
 
+## Progress checklist
+
+Start here in a fresh session. Ticked items are done on `main`; the first
+unticked item is the next step. Current focus is Scene 07 only; see
+[Scene 07 focus](#scene-07-focus) for the method and stop rule.
+
+- [x] Error analysis of full runs 1 to 15 ([status](#status)).
+- [x] Lock the code baseline at `1a8ba29` ([locked baseline](#locked-baseline)).
+- [x] Measure stage recall of required book evidence
+  ([stage recall](#stage-recall-of-required-book-evidence)).
+- [x] Make Sculptor offline only: remove surfacing from chat and retire the
+  conversational surfacing Objective (`cbbd3fe`, `linger-j728`).
+- [x] Scene 07 step 2: Muse revision keeps its supporting sources (`5924acf`).
+- [x] Librarian: short `E1`–`En` record labels and per-part candidate gathering,
+  with the offline `evals.librarian.part_recall` check (`544d648`, `d6b8e30`,
+  `linger-nxap`, [issue #83](https://github.com/DesmondChoy/linger/issues/83)).
+- [x] Scene 07 step 1: five-repetition baseline on `9fb5516`, 3 of 5 hard passes
+  ([results](#scene-07-baseline-on-9fb5516)).
+- [ ] **Next: Scene 07 step 4, Librarian assessment.** Rep 5 kept the Pinocchio
+  promise passage and dropped the delay passage that was in its pool. Make
+  selected support traceable to the selected text, checked in code inside the
+  existing repair loop, then replay the saved assessment inputs before a live
+  run.
+- [ ] Scene 07 step 5, Muse revision drift. Rep 2 resolved both findings but
+  added a new unmapped summary sentence, and the reply was declined.
+- [ ] Scene 07 step 3, only if a later measurement shows Muse again losing
+  evidence during revision (rep 2 added wording; it did not drop evidence).
+- [ ] Semantic review of the three required meanings for baseline reps 1, 3,
+  and 4.
+- [ ] Scene 07 step 6: human decision on whether "that Hume passage" must mean
+  the introspection passage (needs re-adoption if changed).
+- [ ] Reach the stop rule: at least 4 of 5 Scene 07 passes with clean semantic
+  review on two consecutive measurements. Then return to Scenes 06, 08, and 09.
+- [ ] Reduce per-Line cost (104,000 to 222,000 input tokens): move rules that
+  code already enforces out of the Muse reflection and Provenance
+  candidate-review skills. This is a separate cost change; accept it only if
+  Scene 07 does not regress.
+- [ ] Choose and pre-register the Sculptor experiment
+  ([Sculptor options](#sculptor-options), `linger-heza`).
+
+Every live Scene 07 measurement must set the web-search flag, or the Hume page
+is never granted:
+
+```bash
+LINGER_WEB_SEARCH_ENABLED=true uv run python -m evals.synthetic_journals.connection_curation_replay \
+  <scenario>/backstory.json <scenario>/ground-truth.json \
+  --adoption <scenario>/ground-truth-adoption.json --output <tmp>/repN.json --scenes scene-07
+```
+
 This note records where the combined five-agent Scenario stood on 26 September
 2026, after 15 full runs. It covers the error analysis across those runs, the
 locked code baseline, a per-stage measurement of required book evidence, and
@@ -7,6 +56,11 @@ undecided options for a Sculptor experiment. Read it with
 [the stage experiments](five-agent-stage-experiments-2026-09-26.md) and
 [the follow-up repairs](five-agent-followup-repairs-2026-09-26.md), which hold
 the detailed evidence for runs 14 and 15 and the controlled role experiments.
+
+[The 27 September update](#update-27-september-2026) records three later
+changes and a new Scene 07 baseline: Sculptor surfacing is now offline only,
+Librarian gathers candidates per request part with short record labels, and Muse
+revision keeps its supporting sources.
 
 The Scenario is
 `memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19`.
@@ -44,6 +98,115 @@ had three connection hard passes, and all three had semantic defects:
 Runs 4 to 15 used 7 distinct runtime system variants, with at most three runs
 on any one variant. Most fixes were therefore judged from one or two runs, which
 cannot separate a real improvement from run-to-run variance.
+
+## Update, 27 September 2026
+
+Three changes landed on `main` after the locked baseline. A new five-repetition
+Scene 07 measurement then ran on `9fb5516`.
+
+### Sculptor is now offline only
+
+Commit `33ae46d` (21 September) had made chat run Sculptor surfacing on every
+Line with active memories. Sculptor drafted a suggestion before Muse ran, and
+Muse received it as a `memory_surfacing` input. This added one model call in
+series before every draft and duplicated Muse's reasoning. In the recorded
+Scene 07 traces, Sculptor effectively wrote the answer before Muse started.
+
+Commit `cbbd3fe` removed surfacing from chat. Sculptor now runs no task in the
+reply path:
+
+- Chat never calls surfacing, and Muse's draft input has no surfacing field.
+- A personal memory reaches a reply only when Muse asks Serendipity for memory
+  through its ordinary tool path.
+- The `proactive_memory_surfacing` catalogue Objective, the `conversational_v1`
+  scenario contract, and the ordered conversational replay are retired.
+- `evals/synthetic_journals/surfacing_replay.py` still evaluates surfacing
+  decisions offline.
+
+Capture-triggered curation is unchanged. After a successful new durable
+capture, the application still runs Sculptor curation and its separate
+Provenance review. Scene 07 captures nothing, so Sculptor makes no call there.
+
+References in the sections below to Sculptor surfacing memories during Scene 07
+describe runs 6 to 15, before this change.
+
+### Librarian gathers candidates per request part
+
+Evidence assessment received 20 candidates per selected book: 60 passages and
+about 133,000 characters for Scene 07. The pool was large because every planned
+part and the whole Line ran against every book, and the results were
+interleaved. A required passage that ranked 2nd in its own part's search fell
+to 6th after the merge. The assessor also copied long, near-identical corpus IDs
+wrongly, which caused the run 7 retry and the run 15 `sec022`/`sec024` mismatch.
+
+Two commits change this, described in
+[issue #83](https://github.com/DesmondChoy/linger/issues/83):
+
+- `544d648`: the assessor sees records as `E1` to `En`. Application code maps
+  the selection back to corpus IDs and rewrites any label in the reason or
+  limitations as the passage location.
+- `d6b8e30`: each planned part keeps its top 3 passages. They stay only in the
+  book whose best reranker score clearly dominates: at least 0.05, and at least
+  10 times any other book. Otherwise the part keeps 3 in every book. The Line
+  and prior reader statements keep their top 2 per book as a safety net. A
+  window mostly repeated by a better-ranked window is dropped.
+
+`evals.librarian.part_recall` replays the 19 distinct plans captured in runs 4
+to 15 through local retrieval, with no model calls:
+
+| Measure | Before | After |
+|---|---|---|
+| Required passages reaching assessment | — | 32/32 |
+| Scene 07 assessment pool | 60 passages, ~133k characters | 14 passages, ~24k characters |
+| Scenes 06 to 07 pool | 60 | 15 to 18 |
+| Scenes 08 to 09 pool | 60 to 100 | 19 to 50 |
+
+When each planned part was dropped in turn, the safety net kept 83 of 86
+required passages; without it, 69 of 86. The routing thresholds rest on only 8
+multi-book required passages.
+
+### Muse revision keeps its supporting sources
+
+Commit `5924acf` implements Scene 07 step 2 below. The revision input lists
+`retained_sources`: sources that the first review's claim audit found
+supporting. A source is exempt only when a finding rejects that declaration.
+Output validation reports a retained source that the revision no longer
+declares, within Muse's existing retry budget. Offline, it flags the dropped
+passages in runs 10 and 13 and none of 12 other saved revisions.
+
+### Scene 07 baseline on `9fb5516`
+
+Five repetitions ran with `connection_curation_replay --scenes scene-07` and
+`LINGER_WEB_SEARCH_ENABLED=true`. The model was `openai:gpt-6-luna` with low
+reasoning, and adoption was `338f48f7`. A first attempt without the web-search
+flag was discarded: it never granted the Hume page.
+
+| Rep | Hard gates | First agent to drop it |
+|---|---|---|
+| 1 | Pass | — |
+| 2 | Fail, safe decline | Muse revision. It resolved both findings but added an unmapped summary sentence ("These passages show … temptation and delay …"). The second review flagged it. |
+| 3 | Pass | — |
+| 4 | Pass | — |
+| 5 | Fail | Librarian assessment. The Pinocchio delay passage was in the pool, but the assessor kept only the promise passage as enough for "dawdling". |
+
+The hard-gate pass rate was 3 of 5, compared with 3 of 9 in runs 6 to 15.
+Semantic review of the three required meanings has not been done for these
+repetitions.
+
+- **Held in every repetition:** Serendipity opened and cited the Hume page, and
+  its memory search returned the hosting note without Sculptor.
+- **Librarian assessment:** 13 or 14 passages (about 23,000 characters), about
+  10,000 input tokens, and one request in every repetition. Before, it was about
+  75,000 input tokens, with an ID retry in run 7.
+- **Total cost is unchanged:** 104,000 to 222,000 input tokens and 11 to 15 model
+  requests per Line. Mean input tokens by stage were Muse draft 55,000,
+  Provenance review 54,000 (one or two calls), Muse revision 30,000, and
+  Librarian assessment 10,000. The Muse reflection skill is about 6,900 words
+  and the Provenance candidate-review skill about 5,700 words.
+
+The artifacts are in the session scratchpad (`scratchpad/baseline/rep1.json`
+to `rep5.json`); Logfire holds the durable traces. The two open drops match
+steps 4 and 5 below.
 
 ## What worked and what did not
 
@@ -177,7 +340,8 @@ These came from the error analysis. Step 1 is done.
 3. Fix Scene 08 structurally: plan each part of the reader's question as its
    own book part, and require the connection to cover each supported part.
    Loosening the answer key is the alternative, but needs human re-adoption.
-4. Shrink the Librarian assessment to per-book or per-part judgments.
+4. Shrink the Librarian assessment to per-book or per-part judgments. Candidate
+   gathering is now per part (`d6b8e30`); the judgment itself is still one call.
 5. Allow a revision to change a source attribution only when the Provenance
    finding quotes source text that establishes it (`linger-7etz.3`).
 6. Resolve Muse's mechanical citation errors in code, not model retries.
@@ -191,8 +355,10 @@ improve a weak stage of the workflow. Retrieval has no headroom in this
 Scenario, so a retrieval-lift experiment would not demonstrate much. These
 options are a brainstorm; none is chosen.
 
-Keep Sculptor offline and proposal-only. Adding it to the live reply path adds
-another model call to the chain that already limits reliability. Never rewrite
+Keep Sculptor offline and proposal-only. This is now in place for surfacing:
+`cbbd3fe` removed it from the reply path, as described in the update above.
+Adding it to the live reply path adds another model call to the chain that
+already limits reliability. Never rewrite
 canonical book text: exact quotes and Provenance checks depend on it, and
 [book registration](../book-registration.md) limits Sculptor to optional
 metadata proposals that do not rewrite source bodies.
@@ -322,9 +488,10 @@ not recorded by the runs.
 
 ### Where each run dropped the baton
 
-In every run, the Provenance preflight continued, Sculptor surfaced the correct
-memory rather than the distractor, turn triage classified the Line correctly,
-and Muse requested the right Serendipity intent.
+In every run from 6 to 15, the Provenance preflight continued, Sculptor surfaced
+the correct memory rather than the distractor, turn triage classified the Line
+correctly, and Muse requested the right Serendipity intent. Sculptor no longer
+runs in this path; see the update above.
 
 | Run | First agent to drop it | Evidence in the trace | Status |
 |---|---|---|---|
@@ -365,11 +532,10 @@ drop disappears in the traces.
 
 ### Steps
 
-1. **Baseline.** Run Scene 07 five times on the locked baseline `1a8ba29`.
-   No full live run has included `3fa2c01` and `0304bb6` together. Record the
-   pass rate and each run's first drop. This sets the number every later step
-   must beat.
-2. **Muse revision keeps its evidence.** Add a deterministic revision check:
+1. **Baseline.** Done on `9fb5516` rather than `1a8ba29`: 3 of 5 hard passes.
+   This baseline also includes surfacing removal, part-scoped Librarian
+   gathering, and step 2.
+2. **Muse revision keeps its evidence.** Done in `5924acf`. Add a deterministic revision check:
    a bundle record that supports a reader-named part must stay mapped unless a
    Provenance finding objects to that record. Otherwise Muse retries with the
    dropped records listed. Test offline against the saved revisions in runs 10
@@ -412,6 +578,8 @@ if the Chapter 30 dialogue confusion persists after steps 2 to 4.
 
 - `linger-heza` tracks choosing and pre-registering the Sculptor experiment.
 - `linger-7etz` holds the baseline commit and stage-recall notes.
+- `linger-j728` (closed) retired conversational surfacing; `linger-nxap`
+  (closed) delivered part-scoped Librarian gathering.
 - `linger-7etz.1` and `linger-7etz.3` track controlled repair and reviewer
   attribution work.
 - `linger-d4o4` tracks Serendipity ranking restraint.
