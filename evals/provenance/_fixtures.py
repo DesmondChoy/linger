@@ -1430,7 +1430,7 @@ def build_case_set() -> dict:
     )
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "case_set_id": "provenance-risk-codes-v1",
         "gate_id": "provenance.release-gate",
         "flows": ["4.2.1", "4.2.2", "4.2.3"],
