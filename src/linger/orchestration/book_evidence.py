@@ -29,6 +29,18 @@ class EvidenceJudgementError(ValueError):
 MAX_SEARCH_QUERIES = 16
 MAX_BOOK_CANDIDATES = 20
 MAX_QUERY_CHARACTERS = 2000
+# A planned part keeps its own top hits in each book it is searched in, so one
+# part's matches cannot bury another's. Offline part-recall replay of the
+# combined Scenario found every required passage within a part's top three.
+PART_CANDIDATES = 3
+# The whole Line and prior statements stay as a small safety net for a need
+# the planner missed.
+CONTEXT_CANDIDATES = 2
+# A part is searched only in the book whose best match clearly dominates;
+# otherwise, as for an unnamed theme, it is searched in every granted book.
+ROUTING_FLOOR = 0.05
+ROUTING_MARGIN = 10.0
+OVERLAP_DEDUPE_THRESHOLD = 0.5
 
 
 @dataclass(frozen=True)
@@ -95,20 +107,27 @@ async def judge_records(
         raise EvidenceJudgementError("Evidence judgment unavailable") from error
 
 
-def _search_queries(plan: BookRequestPlan, original: LibrarianBookRequestInput) -> tuple[str, ...]:
-    texts = [
-        " ".join(dict.fromkeys((*part.context_spans, *part.reader_spans)))
+def _chunks(text: str) -> tuple[str, ...]:
+    return tuple(
+        chunk for start in range(0, len(text), MAX_QUERY_CHARACTERS)
+        if (chunk := text[start:start + MAX_QUERY_CHARACTERS].strip())
+    )
+
+
+def _part_queries(plan: BookRequestPlan) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(
+        chunk
         for part in plan.parts
-    ]
-    texts.extend((original.current_line, *(s.text for s in original.prior_reader_statements)))
-    queries = tuple(dict.fromkeys(
-        text[start:start + MAX_QUERY_CHARACTERS].strip()
-        for text in texts for start in range(0, len(text), MAX_QUERY_CHARACTERS)
-        if text[start:start + MAX_QUERY_CHARACTERS].strip()
+        for chunk in _chunks(" ".join(dict.fromkeys((*part.context_spans, *part.reader_spans))))
     ))
-    if len(queries) > MAX_SEARCH_QUERIES:
-        raise EvidenceJudgementError("The complete request exceeds the retrieval query budget")
-    return queries
+
+
+def _context_queries(original: LibrarianBookRequestInput) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(
+        chunk
+        for text in (original.current_line, *(s.text for s in original.prior_reader_statements))
+        for chunk in _chunks(text)
+    ))
 
 
 def _without_author(query: str, work_id: str) -> str:
@@ -153,6 +172,90 @@ def _merge_candidates(
     return tuple(by_id.values())
 
 
+def _routed_books(streams: dict[str, tuple[EvidenceItem, ...]]) -> tuple[str, ...]:
+    """Keep a part to one book only when that book's best match clearly dominates."""
+    tops = sorted(
+        ((max((item.relevance for item in items), default=0.0), work_id)
+         for work_id, items in streams.items()),
+        reverse=True,
+    )
+    if len(tops) > 1 and tops[0][0] >= ROUTING_FLOOR and tops[0][0] >= ROUTING_MARGIN * tops[1][0]:
+        return (tops[0][1],)
+    return tuple(streams)
+
+
+def _without_overlaps(items: tuple[EvidenceItem, ...]) -> tuple[EvidenceItem, ...]:
+    """Drop a window mostly repeated by an earlier, better-ranked window."""
+    kept: list[EvidenceItem] = []
+    for item in items:
+        start, end = item.source_lines
+        if not any(
+            other.chapter_id == item.chapter_id
+            and min(end, other.source_lines[1]) - max(start, other.source_lines[0]) + 1
+            >= OVERLAP_DEDUPE_THRESHOLD * (end - start + 1)
+            for other in kept
+        ):
+            kept.append(item)
+    return tuple(kept)
+
+
+def gather_book_candidates(
+    plan: BookRequestPlan,
+    original: LibrarianBookRequestInput,
+    *,
+    book_scopes: tuple[BookScope, ...],
+    librarian: Librarian,
+    purpose: Literal["evidence_retrieval", "connection_discovery"] = "evidence_retrieval",
+    retrieval_score_threshold: float = 0.5,
+    max_results: int = 5,
+) -> tuple[EvidenceItem, ...]:
+    """Search each planned part in its own book, plus a small whole-request safety net."""
+    part_queries = _part_queries(plan)
+    # A part that repeats reader text already keeps more hits than the safety net.
+    context_queries = tuple(query for query in _context_queries(original) if query not in part_queries)
+    if len(part_queries) + len(context_queries) > MAX_SEARCH_QUERIES:
+        raise EvidenceJudgementError("The complete request exceeds the retrieval query budget")
+
+    def search(scope: BookScope, query: str) -> tuple[EvidenceItem, ...]:
+        try:
+            request = LibrarianRequest(
+                query=_without_author(query, scope.work_id), book_scopes=[scope],
+                retrieval_score_threshold=retrieval_score_threshold,
+                max_results=max_results, purpose=purpose,
+            )
+        except ValueError as error:
+            raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
+        if purpose == "connection_discovery":
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="book_retrieval", status="attempted", source="book_corpus",
+                operation="search_librarian", requested_work_ids=(scope.work_id,),
+            ))
+        raw = tuple(librarian.retrieve_for_judgement(request).items)
+        if purpose == "connection_discovery":
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="book_retrieval", status="ok", source="book_corpus",
+                operation="search_librarian", requested_work_ids=(scope.work_id,),
+                retrieved_work_ids=tuple(item.work_id for item in raw),
+            ))
+        return _merge_candidates([raw], (scope,))
+
+    per_book: dict[str, list[tuple[EvidenceItem, ...]]] = {scope.work_id: [] for scope in book_scopes}
+    for query in part_queries:
+        streams = {scope.work_id: search(scope, query) for scope in book_scopes}
+        for work_id in _routed_books(streams):
+            per_book[work_id].append(streams[work_id][:PART_CANDIDATES])
+    # Without a plan the whole request is the only query, so it keeps the full budget.
+    context_budget = CONTEXT_CANDIDATES if part_queries else MAX_BOOK_CANDIDATES
+    for scope in book_scopes:
+        for query in context_queries:
+            per_book[scope.work_id].append(search(scope, query)[:context_budget])
+    merged = tuple(
+        _without_overlaps(_merge_candidates(per_book[scope.work_id], (scope,)))[:MAX_BOOK_CANDIDATES]
+        for scope in book_scopes
+    )
+    return _merge_candidates(list(merged), book_scopes)
+
+
 async def retrieve_book_evidence(
     reader_question: str,
     *,
@@ -182,37 +285,11 @@ async def retrieve_book_evidence(
         except Exception:
             logfire.warning("librarian.book_request_fallback", reason="planning_unavailable")
             plan = BookRequestPlan(parts=())
-    queries = _search_queries(plan or BookRequestPlan(parts=()), original)
-    # Each book gets its own search and candidate budget so that one book's
-    # passages cannot crowd another's out of a multi-book request.
-    per_book: list[tuple[EvidenceItem, ...]] = []
-    for scope in book_scopes:
-        try:
-            requests = [LibrarianRequest(
-                query=_without_author(query, scope.work_id), book_scopes=[scope],
-                retrieval_score_threshold=retrieval_score_threshold,
-                max_results=max_results, purpose=purpose,
-            ) for query in queries]
-        except ValueError as error:
-            raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
-        streams = []
-        for request in requests:
-            requested_work_ids = (scope.work_id,)
-            if purpose == "connection_discovery":
-                record_connection_event(ConnectionEvaluationEvent(
-                    kind="book_retrieval", status="attempted", source="book_corpus",
-                    operation="search_librarian", requested_work_ids=requested_work_ids,
-                ))
-            candidates = tuple(librarian.retrieve_for_judgement(request).items)
-            if purpose == "connection_discovery":
-                record_connection_event(ConnectionEvaluationEvent(
-                    kind="book_retrieval", status="ok", source="book_corpus",
-                    operation="search_librarian", requested_work_ids=requested_work_ids,
-                    retrieved_work_ids=tuple(item.work_id for item in candidates),
-                ))
-            streams.append(candidates)
-        per_book.append(_merge_candidates(streams, (scope,))[:MAX_BOOK_CANDIDATES])
-    items = _merge_candidates(per_book, book_scopes)
+    items = gather_book_candidates(
+        plan or BookRequestPlan(parts=()), original,
+        book_scopes=book_scopes, librarian=librarian, purpose=purpose,
+        retrieval_score_threshold=retrieval_score_threshold, max_results=max_results,
+    )
     records = tuple(evidence_record_from_item(item) for item in items)
     if len({record.evidence_id for record in records}) != len(records):
         raise ValueError("retrieved evidence IDs must be unique")

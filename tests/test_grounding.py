@@ -2,6 +2,7 @@
 
 import asyncio
 import unittest
+import zlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from apps.backend.config import Settings, get_settings
@@ -127,7 +128,8 @@ def evidence_item(evidence_id: str, chapter: int, excerpt: str = "text") -> Evid
         location=f"Chapter {chapter}",
         chapter=chapter,
         source_sha256=SOURCE_SHA256,
-        source_lines=(chapter, chapter),
+        # Distinct IDs are distinct windows, as in the corpus.
+        source_lines=(line := zlib.crc32(evidence_id.encode()) % 100_000 * 10, line),
         excerpt=excerpt,
         relevance=0.9,
     )

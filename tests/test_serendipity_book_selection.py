@@ -237,7 +237,9 @@ def test_each_book_keeps_its_own_candidate_budget_in_a_multibook_search():
 
     def many(scope, count):
         base = passage(scope)
-        return [base.model_copy(update={"evidence_id": f"{scope.work_id}-{index}"}) for index in range(count)]
+        return [base.model_copy(update={
+            "evidence_id": f"{scope.work_id}-{index}", "source_lines": (10 * index, 10 * index + 1),
+        }) for index in range(count)]
 
     class Librarian:
         def retrieve_for_judgement(self, request):
