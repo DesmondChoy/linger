@@ -18,8 +18,8 @@ a small literary corpus.
 **Librarian** assesses reading boundaries and book evidence. **Serendipity**
 recalls saved memories and explores connections across memories, books, and
 authorised web sources.
-**Sculptor** proposes memory curation and surfacing decisions in separate
-controlled workflows. **Provenance** reviews emotional boundaries, reply
+**Sculptor** proposes memory curation after a reviewed capture and, in offline
+evaluation only, memory surfacing decisions. **Provenance** reviews emotional boundaries, reply
 candidates, and curation proposals.
 
 Each role uses one reusable PydanticAI Agent with application-selected runtime
@@ -65,8 +65,8 @@ unchanged accepted claims before the application checks release.
 Interactive memory capture is disabled by default, and the app exposes no
 memory-management actions. Controlled workflows support reviewed capture,
 Sculptor curation, Provenance review, and application of approved derived
-changes while preserving original records. The full conversational capture,
-curation, and later proactive surfacing sequence remains a target.
+changes while preserving original records. Memory surfacing runs only in
+offline evaluation.
 
 This is a single-user prototype with no end-user authentication. Conversation
 history lives in the backend process and disappears on restart. Chat content

@@ -1,31 +1,16 @@
-"""Application-owned triggers for conversational curation and surfacing."""
+"""Application-owned trigger for capture-triggered conversational curation."""
 
 from __future__ import annotations
 
 import re
 from collections.abc import Awaitable, Callable, Sequence
-from datetime import datetime
 from typing import Literal
 
 from pydantic import Field
 
 from src.linger.agents.contracts import StrictModel
-from src.linger.agents.sculptor.models import CuratableMemory
-from src.linger.agents.sculptor.surfacing_models import (
-    PriorSurfacing,
-    SurfaceNow,
-    SurfacingContext,
-    SurfacingDecision,
-    SurfacingInput,
-)
-from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
-from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.surfacing import MemorySurfacingHandoff
-from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.curation import CurationLoopResult, run_curation_loop
-from src.linger.orchestration.surfacing import propose_surfacing
 from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
-
 
 _TOKEN = re.compile(r"[\w’'-]+", re.UNICODE)
 _LOW_SIGNAL_TOKENS = frozenset({
@@ -45,10 +30,10 @@ def _tokens(text: str) -> frozenset[str]:
 
 def _rank_relevant(
     query: str,
-    records: Sequence[CuratedMemory | MemoryRecord],
+    records: Sequence[MemoryRecord],
     *,
     limit: int,
-) -> tuple[CuratedMemory | MemoryRecord, ...]:
+) -> tuple[MemoryRecord, ...]:
     query_tokens = _tokens(query)
     ranked = sorted(
         (
@@ -58,74 +43,6 @@ def _rank_relevant(
         key=lambda item: (-item[0], item[1].memory_id),
     )
     return tuple(record for overlap, record in ranked[:limit] if overlap > 0)
-
-
-def select_relevant_memories(
-    current_context: str,
-    memories: Sequence[CuratedMemory],
-    *,
-    limit: int = 12,
-) -> tuple[CuratedMemory, ...]:
-    """Return a deterministic bounded subset with positive lexical overlap."""
-
-    if not current_context.strip():
-        raise ValueError("current context must not be blank")
-    if not 1 <= limit <= 12:
-        raise ValueError("memory selection limit must be between 1 and 12")
-    return tuple(_rank_relevant(current_context, memories, limit=limit))  # type: ignore[return-value]
-
-
-SurfacingDecider = Callable[[SurfacingInput], Awaitable[SurfacingDecision]]
-
-
-async def prepare_surfacing_handoff(
-    *,
-    account_scope: str,
-    current_context: str,
-    memories: Sequence[CuratedMemory],
-    now: datetime,
-    history: tuple[PriorSurfacing, ...] = (),
-    decide: SurfacingDecider = propose_surfacing,
-) -> MemorySurfacingHandoff | None:
-    """Ask Sculptor about relevant state and bind a surface-now decision."""
-
-    selected = select_relevant_memories(current_context, memories)
-    if not selected:
-        return None
-    decision = await decide(
-        SurfacingInput(
-            account_scope=account_scope,
-            context=SurfacingContext(
-                now=now,
-                current_context=current_context,
-                history=history,
-            ),
-            memories=tuple(
-                CuratableMemory(memory_id=item.memory_id, text=item.text)
-                for item in selected
-            ),
-        )
-    )
-    if not isinstance(decision, SurfaceNow):
-        return None
-    by_id = {item.memory_id: item for item in selected}
-    sources = tuple(
-        MemoryConnectionEvidence(
-            evidence_id=memory_id,
-            excerpt=by_id[memory_id].text,
-        )
-        for memory_id in decision.source_memory_ids
-    )
-    # Muse may cite a surfaced memory, so evaluation must see the exact record it was handed.
-    record_connection_event(ConnectionEvaluationEvent(
-        kind="surfacing", status="surfaced", source="memory",
-        evidence_json=tuple(item.model_dump_json() for item in sources),
-    ))
-    return MemorySurfacingHandoff(
-        suggestion=decision.suggestion,
-        source_memory_ids=decision.source_memory_ids,
-        sources=sources,
-    )
 
 
 class ConversationalCurationOutcome(StrictModel):

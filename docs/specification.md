@@ -29,11 +29,9 @@ content in automatic memory capture. The implemented curation slice
 selects a bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
 Memory & Policy Service, and materialises the resulting retrieval view.
-The adopted conversational memory target in Section 4.2.5 requires curation after a
-durable capture and proactive surfacing during a later conversation. Its chat
-triggers, transfer of Sculptor-selected memory evidence to the release path,
-and complete evaluation path are not yet implemented. The existing offline surfacing runner tests only the
-decision component of that target.
+Section 4.2.5 runs curation after a successful new durable capture. Sculptor
+memory surfacing is offline only: chat never runs it, and the offline surfacing
+runner evaluates its decisions directly.
 
 ## 1. Purpose and positioning
 
@@ -89,8 +87,8 @@ approval. Content about sensitive traits is never captured.
 - immutable original memories, versioned generated summaries, duplicate links,
   topic groups, reversible retrieval tombstones, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
-- the bounded conversational memory target in Section 4.2.5, with curation after
-  a successful durable capture and relevant memory surfacing during a later Line;
+- capture-triggered memory curation in Section 4.2.5, with memory surfacing
+  evaluated offline only;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
 - adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation;
@@ -128,7 +126,7 @@ The system contains five reasoning agents and one deterministic service:
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
 | **Librarian** | Judges request-scoped reading boundaries and the strength of supplied evidence. Application orchestration and retrieval services select candidates, enforce scope, fuse results, and rerank evidence. | None |
-| **Sculptor** | Curates bounded sets of existing memories for retrieval while preserving originals. In the conversational target, it also judges whether a supplied memory is useful now or should remain unsurfaced. Its separate scheduled system-playbook task runs outside user conversations (Section 9.2). | May propose curation changes, surfacing decisions, and playbook pull requests; no direct writes or user-facing release |
+| **Sculptor** | Curates bounded sets of existing memories for retrieval while preserving originals. In offline evaluation only, it also judges whether a supplied memory is useful now or should remain unsurfaced. Its separate scheduled system-playbook task runs outside user conversations (Section 9.2). | May propose curation changes, surfacing decisions, and playbook pull requests; no direct writes or user-facing release |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. It separately reviews complete Sculptor curation proposals against their exact source snapshots and returns an `allow`, `revise`, or `reject` verdict bound to the proposal digest. | None |
 | **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture and curation policy, access, storage, idempotency, source freshness, audit verification, and the retrieval projection. It accepts only reviewed commands whose immutable proposal digest matches an `allow` verdict. | Commits validated writes |
@@ -151,7 +149,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
 | **Librarian** | No model tools. Boundary inference receives privately selected candidates from the work's numbered main-text chapters and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
-| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter currently has an offline execution path only. | Pydantic AI typed input and output contracts |
+| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter runs only offline; chat never requests it. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search the authenticated account's active memories and internal book evidence through the same bounded Linger adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
@@ -168,7 +166,7 @@ model-call structure nor the application-owned release and storage decisions.
 |---|---|---|
 | Muse | Reflection and revision | Chat drafts and the single permitted revision use one reflection skill and the stable `MuseCandidate` output. |
 | Librarian | Boundary inference; event identification; book request; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
-| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and bounded-curation replay; offline surfacing evaluation. Chat does not initiate either task. |
+| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and bounded-curation replay; offline surfacing evaluation. Chat never runs surfacing. |
 | Serendipity | Connection discovery; memory recall; source gathering | Muse's `serendipity_explore` tool, which selects recall with the `recall_memory` intent and gathering with the `gather_sources` intent, and component evaluation of connection discovery. |
 | Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
 
@@ -335,7 +333,8 @@ reports a committed capture but offers no memory-management action.
 
 Sculptor is not part of capture. Curation is implemented as the callable
 `run_curation_loop` service below. Application-loop tests and bounded-curation
-replay invoke it; the chat handler does not initiate curation.
+replay invoke it; the chat handler invokes it only after a successful new
+durable capture (Section 4.2.5).
 
 1. The Memory & Policy Service resolves 2–12 requested memory identifiers to
    immutable originals within the authenticated account.
@@ -470,20 +469,15 @@ start and completion events and shows per-agent totals and ordered hand-offs.
 An unpaired event leaves its duration unavailable. Progress metadata never
 contains draft text or grants release authority.
 
-#### 4.2.5 Conversational memory curation and surfacing target
+#### 4.2.5 Capture-triggered curation and offline surfacing
 
-This adopted target makes Sculptor's work observable through a conversation.
-It does not require Sculptor to remain offline. Application code owns when it
-runs and which evidence it receives. Curation changes the retrieval view;
-surfacing decides whether existing evidence would help the current conversation.
-Neither operation grants Sculptor tools, write authority, or direct release.
+Application code owns when curation runs and which evidence Sculptor receives.
+Curation changes the retrieval view. It grants Sculptor no tools, write
+authority, or direct release.
 
-The bounded demonstration follows this sequence:
-
-1. Earlier same-account memories establish a preference. The user then sends a
-   natural Line describing a changed preference, without requesting a save or
-   instructing an agent. The normal emotional preflight, Muse nomination,
-   Provenance review, and deterministic capture policy apply.
+1. A natural Line describes a changed preference without requesting a save.
+   The normal emotional preflight, Muse nomination, Provenance review, and
+   deterministic capture policy apply.
 2. Only a successful new durable capture triggers application-owned curation.
    The application supplies the new original and relevant earlier originals
    through the existing bounded selection contract. It does not curate on
@@ -495,31 +489,16 @@ The bounded demonstration follows this sequence:
    actual outcome. A revision, rejection, or failed validation does not authorise
    a curation write. An application or verification failure cannot be reported
    as successful curation. No-change is a valid outcome.
-4. In a later fresh chat, the user sends a natural Line for which the updated
-   preference may matter, without explicitly asking for recall. After preflight,
-   Librarian and application services retrieve authorised candidates from the
-   actual stored state. The application gives Sculptor a bounded memory set,
-   current context, decision time, and prior surfacing or dismissal history.
-5. Sculptor proposes surfacing now, deferral, or silence. Muse may use a validated
-   suggestion to draft an evidence-backed response. Provenance reviews the
-   complete candidate, and deterministic checks resolve its personal-memory
-   evidence before release. Deferral and silence produce no inserted suggestion
-   and schedule no notification. The ordinary conversation may continue.
 
 If capture is absent, vetoed, suppressed, or fails, the workflow records that
 outcome and does not invent a new memory or run capture-triggered curation.
-The later chat can use only the state that actually exists. Retrieval failure,
-invalid source references, and unsupported release evidence fail closed under
-the ordinary response policy. A curation success never authorises a response
-without the separate release gate.
+A curation success never authorises a response without the separate release gate.
 
-Current code provides reviewed capture, a callable reviewed curation loop, and
-an offline surfacing decision function. The complete sequence still requires
-conversational triggers and a typed hand-off of Sculptor-selected personal-memory
-sources into Muse, Provenance, and the deterministic release gate. Its evaluation
-also needs scenario support for carrying observed outcomes between Scenes,
-Ground truth for those dependencies, and a runner that grades the complete path.
-Section 7.2 records these gaps without changing the existing scenario models.
+Memory surfacing is offline only. Chat never runs Sculptor surfacing, and Muse
+receives no surfacing hand-off. A reply can use a personal memory only when Muse
+requests Serendipity memory recall through its ordinary tool path. The offline
+surfacing runner in Section 7.2.2 evaluates Sculptor's `surface_now`, `defer`,
+and `do_not_surface` decisions over supplied memories.
 
 ## 5. Core records
 
@@ -1163,8 +1142,8 @@ either connection or weak-evidence Objective alone or both in either order;
 legacy weak-evidence scenarios delegate to the narrower reflection runner.
 The combined `connection_curation_replay` runner accepts exactly bounded memory
 curation and cross-source tentative connection, in either selection order.
-Existing offline proactive-memory-surfacing replay provides component evidence
-only; it does not execute the adopted conversational Objective. Registration
+The offline surfacing runner is invoked directly and is not registered for
+catalogue replay. Registration
 does not make historical scenarios compatible with current schemas or establish
 that every expected outcome can pass grading. Section 7.2.2 records those
 limits. Reusable generation, dataset freezing, and replay for other Objectives
@@ -1211,13 +1190,8 @@ The vocabulary encodes these boundaries:
 - One backstory represents one person and one evaluation account. Every prop, scene, and line belongs to that backstory.
 - The backstory never enters the running system, and no backstory content becomes a prop by copying. A prop whose use or non-use is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
-- In the conversational surfacing target, the captured preference update and
-  any resulting derived records are runtime outcomes. Later Scenes must use
-  those actual outcomes, not generated substitutes or reseeded Props. The
-  generator may propose expectations about outcomes but cannot write them into
-  the starting store.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
-- Existing offline surfacing component Scenes supply
+- Offline surfacing Scenes supply
   `OfflineInput.surfacing_context` with a timezone-aware `now`, `current_context`,
   and prior surfaced or dismissed
   `history`. These fields describe the situation presented to Sculptor.
@@ -1289,9 +1263,8 @@ The end-to-end workflow has distinct human gates:
    retrieval in either order,
    either book Objective alone, both book
    Objectives in either order, either connection or weak-evidence Objective
-   alone, and their combination in either order. Surfacing is not registered
-   for automatic replay because its existing runner covers only the offline
-   component. Other selections stop after adoption; unsupported scenario
+   alone, and their combination in either order. Offline surfacing is not a catalogue
+   Objective; its runner is invoked directly. Other selections stop after adoption; unsupported scenario
    contracts prevent generation earlier.
 7. The durable replay output remains the complete evaluation record. Pydantic
    Evals and the `linger-evals` Logfire service provide interactive result,
@@ -1399,7 +1372,7 @@ curation helper, which selects `_AllowingProvenance`. Its curation review is an
 allowing test double. Recorded `allow` outcomes therefore do not establish live
 Provenance judgment. Standalone `curation_replay` without an injected handler
 uses production Provenance. The combined run exercises application and audit
-behavior, but does not implement the conversational target in Section 4.2.5.
+behavior, but does not exercise the capture-triggered chat curation in Section 4.2.5.
 
 The combined `connection_curation_replay` runner accepts exactly bounded memory
 curation and cross-source tentative connection. It retains the original
@@ -1425,17 +1398,8 @@ schema or the candidate labels. The independent reviewer sees the completed
 Ground truth before adopting its exact bytes. Existing adopted files retain
 their original settings and hashes.
 
-The adopted `proactive_memory_surfacing` Objective evaluates the conversational
-sequence in Section 4.2.5. Earlier Props establish a preference, a natural Line
-changes it, reviewed capture commits the change, and application-triggered
-curation preserves the originals while updating their retrieval representation.
-A later Line in a fresh chat tests whether Sculptor and Muse use the resulting
-memory state appropriately. The evaluated outcome includes the actual storage
-and curation transitions, grounded conversational release, and appropriate
-silence. It ends at the released response, with no notification or scheduler.
-
-The existing [`surfacing runner`](../evals/synthetic_journals/surfacing_replay.py)
-evaluates only the `component_v1` Sculptor offline decision contract over
+The [`surfacing runner`](../evals/synthetic_journals/surfacing_replay.py)
+evaluates the Sculptor offline decision contract over
 supplied, bounded, account-scoped Props. Its accepted Scenes contain exactly
 one offline input and no Lines. The input supplies a timezone-aware decision time,
 the current context, and any prior surfaced or dismissed suggestions. Sculptor
@@ -1462,32 +1426,8 @@ sources, timing, and input and Prop immutability. Semantic quality remains
 ungraded.
 
 This runner accepts only a surfacing selection and leaves all Props unchanged.
-It omits capture, triggered curation, live memory retrieval, Muse, and Provenance
-release, so its result cannot establish the adopted Objective. These omissions
-are evaluation gaps because the conversational Objective requires them.
-The absence of a scheduler or notification delivery is not a gap.
-
-The complete Objective is currently blocked by the following work:
-
-- Add application triggers after an observed durable capture and during the
-  later chat. Prove that vetoes, safe declines, retries, and no-change or rejected
-  curation do not manufacture state changes.
-- Add the typed personal-memory source hand-off and deterministic release
-  checks. Prove same-account source resolution, immutable-original lineage,
-  correct attribution, and ordinary Provenance review of every Muse candidate.
-- Extend the adopted scenario contract and validator to express ordered Scene
-  outcome dependencies and their proposed Ground truth. Keep runtime-created
-  identifiers and records as observed outcomes, separate from seeded Props.
-- Add replay and grading for the entire sequence, including actual capture,
-  curation review and application, later retrieval, surfacing or silence, and
-  released wording. Structural checks do not establish semantic usefulness.
-
-Until these prerequisites exist, pre-generation reports must mark the complete
-plan insufficient and the prompt **Target state — do not run**. Existing
-`models.py` and `validate_scenario.py` remain the contracts to inspect unchanged;
-the authoring workflow must report their gaps, not invent a parallel schema or
-replace the required Lines with offline inputs. Existing component scenarios and
-reports remain historical evidence, not approval for the expanded target.
+Surfacing is offline only, so the runner omits capture, curation, Muse, and
+Provenance release by design. It uses no scheduler or notification delivery.
 
 The book runner compiles each validated scenario before replay. The compiler
 accepts `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
@@ -1705,19 +1645,11 @@ Two loops are in scope.
 
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
-**Product direction.** Section 4.2.5 adopts a bounded conversational target:
-Sculptor curates after a successful durable capture and judges relevant memories
-during a later user conversation. Muse produces user-facing wording; Provenance
-and deterministic application checks retain the release boundary. The versioned
-`conversational_v1` contract validates the ordered Lines, prerequisites, and
-symbolic runtime-outcome references for the expanded
-`proactive_memory_surfacing` Objective. Its production replay remains a separate
-runner; the existing offline runner remains component evidence and does not
-establish the complete path.
-Sculptor's product work need not run offline, and it gains no write or release
-authority. The scheduled operational playbook remains a separate task. Continuous
-monitoring and unsolicited out-of-conversation resurfacing remain excluded by
-Section 3.3.
+**Product direction.** Section 4.2.5 runs Sculptor curation in chat only after
+a successful new durable capture. Memory surfacing stays offline: chat never
+runs it, and Sculptor gains no write or release authority. The scheduled
+operational playbook remains a separate task. Continuous monitoring and
+unsolicited out-of-conversation resurfacing remain excluded by Section 3.3.
 
 **Relationship to failure-to-eval promotion.** If the project adopts the workflow in Section 9.1, failure-to-eval promotion will produce regression coverage, while Section 9.2 will continue to curate operational guidance. The two concerns remain separate.
 

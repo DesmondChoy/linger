@@ -160,26 +160,9 @@ The complete workflow is:
 The local selectors and reviewer return decisions to the agent. Neither browser
 server invokes a generator, model, or replay runner.
 
-The adopted `proactive_memory_surfacing` Objective includes a conversational
-sequence: a preference-update Line, reviewed capture and curation, and memory
-use in a later fresh chat. The repository keeps the earlier offline decision
-format as `component_v1` and validates the ordered target through the separate
-`conversational_v1` contract. The ordered production replay runner now exists;
-an authored, independently adopted scenario and provider-backed run are still
-pending. The pre-generation report must name that gap before generation can be
-approved. See
-[the conversational target](../../docs/specification.md#425-conversational-memory-curation-and-surfacing-target).
-The direct `surfacing_replay` module remains an offline component test for
-existing scenarios. It does not establish the expanded Objective and is not
-automatically dispatched by Ground truth review. Existing adoption records
-remain bound to the component expectations they approved.
-
-Ordered conversational scenarios declare `scenario_contract: "conversational_v1"`
-in both Backstory and Ground truth. They use one natural Line per ordered Scene,
-earlier-only prerequisites, and symbolic references for runtime-created capture
-and curation records. The validator dispatches these files to
-`evals.synthetic_journals.conversational_surfacing_replay`; existing
-`component_v1` files remain on the offline runner and retain their prior hashes.
+Memory surfacing is offline only and is not a catalogue Objective. The direct
+`surfacing_replay` module tests Sculptor's decisions for existing offline
+scenarios and is not automatically dispatched by Ground truth review.
 
 The Pydantic models in `models.py` are the schema authority. Validate a scenario
 from the repository root:
@@ -307,7 +290,7 @@ preservation, including production Provenance rejection or revision decisions.
 Semantic quality remains a separate review.
 
 The same combined runner is registered for the review and guided-run workflows.
-It does not implement conversational capture-triggered curation or surfacing.
+It does not exercise the capture-triggered curation that chat runs.
 
 ## Combined curation and connection replay
 
@@ -552,7 +535,7 @@ uv run python -m evals.synthetic_journals.surfacing_replay \
 	--output /tmp/proactive-memory-surfacing-component-run.json
 ```
 
-The direct command accepts `proactive_memory_surfacing` `component_v1` scenarios,
+The direct command accepts `proactive_memory_surfacing` scenarios,
 with one `OfflineInput` and no Lines per fresh Scene. Each input supplies a timezone-aware
 decision time, current context, up to twenty prior surfaced or dismissed items,
 and at most twelve active, same-account memories. The compiler resolves these
@@ -579,10 +562,8 @@ deferral records a time or condition without creating future work. Its
 `full_deployment` and `objective_execution` identities separate deployment
 lineage from the active surfacing prompt and contracts.
 
-This component contract does not execute the conversational
-[`proactive_memory_surfacing` target](../../docs/specification.md#425-conversational-memory-curation-and-surfacing-target).
-`conversational_v1` scenarios use the separate ordered replay runner; the
-component command is never presented as complete Objective evidence.
+Surfacing is offline only; chat never runs it. See
+[capture-triggered curation and offline surfacing](../../docs/specification.md#425-capture-triggered-curation-and-offline-surfacing).
 
 ## Session-continuity replay
 

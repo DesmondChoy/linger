@@ -383,9 +383,9 @@ preservation. A passing replay does not establish later conversational retrieval
 quality. The default combined capture-and-curation runner uses an allowing
 Provenance test double, so it does not measure that review's semantics. Surfacing
 has an offline supplied-batch execution and grading path. It does not retrieve memories,
-schedule future contact, or deliver a response. The conversational
-capture-to-curation-and-surfacing demonstration and system-playbook proposals
-remain product targets. They have no additional implemented runtime skill.
+schedule future contact, or deliver a response. Chat never runs surfacing.
+System-playbook proposals remain a product target with no implemented runtime
+skill.
 
 Evaluation registers the five reusable role objects once through
 `evaluation_agents()` and lists the assigned skills through `evaluation_skills()`.

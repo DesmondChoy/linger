@@ -21,20 +21,10 @@ Provenance runtime path. The remaining work is integration and evaluation.
   receives trusted active/tombstoned state, and the invalid-restore and
   injection fixtures are corrected; the live rerun is pending credentials.
   - Completed, see [curation risk pack evals results](../../evals/provenance/curation-risk-codes-live-report.json)
-- [ ] **Complete the 4.2.5 conversation path.** Add ordered-Scene Ground truth
-  and replay for capture, curation, surfacing or silence, Provenance review,
-  and final release.
-  - [x] Runtime: a durable capture triggers bounded reviewed curation once,
-    and a later chat can pass validated same-account sources through Muse,
-    canonical connection evidence, Provenance, and deterministic release
-    validation.
-  - [x] Contract: keep the offline `component_v1` format and add the
-    `conversational_v1` ordered Scene contract with symbolic runtime-outcome
-    references.
-  - [ ] Replay: the ordered production runner carries actual capture and
-    curation outcomes between Scenes. The full replay still needs an adopted
-    `proactive_memory_surfacing` Scenario and a provider-backed production-chat
-    run.
+- [x] **Retire conversational surfacing (2026-09-27).** Memory surfacing is
+  offline only. Chat never runs it, and the `proactive_memory_surfacing`
+  Objective, `conversational_v1` contract, and ordered replay were removed.
+  Capture-triggered curation in chat remains.
   - [x] Prerequisite replay: the adopted capture and bounded-curation Scenario
     ran three times, then ran once more after Ground truth revision. See
     [4.2.5 replay findings](provenance-4.2.5.md).

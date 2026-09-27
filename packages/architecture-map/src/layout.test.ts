@@ -66,10 +66,6 @@ describe('Structured Studio layouts', () => {
       .toEqual(['Memory retrieval', 'Current conversation'])
     expect(layoutScene(example('passage-needed')).groups.map(group => group.label))
       .toEqual(['Evidence retrieval', 'Current conversation'])
-    expect(layoutScene(example('useful-later-cue')).groups.map(group => group.label))
-      .toEqual(['Memory retrieval and surfacing', 'Current conversation'])
-    expect(layoutScene(example('update-and-curate')).groups.map(group => group.label))
-      .toEqual(['Current conversation', 'Capture and curation'])
   })
 
   it('preserves vertical Muse/Librarian alignment where the scenario supplies it', () => {
@@ -80,7 +76,7 @@ describe('Structured Studio layouts', () => {
   })
 
   it('keeps session state below the compact main conversation', () => {
-    for (const id of ['relevant-history', 'irrelevant-history', 'useful-later-cue', 'defer-the-same-cue', 'follow-correction', 'fresh-session']) {
+    for (const id of ['relevant-history', 'irrelevant-history', 'follow-correction', 'fresh-session']) {
       const layout = layoutScene(example(id))
       const session = layout.nodes.find(node => node.id === 'session')
       const muse = layout.nodes.find(node => node.id === 'muse')

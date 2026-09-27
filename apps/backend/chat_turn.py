@@ -5,7 +5,6 @@ import json
 import logging
 import re
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
 from time import perf_counter
 from uuid import uuid4
 from urllib.parse import urlsplit
@@ -39,12 +38,8 @@ from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
     reset_connection_inspection,
-    register_connection_evidence,
 )
-from src.linger.orchestration.conversational_memory import (
-    curate_after_capture,
-    prepare_surfacing_handoff,
-)
+from src.linger.orchestration.conversational_memory import curate_after_capture
 from src.linger.orchestration.reflection import (
     ReflectionRelease,
     emotional_boundary_release,
@@ -84,7 +79,6 @@ from src.linger.services.memory import (
     MemoryRecord,
     MemoryServiceError,
 )
-from src.linger.contracts.surfacing import MemorySurfacingHandoff
 
 from . import sessions
 from .chapter_reference import parse_chapter_answer
@@ -497,7 +491,6 @@ def prepare_reflection_turn(
     has_active_memories: bool = False,
     prior_evidence: tuple[EvidenceRecord, ...] = (),
     resolution: ContextResolution | None = None,
-    memory_surfacing: MemorySurfacingHandoff | None = None,
     connection_book_scopes: tuple[ReleaseScope, ...] = (),
 ) -> tuple[TurnInspection, str, dict[str, object]]:
     """Build the request-scoped Muse input and Provenance policy context."""
@@ -545,21 +538,12 @@ def prepare_reflection_turn(
         muse_turn=muse_turn,
         context_resolution=resolution,
         prior_evidence=prior_evidence,
-        memory_surfacing=memory_surfacing,
     )
     inspection_prompt = json.dumps(
-        muse_payload.model_dump(
-            mode="json",
-            exclude={"prior_evidence", "memory_surfacing"},
-        ),
+        muse_payload.model_dump(mode="json", exclude={"prior_evidence"}),
         ensure_ascii=False,
     )
-    # Keep the optional hand-off out of ordinary turns while preserving the
-    # established null-bearing shape of the other Muse input fields.
-    muse_input_payload = muse_payload.model_dump(mode="json")
-    if memory_surfacing is None:
-        muse_input_payload.pop("memory_surfacing", None)
-    muse_input = json.dumps(muse_input_payload, ensure_ascii=False)
+    muse_input = muse_payload.model_dump_json()
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
         "reading_context": context.model_dump(mode="json") if context else None,
@@ -1128,27 +1112,12 @@ async def _run_chat_pipeline(
         except MemoryServiceError:
             pass
 
-    memory_surfacing: MemorySurfacingHandoff | None = None
-    if release is None and active_memories:
-        try:
-            memory_surfacing = await prepare_surfacing_handoff(
-                account_scope=account.account_id,
-                current_context=request.message,
-                memories=active_memories,
-                now=datetime.now(UTC),
-            )
-        except Exception:
-            # Surfacing is proposal-only. Failure must not block the ordinary
-            # conversation or manufacture a suggestion.
-            memory_surfacing = None
-
     inspection, muse_input, review_context = prepare_reflection_turn(
         request,
         allow_memory_capture=service.capture_enabled(account),
         has_active_memories=bool(active_memories),
         prior_evidence=prior_evidence,
         resolution=resolution,
-        memory_surfacing=memory_surfacing,
         connection_book_scopes=connection_book_scopes or (),
     )
 
@@ -1190,8 +1159,6 @@ async def _run_chat_pipeline(
         exposure_token = set_tool_exposure(exposure)
         connection_scopes_token = set_connection_book_scopes(connection_book_scopes or ())
         try:
-            if memory_surfacing is not None:
-                register_connection_evidence(memory_surfacing.sources)
             release = await reflection_reply(
                 muse_input,
                 sessions.muse_history(request.session_id),

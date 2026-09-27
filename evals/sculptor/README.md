@@ -84,10 +84,8 @@ decision metrics, hard failures, and complete agent exchanges. The command
 grants no retrieval, memory writes, conversational release, scheduling, or
 notification authority.
 
-The conversational `proactive_memory_surfacing` Objective requires reviewed
-capture, curation application, later fresh-session memory use, and reviewed
-response release. Offline component scores do not establish that complete
-workflow.
+Memory surfacing is offline only. Chat never runs it, so these scores measure
+Sculptor's decisions, not a conversational reply.
 
 ## Versioning
 

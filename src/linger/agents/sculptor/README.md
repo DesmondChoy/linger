@@ -8,7 +8,7 @@ selects each task's instructions and output schema from
 | Skill | Typed input and output | Entry point and current consumer |
 |---|---|---|
 | [Memory curation](skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `SculptorResponse` | `propose_curation` is used by the callable reviewed curation loop and bounded-curation evaluation. |
-| [Memory surfacing](skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfacingDecision` | `propose_surfacing` supports offline component evaluation. It has no production scheduling or notification consumer. |
+| [Memory surfacing](skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfacingDecision` | `propose_surfacing` supports offline evaluation only. Chat never runs it, and it has no scheduling or notification consumer. |
 
 Curation receives two to twelve existing memories selected for one account.
 The model sees only their IDs and text. It proposes a duplicate link, derived
@@ -36,10 +36,8 @@ contain the common trust and authority rules. Each run adds only the selected
 the effective instructions and contracts. `build_sculptor_agent` accepts an
 injected model; production model overrides cover both skills.
 
-Offline surfacing scores do not establish the conversational
-`proactive_memory_surfacing` Objective. That target also requires reviewed
-capture, applied curation, later memory use in a fresh session, and reviewed
-response release. Scheduled operational playbooks remain unimplemented.
+Surfacing is offline only; chat never runs it. Scheduled operational playbooks
+remain unimplemented.
 
 See the [runtime architecture](../../../../docs/agent-skills.md),
 [Sculptor design](../../../../docs/design/sculptor-design.html), and

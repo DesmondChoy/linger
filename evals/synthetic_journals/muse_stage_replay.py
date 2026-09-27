@@ -172,10 +172,6 @@ def prepare_muse_task(snapshot: CapturedStageSnapshot, *, agent: Any = None) -> 
                     continue
                 for record in envelope.prior_evidence:
                     add_book(record)
-                surfacing = getattr(envelope, "memory_surfacing", None)
-                if surfacing is not None:
-                    for source in surfacing.sources:
-                        add_source(source.model_dump(mode="json"))
             if part.get("part_kind") == "tool-return" and part.get("tool_name") in {
                 "librarian_search", "serendipity_explore",
             }:

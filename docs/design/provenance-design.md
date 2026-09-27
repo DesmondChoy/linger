@@ -183,7 +183,7 @@ review. The dedicated [curation risk-code pack](../../evals/provenance/curation_
 contains a positive case and a supported near miss for each of the six codes.
 Its prompt-injection case accepts either blocking verdict, so it does not prove
 the runtime skill's specific rejection rule. These checks do not establish the
-conversational capture-to-curation-and-surfacing target. Historical submission
+live capture-triggered curation path. Historical submission
 PDFs and prior reports retain their original evidence scope.
 
 ## Source of truth

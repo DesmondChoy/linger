@@ -67,12 +67,10 @@ explains the provider-backed side effect.
   identities while dispatching separate capture and Props-only curation Scenes.
   Curation evaluates proposals and source preservation, not applied changes or
   capture-produced upstream memories.
-- For `proactive_memory_surfacing`, stop after adoption. Its adopted target
-  includes conversational capture, curation, and later memory-backed release;
-  no complete replay is implemented. Existing offline scenarios may still be
-  reviewed as component evidence, but their adoption does not approve the
-  expanded Objective. Run `evals.synthetic_journals.surfacing_replay` only when
-  the developer separately authorizes that offline component evaluation.
+- For `proactive_memory_surfacing`, stop after adoption. Memory surfacing is
+  offline only and is not a catalogue Objective; existing offline component
+  scenarios may still be reviewed. Run `evals.synthetic_journals.surfacing_replay`
+  only when the developer separately authorizes that offline evaluation.
   It accepts `BACKSTORY_PATH`, `GROUND_TRUTH_PATH`, `--adoption ADOPTION_PATH`,
   and `--output OUTPUT_PATH`, using a fresh temporary output path. Its decision
   and hard-gate results remain separate from human review of usefulness,

@@ -52,20 +52,6 @@ export function layoutScene(scene: Scene): SceneLayout {
     })
   }
 
-  if (ids.has('curation_review')) {
-    return compose({
-      scene, height: 692,
-      groups: [
-        group({ id: 'conversation', label: 'Current conversation', y: 16, height: 258 }),
-        group({ id: 'capture-curation', label: 'Capture and curation', y: 310, height: 366 }),
-      ],
-      position: node => ({
-        x: scaledX(node),
-        y: onConversation(node) ? 154 : node.id === 'sculptor' || node.id === 'curation_review' ? 570 : 390,
-      }),
-    })
-  }
-
   if (ids.has('capture_review')) {
     return compose({
       scene, height: 610,
@@ -82,7 +68,7 @@ export function layoutScene(scene: Scene): SceneLayout {
     const hasSession = ids.has('session')
     const retrievalLabel = ids.has('corpus')
       ? lowerMemorySources ? 'Evidence and memory retrieval' : 'Evidence retrieval'
-      : ids.has('sculptor') ? 'Memory retrieval and surfacing' : 'Memory retrieval'
+      : 'Memory retrieval'
 
     if (lowerMemorySources) {
       return compose({
