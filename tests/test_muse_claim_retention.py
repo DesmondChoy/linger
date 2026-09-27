@@ -8,7 +8,12 @@ from pydantic_ai import ModelRetry
 
 from apps.backend.contracts import ContextResolution, MuseRevisionInput, MuseRevisionReview, MuseTurn, TurnPolicy
 from src.linger.agents.muse.agent import validate_muse_output
-from src.linger.agents.muse.claim_repair import accepted_claims_for_revision, retained_claim_errors
+from src.linger.agents.muse.claim_repair import (
+    accepted_claims_for_revision,
+    retained_claim_errors,
+    retained_source_errors,
+    retained_sources_for_revision,
+)
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.orchestration.turn_context import reset_turn_evidence, set_turn_evidence
@@ -243,3 +248,100 @@ def test_overlap_projection_preserves_whole_claims_without_optional_source_oblig
     assert accepted_claims_for_revision(draft, verdict) == ("First shared", "shared last")
     incomplete = overlap_review(task, false_members={(0, 0)}, findings=[finding])
     assert accepted_claims_for_revision(draft, incomplete) == ("shared last",)
+
+
+PROMISE = BOOK.model_copy(update={"evidence_id": "book-promise", "text": "“I’ll be back in one hour.”"})
+DELAY = BOOK.model_copy(update={"evidence_id": "book-delay", "text": "“One hour more makes little difference.”"})
+PAIRED = "He promises to return within the hour, then decides lateness hardly matters and stays."
+
+
+def paired_draft():
+    use = {"source_kind": "book_corpus", "supported_claims": [PAIRED]}
+    return MuseCandidate.model_validate({
+        "reply": PAIRED,
+        "evidence_uses": [
+            {**use, "evidence_id": PROMISE.evidence_id, "source_location": PROMISE.location},
+            {**use, "evidence_id": DELAY.evidence_id, "source_location": DELAY.location},
+        ],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+
+def paired_review(location, *, delay_contributes=True):
+    return ProvenanceReview.model_validate({
+        "response_decision": "revise", "capture_decision": "no_candidate",
+        "emotional_boundary_decision": "not_required",
+        "findings": [{
+            "code": "unsupported_claim", "applies_to": "response", "location": location,
+            "explanation": "The passages do not establish that he stays.",
+        }],
+        "claim_audit": [{
+            "group_index": 0, "supported": False,
+            "support_summary": "Promise and lateness are supported; staying is not.",
+            "source_contributions": [
+                {"declaration_index": 0, "claim_index": 0, "contributes": True,
+                 "source_excerpt": PROMISE.text},
+                {"declaration_index": 1, "claim_index": 0, "contributes": delay_contributes,
+                 "source_excerpt": DELAY.text if delay_contributes else None},
+            ],
+        }],
+    })
+
+
+WORDING = {"kind": "text_span", "source_field": "candidate.response", "path": "", "quote": "and stays"}
+
+
+def retained_ids(location, **kwargs):
+    retained = retained_sources_for_revision(paired_draft(), paired_review(location, **kwargs))
+    return [source.evidence_id for source in retained]
+
+
+def revised(*evidence_ids):
+    claim = "He promises to return within the hour, then decides lateness hardly matters."
+    records = {PROMISE.evidence_id: PROMISE, DELAY.evidence_id: DELAY}
+    return MuseCandidate.model_validate({
+        "reply": claim,
+        "evidence_uses": [{
+            "source_kind": "book_corpus", "evidence_id": evidence_id,
+            "source_location": records[evidence_id].location, "supported_claims": [claim],
+        } for evidence_id in evidence_ids],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+
+
+def test_wording_finding_keeps_every_contributing_source():
+    assert retained_ids(WORDING) == [PROMISE.evidence_id, DELAY.evidence_id]
+    for path in ("/1/supported_claims/0", "/1/exact_quote", "/1/source_location"):
+        location = {"kind": "structural", "source_field": "candidate.evidence_uses", "path": path}
+        assert DELAY.evidence_id in retained_ids(location)
+
+
+def test_finding_against_the_source_itself_or_its_content_releases_it():
+    for path in ("/1", "/1/evidence_id"):
+        location = {"kind": "structural", "source_field": "candidate.evidence_uses", "path": path}
+        assert retained_ids(location) == [PROMISE.evidence_id]
+    content = {"kind": "structural", "source_field": "canonical_book_evidence", "path": "/1"}
+    assert retained_ids(content) == []
+    assert retained_ids(WORDING, delay_contributes=False) == [PROMISE.evidence_id]
+
+
+def test_revision_that_drops_a_retained_source_is_repaired():
+    retained = retained_sources_for_revision(paired_draft(), paired_review(WORDING))
+    errors = retained_source_errors(revised(PROMISE.evidence_id), retained)
+    assert [error["value"] for error in errors] == [DELAY.evidence_id]
+    assert retained_source_errors(revised(PROMISE.evidence_id, DELAY.evidence_id), retained) == []
+
+
+def test_actual_muse_validator_rejects_a_dropped_retained_source():
+    retained = retained_sources_for_revision(paired_draft(), paired_review(WORDING))
+    payload = json.loads(revision_context().prompt)
+    payload["review"]["retained_sources"] = [source.model_dump() for source in retained]
+    token = set_turn_evidence((PROMISE, DELAY))
+    try:
+        with pytest.raises(ModelRetry) as caught:
+            validate_muse_output(SimpleNamespace(prompt=json.dumps(payload)), revised(PROMISE.evidence_id))
+        assert DELAY.evidence_id in str(caught.value)
+        kept = revised(PROMISE.evidence_id, DELAY.evidence_id)
+        assert validate_muse_output(SimpleNamespace(prompt=json.dumps(payload)), kept) is kept
+    finally:
+        reset_turn_evidence(token)

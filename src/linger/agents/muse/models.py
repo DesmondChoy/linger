@@ -173,6 +173,13 @@ class MuseCandidate(StrictModel):
         return {**data, "evidence_uses": kept}
 
 
+class RetainedSource(StrictModel):
+    """A source the first review found supporting, which the revision must keep declared."""
+
+    source_kind: Literal["book_corpus", "memory", "web"]
+    evidence_id: str = Field(min_length=1, max_length=2_000)
+
+
 def _record_key(use: object) -> tuple[str, str] | None:
     if not isinstance(use, dict):
         return None

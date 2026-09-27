@@ -32,7 +32,10 @@ from apps.backend.contracts import (
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
 from src.linger.agents.muse.skills import REFLECTION
-from src.linger.agents.muse.claim_repair import accepted_claims_for_revision
+from src.linger.agents.muse.claim_repair import (
+    accepted_claims_for_revision,
+    retained_sources_for_revision,
+)
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     INSTRUCTIONS as MUSE_INSTRUCTIONS,
@@ -1284,6 +1287,7 @@ async def _reflection_reply(
             review=MuseRevisionReview(
                 findings=review.response_findings,
                 previously_accepted_claims=accepted_claims_for_revision(candidate, review),
+                retained_sources=retained_sources_for_revision(candidate, review),
                 source_quote_interiors=source_quote_interiors(
                     quoted_response_spans(candidate.reply), review.quotation_audit,
                 ),

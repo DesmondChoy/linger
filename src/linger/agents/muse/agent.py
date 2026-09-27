@@ -32,7 +32,7 @@ from src.linger.agents.muse.quote_repair import (
     retained_quotation_errors,
     unbound_source_quotation_errors,
 )
-from src.linger.agents.muse.claim_repair import retained_claim_errors
+from src.linger.agents.muse.claim_repair import retained_claim_errors, retained_source_errors
 from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS, SKILLS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
@@ -65,6 +65,7 @@ def validate_muse_output(
 
             revision = MuseRevisionInput.model_validate(envelope)
             errors.extend(retained_claim_errors(output, revision.review.previously_accepted_claims))
+            errors.extend(retained_source_errors(output, revision.review.retained_sources))
     available = _available_evidence()
     connection_sources = canonical_connection_evidence()
     quote_sources: dict[int, str] = {}
