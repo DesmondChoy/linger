@@ -59,6 +59,13 @@ unticked item is the next step. Current focus is Scene 07 only; see
   against 1 false pass in 14 historical runs. Serendipity chose Hume with
   Pinocchio in all five, so no regression
   ([results](#scene-09-baseline-with-the-serendipity-concern-rule)).
+- [x] Scene 06 baseline on `272aa8d`: 5 of 5 hard passes, but 0 of 5 clean
+  under its strict answer key, which still requires Hume's introspection
+  sentence and Keller's examinations
+  ([results](#scene-06-baseline-on-272aa8d)).
+- [x] Scene 06 answer key matched to Scene 07 (Hume bundle alternative,
+  Keller examinations optional). Re-adopted as `28f9038f`; Scene 06 now
+  stands at 3 of 5 clean.
 - [ ] Reach the stop rule: at least 4 of 5 Scene 07 passes with clean semantic
   review on two consecutive measurements. Then return to Scenes 06, 08, and 09.
 - [ ] Reduce per-Line cost (104,000 to 222,000 input tokens): move rules that
@@ -544,8 +551,8 @@ Change one thing at a time and measure only Scene 07. Each step has an offline
 check, a cheap replay of saved inputs, and then a small live measurement.
 
 - **Frozen:** code at the step's commit, model `openai:gpt-6-luna` with low
-  reasoning, adoption `8ca5d7c1` (earlier measurements used `338f48f7`), and
-  the unchanged Backstory.
+  reasoning, adoption `28f9038f` (earlier measurements used `338f48f7` and
+  `8ca5d7c1`), and the unchanged Backstory.
 - **Live measurement:** `connection_curation_replay` with `--scenes scene-07`,
   five repetitions.
 - **Record per repetition:** hard-gate result, semantic review of the three
@@ -805,6 +812,34 @@ decline the inference, keep Hume's account separate from any rule about the
 promise, and use Pinocchio's "I want to keep my word" rather than his excuse.
 The remaining losses are a winner that drops the retrieved memory (2 of 5) and
 one Muse output failure.
+
+## Scene 06 baseline on `272aa8d`
+
+Scene 06 is Scene 07's pair: the same named sources, but the reader asks how
+to see both sides of themselves without calling either fake. Its answer key
+still requires Hume's introspection sentence and Keller's completed
+examinations, and asks that the reader's continuing wish to host stay visible.
+
+| Rep | Hard gates | Pinocchio | Hume | Keller exams | Wish to host |
+|---|---|---|---|---|---|
+| 1 | Pass | Promise, keeps delaying | Succession | No | Yes |
+| 2 | Pass | Promise, struggles to leave | Succession | No | No |
+| 3 | Pass | Promise, stays despite his word | Bundle, quoted | No | Yes |
+| 4 | Pass | Promise, keeps talking | Succession | No | Yes |
+| 5 | Pass | Promise, then "one more hour" excuse | Succession | No | No |
+
+Hard passes rose from 4 of 14 historically to 5 of 5. No reply is wrong or
+unsafe, and every Pinocchio speaker is correct. Under the strict key none is
+clean, for the same two omissions accepted in Scene 07. With Scene 07's
+relaxation, reps 1, 3, and 4 would be clean; reps 2 and 5 drop the reader's
+continuing wish to host.
+
+Decision, 27 September: proposal 06 now matches proposal 07, accepting Hume's
+bundle sentence as an alternative and treating Keller's completed
+examinations as optional, because the paired Scenes cite the same sources.
+Re-adopted as `28f9038f`; the previous adoption is kept as
+`ground-truth-adoption.superseded-8ca5d7c1.json`. Scene 06 stands at 3 of 5
+clean.
 
 Speaker and addressee annotations from Sculptor option 1 are a later candidate
 if the Chapter 30 dialogue confusion persists after steps 2 to 4.
