@@ -71,6 +71,14 @@ unticked item is the next step. Current focus is Scene 07 only; see
   note reached the winner in 5 of 5 and the distractor in none; hard passes
   stayed at 2 of 5 as failures moved to Muse and Provenance
   ([results](#scene-09-after-the-memory-clause)).
+- [x] Review loop measured: of four loop declines, two were correct catches of
+  errors Muse introduced by rewording unflagged sentences, and two were
+  incomplete first reviews. A tiebreak vote or a settled-text gate would have
+  rescued none ([results](#review-loop-and-minimal-edit-revision)).
+- [x] Minimal-edit revision kept by decision on 28 September (uncommitted):
+  Muse rewrites only flagged sentences, enforced in code. Revisions released 5
+  of 6 against 5 of 10 before; hard passes Scene 07 2 of 5, Scene 09 3 of 5.
+  Scene 07's losses were Librarian under-selection, now the next fix.
 - [ ] Reach the stop rule: at least 4 of 5 Scene 07 passes with clean semantic
   review on two consecutive measurements. Then return to Scenes 06, 08, and 09.
 - [ ] Reduce per-Line cost (104,000 to 222,000 input tokens): move rules that
@@ -654,17 +662,20 @@ show otherwise:
   work receding from attention."
 - The first review flagged it for content: "broken promise" was unsupported.
   It did not object that the sentence was unmapped.
-- The revision changed only that phrase, to "temptation and delay around a
-  promise". Both findings were resolved.
+- The revision changed that phrase to "temptation and delay around a
+  promise", and both findings were resolved. It also reworded three sentences
+  no finding named (corrected on 28 September; see
+  [review loop](#review-loop-and-minimal-edit-revision)).
 - The second review then flagged the same sentence as unmapped. Muse had no
   revision left, so the reply was declined.
 
 Every repetition's draft has an unmapped summary sentence of this kind, for
 example rep 3's "These scenes show shifting perspective, a promise being set
 aside, and work receding from attention". Provenance released reps 1, 3, 4,
-and 5 with them. The rep 2 failure is inconsistent review of one sentence type,
-not revision drift, so a minimal-edit instruction to Muse would not have
-helped.
+and 5 with them. The rep 2 failure is the first review reporting only the
+sentence's content defect although it classified the sentence
+source-dependent. The 28 September reruns found the second review flags it in
+4 of 4 attempts.
 
 ### Semantic review of baseline reps 1, 3, and 4
 
@@ -883,6 +894,65 @@ if the Chapter 30 dialogue confusion persists after steps 2 to 4.
 - **Provenance:** no change; it should see fewer revisions with new errors.
   Reviewer controls A to H cover this.
 - **Sculptor:** no effect.
+
+## Review loop and minimal-edit revision
+
+On 28 September the four review-loop declines (Scene 07 baseline rep 2 and
+re-measurement reps 2 and 5, and Scene 09 memory-clause rep 3) were rerun as
+saved second reviews, three times each, on `openai:gpt-6-luna` at low
+reasoning. Scene 09 memory-clause rep 1 is a false first-review finding
+(`linger-7etz.6`), not this loop.
+
+| Decline | Second review in 4 attempts | Cause |
+|---|---|---|
+| Scene 07 baseline rep 2 | Unmapped summary, 4 of 4 | The first review classified the summary source-dependent but reported only its wording |
+| Scene 07 re-measure rep 2 | Some finding, 4 of 4; the Hume clause 2 of 4 | The first review reports a different subset of defects each time; Muse also reworded the Hume clause |
+| Scene 07 re-measure rep 5 | Speaker error, 3 of 4 | Correct: Muse reworded an unflagged sentence to "tells himself" |
+| Scene 09 rep 3 | Wrong limit, 3 of 4 | Correct: Muse rewrote unflagged sentences and attached a Hume limit to Pinocchio |
+
+The second review is mostly consistent, so a majority vote on its verdict would
+rescue none of the four. A gate that ignores objections to untouched text would
+also rescue none, because rep 5 still carries the speaker error. A single review
+passed the real speaker and limit errors in 1 of 4 attempts each.
+
+The Muse reflection skill told revisions to recheck the whole reply and to
+simplify the whole answer. Muse reworded sentences no finding named in all 4
+declines (causally in 2) and in 18 of 30 released revisions.
+
+The change, uncommitted:
+
+- `MuseRevisionReview.draft_sentences` lists the draft's sentences. A sentence
+  is `flagged` when a finding names it and `needs_source` when the first
+  review classified unmapped text in it as source-dependent. A finding that
+  cannot be placed leaves the list empty.
+- `draft_sentence_errors` in Muse output validation returns, within the
+  existing retry budget: an unflagged sentence that was reworded, a new
+  sentence away from any flagged one, and a close rewrite of a `needs_source`
+  sentence that is still unmapped.
+- The skill says to rewrite only flagged sentences and to delete rather than
+  reword the rest.
+
+Offline, the check fires on the reworded sentence in all four declines. Five
+Scene 07 and five Scene 09 repetitions then ran on the change, with adoption
+`28f9038f`. Seven of the first ten attempts hit HTTP 429 from two parallel
+streams and were rerun one at a time.
+
+| Measure | Before | After |
+|---|---|---|
+| Revisions released by the second review | 5 of 10 | 5 of 6 |
+| Scene 07 hard passes | 3 of 5, 3 of 5 | 2 of 5 |
+| Scene 09 hard passes | 2 of 5 | 3 of 5 |
+
+- **Revisions:** Muse changed only flagged sentences. The new check fired four
+  times and Muse repaired each within its budget; no revision failed on it.
+- **Scene 07 losses:** Librarian kept the promise passage without a delay
+  passage in reps 2 and 4, upstream of revision. That is 2 of 5, above the
+  one-in-five threshold for revisiting under-selection. Rep 1 was declined
+  on two defects in untouched text that the first review missed.
+- **Scene 09 losses:** rep 1 released without the memory, which the draft never
+  cited; rep 2 had weak retrieval and cited nothing.
+- **Semantic:** the two Scene 07 passes decline the inference, attribute
+  Pinocchio's excuse to him, and keep the reader's wish to host.
 
 ## Tracking
 
