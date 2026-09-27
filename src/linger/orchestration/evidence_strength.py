@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Literal, Protocol
 
 import logfire
@@ -80,6 +81,9 @@ async def plan_book_request(
     return plan
 
 
+_LABEL = re.compile(r"\bE\d+\b")
+
+
 async def assess_book_evidence(
     plan: BookRequestPlan,
     evidence: tuple[EvidenceRecord, ...],
@@ -93,9 +97,13 @@ async def assess_book_evidence(
         from src.linger.agents.librarian.agent import librarian_agent
 
         agent = librarian_agent
+    # Short labels replace long, near-identical corpus IDs that the model
+    # otherwise miscopies; application code maps them back after validation.
+    labelled = {f"E{index}": record for index, record in enumerate(evidence, start=1)}
     task = LibrarianEvidenceStrengthInput(
         original_request=original_request,
-        request=plan, evidence=evidence,
+        request=plan,
+        evidence=tuple(record.model_copy(update={"evidence_id": label}) for label, record in labelled.items()),
         max_evidence_records=max_evidence_records,
     )
     result = await run_agent_traced(
@@ -104,7 +112,7 @@ async def assess_book_evidence(
         span_name="librarian.evidence_strength",
         role="Librarian",
         stage="evidence_strength",
-        input_contract="LibrarianEvidenceStrengthInput.v7",
+        input_contract="LibrarianEvidenceStrengthInput.v8",
         output_contract=(
             "src.linger.agents.librarian.models.BookEvidenceAssessment"
         ),
@@ -118,9 +126,19 @@ async def assess_book_evidence(
     errors = evidence_assessment_errors(assessment, task)
     if errors:
         raise ValueError(json.dumps({"error": "Invalid evidence assessment.", "errors": errors}, ensure_ascii=False))
-    return EvidenceStrengthDecision.model_validate(
+    decision = EvidenceStrengthDecision.model_validate(
         assessment.model_dump(exclude={"support", "additional_parts"})
     )
+    def unlabel(text: str) -> str:
+        return _LABEL.sub(
+            lambda match: labelled[match[0]].location if match[0] in labelled else match[0], text,
+        )
+
+    return decision.model_copy(update={
+        "relevant_evidence_ids": tuple(labelled[label].evidence_id for label in decision.relevant_evidence_ids),
+        "strength_reason": unlabel(decision.strength_reason),
+        "limitations": tuple(unlabel(item) for item in decision.limitations),
+    })
 
 
 async def judge_evidence_strength(

@@ -62,11 +62,11 @@ def test_preceding_scene_resolves_quotation_pronouns_before_retrieval():
             assert BookRequestPlan.model_validate(payload["request"]) == BookRequestPlan.model_validate(PLAN)
             assert PRIVATE not in json.dumps(payload["request"])
             assert payload["original_request"]["current_line"] == LINE
-            assert payload["evidence"][0]["evidence_id"] == desired.evidence_id
+            assert payload["evidence"][0]["text"] == desired.excerpt
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "The located reply includes the requested narration.",
-                "relevant_evidence_ids": [desired.evidence_id],
-                "support": [{"evidence_id": desired.evidence_id, "part_index": 0,
+                "relevant_evidence_ids": ["E1"],
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The exact reply and narrator's qualification."}],
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])

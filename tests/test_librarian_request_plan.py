@@ -45,8 +45,8 @@ def test_book_request_precedes_selection_and_original_context_survives(purpose):
             assert payload["request"]["parts"][0]["purpose"] == purpose
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "The refusal is present.",
-                "relevant_evidence_ids": ["refusal"], "limitations": [],
-                "support": [{"evidence_id": "refusal", "part_index": 0,
+                "relevant_evidence_ids": ["E1"], "limitations": [],
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The requested refusal."}],
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
@@ -75,8 +75,8 @@ def test_invented_request_anchors_or_selection_parts_are_rejected(fault):
         else:
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "Direct refusal.",
-                "relevant_evidence_ids": ["refusal"], "limitations": [],
-                "support": [{"evidence_id": "refusal", "part_index": 1,
+                "relevant_evidence_ids": ["E1"], "limitations": [],
+                "support": [{"evidence_id": "E1", "part_index": 1,
                              "necessary_support": "A made-up second requirement."}],
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
@@ -90,8 +90,8 @@ def test_invented_request_anchors_or_selection_parts_are_rejected(fault):
 
 
 @pytest.mark.parametrize("parts, mappings", [
-    (["Mara's reply and the narrator's description"], [("reply", 0), ("narration", 0)]),
-    (["Mara's reply", "the narrator's description"], [("reply", 0), ("narration", 1)]),
+    (["Mara's reply and the narrator's description"], [("E1", 0), ("E2", 0)]),
+    (["Mara's reply", "the narrator's description"], [("E1", 0), ("E2", 1)]),
 ])
 def test_one_or_multiple_book_needs_can_require_multiple_passages(parts, mappings):
     calls = 0
@@ -104,7 +104,7 @@ def test_one_or_multiple_book_needs_can_require_multiple_passages(parts, mapping
         else:
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "Complete requested quotation.",
-                "relevant_evidence_ids": ["reply", "narration"], "limitations": [],
+                "relevant_evidence_ids": ["E1", "E2"], "limitations": [],
                 "support": [{"evidence_id": identity, "part_index": index,
                              "necessary_support": "Requested wording in this record."}
                             for identity, index in mappings],
@@ -163,13 +163,13 @@ def test_assessment_recovers_omitted_need_without_relaxing_span_or_coverage_chec
                 "additional_parts": [{"context_spans": [], "purpose": "reference",
                                       "reader_spans": ["the celebration" if fault == "invented_span" else "the invitation"]}],
                 "evidence_strength": "sufficient", "strength_reason": "Both requested events are supported.",
-                "relevant_evidence_ids": ["refusal"],
-                "support": [{"evidence_id": "refusal", "part_index": 0,
+                "relevant_evidence_ids": ["E1"],
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The refusal."}],
             }
             if fault != "missing_support":
-                output["relevant_evidence_ids"].append("invitation")
-                output["support"].append({"evidence_id": "invitation", "part_index": 1,
+                output["relevant_evidence_ids"].append("E2")
+                output["support"].append({"evidence_id": "E2", "part_index": 1,
                                           "necessary_support": "The invitation named in the original request."})
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
@@ -337,7 +337,7 @@ def test_application_still_rejects_invalid_spans_from_an_injected_agent():
         asyncio.run(plan_book_request("The gardeners paint.", agent=agent))
 
 
-def test_mistyped_selected_evidence_id_is_repaired_within_the_assessment_run():
+def test_assessor_sees_short_labels_and_an_unknown_label_is_repaired_in_run():
     from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
     from src.linger.orchestration.evidence_strength import assess_book_evidence
 
@@ -349,19 +349,18 @@ def test_mistyped_selected_evidence_id_is_repaired_within_the_assessment_run():
     attempts = []
 
     def model(messages, info):
-        # Run 4 spliced one record's section onto another record's line range.
         if attempts:
-            retry = str(messages[-1].parts[0].content)
-            assert "closest_supplied_ids" in retry and lake.evidence_id in retry
-        evidence_id = "pg2397-sec022-ln3115-3140" if not attempts else lake.evidence_id
-        attempts.append(evidence_id)
-        # The first attempt also leaves a selected record without support, which the
-        # schema rejects; the ID fault must still be reported in that same retry.
-        selected = [evidence_id, other.evidence_id] if len(attempts) == 1 else [evidence_id]
+            assert "unknown evidence ID" in str(messages[-1].parts[0].content)
+        else:
+            payload = json.loads(messages[-1].parts[0].content)
+            # Long corpus IDs, which runs 4, 7 and 15 miscopied, never reach the assessor.
+            assert [e["evidence_id"] for e in payload["evidence"]] == ["E1", "E2"]
+        label = "E7" if not attempts else "E1"
+        attempts.append(label)
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
-            "evidence_strength": "sufficient", "strength_reason": "The lake passage answers the need.",
-            "relevant_evidence_ids": selected, "additional_parts": [],
-            "support": [{"evidence_id": evidence_id, "part_index": 0, "necessary_support": "Work and college recede at the lake."}],
+            "evidence_strength": "sufficient", "strength_reason": "E1 answers the need.",
+            "relevant_evidence_ids": [label], "additional_parts": [],
+            "support": [{"evidence_id": label, "part_index": 0, "necessary_support": "Work and college recede at the lake."}],
         })])
 
     decision = asyncio.run(assess_book_evidence(
@@ -371,6 +370,7 @@ def test_mistyped_selected_evidence_id_is_repaired_within_the_assessment_run():
     ))
 
     assert decision.relevant_evidence_ids == (lake.evidence_id,)
+    assert decision.strength_reason == "Chapter1 answers the need."
     assert len(attempts) == 2
 
 

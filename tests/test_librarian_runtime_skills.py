@@ -204,9 +204,9 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
         else:
             response = {
                 "evidence_strength": "sufficient", "strength_reason": "Direct support",
-                "relevant_evidence_ids": ["evidence-test"] if valid else [],
+                "relevant_evidence_ids": ["E1"] if valid else [],
                 "support": [{
-                    "evidence_id": "evidence-test", "part_index": 0,
+                    "evidence_id": "E1", "part_index": 0,
                     "necessary_support": "The requested answer appears in this passage.",
                 }] if valid else [],
             }

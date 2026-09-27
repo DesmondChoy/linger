@@ -68,9 +68,9 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             output=BookEvidenceAssessment(
                 evidence_strength="sufficient",
                 strength_reason="The passage directly supports the query.",
-                relevant_evidence_ids=(self.evidence().evidence_id,),
+                relevant_evidence_ids=("E1",),
                 support=(RequestedBookSupport(
-                    evidence_id=self.evidence().evidence_id, part_index=0,
+                    evidence_id="E1", part_index=0,
                     necessary_support="The passage names the character asking the question.",
                 ),),
             )
@@ -91,8 +91,11 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual({"original_request", "request", "evidence", "max_evidence_records"}, set(payload))
         self.assertEqual(request_payload, payload["original_request"])
         self.assertEqual(plan.model_dump(mode="json"), payload["request"])
-        self.assertEqual(self.evidence().evidence_id, payload["evidence"][0]["evidence_id"])
-        self.assertEqual(self.evidence().model_dump(mode="json"), payload["evidence"][0])
+        # The assessor sees a short label in place of the corpus ID, which is restored afterwards.
+        self.assertEqual(
+            self.evidence().model_copy(update={"evidence_id": "E1"}).model_dump(mode="json"), payload["evidence"][0],
+        )
+        self.assertEqual((self.evidence().evidence_id,), decision.relevant_evidence_ids)
 
     async def test_judge_rejects_invented_evidence_ids(self) -> None:
         agent = AsyncMock()
@@ -138,14 +141,14 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             attempts.append(repaired)
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "Both requested answers are present.",
-                "relevant_evidence_ids": [questioner.evidence_id, *([answer.evidence_id] if repaired else [])],
+                "relevant_evidence_ids": ["E1", *(["E2"] if repaired else [])],
                 "additional_parts": [{"context_spans": [], "purpose": "answer",
                                       "reader_spans": ["What does Alice say?" if repaired else "Who answers him?"]}],
-                "support": [{"evidence_id": questioner.evidence_id, "part_index": 0,
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The Caterpillar asks the question."}],
             }
             if repaired:
-                output["support"].append({"evidence_id": answer.evidence_id, "part_index": 1,
+                output["support"].append({"evidence_id": "E2", "part_index": 1,
                                           "necessary_support": "Alice answers that she is confused."})
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
@@ -164,8 +167,8 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
         ) for span in ("Who questions Alice?", "What does Alice say?")))
         output = BookEvidenceAssessment(
             evidence_strength="weak", strength_reason="Only the questioner is identified.",
-            relevant_evidence_ids=(self.evidence().evidence_id,), limitations=("Alice's answer is absent.",),
-            support=(RequestedBookSupport(evidence_id=self.evidence().evidence_id, part_index=0,
+            relevant_evidence_ids=("E1",), limitations=("Alice's answer is absent.",),
+            support=(RequestedBookSupport(evidence_id="E1", part_index=0,
                                           necessary_support="The Caterpillar asks the question."),),
         )
         attempts = []
@@ -182,7 +185,7 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(attempts))
         self.assertEqual("weak", result.evidence_strength)
         self.assertEqual(output.limitations, result.limitations)
-        self.assertEqual(output.relevant_evidence_ids, result.relevant_evidence_ids)
+        self.assertEqual((self.evidence().evidence_id,), result.relevant_evidence_ids)
 
     async def test_unknown_requested_part_exhausts_only_the_existing_retry_budget(self) -> None:
         plan = BookRequestPlan(parts=(BookRequestPart(
@@ -190,8 +193,8 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
         ),))
         output = BookEvidenceAssessment(
             evidence_strength="sufficient", strength_reason="The questioner is identified.",
-            relevant_evidence_ids=(self.evidence().evidence_id,),
-            support=(RequestedBookSupport(evidence_id=self.evidence().evidence_id, part_index=9,
+            relevant_evidence_ids=("E1",),
+            support=(RequestedBookSupport(evidence_id="E1", part_index=9,
                                           necessary_support="The Caterpillar asks the question."),),
         )
         attempts = []
@@ -234,8 +237,8 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
                     return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
                         "evidence_strength": strength, "strength_reason": "The questioner is named, with little context.",
                         "limitations": ["Only the question is supplied."],
-                        "relevant_evidence_ids": [self.evidence().evidence_id],
-                        "support": [{"evidence_id": self.evidence().evidence_id, "part_index": part_index,
+                        "relevant_evidence_ids": ["E1"],
+                        "support": [{"evidence_id": "E1", "part_index": part_index,
                                      "necessary_support": "The Caterpillar asks the question."}],
                     })])
 
@@ -250,8 +253,9 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_application_and_captured_replay_recheck_domain_faults(self) -> None:
         from evals.synthetic_journals.captured_stage_tasks import _validate_application_result
 
-        first = self.evidence()
-        second = first.model_copy(update={"evidence_id": "alice-answer", "text": "Alice answers."})
+        # Captured inputs record the short labels the assessor saw.
+        first = self.evidence().model_copy(update={"evidence_id": "E1"})
+        second = first.model_copy(update={"evidence_id": "E2", "text": "Alice answers."})
         task = LibrarianEvidenceStrengthInput(
             original_request=LibrarianBookRequestInput(current_line="Who questions Alice? What does Alice say?"),
             request=BookRequestPlan(parts=(BookRequestPart(

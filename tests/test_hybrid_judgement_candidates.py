@@ -147,11 +147,12 @@ def test_model_receives_release_budget_and_cannot_exceed_it(selected_count):
             assert len(payload["evidence"]) == 6
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
             "evidence_strength": "sufficient", "strength_reason": "Selected support.",
-            "relevant_evidence_ids": [record.evidence_id for record in chosen],
+            # The assessor sees records as E1..En in supplied order.
+            "relevant_evidence_ids": [f"E{index}" for index, _ in enumerate(chosen, start=1)],
             "support": [{
-                "evidence_id": record.evidence_id, "part_index": 0,
+                "evidence_id": f"E{index}", "part_index": 0,
                 "necessary_support": "Selected support for the requested answer.",
-            } for record in chosen],
+            } for index, _ in enumerate(chosen, start=1)],
         })])
 
     invocation = judge_evidence_strength(

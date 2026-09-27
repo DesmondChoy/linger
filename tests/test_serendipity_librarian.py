@@ -270,12 +270,16 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
             assert not retrieval_inputs
         else:
             assert len(retrieval_inputs) == len(expected_queries)
+        # The assessor sees short labels; find the selected passage's label by its text.
+        label = None if "current_line" in payload else next(
+            record["evidence_id"] for record in payload["evidence"] if record["text"] == bundle.items[0].excerpt
+        )
         response = plan if "current_line" in payload else {
             "evidence_strength": "sufficient",
             "strength_reason": "The selected passage supports the requested book question.",
-            "relevant_evidence_ids": [selected_id],
+            "relevant_evidence_ids": [label],
             "support": [{
-                "evidence_id": selected_id, "part_index": 0,
+                "evidence_id": label, "part_index": 0,
                 "necessary_support": "The passage supplies the requested reason for learning.",
             }],
         }
@@ -336,7 +340,7 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
             assert "My voice at the meeting" not in json.dumps(assessment["request"])
             assert "An unrelated ambient reader message" not in json.dumps(model_inputs)
             assert assessment["max_evidence_records"] == 2
-            assert selected_id in {record["evidence_id"] for record in assessment["evidence"]}
+            assert bundle.items[0].excerpt in {record["text"] for record in assessment["evidence"]}
     finally:
         reset_reader_message(message)
         reset_turn_evidence(ledger)
@@ -369,12 +373,15 @@ def test_muse_clarification_answer_keeps_prior_reader_question_without_expanded_
         assert len(prompts) == 1
         payload = json.loads(prompts[0])
         model_inputs.append(payload)
+        label = None if "current_line" in payload else next(
+            record["evidence_id"] for record in payload["evidence"] if record["text"] == bundle.items[0].excerpt
+        )
         response = plan if "current_line" in payload else {
             "evidence_strength": "sufficient",
             "strength_reason": "The selected passage supports the prior reader question.",
-            "relevant_evidence_ids": [selected_id],
+            "relevant_evidence_ids": [label],
             "support": [{
-                "evidence_id": selected_id, "part_index": 0,
+                "evidence_id": label, "part_index": 0,
                 "necessary_support": "The passage contains the requested dialogue.",
             }],
         }
@@ -408,7 +415,7 @@ def test_muse_clarification_answer_keeps_prior_reader_question_without_expanded_
         }
         assert set(model_inputs[1]) == {"original_request", "request", "evidence", "max_evidence_records"}
         assert model_inputs[1]["request"] == BookRequestPlan.model_validate(plan).model_dump(mode="json")
-        assert selected_id in {record["evidence_id"] for record in model_inputs[1]["evidence"]}
+        assert bundle.items[0].excerpt in {record["text"] for record in model_inputs[1]["evidence"]}
         assert expanded_query not in json.dumps(model_inputs)
         assert model_inputs[1]["original_request"] == model_inputs[0]
     finally:
