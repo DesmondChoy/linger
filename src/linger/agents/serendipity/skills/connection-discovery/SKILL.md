@@ -164,7 +164,11 @@ two remain tied; do not inflate ratings to force a winner.
 
 Judge fit against the complete reader request. When the reader asks to put
 several named sources alongside one another, a comparison that omits one is
-only partial, even if its remaining pair is interesting. The winning comparison
+only partial, even if its remaining pair is interesting. The same holds for
+concerns: when one cue raises several distinct concerns, a candidate that
+answers only one of them is `partial`, however well it answers that one. When
+the evidence supports more than one concern, build at least one candidate that
+combines the supporting records for each. The winning comparison
 must address each requested source in its distinct role, with the corresponding
 evidence IDs. Do not use facts from an inspected memory or page in an
 interpretation while omitting that source from the candidate's evidence.
