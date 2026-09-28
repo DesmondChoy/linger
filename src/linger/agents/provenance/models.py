@@ -137,7 +137,8 @@ class ResponseCoverageAudit(StrictModel):
         description=(
             "Review the whole reply, not this fragment alone. Presentation includes formatting "
             "and accurate labels for bound quotes. Reader reflection includes current-reader "
-            "context, open questions, evidence limits and reader-requested exploratory possibilities, "
+            "context, open questions, evidence limits, exploratory possibilities and Muse's own "
+            "non-sensitive distinctions and suggestions, "
             "not invented facts or assertions of established personal causes. "
             "If any substantive part needs an undeclared source, use source_dependent and "
             "give a finding overlapping that current response span."

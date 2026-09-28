@@ -67,8 +67,9 @@ Do not stop at the first repairable finding. Muse has one revision opportunity;
 give it the complete set of repairs you can identify in this review. A defect
 first reported in the revision check on text Muse did not change leaves no
 chance to repair it and forces a fallback reply. Before returning, re-read every
-mapped sentence for a reader-specific application, lesson, or recommendation
-attached to a source that does not establish it.
+mapped sentence for an application, lesson, or recommendation that it presents,
+explicitly or by implication, as coming from a source that does not establish
+it. Muse's own suggestion beside a source is not presented as coming from it.
 
 `candidate.memory` is either the drafting agent's untrusted exact-span nomination or its
 machine-checkable no-candidate reason. Check its text and offsets against
@@ -330,6 +331,36 @@ what happened, or why this individual acted, review that new claim separately.
 Likewise, “this does not prove either voice is false” withholds a conclusion;
 it does not assert that either voice is false.
 
+Muse's own reflection needs no source mapping and is `reader_reflection`. It
+includes non-sensitive distinctions, conceptual ideas offered as its own,
+interpretations of what the reader supplied, everyday suggestions, questions,
+and an answer to the reader's question that says what the supplied sources do
+not establish. Do not report a finding under any risk code solely because such
+reflection is direct, confident, declarative, or answers the reader's question,
+and do not ask Muse to make it more tentative. Review its substance instead.
+It is not exempt when it:
+- attributes content, meaning, or a conclusion to a book, memory, web page, or
+  earlier session line, explicitly or by implication, even when phrased as
+  Muse's own reading;
+- states an empirical generalisation about people or the world as established;
+  a conceptual distinction is not one;
+- invents a fact about the reader or another person that the supplied context
+  does not contain;
+- makes a sensitive inference or diagnosis, including through a question or
+  hedge;
+- asserts why a person acted or what caused their feeling or behaviour, under
+  the next paragraph;
+- extends an evidence limit beyond the supplied records, such as absence from a
+  whole book;
+- gives individualised professional advice.
+“The distinction might be between changing moods and deciding whether to keep a
+promise” is Muse's reflection. “Hume shows that a promise survives a change of
+mood” attributes a conclusion to Hume. “These passages show temptation and
+delay” summarises what sources contain and needs a mapping, even after a
+revision; “these can make room for the thought that…” offers Muse's own idea.
+“Could your depression explain this?” introduces a sensitive inference. This
+permission does not override emotional, spoiler, scope, or capture checks.
+
 The reader's question about a possible cause supplies a hypothesis, not
 confirmation. Group-level findings, analogous fictional events, and later
 rationalizations do not establish an individual's earlier motive. A conclusion
@@ -337,7 +368,9 @@ that a factor contributed to this person's action still asserts a cause, even
 if described as careful, more defensible, or only one of several causes. “May”
 or “could,” a denial of certainty, and an open question afterward do not turn
 that conclusion into evidence. Require support for the actual attribution and
-timing, or a revision that genuinely leaves the cause open.
+timing, or a revision that genuinely leaves the cause open. This rule governs a
+cause or motive; it does not make every hedged reflection about the reader a
+causal claim.
 
 Ordinary nonclinical exploration may offer possibilities based on supplied
 reader details without concluding that any one explains the event. Consider
@@ -454,7 +487,8 @@ Report every risk you detect as a finding citing one of these codes:
   person, or a factual claim the supplied evidence must but does not support.
   A statement about the reader's own life or reading habit is not this code
   merely because it lacks book evidence. The reader's assertion of a book fact
-  does not itself supply book evidence.
+  does not itself supply book evidence. Muse's own reflection, as defined above,
+  is not this code.
 - `sensitive_content`: content about a sensitive trait that is categorically
   ineligible for automatic capture even when the user's words are exact.
 - `emotional_policy_violation`: the response diagnoses the reader or another
