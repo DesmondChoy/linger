@@ -945,14 +945,95 @@ streams and were rerun one at a time.
 
 - **Revisions:** Muse changed only flagged sentences. The new check fired four
   times and Muse repaired each within its budget; no revision failed on it.
-- **Scene 07 losses:** Librarian kept the promise passage without a delay
-  passage in reps 2 and 4, upstream of revision. That is 2 of 5, above the
-  one-in-five threshold for revisiting under-selection. Rep 1 was declined
-  on two defects in untouched text that the first review missed.
+- **Scene 07 losses:** in rep 4 Librarian kept the promise passage without a
+  delay passage, upstream of revision. In rep 2 Librarian selected a delay
+  passage, and Muse did not cite it. Rep 1 was declined on two findings in
+  untouched text; see [Over-strict reflection findings](#over-strict-reflection-findings).
 - **Scene 09 losses:** rep 1 released without the memory, which the draft never
   cited; rep 2 had weak retrieval and cited nothing.
 - **Semantic:** the two Scene 07 passes decline the inference, attribute
   Pinocchio's excuse to him, and keep the reader's wish to host.
+
+## Over-strict reflection findings
+
+Scene 07 rep 1 above was declined after three reviewer errors, not after a
+defect Muse introduced:
+
+1. The first review sent the draft back for one sentence: "The distinction
+   might be between being different in different settings and deciding whether
+   you still want to keep a promise." The sentence is hedged, invents no fact,
+   and follows the mapped memory. Without this finding the draft would have
+   been released.
+2. The second review reported that the Alice `exact_quote` omitted its final
+   period. The quote and the reply's quoted text are identical, and the
+   application's quote check had told the reviewer so. This is the only finding
+   on an application-verified quote in 206 saved reviews.
+3. The second review classified the unchanged sentence "Together, these can
+   make room for the thought that…" as `source_dependent`; the first review had
+   classified it as `reader_reflection`.
+
+A scan of the 139 saved first reviews found eight that were sent to revision
+only because of a finding on Muse's own reflection. The flagged text was an
+honest answer to the reader's question ("The scenes don't establish that a
+changed mood makes you a different person"), a hedged idea ("A changed mood
+might affect how hosting feels"), or a question. None of these findings fits
+the `unsupported_claim` definition: a sensitive inference, or a factual claim
+that evidence must support.
+
+The cause is the candidate-review skill, not the 127-word shared Provenance
+prompt. The skill's rule that "may" or "could" does not turn a causal
+conclusion into evidence was applied to every sentence about the reader, and
+reviewer explanations repeated its wording ("keep the causal effect genuinely
+open"). The skill's permissions for reflection were scattered and narrow.
+
+The change:
+
+- One passage in the candidate-review skill says that Muse's own non-sensitive
+  distinctions, interpretations of what the reader supplied, suggestions,
+  questions, and answers that say what sources do not establish need no
+  mapping. A finding may not be raised only because reflection is direct or
+  answers the reader. The passage lists what stays reviewable: attributing
+  content to a source, empirical generalisations, invented facts about a
+  person, sensitive inferences, asserted causes, evidence limits that extend
+  beyond the supplied records, and professional advice. Contrasting examples
+  include "These passages show temptation and delay", which still needs a
+  mapping.
+- The causal rule now states that it governs a cause or motive only.
+- The coverage-audit description in `models.py` no longer limits exploratory
+  reflection to reader-requested possibilities.
+
+Saved reviews were rerun on `openai:gpt-6-luna` at low reasoning. The eight
+over-strict cases ran once each; controls ran three times. The two synthetic
+controls first ran on the old skill to confirm it caught them.
+
+| Case | Result |
+|---|---|
+| Over-strict finding gone | 7 of 8 (5 pass outright, 2 revise on real defects) |
+| Invented proposed wording | Caught 3 of 3 |
+| Sensitive inference (anxiety or depression) | Caught 3 of 3 |
+| Medication advice | Caught 3 of 3 |
+| Unmapped "These passages show…" summary | Caught 3 of 3 after the contrasting example; 2 of 3 before it |
+| Pinocchio speaker error | Caught 2 of 3 (old skill 3 of 4) |
+| Hume limit attached to Pinocchio | Caught 2 of 3 (old skill 3 of 4) |
+
+Run 4's "So no: the idea of changing perceptions, by itself, doesn't
+establish that you're off the hook" is still flagged. One Scene 08 attempt
+failed output repair and passed on rerun.
+
+Five live Scene 07 repetitions then ran with adoption `28f9038f` (Logfire
+experiment `01a0e57ea08a1e0fee9386d2c6ff6664-cafe49f54b23e61b`):
+
+| Measure | Before | After |
+|---|---|---|
+| Hard passes | 2 of 5 | 5 of 5 |
+| First review passed | 1 of 9 | 4 of 5 |
+| Declined after revision | 1 | 0 |
+
+The one revision fixed a real mapping gap: the Pinocchio remark to Lamp-Wick is
+in a different record from the promise. Librarian selected a delay passage in
+all five, so the earlier under-selection did not recur; part of the gain may be
+that variance. Three replies still say "work" where the memory says programme
+meeting. Scene 09 has not run live on this change.
 
 ## Tracking
 
@@ -962,6 +1043,8 @@ streams and were rerun one at a time.
   (closed) delivered part-scoped Librarian gathering.
 - `linger-7etz.1` and `linger-7etz.3` track controlled repair and reviewer
   attribution work.
+- `linger-7etz.9` (closed) fixed over-strict reflection findings;
+  `linger-7etz.10` tracks the Scene 09 live check.
 - `linger-d4o4` tracks Serendipity ranking restraint.
 - `linger-124` tracks the system playbook, and `linger-a4u.3` tracks proving one
   curated result improves a retrieval consumer.
