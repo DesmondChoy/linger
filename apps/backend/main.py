@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import suppress
 from dataclasses import asdict
 from time import perf_counter
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +20,7 @@ configure_telemetry()
 
 import logfire  # noqa: E402  (import order is load-bearing, see above)
 
-from src.linger.services.memory import MemoryPolicyService  # noqa: E402
+from src.linger.services.memory import MemoryPolicyService, MemoryServiceError  # noqa: E402
 
 from . import sessions  # noqa: E402
 from .auth import AccountDependency, router as auth_router  # noqa: E402
@@ -34,6 +34,7 @@ from src.linger.orchestration.progress_context import (  # noqa: E402
 )
 from .library import router as library_router  # noqa: E402
 from .rate_limit import enforce_chat_rate_limit  # noqa: E402
+from .reading_progress import ReadingProgressStore  # noqa: E402
 from .schemas import ChatRequest, ChatResponse  # noqa: E402
 from .transcripts import TranscriptStore, TranscriptTurn  # noqa: E402
 
@@ -43,8 +44,9 @@ settings = get_settings()
 app = FastAPI(title="Linger Chat API")
 app.include_router(library_router)
 app.include_router(auth_router)
-memory_service = MemoryPolicyService(REPO_ROOT / "memories")
+memory_service = MemoryPolicyService(REPO_ROOT / "memories", capture_enabled_by_default=True)
 transcript_store = TranscriptStore(REPO_ROOT / "data" / "transcripts.sqlite3")
+reading_progress_store = ReadingProgressStore(REPO_ROOT / "data" / "reading_progress.sqlite3")
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,7 +108,9 @@ async def _run_turn(
         },
     ) as span:
         try:
-            response = await run_chat_turn(request, service, context)
+            response = await run_chat_turn(
+                request, service, context, reading_progress=reading_progress_store,
+            )
         except asyncio.CancelledError as exc:
             cancelled = exc
             record_failure(
@@ -317,14 +321,43 @@ class Conversation(BaseModel):
     turns: list[TranscriptTurn]
 
 
+def _with_memory_handles(turn: TranscriptTurn, saved_by_turn: dict[str, Any], texts: dict[str, str]) -> TranscriptTurn:
+    """Fill a saved turn's memory handles from the store, including turns saved before Inspect had them."""
+    inspection = (turn.details or {}).get("response", {}).get("inspection")
+    if inspection is None:
+        return turn
+    memory = dict(inspection.get("memory") or {"active_count": 0, "cited_memory_ids": []})
+    record = saved_by_turn.get(turn.turn_id)
+    if record is not None and not memory.get("captured_memory_id"):
+        memory["captured_memory_id"] = record.memory_id
+    if settings.linger_dev_inspect:
+        ids = [memory.get("captured_memory_id"), *memory.get("cited_memory_ids", [])]
+        memory["texts"] = {memory_id: texts[memory_id] for memory_id in ids if memory_id in texts}
+    inspection["memory"] = memory
+    return turn
+
+
 @app.get("/api/history")
 def history(context: AccountDependency) -> list[Conversation]:
     """Every saved conversation of the signed-in reader, oldest first."""
+    try:
+        originals = memory_service.list_active(context)
+        curated = memory_service.list_for_retrieval(context) if settings.linger_dev_inspect else []
+    except MemoryServiceError:
+        originals, curated = [], []
+    saved_by_turn = {record.source_event_id: record for record in originals}
+    texts = {
+        **{memory.memory_id: memory.text for memory in curated},
+        **{record.memory_id: record.text for record in originals},
+    }
     return [
         Conversation(
             session_id=summary.session_id,
             created_at=summary.created_at,
-            turns=transcript_store.load(context.account_id, summary.session_id),
+            turns=[
+                _with_memory_handles(turn, saved_by_turn, texts)
+                for turn in transcript_store.load(context.account_id, summary.session_id)
+            ],
         )
         for summary in reversed(transcript_store.list_sessions(context.account_id))
     ]

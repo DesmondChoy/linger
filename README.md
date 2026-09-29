@@ -62,8 +62,10 @@ reviews the complete reply, including quotations, attribution, and claim
 support. Bounded repairs check quotation text and retain source mappings for
 unchanged accepted claims before the application checks release.
 
-Interactive memory capture is disabled by default, and the app exposes no
-memory-management actions. Controlled workflows support reviewed capture,
+Interactive memory capture is on by default, and the app exposes no
+memory-management actions. Linger also remembers the chapter a reader
+declared for each book, so a later conversation about that book does not ask
+again. Controlled workflows support reviewed capture,
 Sculptor curation, Provenance review, and application of approved derived
 changes while preserving original records. The full conversational capture,
 curation, and later proactive surfacing sequence remains a target.
@@ -153,8 +155,9 @@ The local frontend includes developer tools alongside the conversation:
   inspect its context, outcomes, findings, release decision, and trace reference.
 - **Library** opens the canonical Reader by chapter or named section. Browsing
   a book does not set reading progress for chat.
-- The prompt tray supplies example messages. Saved evaluation playback shows
-  exported scenario records and grades without invoking agents.
+- The prompt tray offers optional guided conversation paths. Persona replay
+  shows recorded synthetic runs, their answer keys, and review assessments in
+  the same chat and map UI, without invoking agents.
 
 These diagnostics are for local development and grant no runtime authority.
 See the [frontend guide](apps/frontend/README.md) for the controls and the

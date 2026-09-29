@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { Graph, Icon } from '@linger/architecture-map'
 import type { ComponentId } from '@linger/architecture-map'
 import type { ProgressEvent, TurnRecord } from '../../types'
-import { Inspector } from '../Inspector'
+import { Inspector, TurnSummary } from '../Inspector'
+import { Modal } from '../Modal'
 import { buildLiveTurn } from './liveScene'
 import { detailFor, type ComponentDetail } from './turnDetail'
 
@@ -27,12 +28,22 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
       </div>
       <p className="detail-did">{detail.did}</p>
 
-      {detail.records.map((record) => (
-        <div className="detail-record" key={record.label}>
-          <p className="detail-record-label">{record.label}</p>
-          <pre>{typeof record.value === 'string' ? record.value : JSON.stringify(record.value, null, 2)}</pre>
-        </div>
-      ))}
+      {detail.records.map((record) => {
+        const body = <pre>{typeof record.value === 'string' ? record.value : JSON.stringify(record.value, null, 2)}</pre>
+        return record.collapsed
+          ? (
+            <details className="detail-record" key={record.label}>
+              <summary className="detail-record-label">{record.label}</summary>
+              {body}
+            </details>
+          )
+          : (
+            <div className="detail-record" key={record.label}>
+              <p className="detail-record-label">{record.label}</p>
+              {body}
+            </div>
+          )
+      })}
       {detail.records.length === 0 && (
         <p className="muted">This turn recorded no data for this handoff.</p>
       )}
@@ -59,6 +70,7 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
 export function Architecture({ timeline, progress, pendingMessage }: Props) {
   const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
+  const [fullView, setFullView] = useState(false)
 
   const live = pendingMessage !== null
   const index = live ? null : Math.min(selectedTurn ?? timeline.length - 1, timeline.length - 1)
@@ -100,6 +112,11 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
             <span className="live-dot" />
             {running ? 'Turn in progress' : 'Observed run'}
           </span>
+          {timeline.length > 0 && (
+            <button type="button" className="quiet-button full-view-button" onClick={() => setFullView(true)}>
+              All turns and contracts
+            </button>
+          )}
           {!live && timeline.length > 1 && (
             <label className="turn-picker">
               Turn
@@ -133,18 +150,31 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
       </div>
 
       <div className="analysis-detail">
-        {detail && <DetailPanel detail={detail} onClear={() => setSelection(null)} />}
-
-        {/* Every turn stays listed; the mapped one is opened and marked. */}
-        <Inspector
-          timeline={timeline}
-          selectedTurnId={turn?.inspection.muse_turn.turn_id}
-          onSelectTurn={(turnId) => {
-            const position = timeline.findIndex((item) => item.inspection.muse_turn.turn_id === turnId)
-            if (position >= 0) { setSelectedTurn(position); setSelection(null) }
-          }}
-        />
+        {turn && index !== null && <TurnSummary turn={turn} position={index} />}
       </div>
+
+      {detail && (
+        <Modal label={detail.title} className="detail-modal" onClose={() => setSelection(null)}>
+          <DetailPanel detail={detail} onClear={() => setSelection(null)} />
+        </Modal>
+      )}
+
+      {fullView && (
+        <Modal label="All turns and contracts" className="full-view-modal" onClose={() => setFullView(false)}>
+          <div className="full-view-head">
+            <h2>All turns and contracts</h2>
+            <button type="button" className="quiet-button" onClick={() => setFullView(false)}>Close</button>
+          </div>
+          <Inspector
+            timeline={timeline}
+            selectedTurnId={turn?.inspection.muse_turn.turn_id}
+            onSelectTurn={(turnId) => {
+              const position = timeline.findIndex((item) => item.inspection.muse_turn.turn_id === turnId)
+              if (position >= 0) { setSelectedTurn(position); setSelection(null) }
+            }}
+          />
+        </Modal>
+      )}
     </div>
   )
 }

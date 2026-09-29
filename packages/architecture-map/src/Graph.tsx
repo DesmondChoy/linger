@@ -5,17 +5,17 @@ import { components } from './scenarios'
 import { layoutScene } from './layout'
 import type { GraphEdge, GraphNode, InspectorSelection, Scene, WalkthroughStep } from './types'
 
-function ports(node: GraphNode) {
+function ports(node: GraphNode, compact: boolean) {
   if (components[node.id].kind === 'service' || node.id === 'preflight') return { side: 100, top: 32, bottom: 70 }
-  if (components[node.id].kind === 'agent') return { side: 98, top: 88, bottom: 94 }
+  if (components[node.id].kind === 'agent') return compact ? { side: 98, top: 88, bottom: 76 } : { side: 98, top: 88, bottom: 94 }
   return { side: 42, top: 38, bottom: 91 }
 }
 
-function connection(source: GraphNode, target: GraphNode) {
+function connection(source: GraphNode, target: GraphNode, compact: boolean) {
   const dx = target.x - source.x
   const dy = target.y - source.y
-  const from = ports(source)
-  const to = ports(target)
+  const from = ports(source, compact)
+  const to = ports(target, compact)
   if (source.id === 'memory_policy' && target.id === 'sculptor') {
     const y1 = source.y + from.bottom
     const y2 = target.y - to.top
@@ -59,6 +59,7 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
   const [hoveredEdge, setHoveredEdge] = useState<{ edge: GraphEdge; rect: DOMRect } | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
   const layout = useMemo(() => layoutScene(scene), [scene])
+  const compact = scene.layout === 'compact'
   useEffect(() => {
     const container = scroll.current
     if (!step || !container) return
@@ -77,7 +78,7 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
     if (container.scrollHeight > container.clientHeight || container.scrollWidth > container.clientWidth) container.scrollIntoView({ block: 'start', behavior })
   }, [step, layout])
   return <div ref={scroll} className="graph-scroll" aria-label="Collaboration map">
-    <div className="graph-canvas">
+    <div className={`graph-canvas ${compact ? 'is-compact' : ''}`} style={{ '--map-aspect': layout.width / layout.height } as CSSProperties}>
       <svg className="collaboration-graph" viewBox={`0 0 ${layout.width} ${layout.height}`} aria-label={`${scene.title}: ${description}`}>
         <defs>
           <marker id="arrow-neutral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M1 1 8 5 1 9" fill="none" stroke="currentColor" strokeWidth="1.5" /></marker>
@@ -91,7 +92,7 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
             const source = layout.nodes.find(node => node.id === edge.source)
             const target = layout.nodes.find(node => node.id === edge.target)
             if (!source || !target) return null
-            const line = connection(source, target)
+            const line = connection(source, target, compact)
             const active = step ? step.edges.includes(edge.id) : edge.emphasis
             const marker = active ? 'url(#arrow-active)' : 'url(#arrow-neutral)'
             return <g key={edge.id} className={`graph-edge ${active ? 'is-active' : ''}`} role="button" tabIndex={0} aria-label={`Explore connection: ${components[edge.source].label} to ${components[edge.target].label}${edge.label ? `, ${edge.label}` : ''}`} onMouseEnter={event => setHoveredEdge({ edge, rect: event.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setHoveredEdge(null)} onFocus={event => setHoveredEdge({ edge, rect: event.currentTarget.getBoundingClientRect() })} onBlur={() => setHoveredEdge(null)} onClick={() => { setHoveredEdge(null); onSelect({ kind: 'edge', id: edge.id }) }} onKeyDown={event => activate(event, () => onSelect({ kind: 'edge', id: edge.id }))}>
@@ -104,14 +105,14 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
         </g>
         {layout.nodes.map(node => {
           const definition = components[node.id]
-          const compact = definition.kind === 'service' || node.id === 'preflight'
+          const service = definition.kind === 'service' || node.id === 'preflight'
           const label = node.label ?? (node.id === 'preflight' ? 'Preflight' : definition.label)
           const role = node.id === 'preflight' ? 'Provenance' : node.role ?? definition.role
           const active = step?.nodes.includes(node.id)
           return <foreignObject key={node.id} data-node={node.id} x={node.x - 92} y={node.y - 80} width="184" height={node.footer ? 248 : 180} className={`graph-node ${active ? 'is-active' : ''}`}>
-            <button className={`node-button node-${compact ? 'service' : definition.kind} identity-${node.id} ${node.id === 'preflight' ? 'compact-agent' : ''} ${node.muted ? 'is-muted' : ''} ${node.footer ? 'has-footer' : ''}`} onMouseEnter={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setHovered(null)} onFocus={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onBlur={() => setHovered(null)} onClick={() => { setHovered(null); onSelect({ kind: 'node', id: node.id }) }} aria-label={`Explore ${label}: ${role}`}>
-              <span className={`node-tile tile-${node.id}`}><Icon name={node.id} size={!compact && definition.kind === 'agent' ? 48 : 28} />{compact && <span>{label}</span>}</span>
-              {!compact && <span className="node-name">{label}</span>}
+            <button className={`node-button node-${service ? 'service' : definition.kind} identity-${node.id} ${node.id === 'preflight' ? 'compact-agent' : ''} ${node.muted ? 'is-muted' : ''} ${node.footer ? 'has-footer' : ''}`} onMouseEnter={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setHovered(null)} onFocus={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onBlur={() => setHovered(null)} onClick={() => { setHovered(null); onSelect({ kind: 'node', id: node.id }) }} aria-label={`Explore ${label}: ${role}`}>
+              <span className={`node-tile tile-${node.id}`}><Icon name={node.id} size={!service && definition.kind === 'agent' ? (compact ? 36 : 48) : 28} />{service && <span>{label}</span>}</span>
+              {!service && <span className="node-name">{label}</span>}
               <span className="node-role">{role}</span>
               {node.footer && <span className={`node-footer tone-${node.footer.tone ?? 'neutral'}`}>
                 {node.footer.left && <span>{node.footer.left}</span>}
