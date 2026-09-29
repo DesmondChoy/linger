@@ -127,6 +127,20 @@ pnpm --dir apps/frontend dev
 Open <http://localhost:5173>. Interactive API documentation is available at
 <http://127.0.0.1:8000/docs>.
 
+### Start with Docker Compose
+
+Create `.env` as described above, then build and run both services:
+
+```bash
+docker compose up --build
+```
+
+Open <http://localhost:5173>. The frontend proxies `/api` to the backend, which
+also remains available directly at <http://localhost:8000>. Account and
+transcript databases and account memories are stored in named Docker volumes.
+Stop the stack with `docker compose down`; add `--volumes` only when you also
+intend to delete that persisted application data.
+
 ## Try a conversation
 
 For a book-grounded reflection, send a message such as:

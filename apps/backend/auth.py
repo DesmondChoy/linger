@@ -14,9 +14,9 @@ from pydantic import BaseModel, Field, field_validator
 from src.linger.services.memory import AccountContext
 
 from .accounts import AccountStore, UsernameTakenError
-from .config import REPO_ROOT
+from .config import get_settings
 
-account_store = AccountStore(REPO_ROOT / "data" / "accounts.sqlite3")
+account_store = AccountStore(get_settings().linger_state_dir / "accounts.sqlite3")
 router = APIRouter(prefix="/api/auth")
 _bearer = HTTPBearer(auto_error=False)
 BearerCredentials = Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)]
