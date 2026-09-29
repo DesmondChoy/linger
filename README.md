@@ -68,8 +68,9 @@ Sculptor curation, Provenance review, and application of approved derived
 changes while preserving original records. Memory surfacing runs only in
 offline evaluation.
 
-This is a single-user prototype with no end-user authentication. Conversation
-history lives in the backend process and disappears on restart. Chat content
+This is a prototype with username and password accounts. Accounts and
+per-account conversation history persist in local SQLite files under `data/`
+and survive restarts. Chat content
 is sent to the configured model provider. Optional backend telemetry records
 metadata rather than conversation content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
