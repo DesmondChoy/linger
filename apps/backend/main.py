@@ -25,7 +25,7 @@ from src.linger.services.memory import MemoryPolicyService  # noqa: E402
 from . import sessions  # noqa: E402
 from .auth import AccountDependency, router as auth_router  # noqa: E402
 from .chat_turn import ChatTurnError, run_chat_turn  # noqa: E402
-from .config import REPO_ROOT, get_settings  # noqa: E402
+from .config import get_settings  # noqa: E402
 from .logger import configure_logging  # noqa: E402
 from src.linger.orchestration.progress_context import (  # noqa: E402
     ProgressEvent,
@@ -43,8 +43,8 @@ settings = get_settings()
 app = FastAPI(title="Linger Chat API")
 app.include_router(library_router)
 app.include_router(auth_router)
-memory_service = MemoryPolicyService(REPO_ROOT / "memories")
-transcript_store = TranscriptStore(REPO_ROOT / "data" / "transcripts.sqlite3")
+memory_service = MemoryPolicyService(settings.linger_memory_dir)
+transcript_store = TranscriptStore(settings.linger_state_dir / "transcripts.sqlite3")
 
 app.add_middleware(
     CORSMiddleware,

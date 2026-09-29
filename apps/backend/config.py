@@ -33,6 +33,8 @@ class Settings(BaseSettings):
         "pg2397-vb3cc1e13",
     )
     linger_web_search_enabled: bool = False
+    linger_state_dir: Path = REPO_ROOT / "data"
+    linger_memory_dir: Path = REPO_ROOT / "memories"
 
     @property
     def allowed_origins(self) -> list[str]:

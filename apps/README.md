@@ -35,6 +35,8 @@ The remaining backend settings are:
 | Setting | Purpose | Default |
 |---|---|---|
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
+| `LINGER_STATE_DIR` | Writable account and transcript database directory | `data/` |
+| `LINGER_MEMORY_DIR` | Writable account memory directory | `memories/` |
 | `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | All five revisions in [`Settings`](backend/config.py) |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
 | `EXA_API_KEY` | Exa credential for optional public-web search | unset |
@@ -63,6 +65,13 @@ uv run uvicorn apps.backend.main:app --reload
 # UI on http://localhost:5173
 pnpm --dir apps/frontend dev
 ```
+
+For a production-style local stack, run `docker compose up --build` from the
+repository root. The UI is served at <http://localhost:5173>, Nginx proxies its
+`/api` requests to the backend, and the API remains directly reachable at
+<http://localhost:8000>. Compose stores writable application state and memories
+in named volumes while the reviewed corpus remains immutable in the backend
+image.
 
 The Vite development server proxies `/api` to the backend. Set `VITE_API_URL`
 when the frontend should call another API origin. Interactive API documentation
