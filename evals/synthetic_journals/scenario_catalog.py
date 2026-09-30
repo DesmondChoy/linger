@@ -127,7 +127,12 @@ def inspect_scenario(scenario: Path, repository_root: Path, model: str | None = 
     objectives = raw.get("objective_ids", [])
     if not isinstance(objectives, list) or not all(isinstance(item, str) for item in objectives):
         objectives = []
-    support = replay_support_for(objectives)
+    run_configurations = raw.get("run_configuration_ids", [])
+    if not isinstance(run_configurations, list) or not all(
+        isinstance(item, str) for item in run_configurations
+    ):
+        run_configurations = []
+    support = replay_support_for(objectives, run_configurations)
     try:
         validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
         if (scenario / "ground-truth-adoption.json").is_file():

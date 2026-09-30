@@ -142,7 +142,9 @@ def build_review_payload(
     """Join scenario entities into a legible, deterministic review projection."""
 
     selected_objectives = frozenset(backstory.objective_ids)
-    replay = replay_support_for(selected_objectives)
+    replay = replay_support_for(
+        selected_objectives, backstory.run_configuration_ids
+    )
     book_plan_scenes = {}
     if selected_objectives and selected_objectives <= BOOK_OBJECTIVE_IDS:
         book_plan = compile_book_replay_plan(backstory, ground_truth)

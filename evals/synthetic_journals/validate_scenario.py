@@ -895,6 +895,106 @@ def _validate_run_configurations(
                     ground_truth,
                 )
             )
+        if configuration.curation_recall_loop is not None:
+            failures.extend(
+                _validate_curation_recall_loop(
+                    configuration,
+                    scenes,
+                    backstory,
+                    ground_truth,
+                )
+            )
+    return failures
+
+
+def _validate_curation_recall_loop(
+    configuration: RunConfiguration,
+    scenes: list[Scene],
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+) -> list[str]:
+    """Require one shared curatable Prop bank and one recall Line per Scene."""
+
+    label = f"run configuration {configuration.run_configuration_id}"
+    failures: list[str] = []
+    if backstory.objective_ids != (configuration.objective_id,) or len(scenes) != len(
+        backstory.scenes
+    ):
+        failures.append(
+            f"{label} requires {configuration.objective_id} as the only Objective"
+        )
+    if len(backstory.run_configuration_ids) != 1:
+        failures.append(f"{label} cannot be combined with another run configuration")
+    if not scenes:
+        return failures
+
+    prop_bank = set(scenes[0].prop_ids)
+    if not 2 <= len(prop_bank) <= 12:
+        failures.append(f"{label} requires 2-12 Props for bounded curation")
+    props = {prop.prop_id: prop for prop in backstory.props}
+    proposals = {
+        proposal.scene_id: proposal
+        for proposal in ground_truth.proposals
+        if proposal.objective_id == configuration.objective_id
+    }
+    relevant_counts: list[int] = []
+    for scene in scenes:
+        if set(scene.prop_ids) != prop_bank:
+            failures.append(f"{label} requires every Scene to share one Prop bank")
+        if not scene.fresh_session or scene.offline_input_ids:
+            failures.append(
+                f"{label} requires fresh-session Scene {scene.scene_id} "
+                "without offline inputs"
+            )
+        if len(scene.line_ids) != 1:
+            failures.append(
+                f"{label} requires exactly one Line in Scene {scene.scene_id}"
+            )
+        for prop_id in scene.prop_ids:
+            lifecycle = next(
+                item
+                for item in props[prop_id].lifecycle
+                if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"{label} requires Prop {prop_id} to be active for "
+                    f"{scene.scene_id}"
+                )
+        proposal = proposals.get(scene.scene_id)
+        if proposal is None:  # Covered by the general proposal topology check.
+            continue
+        judgments = {item.prop_id: item.relevance for item in proposal.prop_relevance}
+        if set(judgments) != set(scene.prop_ids):
+            failures.append(
+                f"{label} requires one Prop relevance judgment for every Prop in "
+                f"{scene.scene_id}"
+            )
+            continue
+        relevant_ids = {
+            prop_id
+            for prop_id, relevance in judgments.items()
+            if relevance == "relevant"
+        }
+        relevant_counts.append(len(relevant_ids))
+        evidence_prop_ids = [
+            evidence.prop_id
+            for evidence in proposal.evidence
+            if isinstance(evidence, PropEvidence)
+        ]
+        if (
+            len(evidence_prop_ids) != len(proposal.evidence)
+            or len(evidence_prop_ids) != len(set(evidence_prop_ids))
+            or set(evidence_prop_ids) != relevant_ids
+        ):
+            failures.append(
+                f"proposal {proposal.proposal_id} Prop evidence must exactly match "
+                "its relevant Prop judgments"
+            )
+    if relevant_counts and (0 not in relevant_counts or not any(relevant_counts)):
+        failures.append(
+            f"{label} requires a Scene with a relevant Prop and a Scene with none"
+        )
     return failures
 
 

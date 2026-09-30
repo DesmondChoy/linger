@@ -81,7 +81,16 @@ explains the provider-backed side effect.
   temporary output path. The runner grades only the session boundary; correction
   adoption and fresh-session leakage wording remain human reviewer judgments
   read from the durable run artifact.
-- For exactly `longitudinal_memory_retrieval`, or for
+- For exactly `longitudinal_memory_retrieval` with the
+  `memory-curation-recall-loop` run configuration, run
+  `evals.synthetic_journals.memory_loop_replay` with `--adoption` and a fresh
+  temporary output path. It sends every Line on raw Props and after each of
+  the configured cumulative production curation rounds, in every repetition,
+  so one confirmation authorizes all of those provider calls. Report the
+  curation rounds and the `comparison` table; whether replies state the
+  current fact and present cited summaries honestly remains a human reviewer
+  judgment read from the durable run artifact.
+- Otherwise, for exactly `longitudinal_memory_retrieval`, or for
   `session_scoped_conversation_continuity` and `longitudinal_memory_retrieval`
   in either order, run `evals.synthetic_journals.retrieval_replay` with
   `--adoption` and a fresh temporary output path. It dispatches each Scene by

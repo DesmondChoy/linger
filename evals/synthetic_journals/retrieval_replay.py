@@ -503,19 +503,18 @@ def _retrieval_scene(
     )
 
 
-async def _replay_retrieval_scene(
-    scene: _RetrievalScene,
-    expected: RetrievalEvaluationExpected,
+def _seed_props(
+    props: Sequence[Prop],
     *,
-    run_id: str,
-    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
-) -> RetrievalSceneObservation:
+) -> dict[str, str]:
+    """Store Props as the account's memories and leave capture disabled."""
+
     memory_ids: dict[str, str] = {}
     service.set_capture_enabled(account, True)
     try:
-        for prop in scene.props:
+        for prop in props:
             saved = service.save_automatic(
                 account,
                 AutomaticMemoryCandidate(
@@ -528,6 +527,19 @@ async def _replay_retrieval_scene(
             memory_ids[prop.prop_id] = saved.record.memory_id
     finally:
         service.set_capture_enabled(account, False)
+    return memory_ids
+
+
+async def _replay_retrieval_scene(
+    scene: _RetrievalScene,
+    expected: RetrievalEvaluationExpected,
+    *,
+    run_id: str,
+    handler: ChatTurnHandler,
+    service: MemoryPolicyService,
+    account: AccountContext,
+) -> RetrievalSceneObservation:
+    memory_ids = _seed_props(scene.props, service=service, account=account)
 
     before = {record.memory_id: record for record in service.list_active(account)}
     recorder = SceneTranscriptRecorder()

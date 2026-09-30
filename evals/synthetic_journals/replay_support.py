@@ -49,6 +49,13 @@ _RETRIEVAL = ReplaySupport(
     module="evals.synthetic_journals.retrieval_replay",
 )
 
+_MEMORY_LOOP = ReplaySupport(
+    name="memory curation and recall loop",
+    module="evals.synthetic_journals.memory_loop_replay",
+)
+
+MEMORY_LOOP_RUN_CONFIGURATION_ID = "memory-curation-recall-loop"
+
 _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection"}): _CONNECTION,
     frozenset({"weak_evidence_safe_decline"}): _CONNECTION,
@@ -71,10 +78,24 @@ _SUPPORTED_REPLAYS = {
 }
 
 
-def replay_support_for(objective_ids: Iterable[str]) -> ReplaySupport | None:
-    """Return the runner for one exact, order-independent selection."""
+def replay_support_for(
+    objective_ids: Iterable[str],
+    run_configuration_ids: Iterable[str] = (),
+) -> ReplaySupport | None:
+    """Return the runner for one exact, order-independent selection.
 
-    return _SUPPORTED_REPLAYS.get(frozenset(objective_ids))
+    A Scenario that declares the memory-loop run configuration is an experiment
+    over its Objective, so it selects that runner and no Objective default.
+    """
+
+    selection = frozenset(objective_ids)
+    if MEMORY_LOOP_RUN_CONFIGURATION_ID in run_configuration_ids:
+        return (
+            _MEMORY_LOOP
+            if selection == frozenset({"longitudinal_memory_retrieval"})
+            else None
+        )
+    return _SUPPORTED_REPLAYS.get(selection)
 
 
-__all__ = ["ReplaySupport", "replay_support_for"]
+__all__ = ["MEMORY_LOOP_RUN_CONFIGURATION_ID", "ReplaySupport", "replay_support_for"]

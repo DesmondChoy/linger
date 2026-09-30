@@ -149,7 +149,8 @@ The complete workflow is:
    capture veto, curation, capture and curation together in either order,
    bounded curation and cross-source connection together in either order,
    continuity, longitudinal retrieval, continuity and longitudinal retrieval
-   in either order, either book Objective alone,
+   in either order, the memory curation and recall loop, either book Objective
+   alone,
    both book Objectives in either order, either connection or weak-evidence
    Objective alone, and their combined selection. Other selections stop after
    adoption.
@@ -234,6 +235,7 @@ post-confirmation routes cover capture, sensitive capture veto, curation,
 capture and curation together, bounded curation and cross-source connection
 together, continuity,
 longitudinal retrieval, continuity and longitudinal retrieval together,
+the memory curation and recall loop,
 either book Objective alone, both book Objectives, either connection or
 weak-evidence Objective alone, and their combination. Other selections stop
 after adoption.
@@ -648,6 +650,65 @@ judgments; `semantic_review_required` stays true on every Scene. One known
 limitation shapes what a miss means: Serendipity's memory search ranks records
 by lexical token overlap with the cue and drops records that share no token, so
 a heavily paraphrased Line can fail to retrieve a genuinely relevant Prop.
+
+## Memory curation and recall loop replay
+
+Replay recall on raw memories and again after production curation:
+
+```bash
+uv run python -m evals.synthetic_journals.memory_loop_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/memory-curation-recall-loop-run.json
+```
+
+A Scenario selects this runner by declaring `longitudinal_memory_retrieval` as
+its only Objective and `memory-curation-recall-loop` as its only run
+configuration. The run configuration, not the Objective, selects the runner, so
+a retrieval Scenario with the 10-to-1 configuration still uses
+`retrieval_replay`. The validator requires every Scene to be a fresh session
+with one Line, to share one bank of 2 to 12 active Props, and to carry one
+relevance judgment per Prop. At least one Scene must have a relevant Prop and
+at least one must have none.
+
+The run configuration fixes three curation rounds and three repetitions. Each
+repetition seeds the same Props into its own isolated store. It sends every
+Line, then alternates one curation round with every Line again, which yields
+recall after zero, one, two, and three cumulative rounds. With five Scenes that
+is 60 recall turns and 9 curation rounds.
+
+A Prop may carry an optional timezone-aware `recorded_at`. The runner reports
+that time as the memory's capture time, so Sculptor and Provenance's curation
+review see the Scenario's dates rather than the moment the Props were seeded.
+Bounded-curation replays do the same, and a Prop without `recorded_at` reaches
+Sculptor without a date.
+
+A curation round calls production `run_curation_loop` over the whole Prop bank:
+Sculptor proposes one action, Provenance reviews it, and the Memory & Policy
+Service applies it. Sculptor receives the Props and the curation already
+applied to them, and never a Line or a relevance label. Every round is
+recorded with its status, action, source Props, Provenance decision, and the
+resulting retrieval view. A `no_change`, `provenance_revise`,
+`provenance_reject`, or `failed` round is a reported outcome; recall continues.
+
+Recall uses the same recorded events and hard gates as longitudinal retrieval
+replay, with three differences that apply identically to every arm:
+
+- A cited derived summary or topic group counts as citing each of its source
+  Props, relevant or not. One distractor source fails `distractor_prop_cited`,
+  exactly as citing that Prop directly would.
+- A relevant Prop hidden by a retrieval tombstone counts as retrieved or cited
+  when its retrievable copy is, and that copy is then not a distractor.
+- Evidence that is not in the current retrieval view fails
+  `unknown_evidence_cited`.
+
+The output has one entry per Scene with one grade per repetition and arm, the
+curation rounds, and a `comparison` table of hard-gate passes per Scene and
+number of rounds. Each grade lists `cited_derived` text with its source Props.
+Whether a reply states the current fact, whether a summary is supported by its
+sources, and whether generated wording is presented as the reader's own words
+are review judgments; `semantic_review_required` stays true on every grade.
+Results describe this constructed Scenario and may be null.
 
 ## Weak-evidence reflection replay
 

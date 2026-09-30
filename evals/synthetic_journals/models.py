@@ -944,6 +944,13 @@ class RetrievalPropMix(StrictModel):
     distractor: int = Field(ge=1)
 
 
+class CurationRecallLoop(StrictModel):
+    """Pre-registered arms for recall before and after curation rounds."""
+
+    curation_rounds: int = Field(ge=1, le=5)
+    repetitions: int = Field(ge=1, le=10)
+
+
 class RunConfiguration(StrictModel):
     """Resolved per-run constraints kept outside the Objective catalog."""
 
@@ -952,6 +959,7 @@ class RunConfiguration(StrictModel):
     scene_count: int = Field(ge=1)
     capture_mix: CaptureMix | None = None
     retrieval_prop_mix: RetrievalPropMix | None = None
+    curation_recall_loop: CurationRecallLoop | None = None
     no_candidate_material_types: tuple[Text, ...] = ()
     generator_instruction: Text
     dataset_scaling: Text
@@ -963,10 +971,17 @@ class RunConfiguration(StrictModel):
             self.no_candidate_material_types,
         )
         configured_mixes = sum(
-            mix is not None for mix in (self.capture_mix, self.retrieval_prop_mix)
+            mix is not None
+            for mix in (
+                self.capture_mix,
+                self.retrieval_prop_mix,
+                self.curation_recall_loop,
+            )
         )
         if configured_mixes != 1:
-            raise ValueError("RunConfiguration requires exactly one mix")
+            raise ValueError(
+                "RunConfiguration requires exactly one mix or curation recall loop"
+            )
         if self.capture_mix is not None:
             total = (
                 self.capture_mix.capture_candidate

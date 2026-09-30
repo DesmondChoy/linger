@@ -1,0 +1,11 @@
+{
+  "run_configuration_id": "memory-curation-recall-loop",
+  "objective_id": "longitudinal_memory_retrieval",
+  "scene_count": 5,
+  "curation_recall_loop": {
+    "curation_rounds": 3,
+    "repetitions": 3
+  },
+  "generator_instruction": "Create five fresh-session recall Scenes that share the same bank of two to twelve active Props from one person and evaluation account, each with exactly one Line. The Props contain material that bounded curation can act on, such as duplicates and an evolving fact. Hold every Line out of the curation input. Include at least one Scene in which a Prop is relevant and at least one in which none is. Record one proposed relevance judgment for every Prop in each Scene using GroundTruthProposal.prop_relevance, without exposing those judgments to Linger.",
+  "dataset_scaling": "The runner sends every Line against the raw Props and again after each of three cumulative curation rounds, and repeats the whole sequence three times from identical Props. Repeat the pattern across independently generated Backstories for a full dataset."
+}

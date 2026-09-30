@@ -99,8 +99,8 @@ def summarize_artifact(artifact: dict) -> dict:
                 scene_failures.append({"scene_id": scene_id, "detail": detail})
         if scene_failures:
             summary["scenes_failed"] += 1
-            for exchange in scene.get("agent_exchanges", ()):
-                if isinstance(exchange, dict) and exchange.get("failure_code"):
+            for _, exchange in _recorded(scene, "agent_exchanges"):
+                if exchange.get("failure_code"):
                     summary["execution_failures"].append({
                         "scene_id": scene_id,
                         "detail": f"{exchange.get('role', 'agent')} {exchange.get('stage', '')}: {exchange['failure_code']}",
@@ -117,11 +117,30 @@ def summarize_artifact(artifact: dict) -> dict:
     return summary
 
 
+def _recorded(scene: dict, key: str) -> list[tuple[str, dict]]:
+    """Return a Scene's records under `key`, including those nested in its grades."""
+    def items(holder: dict, name: str) -> list:
+        value = holder.get(name)
+        return list(value) if isinstance(value, (list, tuple)) else []
+
+    holders = [("", scene)] + [
+        (f"grades[{index}].", grade)
+        for index, grade in enumerate(items(scene, "grades"))
+        if isinstance(grade, dict)
+    ]
+    return [
+        (f"{prefix}{key}[{index}]", item)
+        for prefix, holder in holders
+        for index, item in enumerate(items(holder, key))
+        if isinstance(item, dict)
+    ]
+
+
 def recorded_execution_diagnostics(scene: dict, scene_index: int) -> list[dict]:
     """Describe recorded failure metadata without guessing a provider or model cause."""
     diagnostics = []
-    for index, exchange in enumerate(scene.get("agent_exchanges", ())):
-        if not isinstance(exchange, dict) or not (
+    for reference, exchange in _recorded(scene, "agent_exchanges"):
+        if not (
             exchange.get("failure_code") or exchange.get("status") in {"failure", "failed", "error", "cancelled"}
         ):
             continue
@@ -153,15 +172,15 @@ def recorded_execution_diagnostics(scene: dict, scene_index: int) -> list[dict]:
         diagnostics.append({
             "category": category, "detail": detail, "source": "recorded",
             "confidence": "unresolved" if category == "unknown" else "confirmed",
-            "evidence_refs": [f"artifact.scenes[{scene_index}].agent_exchanges[{index}]"],
+            "evidence_refs": [f"artifact.scenes[{scene_index}].{reference}"],
             "provider_status_code": status, "provider_error_kind": kind,
         })
-    for index, event in enumerate(scene.get("events", ())):
-        if isinstance(event, dict) and event.get("status") == "retrieval_unavailable":
+    for reference, event in _recorded(scene, "events"):
+        if event.get("status") == "retrieval_unavailable":
             diagnostics.append({
                 "category": "unknown", "source": "recorded", "confidence": "unresolved",
                 "detail": f"{event.get('operation') or 'Retrieval'} returned retrieval_unavailable; this event records no underlying cause.",
-                "evidence_refs": [f"artifact.scenes[{scene_index}].events[{index}]"],
+                "evidence_refs": [f"artifact.scenes[{scene_index}].{reference}"],
             })
     return diagnostics
 

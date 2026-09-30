@@ -337,10 +337,19 @@ def write_analysis_report(
         "scenario_sources": {name: str(scenario_dir / name) for name in ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")},
         "run_identity": {key: artifact[key] for key in (
             "run_id", "trace_id", "dataset_version", "system_variant", "objective_id", "objective_ids", "ground_truth_status",
+            "run_configuration_id", "curation_rounds", "repetitions",
         ) if artifact and key in artifact},
         "diagnostics": collect_diagnostic_evidence(scenario_dir, repository_root, run_log_path),
         "artifact_problems": errors,
     }
+    if artifact and "comparison" in artifact:
+        evidence["treatment"] = {
+            "comparison": artifact["comparison"],
+            "curation": [
+                {key: value for key, value in item.items() if key not in {"agent_exchanges", "retrieval_view"}}
+                for item in artifact.get("curation", ()) if isinstance(item, dict)
+            ],
+        }
     facts = _redact({
         "schema_version": "3",
         "scenario_dir": str(scenario_dir), "created_at": stamp, "model": model,
