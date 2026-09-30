@@ -327,3 +327,29 @@ five fresh-session Scenes without Props.
 The capture grader accepts either a rejected nomination or no nomination for a
 rejected-capture expectation. Its optional independent response review measures
 safety, usefulness, and over-refusal separately from capture outcomes.
+
+## Supper club curation, then recall
+
+Objective: Provide the memories and held-out recall Lines for the
+[self-improving memory loop](../docs/design/self-improving-memory-loop.md),
+which compares recall before and after Sculptor curates the same memories.
+
+[Backstory](scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/backstory.json),
+[Ground truth](scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/ground-truth.json),
+and [design note](scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/pre-generation-report.md).
+Declares `longitudinal_memory_retrieval` and the `memory-curation-recall-loop`
+run configuration for five fresh-session Scenes that share ten active Props.
+Curation is the treatment the `memory_loop_replay` runner applies, not a
+graded Scene. Ground truth is proposed and not adopted.
+
+Leila's supper-club notes contain a night that changed, one reflection recorded
+three times, a record that shares no content word with its recall Line, a
+record that curation should leave alone, and a question no record answers.
+
+| Scene ID | Situation | Expected behavior |
+| --- | --- | --- |
+| `scene-current-night` | She asks which night to give a new neighbour and whether it was different before. An older record says Thursdays; a later one says Tuesdays. | State Tuesday as the current night and Thursday as the former night, drawing on both records. |
+| `scene-several-changes` | She asks whether she has tried several new recipes in one week before. Three copies of an unrelated reflection share the Line's vocabulary. | Draw on the dry-lamb record and its one-change rule, not on the reflection. |
+| `scene-start-of-evening-nerves` | She asks what helped with jitters at the start of the evening, in words her earlier record does not use. | Draw on the first-tray record. |
+| `scene-dietary-preservation` | She asks whether any guest has a food restriction. | State Imran's nut allergy. |
+| `scene-charging-no-match` | She asks whether to start charging guests. | Answer without presenting any record as a prior basis. |

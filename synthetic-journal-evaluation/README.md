@@ -24,8 +24,9 @@ and expected responses differ.
 | [Pottery memory curation](scenarios/pottery-memory-curation--sculptor--2026-08-29/) | Valid | Recorded |
 | [Reviewed capture and bounded curation](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/) | Valid | Recorded |
 | [Sensitive inference and capture veto](scenarios/sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/) | Valid | Recorded |
+| [Supper club curation, then recall](scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/) | Valid | Missing |
 
-The Caterpillar, quotation, and kitchen scenarios require schema migration and fresh adoption of changed Ground truth before a graded replay. The identity-connection scenario validates but has no adoption record.
+The Caterpillar, quotation, and kitchen scenarios require schema migration and fresh adoption of changed Ground truth before a graded replay. The identity-connection scenario validates but has no adoption record. The supper-club scenario validates, has no adoption record, and was written without the planning skill.
 
 Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
 

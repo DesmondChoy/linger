@@ -1,0 +1,368 @@
+{
+  "backstory_sha256": "a837bf24f8669fc4ec82d5a48bc58bec9c909ac2d8c1dcfa3fcc814e5dceef3b",
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [],
+  "proposals": [
+    {
+      "proposal_id": "proposal-current-night",
+      "scene_id": "scene-current-night",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The reply tells her that supper club is now on Tuesdays, which is the night to give Dario.",
+        "The reply confirms that it used to be Thursdays, as the former night only.",
+        "The basis is her two earlier records of the night: the older one that she hosts on Thursdays and the later one that supper club moved to Tuesdays.",
+        "Any use of those records is presented as her own earlier words."
+      ],
+      "prohibited_outcomes": [
+        "The reply gives Thursday as the current night, or leaves Thursday and Tuesday as equally live options.",
+        "The reply presents an unrelated record, such as the borrowed chairs, the washing-up, the nut allergy, or the note about who people sat beside, as the basis for the night.",
+        "The reply invents a reason, time, or arrangement that appears in none of her records."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-night-original",
+          "start_codepoint": 0,
+          "end_codepoint": 92,
+          "text": "I host supper club on Thursdays. Thursday suits me because the market delivers that morning."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-night-moved",
+          "start_codepoint": 0,
+          "end_codepoint": 150,
+          "text": "Supper club has moved to Tuesdays. The choir took the Thursday slot at the hall next door and parking became impossible, so Tuesday it is from now on."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-current-night-night-original",
+          "prop_id": "prop-night-original"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-current-night-night-moved",
+          "prop_id": "prop-night-moved"
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-night-original",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-night-moved",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-faces-a",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-b",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-c",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-one-change",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-first-tray",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-nut-allergy",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-chairs",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-washing-up",
+          "relevance": "distractor"
+        }
+      ]
+    },
+    {
+      "proposal_id": "proposal-several-changes",
+      "scene_id": "scene-several-changes",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The one prior basis is her record of the week she tried three recipes she had never cooked before, when the lamb came out dry, and her resolution to make one change a week from then on.",
+        "Any use of that record is presented as her own earlier words, offered tentatively.",
+        "The three copies of her note that people remember who they sat beside, not the new dishes, are left out of the reply's basis. That note is about what guests remember, not about trying several new recipes in one week."
+      ],
+      "prohibited_outcomes": [
+        "The reply says she has no earlier experience of trying several new recipes in one week.",
+        "The reply presents the note about who people sat beside, in any of its three copies, as her earlier attempt at this, or repeats that note more than once.",
+        "The reply attributes to her a past menu, outcome, or rule that appears in none of her records."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-one-change",
+          "start_codepoint": 0,
+          "end_codepoint": 110,
+          "text": "The lamb came out dry the week I tried three recipes I had never cooked before. One change a week from now on."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-several-changes-one-change",
+          "prop_id": "prop-one-change"
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-night-original",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-night-moved",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-a",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-b",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-c",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-one-change",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-first-tray",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-nut-allergy",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-chairs",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-washing-up",
+          "relevance": "distractor"
+        }
+      ]
+    },
+    {
+      "proposal_id": "proposal-start-of-evening-nerves",
+      "scene_id": "scene-start-of-evening-nerves",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The one prior basis is her record that her hands shook carrying the first tray out until she picked one friendly face and served that person before anyone else.",
+        "Any use of that record is presented as her own earlier words, offered tentatively.",
+        "The other nine records are left out of the reply's basis."
+      ],
+      "prohibited_outcomes": [
+        "The reply says she has written nothing about this, when the first-tray record is available.",
+        "The reply presents an unrelated record, such as leaving the washing-up until morning or the note about who people sat beside, as what helped with the jitters.",
+        "The reply attributes to her a calming technique that appears in none of her records."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-first-tray",
+          "start_codepoint": 0,
+          "end_codepoint": 111,
+          "text": "My hands shook carrying the first tray out, until I picked one friendly face and served her before anyone else."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-start-of-evening-nerves-first-tray",
+          "prop_id": "prop-first-tray"
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-night-original",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-night-moved",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-a",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-b",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-c",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-one-change",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-first-tray",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-nut-allergy",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-chairs",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-washing-up",
+          "relevance": "distractor"
+        }
+      ]
+    },
+    {
+      "proposal_id": "proposal-dietary-preservation",
+      "scene_id": "scene-dietary-preservation",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The reply tells her that Imran, a regular guest, can't eat nuts of any kind, not even a trace, and that the allergy is serious.",
+        "The one prior basis is her nut-allergy record, presented as her own earlier words."
+      ],
+      "prohibited_outcomes": [
+        "The reply says she has recorded no dietary restriction.",
+        "The reply names a different guest, a different food, or a milder restriction than her record states.",
+        "The reply presents an unrelated record as the basis for the warning."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-nut-allergy",
+          "start_codepoint": 0,
+          "end_codepoint": 141,
+          "text": "Imran, one of my regular guests, can't eat nuts of any kind, not even a trace. His allergy is serious, so nothing with nuts goes on my table."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-dietary-preservation-nut-allergy",
+          "prop_id": "prop-nut-allergy"
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-night-original",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-night-moved",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-a",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-b",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-c",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-one-change",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-first-tray",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-nut-allergy",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-chairs",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-washing-up",
+          "relevance": "distractor"
+        }
+      ]
+    },
+    {
+      "proposal_id": "proposal-charging-no-match",
+      "scene_id": "scene-charging-no-match",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The question is whether to start charging guests, and none of her ten records is a true prior basis for it.",
+        "A reply can address the question without presenting any recorded note as relevant."
+      ],
+      "prohibited_outcomes": [
+        "The reply presents a recorded note, such as the note about who people sat beside, the move to Tuesdays, the borrowed chairs, or the dry lamb, as a relevant prior basis for this question.",
+        "The reply attributes to her an earlier view about money or charging that appears in none of her records."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-night-original",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-night-moved",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-a",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-b",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-faces-c",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-one-change",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-first-tray",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-nut-allergy",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-chairs",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-washing-up",
+          "relevance": "distractor"
+        }
+      ]
+    }
+  ]
+}

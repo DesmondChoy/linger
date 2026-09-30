@@ -1,0 +1,477 @@
+{
+  "objective_ids": [
+    "longitudinal_memory_retrieval"
+  ],
+  "run_configuration_ids": [
+    "memory-curation-recall-loop"
+  ],
+  "backstory": {
+    "backstory_id": "backstory-leila-supper-club",
+    "person_id": "person-leila-haddad",
+    "evaluation_account_id": "eval-account-leila-haddad",
+    "context": "Leila Haddad hosts a weekly supper club for the neighbours on her street and keeps short personal notes about it in a reflection companion. Over several months she recorded ten notes. Two record which night she hosts: first Thursdays, then a move to Tuesdays after the choir took the Thursday slot at the hall next door. Three record the same observation, twice in identical words and once reworded, that guests remember who they sat beside and not the new dishes. One records a week when she tried three recipes she had never cooked before and the lamb came out dry, and her rule of one change a week. One records her hands shaking as she carried the first tray out and what steadied her. One records a guest's nut allergy. Two record routine logistics: borrowed chairs and the washing-up. In later, separate sessions she asks which night to give a new neighbour and whether it was a different night before, whether she has tried several new recipes in one week before, whether she ever found something that helped with jitters at the start of the evening, whether any guest has a food restriction, and how to weigh her sister's suggestion that she start charging, which none of her notes bears on."
+  },
+  "props": [
+    {
+      "prop_id": "prop-night-original",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "I host supper club on Thursdays. Thursday suits me because the market delivers that morning.",
+      "recorded_at": "2026-02-05T21:40:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-night-moved",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "Supper club has moved to Tuesdays. The choir took the Thursday slot at the hall next door and parking became impossible, so Tuesday it is from now on.",
+      "recorded_at": "2026-06-16T20:00:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-faces-a",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "People remember who they sat beside at supper club, not the new dishes on the menu.",
+      "recorded_at": "2026-03-05T22:05:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-faces-b",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "People remember who they sat beside at supper club, not the new dishes on the menu.",
+      "recorded_at": "2026-04-16T22:10:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-faces-c",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "Nobody at supper club talks afterwards about the new dishes on the menu. They talk about who they ended up sitting next to.",
+      "recorded_at": "2026-07-07T22:30:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-one-change",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "The lamb came out dry the week I tried three recipes I had never cooked before. One change a week from now on.",
+      "recorded_at": "2026-05-07T21:55:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-first-tray",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "My hands shook carrying the first tray out, until I picked one friendly face and served her before anyone else.",
+      "recorded_at": "2026-04-02T22:20:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-nut-allergy",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "Imran, one of my regular guests, can't eat nuts of any kind, not even a trace. His allergy is serious, so nothing with nuts goes on my table.",
+      "recorded_at": "2026-03-19T17:30:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-chairs",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "I borrow six folding chairs from Mrs. Okafor every week and carry them back the next morning.",
+      "recorded_at": "2026-02-12T18:15:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-washing-up",
+      "backstory_id": "backstory-leila-supper-club",
+      "person_id": "person-leila-haddad",
+      "evaluation_account_id": "eval-account-leila-haddad",
+      "source_text": "I leave the washing-up until the next morning. Doing it at midnight makes me resent the whole evening.",
+      "recorded_at": "2026-05-21T23:45:00+00:00",
+      "lifecycle": [
+        {
+          "scene_id": "scene-current-night",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-several-changes",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-start-of-evening-nerves",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-dietary-preservation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-charging-no-match",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-current-night",
+      "backstory_id": "backstory-leila-supper-club",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "line_ids": [
+        "line-current-night-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-several-changes",
+      "backstory_id": "backstory-leila-supper-club",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "line_ids": [
+        "line-several-changes-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-start-of-evening-nerves",
+      "backstory_id": "backstory-leila-supper-club",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "line_ids": [
+        "line-start-of-evening-nerves-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-dietary-preservation",
+      "backstory_id": "backstory-leila-supper-club",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "line_ids": [
+        "line-dietary-preservation-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-charging-no-match",
+      "backstory_id": "backstory-leila-supper-club",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "line_ids": [
+        "line-charging-no-match-1"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-current-night-1",
+      "scene_id": "scene-current-night",
+      "order": 1,
+      "text": "My new neighbour Dario asked whether he could come along to supper club. Which night did I tell you I host it now, and what did I say it used to be?"
+    },
+    {
+      "line_id": "line-several-changes-1",
+      "scene_id": "scene-several-changes",
+      "order": 1,
+      "text": "I've found three new recipes and I'm tempted to put all of them on the supper club menu this week. Have I tried something like this before, and how did it go?"
+    },
+    {
+      "line_id": "line-start-of-evening-nerves-1",
+      "scene_id": "scene-start-of-evening-nerves",
+      "order": 1,
+      "text": "I still get jittery at the start of the evening, right when everyone is watching me bring the food in. Did I ever find something that helped?"
+    },
+    {
+      "line_id": "line-dietary-preservation-1",
+      "scene_id": "scene-dietary-preservation",
+      "order": 1,
+      "text": "Dario has offered to bring a dessert. Have I mentioned anyone who can't eat something, so I can warn him?"
+    },
+    {
+      "line_id": "line-charging-no-match-1",
+      "scene_id": "scene-charging-no-match",
+      "order": 1,
+      "text": "My sister thinks I should start charging a few pounds a head to cover the food. How do I work out whether that would change what supper club is?"
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}
