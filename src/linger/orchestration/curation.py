@@ -1,6 +1,8 @@
 """Application-owned reviewed curation workflow and deterministic hand-off."""
 
 import json
+from collections.abc import Mapping
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import ValidationError
@@ -22,8 +24,9 @@ from src.linger.agents.sculptor.agent import sculptor_agent
 from src.linger.agents.sculptor.skills import MEMORY_CURATION
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
-    CuratableMemory,
+    CurationMemory,
     CurationProposal,
+    ExistingCuration,
     NoCurationProposal,
     SCULPTOR_RESPONSE_ADAPTER,
     SculptorResponse,
@@ -96,9 +99,14 @@ class CurationLoopResult(StrictModel):
 
 
 def _model_input(batch: AccountScopedMemories) -> str:
-    payload = {
-        "memories": [memory.model_dump(mode="json") for memory in batch.memories]
+    payload: dict[str, Any] = {
+        "memories": [
+            memory.model_dump(mode="json", exclude_none=True)
+            for memory in batch.memories
+        ]
     }
+    if batch.existing_curation != ExistingCuration():
+        payload["existing_curation"] = batch.existing_curation.model_dump(mode="json")
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
@@ -146,7 +154,7 @@ async def review_curation(
 
     result = await run_agent_traced(
         agent,
-        review_input.model_dump_json(),
+        review_input.model_dump_json(exclude_none=True),
         span_name="provenance.curation_review",
         role="Provenance",
         stage="curation_review",
@@ -213,8 +221,9 @@ def curation_review_input(
     records: tuple[MemoryRecord, ...],
     *,
     active_memory_ids: frozenset[str],
+    recorded_at: Mapping[str, datetime | None] | None = None,
 ) -> CurationReviewInput:
-    """Expose only proposal sources, text, and current retrieval state."""
+    """Expose only proposal sources, text, recording time, and retrieval state."""
 
     by_id = {record.memory_id: record for record in records}
     snapshots = {item.memory_id: item for item in plan.source_snapshots}
@@ -229,6 +238,7 @@ def curation_review_input(
                 retrieval_state=(
                     "active" if memory_id in active_memory_ids else "tombstoned"
                 ),
+                recorded_at=(recorded_at or {}).get(memory_id),
             )
             for memory_id in plan.proposal.action.source_memory_ids
         ),
@@ -247,12 +257,20 @@ async def run_curation_loop(
 
     records = service.select_for_curation(context, memory_ids)
     before = _record_snapshots(records)
+    # Read the state identity first: curation applied while Sculptor runs then
+    # makes this proposal stale instead of silently building on old state.
+    base_state_sha256 = service.curation_state_sha256(context)
     batch = AccountScopedMemories(
         account_scope=records[0].account_key,
         memories=tuple(
-            CuratableMemory(memory_id=record.memory_id, text=record.text)
+            CurationMemory(
+                memory_id=record.memory_id,
+                text=record.text,
+                recorded_at=service.recorded_at(record),
+            )
             for record in records
         ),
+        existing_curation=service.existing_curation(context, memory_ids),
     )
     response = await propose_curation(batch, agent=sculptor)
     if isinstance(response, NoCurationProposal):
@@ -268,7 +286,7 @@ async def run_curation_loop(
     plan = prepare_curation_plan(
         records,
         response,
-        base_state_sha256=service.curation_state_sha256(context),
+        base_state_sha256=base_state_sha256,
     )
     active_memory_ids = frozenset(
         item.memory_id
@@ -279,6 +297,9 @@ async def run_curation_loop(
         plan,
         records,
         active_memory_ids=active_memory_ids,
+        recorded_at={
+            memory.memory_id: memory.recorded_at for memory in batch.memories
+        },
     )
     review = await review_curation(review_input, agent=provenance)
     after_review = _record_snapshots(service.select_for_curation(context, memory_ids))

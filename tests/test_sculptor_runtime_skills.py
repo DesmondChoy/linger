@@ -14,6 +14,7 @@ from pydantic_ai.models.test import TestModel
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
     CuratableMemory,
+    CurationMemory,
     NoCurationProposal,
 )
 from src.linger.agents.sculptor.skills import (
@@ -37,8 +38,8 @@ def _curation():
     return AccountScopedMemories(
         account_scope="private-curation-account",
         memories=(
-            CuratableMemory(memory_id="curation-1", text="I read outdoors."),
-            CuratableMemory(memory_id="curation-2", text="I prefer mysteries."),
+            CurationMemory(memory_id="curation-1", text="I read outdoors."),
+            CurationMemory(memory_id="curation-2", text="I prefer mysteries."),
         ),
     )
 

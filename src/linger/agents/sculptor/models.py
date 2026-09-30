@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, TypeAdapter
 from pydantic import field_validator, model_validator
 
 
@@ -21,17 +21,79 @@ class CuratableMemory(StrictModel):
     text: str = Field(min_length=1)
 
 
+class CurationMemory(CuratableMemory):
+    """A memory offered for curation, with its capture time when known."""
+
+    recorded_at: AwareDatetime | None = None
+
+
+class ExistingDuplicateLink(StrictModel):
+    """One supplied memory and the supplied memories already linked to it."""
+
+    memory_id: str = Field(min_length=1)
+    duplicate_memory_ids: tuple[str, ...] = Field(min_length=1)
+
+
+class ExistingTombstone(StrictModel):
+    """One supplied memory already suppressed from retrieval."""
+
+    memory_id: str = Field(min_length=1)
+    canonical_memory_id: str | None = None
+
+
+class ExistingDerivedSummary(StrictModel):
+    """One derived summary already stored for supplied memories."""
+
+    source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=12)
+    summary: str = Field(min_length=1)
+
+
+class ExistingTopicGroup(StrictModel):
+    """One topic group already assigned to supplied memories."""
+
+    source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=12)
+    topic_label: str = Field(min_length=1)
+
+
+class ExistingCuration(StrictModel):
+    """Application-owned curation already applied to the supplied memories."""
+
+    duplicate_links: tuple[ExistingDuplicateLink, ...] = ()
+    tombstones: tuple[ExistingTombstone, ...] = ()
+    derived_summaries: tuple[ExistingDerivedSummary, ...] = ()
+    topic_groups: tuple[ExistingTopicGroup, ...] = ()
+
+    def referenced_memory_ids(self) -> frozenset[str]:
+        return frozenset(
+            memory_id
+            for link in self.duplicate_links
+            for memory_id in (link.memory_id, *link.duplicate_memory_ids)
+        ) | frozenset(
+            memory_id
+            for tombstone in self.tombstones
+            for memory_id in (tombstone.memory_id, tombstone.canonical_memory_id)
+            if memory_id is not None
+        ) | frozenset(
+            memory_id
+            for item in (*self.derived_summaries, *self.topic_groups)
+            for memory_id in item.source_memory_ids
+        )
+
+
 class AccountScopedMemories(StrictModel):
     """A bounded memory set selected for one account by application code."""
 
     account_scope: str = Field(min_length=1)
-    memories: tuple[CuratableMemory, ...] = Field(min_length=2, max_length=12)
+    memories: tuple[CurationMemory, ...] = Field(min_length=2, max_length=12)
+    existing_curation: ExistingCuration = ExistingCuration()
 
     @model_validator(mode="after")
     def require_unique_memory_ids(self) -> Self:
         memory_ids = tuple(memory.memory_id for memory in self.memories)
         if len(memory_ids) != len(set(memory_ids)):
             raise ValueError("memory IDs must be unique")
+        if self.existing_curation.referenced_memory_ids() - set(memory_ids):
+            raise ValueError("existing curation must reference supplied memories only")
         return self
 
 

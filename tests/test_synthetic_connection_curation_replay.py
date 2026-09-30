@@ -17,6 +17,7 @@ from evals.synthetic_journals.connection_curation_replay import replay_connectio
 from evals.synthetic_journals.connection_replay import ConnectionSceneObservation
 from evals.synthetic_journals.curation_replay import CurationSceneObservation, replay_curation_scene
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
+from src.linger.agents.sculptor.models import ExistingCuration
 from src.linger.agents.serendipity.models import CandidateRubric, ConnectionCandidate, ConnectionProposal
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from tests.test_synthetic_connection_replay import response, source_events
@@ -139,7 +140,8 @@ def test_replay_keeps_original_order_account_inputs_and_adoption(reverse_objecti
         scene = curation_by_props[tuple(memory.memory_id for memory in batch.memories)]
         expected = {prop.prop_id: prop.source_text for prop in backstory.props}
         assert all(memory.text == expected[memory.memory_id] for memory in batch.memories)
-        assert set(batch.model_dump()) == {"account_scope", "memories"}
+        assert set(batch.model_dump()) == {"account_scope", "memories", "existing_curation"}
+        assert batch.existing_curation == ExistingCuration()
         order.append(scene.scene_id)
         accounts.add(batch.account_scope)
         return _response_for(batch, truth)

@@ -11,7 +11,12 @@ selects each task's instructions and output schema from
 | [Memory surfacing](skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfacingDecision` | `propose_surfacing` supports offline evaluation only. Chat never runs it, and it has no scheduling or notification consumer. |
 
 Curation receives two to twelve existing memories selected for one account.
-The model sees only their IDs and text. It proposes a duplicate link, derived
+The model sees their IDs, text, and `recorded_at` when the application knows
+when each was captured, and, once any curation exists, the
+application-owned `existing_curation` for those memories: duplicate links,
+retrieval tombstones, derived summaries, and topic groups. An undated batch without existing curation keeps the same user JSON as before,
+although the skill instructions changed. Production batches are dated from
+each record's capture time. It proposes a duplicate link, derived
 summary, topic group, retrieval tombstone, retrieval restore, or no change.
 Strict schemas and application validation reject malformed proposals and IDs
 outside the supplied batch. The callable `run_curation_loop` asks Provenance

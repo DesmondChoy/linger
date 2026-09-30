@@ -15,7 +15,7 @@ from evals.sculptor.harness import (
 )
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
-    CuratableMemory,
+    CurationMemory,
     CurationProposal,
     DerivedSummary,
     DuplicateLink,
@@ -35,7 +35,7 @@ def _batch(case: SculptorEvalCase) -> AccountScopedMemories:
     return AccountScopedMemories(
         account_scope=case.input.account_scope,
         memories=tuple(
-            CuratableMemory(memory_id=memory.memory_id, text=memory.text)
+            CurationMemory(memory_id=memory.memory_id, text=memory.text)
             for memory in case.input.memories
         ),
     )
@@ -164,8 +164,8 @@ class SculptorAgentTests(unittest.IsolatedAsyncioTestCase):
             AccountScopedMemories(
                 account_scope="account-a",
                 memories=(
-                    CuratableMemory(memory_id="memory-1", text="First"),
-                    CuratableMemory(memory_id="memory-1", text="Second"),
+                    CurationMemory(memory_id="memory-1", text="First"),
+                    CurationMemory(memory_id="memory-1", text="Second"),
                 ),
             )
 

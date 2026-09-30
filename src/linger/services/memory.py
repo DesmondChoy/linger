@@ -18,6 +18,11 @@ from pydantic import ValidationError
 from src.linger.agents.sculptor.models import (
     DerivedSummary,
     DuplicateLink,
+    ExistingCuration,
+    ExistingDerivedSummary,
+    ExistingDuplicateLink,
+    ExistingTombstone,
+    ExistingTopicGroup,
     RetrievalRestore,
     RetrievalTombstone,
     TopicGroup,
@@ -316,6 +321,70 @@ class MemoryPolicyService:
 
         with self._lock:
             return _curation_state_sha256(self._curation_events(context))
+
+    def recorded_at(self, record: MemoryRecord) -> datetime | None:
+        """When this memory was captured, if its stored time is trustworthy."""
+
+        try:
+            captured = datetime.fromisoformat(record.created_at)
+        except ValueError:
+            return None
+        return captured if captured.tzinfo is not None else None
+
+    def existing_curation(
+        self,
+        context: AccountContext,
+        memory_ids: tuple[str, ...],
+    ) -> ExistingCuration:
+        """Describe applied curation that involves only the selected originals."""
+
+        with self._lock:
+            state = _materialize_curation(self._curation_events(context))
+        selected = set(memory_ids)
+
+        def within_selection(event: AppliedCuration) -> bool:
+            return set(event.proposal.action.source_memory_ids) <= selected
+
+        return ExistingCuration(
+            duplicate_links=tuple(
+                ExistingDuplicateLink(
+                    memory_id=memory_id,
+                    duplicate_memory_ids=tuple(sorted(linked)),
+                )
+                for memory_id in memory_ids
+                if (linked := state.duplicate_links.get(memory_id, set()) & selected)
+            ),
+            tombstones=tuple(
+                ExistingTombstone(
+                    memory_id=memory_id,
+                    canonical_memory_id=(
+                        canonical
+                        if (canonical := state.tombstones[memory_id]) in selected
+                        else None
+                    ),
+                )
+                for memory_id in memory_ids
+                if memory_id in state.tombstones
+            ),
+            derived_summaries=tuple(
+                ExistingDerivedSummary(
+                    source_memory_ids=event.proposal.action.source_memory_ids,
+                    summary=event.proposal.action.summary,
+                )
+                for event in state.summaries.values()
+                if isinstance(event.proposal.action, DerivedSummary)
+                and within_selection(event)
+            ),
+            topic_groups=tuple(
+                ExistingTopicGroup(
+                    source_memory_ids=event.proposal.action.source_memory_ids,
+                    topic_label=event.proposal.action.topic_label,
+                )
+                for event in state.topics.values()
+                if isinstance(event.proposal.action, TopicGroup)
+                and within_selection(event)
+            ),
+        )
 
     def list_for_retrieval(self, context: AccountContext) -> list[CuratedMemory]:
         """Materialize the account's retrieval view from originals and events."""

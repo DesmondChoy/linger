@@ -78,9 +78,12 @@ class Prop(StrictModel):
     evaluation_account_id: Identifier
     source_text: Text
     lifecycle: tuple[PropLifecycle, ...] = Field(min_length=1)
+    recorded_at: datetime | None = None
 
     @model_validator(mode="after")
     def validate_lifecycle(self) -> Self:
+        if self.recorded_at is not None and self.recorded_at.tzinfo is None:
+            raise ValueError("Prop recorded_at must include a timezone")
         _require_unique(
             "Prop lifecycle scene IDs",
             tuple(item.scene_id for item in self.lifecycle),

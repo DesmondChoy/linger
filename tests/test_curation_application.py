@@ -2,6 +2,7 @@
 
 import json
 import tempfile
+from datetime import datetime
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -145,12 +146,175 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
 
         sculptor_payload = json.loads(sculptor.run.await_args.args[0])
         self.assertEqual({"memories"}, set(sculptor_payload))
+        self.assertEqual(
+            [datetime.fromisoformat(first.created_at), datetime.fromisoformat(second.created_at)],
+            [
+                datetime.fromisoformat(memory["recorded_at"])
+                for memory in sculptor_payload["memories"]
+            ],
+        )
         provenance_payload = json.loads(provenance.run.await_args.args[0])
         self.assertEqual(
             {"proposal_digest", "proposal", "sources"},
             set(provenance_payload),
         )
+        self.assertEqual(
+            {datetime.fromisoformat(first.created_at), datetime.fromisoformat(second.created_at)},
+            {
+                datetime.fromisoformat(source["recorded_at"])
+                for source in provenance_payload["sources"]
+            },
+        )
         self.assertNotIn(first.account_key, provenance.run.await_args.args[0])
+
+    async def test_later_rounds_receive_existing_curation_for_the_batch_only(self) -> None:
+        kept, copy, earlier, later = self.seed(
+            "I read outdoors.",
+            "I read outdoors.",
+            "Book club meets on Mondays.",
+            "Book club moved to Fridays.",
+        )
+        for action in (
+            DuplicateLink(
+                action="link_duplicates",
+                source_memory_ids=(kept.memory_id, copy.memory_id),
+            ),
+            RetrievalTombstone(
+                action="tombstone_for_retrieval",
+                source_memory_ids=(copy.memory_id, kept.memory_id),
+                memory_id=copy.memory_id,
+                canonical_memory_id=kept.memory_id,
+            ),
+            DerivedSummary(
+                action="update_derived_summary",
+                source_memory_ids=(earlier.memory_id, later.memory_id),
+                summary="Book club moved from Mondays to Fridays.",
+            ),
+        ):
+            records = self.service.select_for_curation(
+                self.account, action.source_memory_ids
+            )
+            self.service.apply_curation(
+                self.account,
+                self.approved_plan(self.service, self.account, records, action),
+            )
+
+        without_copy = self.service.existing_curation(
+            self.account, (kept.memory_id, earlier.memory_id, later.memory_id)
+        )
+        self.assertEqual((), without_copy.duplicate_links)
+        self.assertEqual((), without_copy.tombstones)
+        self.assertEqual(
+            ("Book club moved from Mondays to Fridays.",),
+            tuple(item.summary for item in without_copy.derived_summaries),
+        )
+        without_canonical = self.service.existing_curation(
+            self.account, (copy.memory_id, earlier.memory_id)
+        )
+        self.assertEqual(
+            [(copy.memory_id, None)],
+            [
+                (item.memory_id, item.canonical_memory_id)
+                for item in without_canonical.tombstones
+            ],
+        )
+        self.assertEqual((), without_canonical.derived_summaries)
+
+        sculptor = AsyncMock()
+        sculptor.run.return_value = SimpleNamespace(
+            output=NoCurationProposal(
+                kind="no_curation_proposal", reason="Nothing further helps."
+            )
+        )
+        batch = (kept.memory_id, copy.memory_id, earlier.memory_id, later.memory_id)
+        await run_curation_loop(
+            self.account, batch, service=self.service, sculptor=sculptor
+        )
+        existing = json.loads(sculptor.run.await_args.args[0])["existing_curation"]
+        self.assertEqual(
+            [
+                {
+                    "memory_id": kept.memory_id,
+                    "duplicate_memory_ids": [copy.memory_id],
+                },
+                {
+                    "memory_id": copy.memory_id,
+                    "duplicate_memory_ids": [kept.memory_id],
+                },
+            ],
+            existing["duplicate_links"],
+        )
+        self.assertEqual(
+            [{"memory_id": copy.memory_id, "canonical_memory_id": kept.memory_id}],
+            existing["tombstones"],
+        )
+
+        restore = RetrievalRestore(
+            action="restore_to_retrieval",
+            source_memory_ids=(copy.memory_id,),
+            memory_id=copy.memory_id,
+        )
+        self.service.apply_curation(
+            self.account,
+            self.approved_plan(self.service, self.account, (copy,), restore),
+        )
+        self.assertEqual(
+            (), self.service.existing_curation(self.account, batch).tombstones
+        )
+
+    def test_untrustworthy_stored_times_are_not_offered_as_capture_times(self) -> None:
+        (record,) = self.seed("I read outdoors.")
+
+        self.assertIsNotNone(self.service.recorded_at(record))
+        for stored in ("yesterday", "2026-02-30T10:00:00+00:00", "2026-02-05T10:00:00"):
+            self.assertIsNone(
+                self.service.recorded_at(replace(record, created_at=stored))
+            )
+
+    async def test_curation_applied_while_sculptor_runs_makes_its_proposal_stale(
+        self,
+    ) -> None:
+        first, second, third = self.seed(
+            "Book club meets on Mondays.",
+            "Book club meets on Mondays.",
+            "Book club moved to Fridays.",
+        )
+        sculptor = AsyncMock()
+
+        async def propose_after_a_concurrent_link(_prompt: str, **_kwargs):
+            link = DuplicateLink(
+                action="link_duplicates",
+                source_memory_ids=(first.memory_id, second.memory_id),
+            )
+            self.service.apply_curation(
+                self.account,
+                self.approved_plan(
+                    self.service, self.account, (first, second), link
+                ),
+            )
+            return SimpleNamespace(
+                output=CurationProposal(
+                    kind="curation_proposal",
+                    action=DerivedSummary(
+                        action="update_derived_summary",
+                        source_memory_ids=(first.memory_id, third.memory_id),
+                        summary="Book club moved from Mondays to Fridays.",
+                    ),
+                )
+            )
+
+        sculptor.run.side_effect = propose_after_a_concurrent_link
+
+        with self.assertRaises(CurationPolicyError) as raised:
+            await run_curation_loop(
+                self.account,
+                (first.memory_id, second.memory_id, third.memory_id),
+                service=self.service,
+                sculptor=sculptor,
+                provenance=self.allowing_provenance(),
+            )
+        self.assertEqual("curation_state_stale", raised.exception.reason)
+        self.assertEqual(1, len(self.service.list_curation_audit(self.account)))
 
     async def test_rejected_or_unbound_review_never_reaches_storage(self) -> None:
         first, second = self.seed("A short walk helps.", "The walk was quiet.")
