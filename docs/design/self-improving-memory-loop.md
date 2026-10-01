@@ -1,8 +1,9 @@
 # Self-Improving Memory Loop
 
 Status: **Experiment 3 in progress: feasibility check passed, both question
-sets frozen, and Stage 1 search wiring done behind an opt-in switch; freezing
-request plans is next. The memory-curation Experiments 1 and 2 are
+sets frozen, Stage 1 built behind an opt-in switch and scored on practice
+(17 of 20, against 15 for today's search); the Sculptor chapter-cue skill is
+next. The memory-curation Experiments 1 and 2 are
 superseded. Start at [Where things stand](#where-things-stand-2026-10-01).**
 
 ## Objective
@@ -84,6 +85,29 @@ measured.
   passage lost the Keller passage; the after-passage placement no longer
   loses it.
 
+### Stage 1 on practice needs
+
+Scored on 2026-10-01 with request plans frozen from one production planning
+pass (`openai:gpt-6-luna`), so search is the only difference:
+
+| Search | Practice needs reached | Misses |
+|---|---|---|
+| Today's search | 15/20 | n01, n07, n08, n09, n18 |
+| **Stage 1: existing chapter cues** | **17/20** | n07, n08, n09 |
+
+Stage 1 gains n01 and n18 and loses nothing, in line with the feasibility
+check (14 to 16; plans differ slightly between planning passes). The three
+remaining misses are what Sculptor's first rewrite sees:
+
+- **n07** (chapter 11): the question names "Stromboli", a name the book never
+  uses for Fire Eater; search chooses chapters 24, 10, and 6.
+- **n08** (chapter 12): every pool passage is from chapter 18. Chapter 12's
+  cue "money tree" belongs to chapter 18's coin-burying scene.
+- **n09** (chapter 18): chapter 18 is in the pool, but its coin-burying
+  passage is not; chapter 12 also competes.
+
+Per-need pools are in `evals/librarian/chapter_cue_runs/`.
+
 ### Done
 
 | Item | Where |
@@ -92,18 +116,16 @@ measured.
 | Feasibility check; probe scripts were in a session scratchpad and are not kept | [Chapter-cue feasibility](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
 | Frozen practice and sealed needs | `evals/librarian/chapter_cue_needs.json` |
 | Stage 1 search wiring, opt-in: separate search text, cue digest in the index cache key, reading-scope test | `apps/backend/hybrid_librarian.py`, `tests/test_hybrid_librarian.py` |
+| Frozen request plans for all 40 needs, the recall runner, and Stage 1 practice scores | `evals/librarian/chapter_cue_plans.json`, `evals/librarian/chapter_cue_recall.py`, `evals/librarian/chapter_cue_runs/` |
 
-Everything above the Stage 1 row is committed and pushed on `main` (`3926c86`
-to `d7f332d`).
+Stage 1 wiring is pushed on `main` at `09cf01a`.
 
 ### Beads
 
 - Epic `linger-g3rw`: Experiment 3, in dependency order. `linger-g3rw.1`
-  sealed set and `linger-g3rw.2` Stage 1 wiring are **closed**;
-  `linger-g3rw.4` freezes request plans and scores Stage 1 on practice and is
-  **next**;
-  `linger-g3rw.3` is the Sculptor chapter-cue skill and the Stage 2 and 3
-  runner.
+  sealed set, `linger-g3rw.2` Stage 1 wiring, and `linger-g3rw.4` frozen
+  plans and Stage 1 practice score are **closed**; `linger-g3rw.3`, the
+  Sculptor chapter-cue skill and the Stage 2 and 3 runner, is **next**.
 - Experiment 2 follow-ups: `linger-p9iw` (derived summaries competing in
   memory search), `linger-4uix` (Cyrillic in a topic label), `linger-9j42`
   (capture time turned into an event date).
@@ -118,13 +140,14 @@ to `d7f332d`).
    (`uv run python -m evals.librarian.part_recall [--read-chapter-cues]`).
    Astra reviewed the wiring; its cache, test, and placement findings are
    fixed.
-2. **Freeze request plans (`linger-g3rw.4`)** for every practice and sealed need with one
-   production Librarian planning pass, stored beside
-   `evals/librarian/chapter_cue_needs.json`.
-3. **Score Stage 1 on the practice set** with a small runner that records, per
-   need, whether a passage containing its quote reaches the assessment pool.
-   Run today's search and `HybridLibrarian(read_chapter_cues=True)` on the
-   same frozen plans. Do not run the sealed set yet.
+2. **Frozen request plans (`linger-g3rw.4`), done.** One production planning
+   pass for all 40 needs, in `evals/librarian/chapter_cue_plans.json`.
+   `uv run python -m evals.librarian.chapter_cue_recall freeze` refuses to
+   overwrite them.
+3. **Stage 1 practice score, done.** `uv run python -m
+   evals.librarian.chapter_cue_recall score [--read-chapter-cues]` replays
+   the frozen plans locally: 15 of 20 today, 17 of 20 at Stage 1. The sealed
+   set has not been scored.
 4. **Sculptor chapter-cue skill (`linger-g3rw.3`).** One typed skill on
    Sculptor's existing Agent. Input: the book's chapters, their current tags,
    and the practice failures. Output: revised tags for every chapter within a
@@ -259,7 +282,7 @@ retrieval data and reader answers on one book and one frozen evaluation set.
 | Period | Deliverable |
 |---|---|
 | 1 October, **done** | Feasibility check passed; chapter cues chosen; both question sets written and frozen. |
-| 2–7 October | Stage 1 wiring (**done** 1 October, opt-in), frozen request plans, Stage 1 practice score, the chapter-cue skill, the approval step, and the reading-scope test. |
+| 2–7 October | Stage 1 wiring, the reading-scope test, frozen request plans, and Stage 1 practice score (**done** 1 October); the chapter-cue skill and the approval step. |
 | 8–14 October | Stages 2 and 3 on practice feedback. Record proposals, approvals, revisions, scores, and cost. |
 | 15–21 October | Sealed run against every frozen stage, paired reader replies, then the owner's review. Activate the approved cues if the rule passes. 22 October is buffer. |
 
