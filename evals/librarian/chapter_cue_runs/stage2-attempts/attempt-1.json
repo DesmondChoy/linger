@@ -1,0 +1,8 @@
+{
+  "stage": 2,
+  "recorded_at": "2026-10-01",
+  "status": "failed",
+  "error": "UnexpectedModelBehavior: Exceeded maximum output retries (2)",
+  "turns": [],
+  "note": "Same approved prompt. Answers and retry requests were not recorded; the runner did not yet keep attempts."
+}

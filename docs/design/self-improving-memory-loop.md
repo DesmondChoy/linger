@@ -1,10 +1,10 @@
 # Self-Improving Memory Loop
 
-Status: **Experiment 3 in progress: feasibility check passed, both question
-sets frozen, Stage 1 built behind an opt-in switch and scored on practice
-(17 of 20, against 15 for today's search); the Sculptor chapter-cue skill is
-next. The memory-curation Experiments 1 and 2 are
-superseded. Start at [Where things stand](#where-things-stand-2026-10-01).**
+Status: **Experiment 3 has run; its decision rule is not met.** On practice,
+Stage 1 reached 17 of 20 (today's search 15) and Stage 2 also 17, so the stop
+rule ended the loop before Stage 3. On the 20 sealed needs, run once: today 14,
+Stage 1 14, Stage 2 16. The owner decides what follows. The memory-curation
+Experiments 1 and 2 are superseded. Start at [Where things stand](#where-things-stand-2026-10-01).**
 
 ## Objective
 
@@ -78,6 +78,9 @@ measured.
 - **The owner approves each Sculptor rewrite** at Stages 2 and 3, which is the
   human supervision in the claim. The owner may drop this.
 - Astra (gpt-6-astra) runs at **max** reasoning effort.
+- **The owner reviews the exact Sculptor prompt before each stage**
+  (2026-10-01). Once a stage runs, its prompt is not changed in response to
+  that stage's output; a bad output is approved and measured, or rejected.
 - **Chapter tags are opt-in until activation** (2026-10-01). Search reads
   them only when constructed with `HybridLibrarian(read_chapter_cues=True)`.
   Production search is unchanged until the sealed run passes and the owner
@@ -125,7 +128,8 @@ Stage 1 wiring is pushed on `main` at `09cf01a`.
 - Epic `linger-g3rw`: Experiment 3, in dependency order. `linger-g3rw.1`
   sealed set, `linger-g3rw.2` Stage 1 wiring, and `linger-g3rw.4` frozen
   plans and Stage 1 practice score are **closed**; `linger-g3rw.3`, the
-  Sculptor chapter-cue skill and the Stage 2 and 3 runner, is **next**.
+  Sculptor chapter-cue skill and the Stage 2 and 3 runner, is **in
+  progress**: Stage 2 is scored and the stop rule has fired.
 - Experiment 2 follow-ups: `linger-p9iw` (derived summaries competing in
   memory search), `linger-4uix` (Cyrillic in a topic label), `linger-9j42`
   (capture time turned into an event date).
@@ -148,13 +152,76 @@ Stage 1 wiring is pushed on `main` at `09cf01a`.
    evals.librarian.chapter_cue_recall score [--read-chapter-cues]` replays
    the frozen plans locally: 15 of 20 today, 17 of 20 at Stage 1. The sealed
    set has not been scored.
-4. **Sculptor chapter-cue skill (`linger-g3rw.3`).** One typed skill on
-   Sculptor's existing Agent. Input: the book's chapters, their current tags,
-   and the practice failures. Output: revised tags for every chapter within a
-   fixed word budget. Add the owner approval step.
-5. **Stages 2 and 3 on practice needs**, then run the sealed set once against
-   today's search and each stage. Check paired reader replies and apply the
-   [decision rule](#decision-rule).
+4. **Sculptor chapter-cue skill (`linger-g3rw.3`), built.** One typed
+   skill, `sculptor.chapter-cues`, on Sculptor's existing Agent. Input: every
+   chapter's text and current tags, a 60-word budget per chapter, and each
+   earlier stage's practice outcomes with the failure patterns Sculptor named.
+   Output: failure patterns and revised tags for every chapter. Coverage and
+   budget errors are retried in-run (two retries). Sculptor's shared
+   instructions now name this task beside memory curation and surfacing.
+5. **Stage 2, done: 17 of 20, no net gain.** The owner reviewed and approved
+   the prompt (`chapter_cue_runs/stage2-prompt.md`, kept with the ⚠ paragraph,
+   two retries, and the production model). Attempt 1 ran out of retries and
+   its details were not recorded; the runner now keeps every attempt in
+   `chapter_cue_runs/stage2-attempts/`. Attempt 2's first answer exceeded the
+   budget in many chapters (up to 87 words) and its first retry passed. The
+   owner approved the proposal as written: mean 38 words per chapter (30 to
+   59), against 34 at Stage 1. Sculptor named three patterns: chapter 11's
+   pity sneeze and Harlequin's pardon, chapter 12's first meeting confused
+   with chapter 18, and chapter 18's miss being within the chapter. It did not
+   add "Stromboli", and it kept chapter 12's "money tree".
+
+   | Search | Practice reached | Misses |
+   |---|---|---|
+   | Today's search | 15/20 | n01, n07, n08, n09, n18 |
+   | Stage 1: existing cues | 17/20 | n07, n08, n09 |
+   | Stage 2: Sculptor's first rewrite | 17/20 | n07, n09, n11 |
+
+   Stage 2 gains n08 and loses n11. The n11 pool still holds a chapter 22
+   window, but not the one with the quote, so the loss is within the chapter.
+   No net gain and a lost Stage 1 success trigger the stop rule, and
+   `propose --stage 3` refuses to run. Under the decision rule, the
+   recursion criterion (Stage 3 beats Stage 2) can no longer be met.
+6. **Sealed run, done (owner decision: follow the rule and report).** Each
+   search ran once on the 20 sealed needs; `sealed-lock.json` freezes the
+   approved Stage 2 proposal, the plans, and the needs.
+
+   | Search | Sealed reached | Misses |
+   |---|---|---|
+   | Today's search | 14/20 | s01, s02, s03, s10, s18, s20 |
+   | Stage 1: existing cues | 14/20 | s01, s02, s03, s10, s16, s20 |
+   | Stage 2: Sculptor's first rewrite | 16/20 | s01, s02, s10, s20 |
+
+   Against Stage 1, Stage 2 gains s03 and s16 and loses nothing. Against
+   today's search, it gains s03 and s18 and loses nothing. Stage 1 alone
+   trades s16 for s18. All four remaining Stage 2 misses (s01, s02, s10, s20)
+   find the right chapter but not the passage, which chapter cues cannot fix.
+
+   **Decision rule outcome: not met.** Sealed gain needs Stage 3 at least 3
+   above Stage 1; Stage 2 is 2 above, and Stage 3 did not run. Recursion
+   needs Stage 3 to beat Stage 2; it did not run. Reader benefit was not
+   checked, since the retrieval criteria already fail. Integrity holds:
+   quotes and citations stay canonical, and the reading-scope test passes.
+
+   What the evidence supports: one owner-approved Sculptor rewrite raised
+   sealed retrieval from 14 to 16 of 20 with no losses, while practice stayed
+   flat (17 to 17). With about one need of run-to-run noise and 20 needs per
+   set, this is a weak positive signal for a single supervised rewrite, not
+   evidence of recursive improvement. Stage 2 cues average 38 words against
+   34, so longer cues may contribute. Approved cues are not activated.
+7. **Paired reader replies** were not run (see above).
+   An earlier Stage 2 run on 2026-10-01 was discarded by the owner, because
+   the skill instructions were changed after seeing its first output without
+   the owner's review. Its results were deleted and Stage 1 was rescored
+   (unchanged: 15 and 17 of 20).
+
+   Astra reviewed the Stage 2 machinery on 2026-10-01. Its fixes stand: each
+   score records the needs, plans, and approved proposal it used, and the next
+   stage refuses stale feedback; Stage 3 refuses to start without a net Stage
+   2 gain or after any lost Stage 1 success; approval and scoring re-check
+   coverage, budget, and blank fields; the first sealed score locks every
+   stage, and each sealed score runs once.
+
 
 ## Experiment history
 
@@ -171,8 +238,9 @@ improve the answers every reader gets about that book.
 
 ## Experiment 3: Sculptor chapter cues for book retrieval
 
-Status: **feasibility check passed, question sets frozen, and Stage 1 search
-wiring built (opt-in) on 2026-10-01; no stage scored yet.**
+Status: **Run on 2026-10-01. Practice: 17 and 17 of 20 at Stages 1 and 2, so
+the stop rule ended the loop. Sealed: 14, 14, and 16 of 20 for today's search,
+Stage 1, and Stage 2. The decision rule is not met.**
 
 Sculptor improves the data the Librarian searches, measures whether book
 retrieval improves, and uses the remaining failures to revise its work once
@@ -294,7 +362,13 @@ retrieval data and reader answers on one book and one frozen evaluation set.
   budget is fixed, and the sealed set stays unseen.
 - **Cues may invent facts or reveal later chapters.** Each cue must be
   supported by its own chapter, and reading permissions bound which chapters
-  are searched.
+  are searched. One exception is declared: a widely used alternate name for a
+  character in the chapter. Factual errors in an approved proposal are
+  recorded as findings and corrected before any activation.
+- **Longer cues may explain a gain.** Stage 1 cues average 34 words per
+  chapter. If a stage's cues are longer, the design cannot separate the
+  effect of feedback from the effect of more cue text without a matched
+  control, so each stage reports its mean cue length.
 - **The expected gain is close to noise.** Planning varied by one need between
   runs, so comparisons use frozen plans.
 
