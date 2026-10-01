@@ -1,5 +1,6 @@
 """Frozen Experiment 3 request plans stay valid for their needs."""
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -164,3 +165,31 @@ def test_sealed_scores_run_once_and_freeze_every_stage(runs) -> None:
     proposal.write_text(proposal.read_text(encoding="utf-8").replace("A pattern.", "Edited."), encoding="utf-8")
     with pytest.raises(SystemExit, match="changed after approval"):
         chapter_cue_recall._lock_stages_for_sealed(runs / "stage1-sealed.json")
+
+
+def test_selection_passes_only_when_a_selected_passage_holds_the_quote(runs, monkeypatch) -> None:
+    from src.linger.agents.librarian.models import EvidenceStrengthDecision
+    from src.linger.orchestration import evidence_strength
+
+    need = json.loads(NEEDS.read_text(encoding="utf-8"))["practice"]["needs"][0]
+    item = lambda evidence_id, text: type("Item", (), {"evidence_id": evidence_id, "excerpt": text})()
+    pool = (item("wrong", "Unrelated text."), item("right", f"Before. {need['quote']} After."))
+    monkeypatch.setattr(chapter_cue_recall, "_pools", lambda set_name, search: [
+        (need, BookRequestPlan(parts=()), LibrarianBookRequestInput(current_line=need["question"]), pool),
+    ] * 2)
+    monkeypatch.setattr(chapter_cue_recall, "evidence_record_from_item", lambda item: item)
+    picks = iter([("right",), ("wrong",)])
+
+    async def assess(plan, records, **kwargs):
+        return EvidenceStrengthDecision(
+            evidence_strength="sufficient", strength_reason="Test.", relevant_evidence_ids=next(picks),
+        )
+
+    monkeypatch.setattr(evidence_strength, "assess_book_evidence", assess)
+    monkeypatch.setattr(chapter_cue_recall, "SELECTION_CONCURRENCY", 1)
+    results = asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+    assert [result["passed"] for result in results] == [True, False]
+    assert all(result["reached"] for result in results)
+    with pytest.raises(SystemExit, match="runs once"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))

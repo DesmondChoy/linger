@@ -1,6 +1,7 @@
 # Self-Improving Loop
 
-Status: **Experiment 4 designed on 2026-10-01; not built.** Sculptor runs
+Status: **Experiment 4 designed and re-baselined on 2026-10-01 (Stage 2: 17 of
+20 practice, so the pass mark is 20 of 20); Sculptor's research task is next.** Sculptor runs
 retrieval experiments, analyses its own errors, researches a better approach
 on the web, and the developer builds what it specifies. The deliverable is a
 working, supervised loop with a full record; results are reported as they
@@ -88,6 +89,23 @@ A round passes when, on the 20 practice needs, it selects the right passage
 for **at least 3 more needs than the Stage 2 baseline** and loses none that
 the baseline found. If the baseline is 18 or more, the mark is 20 of 20. The
 mark is fixed before any round runs.
+
+**Round 0 re-baseline (2026-10-01).** Each condition's Librarian selection ran
+once on the frozen plans (`select` in `evals/librarian/chapter_cue_recall.py`,
+stored as `chapter_cue_runs/<search>-<set>-selected.json`); 124 model calls
+and about 550,000 input tokens in all.
+
+| Search | Practice: selected (in pool) | Held-back, reused: selected (in pool) | Mean words handed over (practice) |
+|---|---|---|---|
+| Today's search | 15 (15) | 14 (14) | 1,424 |
+| Stage 1: existing tags | 15 (17) | 14 (14) | 1,339 |
+| Stage 2: Sculptor's tags | **17** (17) | **16** (16) | 1,278 |
+
+Selection lost nothing at Stage 2 and on every held-back condition. At Stage 1
+it lost two practice needs whose passage was in the pool: n14, where the
+Librarian chose another passage, and n17, where its answer failed validation
+twice. Stage 2's practice misses are n07, n09, and n11, none of which reached
+the pool. **The pass mark is therefore 20 of 20 on practice with no losses.**
 
 ### The loop
 

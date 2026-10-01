@@ -20,7 +20,7 @@ import json
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager, nullcontext
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -28,9 +28,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from pydantic_ai import capture_run_messages
-from pydantic_ai.messages import RetryPromptPart, TextPart, ToolCallPart, UserPromptPart
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, TextPart, ToolCallPart, UserPromptPart
 
-from apps.backend.contracts import BookScope
+from apps.backend.contracts import BookScope, EvidenceItem
 from apps.backend.hybrid_librarian import HybridLibrarian
 from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
 from src.linger.agents.librarian.skills import BOOK_REQUEST
@@ -46,12 +46,14 @@ from src.linger.agents.sculptor.chapter_cue_models import (
 from src.linger.corpus import registry
 from src.linger.corpus.book import parse_chapter_markdown
 from src.linger.corpus.units import load_units, read_unit
-from src.linger.orchestration.book_evidence import gather_book_candidates
+from src.linger.orchestration.book_evidence import evidence_record_from_item, gather_book_candidates
 
 NEEDS = Path(__file__).with_name("chapter_cue_needs.json")
 PLANS = Path(__file__).with_name("chapter_cue_plans.json")
 RUNS = Path(__file__).with_name("chapter_cue_runs")
 WORD_BUDGET = 60
+MAX_SELECTED = 5  # Production `max_final_evidence`.
+SELECTION_CONCURRENCY = 4
 SEARCHES = ("today", "stage1", "stage2", "stage3")
 ROUND_LABELS = {
     "stage1": "Stage 1: the book's existing cues",
@@ -156,7 +158,8 @@ def revised_corpus(work_id: str, cues: dict[int, ChapterCues]) -> Iterator[None]
             yield
 
 
-def score(set_name: str, search: str) -> list[dict[str, object]]:
+def _pools(set_name: str, search: str) -> list[tuple[dict[str, object], BookRequestPlan, LibrarianBookRequestInput, tuple[EvidenceItem, ...]]]:
+    """Gather each need's assessment pool for one search, exactly as production would."""
     document, needs = _needs(set_name)
     plans = json.loads(PLANS.read_text(encoding="utf-8"))["plans"]
     scope = BookScope(
@@ -165,25 +168,97 @@ def score(set_name: str, search: str) -> list[dict[str, object]]:
     )
     librarian = HybridLibrarian(read_chapter_cues=search != "today")
     cues = approved_cues(int(search[-1])) if search in ("stage2", "stage3") else None
-    results = []
+    pools = []
     with revised_corpus(document["work_id"], cues) if cues else nullcontext():
         for need in needs:
-            pool = gather_book_candidates(
-                BookRequestPlan.model_validate(plans[need["id"]]),
-                LibrarianBookRequestInput(current_line=need["question"]),
-                book_scopes=(scope,), librarian=librarian,
-            )
-            quote = _normalised(need["quote"])
-            found = [item.evidence_id for item in pool if quote in _normalised(item.excerpt)]
-            results.append({
-                "id": need["id"],
-                "chapter": need["chapter"],
-                "reached": bool(found),
-                "evidence_ids": found,
-                "pool_chapters": list(dict.fromkeys(item.chapter for item in pool)),
-                "pool_size": len(pool),
-                "pool": [item.evidence_id for item in pool],
-            })
+            plan = BookRequestPlan.model_validate(plans[need["id"]])
+            request = LibrarianBookRequestInput(current_line=need["question"])
+            pools.append((need, plan, request, gather_book_candidates(
+                plan, request, book_scopes=(scope,), librarian=librarian,
+            )))
+    return pools
+
+
+def _containing(need: dict[str, object], items: Iterable[EvidenceItem]) -> list[str]:
+    quote = _normalised(need["quote"])
+    return [item.evidence_id for item in items if quote in _normalised(item.excerpt)]
+
+
+def score(set_name: str, search: str) -> list[dict[str, object]]:
+    results = []
+    for need, _, _, pool in _pools(set_name, search):
+        found = _containing(need, pool)
+        results.append({
+            "id": need["id"],
+            "chapter": need["chapter"],
+            "reached": bool(found),
+            "evidence_ids": found,
+            "pool_chapters": list(dict.fromkeys(item.chapter for item in pool)),
+            "pool_size": len(pool),
+            "pool": [item.evidence_id for item in pool],
+        })
+    return results
+
+
+async def select(set_name: str, search: str) -> list[dict[str, object]]:
+    """Run the production Librarian selection once per need and store it.
+
+    A need passes when a selected passage contains its quote. Selections are
+    never re-run, so a condition cannot be re-sampled until it looks better.
+    """
+    from apps.backend.config import get_settings
+    from apps.backend.telemetry import configure_telemetry
+    from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
+    from src.linger.orchestration.evidence_strength import assess_book_evidence
+
+    output = RUNS / f"{search}-{set_name}-selected.json"
+    if output.exists():
+        raise SystemExit(f"{output.name} exists; each selection runs once.")
+    identity = _identity(search)
+    pools = _pools(set_name, search)
+    configure_telemetry()
+    slots = asyncio.Semaphore(SELECTION_CONCURRENCY)
+
+    async def run(need, plan, request, pool) -> dict[str, object]:
+        decision, error, responses = None, None, []
+        if pool:
+            async with slots:
+                with capture_run_messages() as messages:
+                    try:
+                        decision = await assess_book_evidence(
+                            plan, tuple(evidence_record_from_item(item) for item in pool),
+                            original_request=request, max_evidence_records=MAX_SELECTED,
+                        )
+                    except Exception as failure:
+                        error = f"{type(failure).__name__}: {failure}"[:500]
+                responses = [message for message in messages if isinstance(message, ModelResponse)]
+        selected = decision.relevant_evidence_ids if decision else ()
+        by_id = {item.evidence_id: item for item in pool}
+        return {
+            "id": need["id"],
+            "chapter": need["chapter"],
+            "passed": bool(_containing(need, (by_id[evidence_id] for evidence_id in selected))),
+            "reached": bool(_containing(need, pool)),
+            "selected": list(selected),
+            "evidence_strength": decision.evidence_strength if decision else "none",
+            "error": error,
+            "pool_size": len(pool),
+            "pool_words": sum(len(item.excerpt.split()) for item in pool),
+            "model_calls": len(responses),
+            "input_tokens": sum(response.usage.input_tokens for response in responses),
+            "output_tokens": sum(response.usage.output_tokens for response in responses),
+        }
+
+    results = list(await asyncio.gather(*(run(*entry) for entry in pools)))
+    output.write_text(json.dumps({
+        "set": set_name, "search": search, "identity": identity,
+        "model": get_settings().linger_model,
+        "prompt_template_id": PROMPT_FINGERPRINT.template_id,
+        "prompt_digest": PROMPT_FINGERPRINT.digest,
+        "recorded_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "passed": sum(result["passed"] for result in results),
+        "needs": results,
+    }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return results
 
 
@@ -349,6 +424,9 @@ def main() -> None:
                             ("approve", "record the owner's approval of a proposal")):
         command = commands.add_parser(name, help=help_text)
         command.add_argument("--stage", type=int, choices=(2, 3), required=True)
+    selecting = commands.add_parser("select", help="store the Librarian's selection once per need")
+    selecting.add_argument("--search", choices=SEARCHES, required=True)
+    selecting.add_argument("--set", choices=("practice", "sealed"), default="practice", dest="set_name")
     scoring = commands.add_parser("score", help="score frozen plans with local retrieval")
     scoring.add_argument("--search", choices=SEARCHES, required=True)
     scoring.add_argument("--set", choices=("practice", "sealed"), default="practice", dest="set_name")
@@ -361,6 +439,23 @@ def main() -> None:
         return
     if args.command == "approve":
         approve(args.stage)
+        return
+    if args.command == "select":
+        results = asyncio.run(select(args.set_name, args.search))
+        for result in results:
+            print(
+                f"{result['id']} ch{result['chapter']:02d} "
+                f"{'passed' if result['passed'] else 'FAILED'} "
+                f"(pool {'has' if result['reached'] else 'lacks'} quote) "
+                f"selected {len(result['selected'])} {result['evidence_strength']}"
+                + (f"  ERROR {result['error']}" if result["error"] else "")
+            )
+        print(
+            f"\npassed {sum(r['passed'] for r in results)}/{len(results)}; "
+            f"{sum(r['model_calls'] for r in results)} model calls, "
+            f"{sum(r['input_tokens'] for r in results):,} input tokens, "
+            f"mean pool {sum(r['pool_words'] for r in results) / len(results):.0f} words"
+        )
         return
     output = RUNS / f"{args.search}-{args.set_name}.json"
     identity = _identity(args.search)
