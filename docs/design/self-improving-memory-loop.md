@@ -1,6 +1,8 @@
 # Self-Improving Memory Loop
 
-Status: **First graded run complete with a null result; next step is an offline Sculptor-only loop**
+Status: **Experiment 3 in progress: feasibility check passed and both question
+sets frozen; Stage 1 is next. The memory-curation Experiments 1 and 2 are
+superseded. Start at [Where things stand](#where-things-stand-2026-10-01).**
 
 ## Objective
 
@@ -15,205 +17,253 @@ benefits the reader, not only the developer.
   Reflector extracts what is worth keeping, and a Curator merges that into a
   structured store through small edits.
 
-Linger has a related shape for a reader's memories: Muse converses and
-nominates memories, and Sculptor curates them. Nothing
-yet shows that curation improves later conversations. **The feature is that
-evidence: one chained evaluation.**
+## Where things stand (2026-10-01)
 
-## Implementation
+A fresh session should start here, then read
+[Experiment 3](#experiment-3-sculptor-chapter-cues-for-book-retrieval).
 
-The runner reuses Sculptor `memory-curation`, Provenance `curation-review`, and
-Serendipity memory recall. Successive rounds needed one adjustment: Sculptor
-used to receive original IDs and texts without earlier curation decisions.
-Its typed input and skill instructions now include that state as
-`existing_curation`, which is omitted while no curation exists. Each memory
-also carries `recorded_at` when known, which Provenance's curation review sees
-too, so Sculptor can order an evolving fact without relying on wording.
+### Direction
 
-| File | Change |
+- The feature must ship by about **2026-10-22**, show a visible element of
+  recursive self-improvement, and benefit the reader. Keep it simple.
+- **Memory curation is superseded.** See [Experiment history](#experiment-history).
+- **A developer playbook was rejected.** A lessons file that improves
+  Sculptor's instructions mainly helps the developer.
+- **Experiment 3 is the plan.** Sculptor rewrites each book chapter's search
+  tags. Search reads them beside each passage, and Sculptor's second rewrite
+  learns from the first one's failures. Every reader asking about the book
+  benefits.
+
+### Findings so far
+
+The [chapter-cue feasibility check](../evaluation/chapter-cue-feasibility-2026-10-01.md)
+ran 20 practice needs about *Pinocchio* through production search:
+
+| Search reads | Needs reaching the Librarian's assessment |
 |---|---|
-| `evals/synthetic_journals/memory_loop_replay.py` | **Done.** Per repetition, seeds Props, sends the recall Lines, then alternates one production `run_curation_loop` round with the Lines again, for 0 to 3 cumulative rounds. Reuses `retrieval_replay.py`. |
-| [`synthetic-journal-evaluation/scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/`](../../synthetic-journal-evaluation/scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/pre-generation-report.md) | **Adopted 2026-10-01.** One Scenario, written directly without `plan-synthetic-scenarios`, then independently adopted with `review-synthetic-ground-truth`. |
-| `synthetic-journal-evaluation/generation-presets/memory-curation-recall-loop.json`, `evals/synthetic_journals/models.py`, `evals/synthetic_journals/validate_scenario.py` | **Done.** A run configuration that pre-registers three rounds and three repetitions, with validator rules for the shared Prop bank and recall Scenes. |
-| `src/linger/agents/sculptor/models.py`, `src/linger/services/memory.py`, `src/linger/orchestration/curation.py`, `src/linger/agents/sculptor/skills/memory-curation/SKILL.md` | **Done.** Supply and explain prior curation state for successive rounds. |
-| `evals/synthetic_journals/replay_support.py`, `synthetic-journal-evaluation/evaluation-objectives.yaml` | **Done in `replay_support.py`.** The Scenario declares only `longitudinal_memory_retrieval` and the `memory-curation-recall-loop` run configuration, which selects the runner. Curation is the runner's treatment, not a graded Scene. The Objective catalogue is unchanged. |
-| `src/linger/agents/serendipity/tools.py`, Muse `reflection` skill, Provenance review | **Not done.** Carry a derived summary's kind and source references through recall. `search_memories` returns only an ID and text today, and Muse treats recalled text as the reader's exact words. |
-| `tests/test_memory_loop_replay.py` | **Done.** Runner logic with injected models, including state passed between rounds and scoring of derived evidence. |
-| `docs/specification.md` §7.2.2 and §9, `evals/synthetic_journals/README.md` | The README describes the runner. The specification waits for a measured result. |
+| Today's search | 14 of 20 |
+| Existing chapter tags | 16 of 20 |
+| Hand-revised tags, in keyword, embedding, and reranker input | 19 of 20 |
 
-## How it works
+No condition lost a need. All but one miss were search choosing the wrong
+chapter. Tags only help when every search stage reads them, and existing tags
+can mislead. The probe tags were written knowing the needs, so they show the
+mechanism can work, not that Sculptor will find good tags. Planning varies by
+about one need between runs.
 
-The new Scenario holds ten memories for one reader: a fact that changed, a
-set of duplicates, a memory those duplicates crowd out of search, a memory
-reachable only by paraphrase, a memory curation should preserve, and a
-question no memory answers. Five recall Lines are held out from Sculptor.
+### Decisions by the owner
 
-- **Arm A:** recall against the raw memories.
-- **Arm B:** the same Lines after one, two, and three curation rounds. Each
-  round builds on the previous curation state.
+- Stages are named **Stage 1: baseline**, **Stage 2: Sculptor's first
+  rewrite**, and **Stage 3: Sculptor's second rewrite**.
+- **20 practice and 20 sealed needs.** Five of each would leave about one miss,
+  the size of run-to-run noise.
+- **Sealed labels are accepted without prior review.** The owner reviews
+  questions, quotes, and results afterwards and triggers any change.
+- **No spoiler or no-answer safety set.** It is outside the self-improvement
+  question. One automated reading-scope test covers the risk the tags add.
+- **The owner approves each Sculptor rewrite** at Stages 2 and 3, which is the
+  human supervision in the claim. The owner may drop this.
+- Astra (gpt-6-astra) runs at **max** reasoning effort.
 
-Code, model, prompts, and Lines are frozen, and each arm runs three times.
-Each repetition starts from identical originals; recall uses fresh sessions.
-Measures are fixed beforehand: the right evidence is cited, the reply states
-the current fact, and hard gates still pass.
+### Done
 
-The existing retrieval grader expects original record IDs. The new runner
-also reduces summaries and topic groups to their source references, applies
-the same relevance rules to those sources as to directly cited records, and
-lets a retrievable duplicate stand in for a copy hidden from retrieval. A
-separate human review checks whether the sources support the summary and
-answer. Generated wording must remain distinguishable from the reader's exact
-words; production recall does not yet carry that distinction, so the runner
-lists every cited summary with its sources for that review.
+| Item | Where |
+|---|---|
+| Experiments 1 and 2, runners, and pre-registration (superseded, kept as record) | [Experiment 1](../evaluation/memory-loop-experiment-1-2026-10-01.md), [Experiment 2](../evaluation/memory-loop-experiment-2-2026-10-01.md), `evals/synthetic_journals/offline_search_loop.py` |
+| `rank_memories` extracted from `search_memories`, behaviour unchanged | `src/linger/agents/serendipity/tools.py` |
+| Feasibility check; probe scripts were in a session scratchpad and are not kept | [Chapter-cue feasibility](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
+| Frozen practice and sealed needs | `evals/librarian/chapter_cue_needs.json` |
 
-**Before.** The reader said "I host on Thursdays", later "it moved to
-Tuesdays", and repeated one reflection three times. A memory search returns
-at most five records, matched by shared words; recall selects up to three.
-Duplicates can occupy those slots, and Muse may repeat the stale day.
+All of the above is **uncommitted** on `main`. The full test suite passed
+(2596 tests) after the code changes. A commit needs the owner's go-ahead.
 
-**After.** The intended result is that Sculptor links duplicates, hides
-extra copies from retrieval, and writes a summary that keeps the correction.
-Each round proposes one action, and hiding a copy takes a link and then a
-tombstone, so three rounds complete only part of this work. The evaluation
-checks whether recall returns the current fact and fewer duplicates.
+### Beads
 
-## Dated memories
+- Epic `linger-g3rw`: Experiment 3. `linger-g3rw.1` sealed set is **closed**;
+  `linger-g3rw.2` Stage 1 is **next**; `linger-g3rw.3` is the Sculptor
+  chapter-cue skill and the Stage 2 and 3 runner.
+- Experiment 2 follow-ups: `linger-p9iw` (derived summaries competing in
+  memory search), `linger-4uix` (Cyrillic in a topic label), `linger-9j42`
+  (capture time turned into an event date).
 
-Memories originally carried no date that any agent could see: Sculptor
-received only each memory's ID and text. During Ground truth review, the
-reviewer asked how Sculptor could tell which of two conflicting notes came
-later, such as "I host supper club on Thursdays" and "Supper club has moved to
-Tuesdays". It could only infer the order from wording such as "has moved" or
-"from now on", and two notes without such wording could not be ordered at all.
+### Next steps
 
-Memories now carry the time each one was captured:
+1. **Stage 1 (`linger-g3rw.2`, about a day).** In
+   `apps/backend/hybrid_librarian.py`, give each candidate a search text
+   (passage plus its chapter's `routing_description`, `characters`, and
+   `retrieval_cues`) separate from the canonical excerpt. Use it for the
+   keyword index, embeddings, and reranker input; keep excerpts and citations
+   canonical. Add the tag digest to the index cache key, and a test that no
+   passage beyond the reader's chapter is returned. Run
+   `tests/test_hybrid_librarian.py` and `uv run python -m evals.librarian.part_recall`.
+2. **Freeze request plans** for every practice and sealed need with one
+   production Librarian planning pass, stored beside
+   `evals/librarian/chapter_cue_needs.json`.
+3. **Score Stage 1 on the practice set** with a small runner that records, per
+   need, whether a passage containing its quote reaches the assessment pool.
+   Do not run the sealed set yet.
+4. **Sculptor chapter-cue skill (`linger-g3rw.3`).** One typed skill on
+   Sculptor's existing Agent. Input: the book's chapters, their current tags,
+   and the practice failures. Output: revised tags for every chapter within a
+   fixed word budget. Add the owner approval step.
+5. **Stages 2 and 3 on practice needs**, then run the sealed set once against
+   today's search and each stage. Check paired reader replies and apply the
+   [decision rule](#decision-rule).
 
-- **Scenario format.** A Prop may have an optional, timezone-aware
-  `recorded_at`. The ten supper-club Props are dated from 5 February to
-  7 July 2026. They are listed out of date order, so list position does not
-  reveal which note came first. The review app shows each Prop's date.
-- **Production.** A stored memory's `created_at`, set when Linger captures it,
-  is its capture time. `MemoryPolicyService.recorded_at` returns it, or nothing
-  when the stored value is not a valid timezone-aware time.
-- **Replays.** The curation replays and the memory loop report a Prop's own
-  `recorded_at`, never the synthetic record's placeholder or seeding time. A
-  Prop without a date reaches agents without one.
+## Experiment history
 
-Dates reach two agents:
+| Experiment | Result | Record |
+|---|---|---|
+| 1. End-to-end memory curation, then recall through chat (supper-club Scenario) | Null: Muse, Serendipity, and Provenance added more variation than curation removed | [Memory loop design and Experiment 1](../evaluation/memory-loop-experiment-1-2026-10-01.md) |
+| 2. Offline, Sculptor only: unreviewed curation, then memory search over frozen queries | Not positive: a summary that left its sources searchable made the recipe memory harder to find | [Experiment 2](../evaluation/memory-loop-experiment-2-2026-10-01.md) |
+| 3. Sculptor chapter cues for book retrieval | In progress | [Below](#experiment-3-sculptor-chapter-cues-for-book-retrieval), [feasibility check](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
 
-- **Sculptor** receives `recorded_at` on each memory in its curation input,
-  when known. Its skill treats it as capture time, not event time. Dates
-  stated in a note's text come first. Capture order decides only when every
-  cited note has a distinct time. Otherwise the wording decides, or the
-  conflict stays unresolved.
-- **Provenance** receives the same `recorded_at` on each source in curation
-  review. It checks that a summary's claim that one version replaced another
-  follows the same rules.
+The memory line stopped because its Scenario had little room to show a
+benefit: the remaining gain depended on Sculptor choosing duplicate hiding
+over summaries in one constructed case. Better book passages, by contrast,
+improve the answers every reader gets about that book.
 
-Muse, Serendipity, and Librarian do not receive dates. Recall still returns only
-a memory's ID and text, so Muse orders recalled notes from their wording.
-Carrying dates and derived-record labels through recall is tracked in
-`linger-gn7a`.
+## Experiment 3: Sculptor chapter cues for book retrieval
 
-## Experiment 1: first graded run (2026-10-01)
+Status: **feasibility check passed and question sets frozen on 2026-10-01;
+stages not built.**
 
-**Setup.** The run used adopted Ground truth for the supper-club Scenario, the
-`memory-curation-recall-loop` run configuration, and `openai:gpt-6-luna` for
-every agent. Each of three repetitions sent the five recall Lines through
-production chat on raw memories and after one, two, and three cumulative
-production curation rounds with real Provenance review: 60 recall turns and 9
-curation rounds in total. Run `41689cbd`;
-[Logfire experiment](https://logfire-us.pydantic.dev/desmond-choy/linger/evals/memory_curation_recall_loop/compare?experiment=01a0f4b0f74248691761a2d69b0606ad-fe6452080c9f650c).
+Sculptor improves the data the Librarian searches, measures whether book
+retrieval improves, and uses the remaining failures to revise its work once
+more:
 
-**Curation.** Every summary Sculptor wrote stated the Thursday-to-Tuesday move
-correctly.
+- **Sculptor writes reading aids, not book text.** It revises each chapter's
+  descriptive metadata: a short description, the characters, and retrieval
+  cues. The book text, quotes, and citations never change, as
+  [book registration](../book-registration.md) requires.
+- **Retrieval reads the aids.** Each passage is searched together with its
+  chapter's cues.
+- **A human approves each rewrite.** Sculptor proposes, a human reviews the
+  diff, and application code activates it.
+- **Failures drive the next rewrite.** After each stage, Sculptor sees which
+  practice needs still fail and why. Sealed needs stay unseen until every
+  stage is frozen.
 
-| Repetition | Round 1 | Round 2 | Round 3 |
-|---|---|---|---|
-| 1 | Night summary applied | All three reflection copies linked | One copy hidden |
-| 2 | Night summary sent back for revision | Night summary sent back for revision | Night summary applied |
-| 3 | Night summary applied | Two identical copies linked | One copy hidden |
+The method is document expansion. [Doc2query](https://arxiv.org/abs/1904.08375)
+(Nogueira et al., 2019) adds generated text to passages to improve retrieval,
+and [LongMemEval](https://arxiv.org/abs/2410.10813) reports that
+fact-augmented memory keys raise recall@k by about 9%. Neither paper predicts
+Linger's gain, and neither covers a repeated loop. Why chapter cues rather
+than passage cards, a glossary, or assessment cards is in the
+[feasibility check](../evaluation/chapter-cue-feasibility-2026-10-01.md#alternatives).
 
-**Recall.** Hard-gate passes out of three repetitions:
+### Evaluation set
 
-| Scene | Raw | 1 round | 2 rounds | 3 rounds |
-|---|---|---|---|---|
-| Which night now, and before (changed fact) | 3/3 | 2/3 | 3/3 | 1/3 |
-| Tried several new recipes before (crowded out) | 0/3 | 1/3 | 1/3 | 1/3 |
-| What helped with nerves (paraphrase only) | 0/3 | 0/3 | 0/3 | 0/3 |
-| Nut allergy (preservation check) | 2/3 | 3/3 | 3/3 | 3/3 |
-| Charging guests (no relevant memory) | 2/3 | 3/3 | 3/3 | 3/3 |
+Both sets are frozen in `evals/librarian/chapter_cue_needs.json`, with author,
+visibility to Sculptor, and label status.
 
-**Analysis.** The result is null: no change in the table can be attributed to
-curation.
+- **Practice:** the 20 needs written for the feasibility check. Sculptor may
+  see their outcomes. The hand-revised probe cues are discarded and never
+  reach Sculptor.
+- **Sealed:** 20 needs written by gpt-6-astra at max reasoning effort in a
+  fresh read-only session limited to the chapter files, given only the
+  practice passages to avoid. Every quote matches the book exactly once, the
+  needs span 20 chapters, and none lies within about 1,500 characters of a
+  practice passage. Sculptor never sees them.
+- **Flagged for review:** sealed need s11 (chapter 21) comes from the same
+  episode as practice need n11 (chapter 22).
 
-- **The night summary was never used.** In all seven arms where it existed,
-  Serendipity recalled the two original notes instead. The four night
-  failures were not recall failures. Provenance sent each reply back twice
-  because the Thursday note does not itself say that Thursday was the former
-  night, and the application then declined to answer. Several passing replies
-  hedged for the same reason. Provenance's strictness about "used to"
-  inferences caused more failures than anything curation changed.
-- **The recipe improvement does not follow the curation.** Two of the three
-  passes came in arms where no reflection copy had been hidden; only one came
-  after a copy was hidden. Which memories search returned varied with how
-  Serendipity worded each query.
-- **The paraphrase-only memory was never found**, as the search dry run
-  predicted. Two of those twelve turns also hit Muse model failures.
-- **The nut-allergy and charging Scenes** each had one miss on raw memories and
-  none afterwards, which is within run-to-run variation.
-- **No reply cited a summary**, so the misattribution risk in `linger-gn7a`
-  was not exercised.
+Twenty sealed needs hold about 4 misses at Stage 1, enough room for the
+decision rule. They support a transparent case study with paired wins and
+losses, not a precise general improvement rate. Labels are accepted without
+prior human review by owner decision, which departs from the usual rule that
+Ground truth is adopted before graded runs.
 
-No pass threshold was written down before the run. The threshold proposed
-during review is not met: the night and recipe Scenes passing in at least two
-of three repetitions after three rounds but not on raw memories, with the
-nut-allergy and charging Scenes holding at 3/3.
+### Measure
 
-The end-to-end design measured too much at once. Turn triage, Serendipity's
-query and record choices, Muse's wording, and Provenance's release review each
-added more variation than curation removed. Curation acts on what memory search
-can find, so the next experiment measures that directly.
+The primary measure is the share of needs whose passage, identified by its
+quote, reaches the Librarian's assessment pool under production limits: three
+passages per planned part, two per context query, up to 20 per book
+(`src/linger/orchestration/book_evidence.py`). Request plans are frozen, so
+the cues are the only change. Selected evidence and reader replies are checked
+separately, because retrieval alone does not show that the reader benefits.
 
-## Next: offline Sculptor-only loop
+### Reading aid
 
-The follow-up runs the same Scenario as a strictly offline loop in which
-Sculptor is the only agent:
+| Decision | Plan |
+|---|---|
+| Aid | Revised chapter `routing_description`, `characters`, and `retrieval_cues`, within a fixed word budget per chapter. |
+| Storage | The existing reviewed chapter metadata, which book registration already lets Sculptor propose. No new file type. |
+| Retrieval | Each passage's keyword text, embedding text, and reranker input include its chapter's cues. Excerpts and citations stay canonical. |
+| Activation | A human approves the metadata diff. The corpus validator checks it, and the cue digest joins the index cache key. |
+| Scope | Cues describe only their own chapter, which reading permissions already bound. |
 
-- **Curation without Provenance.** Each round applies Sculptor's proposal
-  directly, with no curation review. This is an ablation: production never
-  applies unreviewed curation, so results must be labelled as such and not
-  read as production behaviour.
-- **Recall without agents.** No turn triage, Muse, Serendipity, or release
-  review. Each recall Line runs as the query through the production memory
-  search over the curated retrieval view. The measure is whether each relevant
-  memory, or a summary or retrievable duplicate standing for it, reaches the
-  top five results, and at what rank, before and after each round.
-- **Repetitions.** Recall is deterministic, so repetitions sample only
-  Sculptor's choices.
+Search needs a separate search text beside the canonical excerpt, because
+`Candidate.text` currently feeds indexing, embeddings, reranking, and quoted
+excerpts (`apps/backend/hybrid_librarian.py`). Wiring in the existing cues is
+an ordinary improvement every reader gets on its own. It becomes Stage 1, so
+the self-improvement claim rests only on Sculptor's rewrites beyond it.
 
-This isolates the question curation can answer: does it make the right memory
-easier to find? Whether replies improve, and whether summaries are presented
-honestly, remain separate end-to-end checks.
+### The loop
 
-## Critical notes
+1. **Stage 1: baseline.** Existing cues wired in. Record each practice miss,
+   the chapter search chose, and the passages that outranked the required one.
+2. **Stage 2: Sculptor's first rewrite.** Sculptor revises cues for every
+   chapter, a human approves them, and the practice needs run again.
+3. **Stage 3: Sculptor's second rewrite.** Sculptor receives the Stage 2
+   outcomes and its own Stage 2 cues, names the remaining failure patterns,
+   and revises the cues. A human approves, and the practice needs run again.
 
-- **The result may be null.** Report every repetition, including no-change,
-  rejected, and failed curation outcomes.
-- **Claim only what the results support.** A positive result shows improved
-  recall in this Scenario. Improvement "with use" still needs evidence through
-  ordinary conversation and capture. This experiment does not feed recall
-  outcomes back into future curation, so stronger RSI claims remain unproven.
-- **Capture is off by default**, so the benefit is shown in controlled
-  evaluation. The runner calls `run_curation_loop` directly, not the
-  capture-triggered chat path.
-- **Human adoption of Ground truth** is required before graded runs. Start
-  the Scenario first.
-- **Cross-agent impact:**
-  - Muse: answers may change, and recalled summaries must not be presented as the reader's words; check the recall runs.
-  - Librarian: no effect in this memory-only Scenario.
-  - Serendipity: retrieved evidence may change; check recall runs and `tests/test_serendipity_memory_recall.py`.
-  - Provenance: reviews changed proposals and replies, and sees each source's `recorded_at` in curation review; check recall runs and `tests/test_curation_provenance.py`.
-  - Sculptor: receives prior curation state once any exists, in chat-triggered curation as well; first-round input is unchanged. Check `tests/test_memory_loop_replay.py`, `tests/test_synthetic_curation_replay.py`, and the bounded-curation replay.
-- **Deferred:** the developer playbook (§9.2). Track this choice in
-  `linger-heza`.
+The word budget stays fixed, and every chapter is revised, not only chapters
+behind practice answers. The loop stops after Stage 3, or earlier when a stage
+brings no net practice gain or loses a need found at Stage 1. Then the sealed
+needs run once against today's search (for reference) and each stage.
+
+**Expectations.** Sealed needs that miss at Stage 1 because search picks the
+wrong chapter should improve. Needs found at Stage 1 must hold. Within-chapter
+misses are reported, since chapter cues cannot fix them.
+
+### Decision rule
+
+| Parameter | Value |
+|---|---|
+| Sealed gain | Stage 3 reaches at least 3 more of the 20 sealed needs than Stage 1, and no need found at Stage 1 is lost. |
+| Recursion | Stage 3 reaches at least 1 more sealed need than Stage 2, with no offsetting loss. |
+| Reader benefit | Paired reader replies show at least 2 improved, correctly sourced answers. |
+| Integrity | Quotes and citations stay canonical, and the reading-scope test passes. |
+
+If only Stage 2 helps, the benefit of the second, recursive rewrite is
+unproven. A pass supports a bounded claim: a supervised loop improved
+retrieval data and reader answers on one book and one frozen evaluation set.
+
+### Plan
+
+| Period | Deliverable |
+|---|---|
+| 1 October, **done** | Feasibility check passed; chapter cues chosen; both question sets written and frozen. |
+| 2–7 October | Stage 1 wiring, frozen request plans, Stage 1 practice score, the chapter-cue skill, the approval step, and the reading-scope test. |
+| 8–14 October | Stages 2 and 3 on practice feedback. Record proposals, approvals, revisions, scores, and cost. |
+| 15–21 October | Sealed run against every frozen stage, paired reader replies, then the owner's review. Activate the approved cues if the rule passes. 22 October is buffer. |
+
+### Risks
+
+- **Gains may vanish after assessment.** Paired replies check what the pool
+  measure cannot.
+- **Cues may overfit known answers.** Every chapter is revised, the word
+  budget is fixed, and the sealed set stays unseen.
+- **Cues may invent facts or reveal later chapters.** Each cue must be
+  supported by its own chapter, and reading permissions bound which chapters
+  are searched.
+- **The expected gain is close to noise.** Planning varied by one need between
+  runs, so comparisons use frozen plans.
+
+### Cross-agent impact
+
+- **Muse:** different passages can change answers. Check
+  `tests/test_muse_source_boundary_checks.py` and paired replies.
+- **Librarian:** ranking, scope, and caching change directly. Check
+  `tests/test_hybrid_librarian.py`, part recall, and new cue and cache tests.
+- **Serendipity:** connection discovery receives different evidence. Check
+  `tests/test_serendipity_source_gathering.py`.
+- **Provenance:** reviews different canonical passages. Check
+  `tests/test_provenance_quote_checks.py` and attribution in paired replies.
+- **Sculptor:** gains an offline chapter-cue skill. Extend
+  `tests/test_sculptor_runtime_skills.py` and rerun memory-curation cases.
+
+Astra reviewed the plan on 2026-10-01 and shaped the measure, the set sizes,
+and the decision rule.

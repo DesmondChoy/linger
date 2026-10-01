@@ -1,0 +1,261 @@
+{
+ "schema_version": 1,
+ "work_id": "pg500",
+ "book_version_id": "pg500-v6bdc1734",
+ "chapter_max": 36,
+ "frozen_on": "2026-10-01",
+ "match_rule": "A need is reached when a passage in the Librarian assessment pool contains its quote, whitespace normalised.",
+ "label_status": "Accepted without prior human review by owner decision on 2026-10-01; the owner reviews questions, quotes, and results after the run.",
+ "practice": {
+  "author": "Claude (claude-opus-5-5), written for the 2026-10-01 feasibility check",
+  "visible_to_sculptor": true,
+  "needs": [
+   {
+    "id": "n01",
+    "chapter": 17,
+    "question": "Where does Pinocchio's nose grow because he lies to the Fairy about his money?",
+    "quote": "his nose, long though it was, became at least two inches longer"
+   },
+   {
+    "id": "n02",
+    "chapter": 4,
+    "question": "Why did Pinocchio kill the cricket that was trying to give him advice?",
+    "quote": "took a hammer from the bench, and threw it with all his strength at the Talking Cricket"
+   },
+   {
+    "id": "n03",
+    "chapter": 7,
+    "question": "The bit where he's too fussy to eat the pears unless his dad peels them for him.",
+    "quote": "I will not eat the pears if they are not peeled"
+   },
+   {
+    "id": "n04",
+    "chapter": 8,
+    "question": "Geppetto sold his own coat so Pinocchio could go to school. Where is that?",
+    "quote": "In his hands he had the A-B-C book for his son, but the old coat was gone"
+   },
+   {
+    "id": "n05",
+    "chapter": 6,
+    "question": "How did his wooden feet get burned off?",
+    "quote": "his wooden feet began to burn"
+   },
+   {
+    "id": "n06",
+    "chapter": 5,
+    "question": "When he tries to cook an egg and a baby chick comes out instead.",
+    "quote": "a little yellow Chick, fluffy and gay and smiling, escaped from it"
+   },
+   {
+    "id": "n07",
+    "chapter": 11,
+    "question": "Why did the puppet master Stromboli let him go instead of burning him?",
+    "quote": "he could control himself no longer and gave a loud sneeze"
+   },
+   {
+    "id": "n08",
+    "chapter": 12,
+    "question": "When does he first meet the fox and the cat on his way home with the coins?",
+    "quote": "he met a lame Fox and a blind Cat, walking together like two good friends"
+   },
+   {
+    "id": "n09",
+    "chapter": 18,
+    "question": "Where he buries his gold coins hoping they'll grow into a money tree.",
+    "quote": "He dug the hole, put the four gold pieces into it, and covered them up"
+   },
+   {
+    "id": "n10",
+    "chapter": 19,
+    "question": "The unfair judge who sends him to jail for being robbed.",
+    "quote": "This poor simpleton has been robbed of four gold pieces"
+   },
+   {
+    "id": "n11",
+    "chapter": 22,
+    "question": "When he has to work as a guard dog and catches the animals stealing chickens.",
+    "quote": "pulled out the Weasels one by one"
+   },
+   {
+    "id": "n12",
+    "chapter": 23,
+    "question": "He finds the Fairy's grave and thinks she died because of him.",
+    "quote": "WHO DIED OF GRIEF WHEN ABANDONED BY HER LITTLE BROTHER PINOCCHIO"
+   },
+   {
+    "id": "n13",
+    "chapter": 28,
+    "question": "The green fisherman who wants to fry him along with the other fish.",
+    "quote": "fry you in the pan with the others"
+   },
+   {
+    "id": "n14",
+    "chapter": 29,
+    "question": "The slow snail who takes all night to come and open the door.",
+    "quote": "I am a snail and snails are never in a hurry"
+   },
+   {
+    "id": "n15",
+    "chapter": 30,
+    "question": "Where he promises to come back in an hour but runs off to Pleasure Island with his friend instead.",
+    "quote": "be back in one hour without fail"
+   },
+   {
+    "id": "n16",
+    "chapter": 32,
+    "question": "When he wakes up and finds he has donkey ears.",
+    "quote": "his ears had grown at least ten full inches"
+   },
+   {
+    "id": "n17",
+    "chapter": 33,
+    "question": "He hurts his leg doing tricks at the circus and gets sold off.",
+    "quote": "he would be lame for the rest of his life"
+   },
+   {
+    "id": "n18",
+    "chapter": 35,
+    "question": "Finding his father again inside the whale.",
+    "quote": "Oh, Father, dear Father! Have I found you at last?"
+   },
+   {
+    "id": "n19",
+    "chapter": 36,
+    "question": "His friend Candlewick dying after being turned into a donkey.",
+    "quote": "Then he closed his eyes and died"
+   },
+   {
+    "id": "n20",
+    "chapter": 36,
+    "question": "When he finally turns into a real boy.",
+    "quote": "he had become a real live boy"
+   }
+  ]
+ },
+ "sealed": {
+  "author": "gpt-6-astra at max reasoning effort, in a fresh read-only session limited to the chapter files, given only the practice passages to avoid",
+  "visible_to_sculptor": false,
+  "needs": [
+   {
+    "id": "s01",
+    "chapter": 1,
+    "question": "What was the carpenter going to make out of the log before it started talking?",
+    "quote": "I shall use it to make the leg of a\ntable.”"
+   },
+   {
+    "id": "s02",
+    "chapter": 2,
+    "question": "Why did Geppetto want to make a puppet in the first place?",
+    "quote": "With it I intend to go around the world, to earn my crust of bread and\ncup of wine."
+   },
+   {
+    "id": "s03",
+    "chapter": 3,
+    "question": "Where’s the part where Geppetto gets arrested after chasing Pinocchio down the street?",
+    "quote": "Pinocchio at liberty and dragging Geppetto to prison."
+   },
+   {
+    "id": "s04",
+    "chapter": 9,
+    "question": "How much did Pinocchio get for selling his schoolbook?",
+    "quote": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker"
+   },
+   {
+    "id": "s05",
+    "chapter": 10,
+    "question": "Where’s the part where the puppets stop their show because they recognize Pinocchio in the audience?",
+    "quote": "Harlequin stopped talking. Turning toward the audience, he\npointed to the rear of the orchestra"
+   },
+   {
+    "id": "s06",
+    "chapter": 13,
+    "question": "Where’s the bit where the cricket’s ghost tries to get Pinocchio to go home?",
+    "quote": "“I am the ghost of the Talking Cricket,” answered the little being"
+   },
+   {
+    "id": "s07",
+    "chapter": 14,
+    "question": "Why didn’t Pinocchio say anything at first when the robbers demanded his money?",
+    "quote": "On account of the gold pieces in his mouth, Pinocchio could not say\na word,"
+   },
+   {
+    "id": "s08",
+    "chapter": 15,
+    "question": "Where’s the part where the girl at the window says she’s dead and won’t let Pinocchio in?",
+    "quote": "“I am waiting for the coffin to take me away.”"
+   },
+   {
+    "id": "s09",
+    "chapter": 16,
+    "question": "What animals were pulling the fairy’s carriage when she sent it to collect Pinocchio?",
+    "quote": "It was drawn by one hundred pairs\nof white mice,"
+   },
+   {
+    "id": "s10",
+    "chapter": 20,
+    "question": "Why did that huge snake in the road suddenly die?",
+    "quote": "the Serpent laughed so heartily and so long that at last he\nburst an artery and died on the spot."
+   },
+   {
+    "id": "s11",
+    "chapter": 21,
+    "question": "Where’s the bit where a farmer chains Pinocchio up to guard his chickens?",
+    "quote": "He slipped a dog collar around Pinocchio’s\nneck and tightened it so that it would not come off."
+   },
+   {
+    "id": "s12",
+    "chapter": 24,
+    "question": "What food finally convinced Pinocchio to help the woman carry her water home?",
+    "quote": "“And after the cauliflower, some cake and jam.”"
+   },
+   {
+    "id": "s13",
+    "chapter": 25,
+    "question": "Why did the fairy say Pinocchio couldn’t grow any taller?",
+    "quote": "“Because Marionettes never grow. They are born Marionettes, they live\nMarionettes, and they die Marionettes.”"
+   },
+   {
+    "id": "s14",
+    "chapter": 26,
+    "question": "Where’s the scene where the schoolboys try to attach strings to Pinocchio and make him dance?",
+    "quote": "One even attempted to tie strings to\nhis feet and his hands to make him dance."
+   },
+   {
+    "id": "s15",
+    "chapter": 27,
+    "question": "Where’s the part where the fish try to eat the schoolbooks the boys throw into the sea?",
+    "quote": "The fish, thinking they might be good to eat, came to the top of the\nwater in great numbers."
+   },
+   {
+    "id": "s16",
+    "chapter": 28,
+    "question": "Where’s the bit where Pinocchio saves the dog that was chasing him?",
+    "quote": "he swam to\nAlidoro and, catching hold of his tail, dragged him to the shore."
+   },
+   {
+    "id": "s17",
+    "chapter": 31,
+    "question": "What kind of shoes did the donkeys pulling the boys’ wagon wear?",
+    "quote": "laced shoes made of leather, just like the ones boys wear."
+   },
+   {
+    "id": "s18",
+    "chapter": 34,
+    "question": "Where’s the bit where a blue goat tries to pull Pinocchio out of the sea?",
+    "quote": "The Goat leaned over and gave him one of her\nhoofs to help him up out of the water."
+   },
+   {
+    "id": "s19",
+    "chapter": 35,
+    "question": "Why was the shark sleeping with its mouth open when Pinocchio and Geppetto tried to escape?",
+    "quote": "the Shark, being very old and suffering from\nasthma and heart trouble, was obliged to sleep with his mouth open."
+   },
+   {
+    "id": "s20",
+    "chapter": 36,
+    "question": "Where’s the part where the big fish gives Pinocchio and his father a ride to shore?",
+    "quote": "instead of hanging onto the tail, they thought it\nbetter to climb on the Tunny’s back."
+   }
+  ]
+ }
+}
