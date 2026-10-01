@@ -73,8 +73,7 @@ about one need between runs.
 | Feasibility check; probe scripts were in a session scratchpad and are not kept | [Chapter-cue feasibility](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
 | Frozen practice and sealed needs | `evals/librarian/chapter_cue_needs.json` |
 
-All of the above is committed on `main` (`3926c86` to the Experiment 2 removal
-commit), not pushed.
+All of the above is committed and pushed on `main` (`3926c86` to `d7f332d`).
 
 ### Beads
 
