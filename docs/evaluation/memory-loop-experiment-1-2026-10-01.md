@@ -25,7 +25,7 @@ too, so Sculptor can order an evolving fact without relying on wording.
 | `evals/synthetic_journals/replay_support.py`, `synthetic-journal-evaluation/evaluation-objectives.yaml` | **Done in `replay_support.py`.** The Scenario declares only `longitudinal_memory_retrieval` and the `memory-curation-recall-loop` run configuration, which selects the runner. Curation is the runner's treatment, not a graded Scene. The Objective catalogue is unchanged. |
 | `src/linger/agents/serendipity/tools.py`, Muse `reflection` skill, Provenance review | **Not done.** Carry a derived summary's kind and source references through recall. `search_memories` returns only an ID and text today, and Muse treats recalled text as the reader's exact words. |
 | `tests/test_memory_loop_replay.py` | **Done.** Runner logic with injected models, including state passed between rounds and scoring of derived evidence. |
-| `evals/synthetic_journals/offline_search_loop.py`, `tests/test_offline_search_loop.py`, the Scenario's `offline-search-preregistration.json` | **Done; run 2026-10-01.** Experiment 2: unreviewed Sculptor rounds and production memory search over frozen queries. |
+| `evals/synthetic_journals/offline_search_loop.py`, `tests/test_offline_search_loop.py`, the Scenario's `offline-search-preregistration.json` | **Run 2026-10-01, removed after.** Experiment 2: unreviewed Sculptor rounds and production memory search over frozen queries. Recoverable from commit `3926c86`. |
 | `docs/specification.md` §7.2.2 and §9, `evals/synthetic_journals/README.md` | The README describes the runner. The specification waits for a measured result. |
 
 ## How it works

@@ -12,8 +12,9 @@ document.
 Status: **run on 2026-10-01; not positive; superseded.**
 
 The follow-up runs the same Scenario as a strictly offline loop in which
-Sculptor is the only agent. `evals/synthetic_journals/offline_search_loop.py`
-implements it; the evals README describes the command.
+Sculptor is the only agent. The runner, `evals/synthetic_journals/offline_search_loop.py`,
+its tests, and the pre-registration were committed in `3926c86` and removed
+after the experiment was superseded; restore them from that commit to rerun.
 
 - **Curation without Provenance.** Each round applies Sculptor's proposal
   directly, with no curation review. This is an ablation: production never
@@ -21,7 +22,7 @@ implements it; the evals README describes the command.
   `curation_review: "ablated"` and must not be read as production behaviour.
 - **Recall without agents.** No turn triage, Muse, Serendipity, or release
   review. Each frozen query runs through production memory search
-  (`rank_memories`, now shared with `search_memories`) over the curated
+  (the same scoring as `search_memories`) over the curated
   retrieval view.
 - **Repetitions.** Search is a fixed function of the query and the retrieval
   view, so repetitions sample only Sculptor's choices.
@@ -42,8 +43,8 @@ Each Scene's query set is therefore its Line followed by every distinct query
 Serendipity sent to `search_memories` for that Scene in Experiment 1: 13 to 17
 queries per Scene. Using several real phrasings of one need follows the query
 variation approach of [UQV100](https://www.microsoft.com/en-us/research/publication/uqv100-a-test-collection-with-query-variability/)
-(Bailey, Moffat, Scholer and Thomas, SIGIR 2016). The set is frozen in
-`offline-search-preregistration.json` in the Scenario directory. Sculptor
+(Bailey, Moffat, Scholer and Thomas, SIGIR 2016). The set was frozen in
+`offline-search-preregistration.json` in the Scenario directory (commit `3926c86`). Sculptor
 never sees it.
 
 ### Measure

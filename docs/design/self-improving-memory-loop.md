@@ -69,13 +69,12 @@ about one need between runs.
 
 | Item | Where |
 |---|---|
-| Experiments 1 and 2, runners, and pre-registration (superseded, kept as record) | [Experiment 1](../evaluation/memory-loop-experiment-1-2026-10-01.md), [Experiment 2](../evaluation/memory-loop-experiment-2-2026-10-01.md), `evals/synthetic_journals/offline_search_loop.py` |
-| `rank_memories` extracted from `search_memories`, behaviour unchanged | `src/linger/agents/serendipity/tools.py` |
+| Experiments 1 and 2 (superseded). Experiment 1's runner stays; Experiment 2's runner was removed and is recoverable from commit `3926c86` | [Experiment 1](../evaluation/memory-loop-experiment-1-2026-10-01.md), [Experiment 2](../evaluation/memory-loop-experiment-2-2026-10-01.md) |
 | Feasibility check; probe scripts were in a session scratchpad and are not kept | [Chapter-cue feasibility](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
 | Frozen practice and sealed needs | `evals/librarian/chapter_cue_needs.json` |
 
-All of the above is **uncommitted** on `main`. The full test suite passed
-(2596 tests) after the code changes. A commit needs the owner's go-ahead.
+All of the above is committed on `main` (`3926c86` to the Experiment 2 removal
+commit), not pushed.
 
 ### Beads
 
