@@ -1,0 +1,114 @@
+{
+  "experiment": "offline-sculptor-search-loop",
+  "registered_on": "2026-10-01",
+  "query_source": "Each held-out Line, then every distinct search_memories query Serendipity issued for that Scene in Experiment 1 (run 41689cbd), in order of first use.",
+  "k": 5,
+  "alpha": 0.05,
+  "non_inferiority_margin": 0.1,
+  "required_repetitions": 2,
+  "scenes": [
+    {
+      "scene_id": "scene-current-night",
+      "role": "hold",
+      "queries": [
+        "My new neighbour Dario asked whether he could come along to supper club. Which night did I tell you I host it now, and what did I say it used to be?",
+        "supper club host night now what night used to be; neighbour Dario invitation",
+        "supper club what night host now used to be previous day/time",
+        "supper club host night changed from what day; neighbour Dario asking to come along",
+        "supper club hosting night changed from what it used to be; neighbour Dario invitation",
+        "supper club hosting night now; what night it used to be",
+        "supper club host night, which night now and what night it used to be; neighbour Dario invited to come along",
+        "supper club current host night; what night it used to be, Dario neighbour invitation",
+        "supper club host night, which night it is now and what day/time it used to be",
+        "supper club which night host now and what night it used to be; neighbour Dario asking to come along",
+        "supper club host night now, what night it used to be; neighbour Dario invitation",
+        "supper club hosting night, what night it is now and what day or night it used to be",
+        "supper club host night now used to be; Dario neighbour asked to come along"
+      ]
+    },
+    {
+      "scene_id": "scene-several-changes",
+      "role": "improve",
+      "queries": [
+        "I've found three new recipes and I'm tempted to put all of them on the supper club menu this week. Have I tried something like this before, and how did it go?",
+        "supper club menu trying multiple new recipes at once; previous experience adding new dishes and how it went",
+        "Earlier experiences adding several new recipes to supper club menu at once; how it went, trying multiple new dishes in one week.",
+        "past supper club menu trying several new recipes at once; how it went",
+        "Trying several new recipes at once on the supper club menu; what happened when I did that before?",
+        "supper club menu trying multiple new recipes at once, how it went",
+        "past supper club planning menu several unfamiliar dishes new recipes cooking too many experiments",
+        "Trying multiple new recipes on supper club menu at once; past experience and how it went",
+        "supper club menu tried adding several new recipes at once, how it went",
+        "Trying several new recipes at once on the supper club menu; previous experience putting multiple new dishes on the menu and how it went",
+        "prior experience cooking or testing several new recipes for supper club menu; what happened or outcome",
+        "trying several new recipes at once for supper club menu, how it went; previous menu experiments with multiple new dishes",
+        "previous occasions tested multiple new recipes or dishes at supper club menu and what happened",
+        "supper club menu trying several new recipes at once and how it went",
+        "hosting supper club cooked multiple unfamiliar recipes together before outcome",
+        "Earlier time tried adding several new recipes to supper club menu at once, and how it went",
+        "supper club menu trying multiple new recipes at once; whether done before and how it went"
+      ]
+    },
+    {
+      "scene_id": "scene-start-of-evening-nerves",
+      "role": "report",
+      "queries": [
+        "I still get jittery at the start of the evening, right when everyone is watching me bring the food in. Did I ever find something that helped?",
+        "jittery at start of evening everyone watching bring food in; what helped with this",
+        "nervous or anxious serving food, guests watching, arrival or start of supper club; coping strategy that helped",
+        "jittery at start of evening when everyone watches me bring food in; what helped with this",
+        "jittery at the start of the evening when everyone watches me bring the food in; what helped",
+        "hosting supper club anxiety nervous serving food guests watching; coping strategy that helped",
+        "jittery at start of evening when everyone watches me bring food in; what helped with hosting or serving dinner anxiety",
+        "jittery at start of evening when everyone watching me bring the food in; what helped with serving food while watched",
+        "nervous or anxious serving dinner food in front of guests, hosting supper club, what coping strategy helped",
+        "jittery start of evening everyone watching bring the food in; what helped with serving or hosting anxiety",
+        "jittery at start of evening when everyone watches me bring the food in; what helped with this",
+        "jittery at start of evening when everyone watching me bring food in; what helped",
+        "jittery at start of evening when everyone is watching me bring the food in; what helped with this?",
+        "jittery at start of evening when everyone watches me bring the food in; what helped with this?",
+        "jittery at start of evening when everyone watches me bring food in; what helped with this?",
+        "hosting supper club anxiety nervousness serving guests at the beginning of evening; coping strategy",
+        "jittery at start of evening when everyone watches me bring food in; what helped"
+      ]
+    },
+    {
+      "scene_id": "scene-dietary-preservation",
+      "role": "hold",
+      "queries": [
+        "Dario has offered to bring a dessert. Have I mentioned anyone who can't eat something, so I can warn him?",
+        "Anyone who can't eat certain foods, food allergies or dietary restrictions to warn Dario about bringing dessert",
+        "people with food allergies, intolerances, or dietary restrictions; who can't eat particular foods or dessert ingredients",
+        "people who cannot eat something, food allergies, dietary restrictions or intolerances; specifically someone to warn Dario about bringing dessert",
+        "people with food allergies, dietary restrictions, or foods they cannot eat; who to warn about dessert",
+        "people who cannot eat certain foods, food allergies, dietary restrictions or intolerances, especially anyone to warn about dessert",
+        "people who cannot eat certain foods, allergies, dietary restrictions or food sensitivities; who to warn about dessert",
+        "people with food allergies, dietary restrictions, or foods they cannot eat; dessert, ingredients",
+        "people who cannot eat certain foods, food allergies, dietary restrictions or intolerances; guests to warn Dario about dessert",
+        "people with food allergies, dietary restrictions, or ingredients they cannot eat; dessert warning",
+        "people who cannot eat certain foods, allergies, dietary restrictions, food intolerances, dessert",
+        "Someone's food allergy, dietary restriction, or ingredient they cannot eat; who to warn Dario about bringing dessert.",
+        "People who can't eat certain foods, allergies, dietary restrictions or intolerances; anyone to warn Dario about dessert"
+      ]
+    },
+    {
+      "scene_id": "scene-charging-no-match",
+      "role": "report",
+      "queries": [
+        "My sister thinks I should start charging a few pounds a head to cover the food. How do I work out whether that would change what supper club is?",
+        "reader's prior reflections or decisions about their supper club, charging guests, covering food costs, and whether payment changes its meaning or character",
+        "supper club charging guests a few pounds food whether charging changes its nature",
+        "supper club charging guests a few pounds to cover food; what supper club means, whether money changes it",
+        "Reader reflection about supper club and whether charging guests a few pounds for food would change its nature; prior thoughts about the supper club, hosting, money, or purpose.",
+        "Reader asks whether charging a few pounds per guest to cover food would change the nature or meaning of their supper club; seek prior personal reflection on supper club, hosting, shared meals, or charging guests.",
+        "Earlier reflections about supper club, hosting dinners, whether guests contribute money or food costs, and how charging might affect the purpose or character of the gathering.",
+        "reader's supper club, hosting supper, whether charging guests changes the meaning or nature of the gathering; prior reflections or decisions about it",
+        "supper club charging guests a few pounds per head to cover food; prior reflections on what supper club is, its purpose, hospitality, money, or whether it should be paid",
+        "supper club charging guests a few pounds to cover food; what supper club means, its character, hosting and costs",
+        "reader's prior reflections on supper club, hosting dinners, charging guests for food, money and how payment might change the social meaning of the gathering",
+        "reader's reflection about supper club, charging guests a few pounds to cover food, whether payment changes the nature or meaning of the gathering; prior thoughts on hosting, food, hospitality, cost-sharing, and purpose",
+        "The reader asks whether charging guests a few pounds for food would change the meaning or nature of their supper club. Find their prior reflections on the supper club, hospitality, money, food, or keeping it informal, especially the same decision."
+      ]
+    }
+  ]
+}

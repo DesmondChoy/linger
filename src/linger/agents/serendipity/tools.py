@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 from typing import Any
 from urllib.parse import unquote, urlsplit
@@ -208,6 +209,21 @@ class SerendipityDependencies:
         ))
 
 
+def rank_memories(
+    query: str,
+    memories: Sequence[CuratedMemory],
+) -> list[tuple[int, CuratedMemory]]:
+    """Order retrieval-view records by shared query words, ties by memory ID."""
+    query_terms = set(_normalised_tokens(query))
+    return sorted(
+        (
+            (len(query_terms & set(_normalised_tokens(record.text))), record)
+            for record in memories
+        ),
+        key=lambda item: (-item[0], item[1].memory_id),
+    )
+
+
 def search_memories(
     ctx: RunContext[SerendipityDependencies],
     query: str,
@@ -218,21 +234,13 @@ def search_memories(
         raise ModelRetry("Memory search requires a non-empty query.")
     if "memory" not in ctx.deps.task.scope.allowed_sources:
         raise ModelRetry("Memory search was not granted for this request.")
-    query_terms = set(_normalised_tokens(query))
-    ranked = sorted(
-        (
-            (len(query_terms & set(_normalised_tokens(record.text))), record)
-            for record in ctx.deps.memories
-        ),
-        key=lambda item: (-item[0], item[1].memory_id),
-    )
     limit = max(1, min(max_results_per_source, MAX_RESULTS_PER_SOURCE))
     evidence = tuple(
         MemoryConnectionEvidence(
             evidence_id=record.memory_id,
             excerpt=record.text,
         )
-        for overlap, record in ranked[:limit]
+        for overlap, record in rank_memories(query, ctx.deps.memories)[:limit]
         if overlap > 0
     )
     outcome = "evidence_found" if evidence else "no_evidence"

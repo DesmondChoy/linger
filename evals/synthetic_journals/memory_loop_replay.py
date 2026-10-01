@@ -43,6 +43,7 @@ from .evaluation_link import emit_evaluation_link
 from .models import (
     CurationRecallLoop,
     GroundTruthAdoption,
+    Prop,
     ProposedGroundTruth,
     StrictModel,
     SyntheticBackstory,
@@ -390,6 +391,24 @@ class _Repetition:
         }
 
 
+def _seed_repetition(
+    number: int,
+    props: Sequence[Prop],
+    *,
+    root: Path,
+    account_id: str,
+) -> _Repetition:
+    """Seed identical, dated Props into a fresh store for one repetition."""
+
+    account = AccountContext(account_id)
+    service = _DatedMemoryService(root / f"repetition-{number}")
+    memory_ids = _seed_props(props, service=service, account=account)
+    service.recorded = {memory_ids[prop.prop_id]: prop.recorded_at for prop in props}
+    return _Repetition(
+        number=number, service=service, account=account, memory_ids=memory_ids
+    )
+
+
 async def _run_curation_round(
     repetition: _Repetition,
     *,
@@ -565,6 +584,33 @@ def _loop_settings() -> CurationRecallLoop:
     return configuration.curation_recall_loop
 
 
+def _loop_scenes(
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+) -> tuple[_RetrievalScene, ...]:
+    """Return the recall Scenes of a memory-loop Scenario over one Prop bank."""
+
+    if backstory.objective_ids != (RETRIEVAL_OBJECTIVE_ID,):
+        raise ValueError(
+            "memory loop replay requires longitudinal_memory_retrieval alone"
+        )
+    if backstory.run_configuration_ids != (MEMORY_LOOP_RUN_CONFIGURATION_ID,):
+        raise ValueError(
+            "memory loop replay requires only the "
+            f"{MEMORY_LOOP_RUN_CONFIGURATION_ID} run configuration"
+        )
+    if backstory.offline_inputs or backstory.source_setups:
+        raise ValueError("memory loop replay accepts Lines and Props only")
+    scenes = tuple(
+        _retrieval_scene(backstory, ground_truth, scene)
+        for scene in sorted(backstory.scenes, key=lambda item: item.order)
+    )
+    bank = {prop.prop_id for prop in scenes[0].props}
+    if any({prop.prop_id for prop in scene.props} != bank for scene in scenes):
+        raise ValueError("memory loop replay requires one shared Prop bank")
+    return scenes
+
+
 async def replay_memory_loop(
     backstory: SyntheticBackstory,
     ground_truth: ProposedGroundTruth,
@@ -582,27 +628,9 @@ async def replay_memory_loop(
     Curation receives the Props and its own earlier decisions, never a Line.
     """
 
-    if backstory.objective_ids != (RETRIEVAL_OBJECTIVE_ID,):
-        raise ValueError(
-            "memory loop replay requires longitudinal_memory_retrieval alone"
-        )
-    if backstory.run_configuration_ids != (MEMORY_LOOP_RUN_CONFIGURATION_ID,):
-        raise ValueError(
-            "memory loop replay requires only the "
-            f"{MEMORY_LOOP_RUN_CONFIGURATION_ID} run configuration"
-        )
-    if backstory.offline_inputs or backstory.source_setups:
-        raise ValueError("memory loop replay accepts Lines and Props only")
-    loop_settings = settings or _loop_settings()
-
-    scenes = tuple(
-        _retrieval_scene(backstory, ground_truth, scene)
-        for scene in sorted(backstory.scenes, key=lambda item: item.order)
-    )
+    scenes = _loop_scenes(backstory, ground_truth)
     props = scenes[0].props
-    bank = {prop.prop_id for prop in props}
-    if any({prop.prop_id for prop in scene.props} != bank for scene in scenes):
-        raise ValueError("memory loop replay requires one shared Prop bank")
+    loop_settings = settings or _loop_settings()
 
     status: GroundTruthStatus = (
         adoption.ground_truth_status
@@ -676,20 +704,14 @@ async def replay_memory_loop(
             if inputs.order != completed + 1:
                 raise RuntimeError("memory loop cases did not execute in order")
             if current is None or current.number != inputs.repetition:
-                account = AccountContext(
-                    f"synthetic-eval:{backstory.backstory.evaluation_account_id}"
-                    f":{run_id}"
-                )
-                service = _DatedMemoryService(root / f"repetition-{inputs.repetition}")
-                memory_ids = _seed_props(props, service=service, account=account)
-                service.recorded = {
-                    memory_ids[prop.prop_id]: prop.recorded_at for prop in props
-                }
-                current = _Repetition(
-                    number=inputs.repetition,
-                    service=service,
-                    account=account,
-                    memory_ids=memory_ids,
+                current = _seed_repetition(
+                    inputs.repetition,
+                    props,
+                    root=root,
+                    account_id=(
+                        f"synthetic-eval:{backstory.backstory.evaluation_account_id}"
+                        f":{run_id}"
+                    ),
                 )
             while current.rounds_done < inputs.curation_rounds:
                 curation.append(

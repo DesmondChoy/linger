@@ -710,6 +710,45 @@ sources, and whether generated wording is presented as the reader's own words
 are review judgments; `semantic_review_required` stays true on every grade.
 Results describe this constructed Scenario and may be null.
 
+### Offline Sculptor-only search loop
+
+An ablation of the same Scenario that measures only whether curation makes
+relevant memories easier for memory search to find:
+
+```bash
+uv run python -m evals.synthetic_journals.offline_search_loop \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/offline-search-loop-run.json
+```
+
+Sculptor is the only agent. Each round runs production `run_curation_loop`
+with Provenance's curation review replaced by an approval of every proposal,
+so the artifact carries `curation_review: "ablated"` and must not be read as
+production behaviour. No chat turn runs. After zero to three cumulative rounds,
+each Scene's frozen queries run through production memory search
+(`rank_memories`) over the curated retrieval view.
+
+The queries, k, and decision rule come from `offline-search-preregistration.json`
+beside the Backstory (or `--preregistration`). Each Scene lists its Line first,
+then any further frozen queries, and declares a role:
+
+- `improve`: a repetition passes when mean recall after the last round exceeds
+  raw recall and an exact one-sided paired sign-flip randomization test over
+  the queries gives p at or below `alpha`. The Scene passes in at least
+  `required_repetitions` repetitions.
+- `hold`: a repetition passes when mean recall after every round stays within
+  `non_inferiority_margin` of raw recall. The Scene passes in every repetition.
+- `report`: measured and shown, never graded.
+
+The result is `positive` only when every graded Scene passes. Recall for one
+query is the mean over relevant Props of the chance that search returns a
+record standing for that Prop among its top k, averaged over every order of
+tied scores. A Prop is reached through itself, its retrievable copy when it is
+hidden, or a derived summary of either. A topic group does not count, because
+its searchable text is only a label. With `--output`, the command also prints a
+table of mean recall per Scene, repetition, and round.
+
 ## Weak-evidence reflection replay
 
 Replay a validated `weak_evidence_safe_decline` scenario through production chat:
