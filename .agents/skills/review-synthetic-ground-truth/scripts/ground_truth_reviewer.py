@@ -206,6 +206,11 @@ def build_review_payload(
                         "text": prop.source_text,
                         "role": roles.get(prop.prop_id, "context"),
                         "lifecycle": lifecycle,
+                        "recordedAt": (
+                            prop.recorded_at.isoformat()
+                            if prop.recorded_at is not None
+                            else None
+                        ),
                     }
                 )
             for input_id in scene.offline_input_ids:

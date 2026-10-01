@@ -406,6 +406,9 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
         "Prop"
     }
     assert curation_payload["rows"][0]["curation"] is not None
+    assert {
+        item["recordedAt"] for item in curation_payload["rows"][0]["inputs"]
+    } == {None}
     assert curation_payload["report"]["text"].startswith("# Pre-generation report")
 
 
@@ -1043,3 +1046,34 @@ def test_explicit_human_adoption_round_trips_and_rejects_changed_source(
     ground_truth.write_bytes(ground_truth.read_bytes() + b"\n")
     with pytest.raises(GroundTruthAdoptionError, match="exact file bytes"):
         validate_ground_truth_adoption_files(backstory, ground_truth, path)
+
+
+def test_review_payload_shows_when_each_prop_was_recorded() -> None:
+    scenario = (
+        Path(__file__).resolve().parents[1]
+        / "synthetic-journal-evaluation"
+        / "scenarios"
+        / "supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30"
+    )
+    backstory_path = scenario / "backstory.json"
+    ground_truth_path = scenario / "ground-truth.json"
+    backstory, ground_truth = validate_scenario_files(backstory_path, ground_truth_path)
+
+    payload = reviewer.build_review_payload(
+        backstory,
+        ground_truth,
+        backstory_path=backstory_path,
+        ground_truth_path=ground_truth_path,
+        backstory_bytes=backstory_path.read_bytes(),
+        ground_truth_bytes=ground_truth_path.read_bytes(),
+        report_path=None,
+    )
+
+    recorded = {
+        item["id"]: item["recordedAt"]
+        for item in payload["rows"][0]["inputs"]
+        if item["kind"] == "Prop"
+    }
+    assert recorded["prop-night-original"] == "2026-02-05T21:40:00+00:00"
+    assert recorded["prop-night-moved"] == "2026-06-16T20:00:00+00:00"
+    assert payload["replay"]["module"] == "evals.synthetic_journals.memory_loop_replay"

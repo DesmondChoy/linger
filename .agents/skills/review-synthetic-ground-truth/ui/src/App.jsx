@@ -44,6 +44,7 @@ function InputRecord({ item }) {
         {item.role ? <StatusPill tone={item.role === 'expected source' || item.role === 'relevant' ? 'positive' : 'neutral'}>{item.role}</StatusPill> : null}
       </header>
       {item.lifecycle ? <p className="constraint">Source state: {item.lifecycle}</p> : null}
+      {item.recordedAt ? <p className="constraint">Recorded: <time dateTime={item.recordedAt}>{item.recordedAt.replace('T', ' ')}</time></p> : null}
       {item.surfacingContext ? (
         <section className="typed-expectation">
           <div className="field-pair"><span>Decision time</span><strong>{item.surfacingContext.now}</strong></div>
