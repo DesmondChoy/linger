@@ -1,7 +1,8 @@
 # Self-Improving Loop
 
-Status: **Experiment 4 designed and re-baselined on 2026-10-01 (Stage 2: 17 of
-20 practice, so the pass mark is 20 of 20); Sculptor's research task is next.** Sculptor runs
+Status: **Experiment 4 round 1 passed on 2026-10-01: 20 of 20 practice (Stage 2:
+17), no losses, at about 3.8 times the words handed to the Librarian. See
+[Round 1](#round-1-2026-10-01-passed).** Sculptor runs
 retrieval experiments, analyses its own errors, researches a better approach
 on the web, and the developer builds what it specifies. The deliverable is a
 working, supervised loop with a full record; results are reported as they
@@ -113,6 +114,47 @@ it lost two practice needs whose passage was in the pool: n14, where the
 Librarian chose another passage, and n17, where its answer failed validation
 twice. Stage 2's practice misses are n07, n09, and n11, none of which reached
 the pool. **The pass mark is therefore 20 of 20 on practice with no losses.**
+
+### Round 1 (2026-10-01): passed
+
+Records: `evals/librarian/research_runs/round-1/` (prompt, every attempt,
+approvals) and `evals/librarian/chapter_cue_runs/round1-*.json` (scores).
+
+1. **Error analysis** (one attempt, no retries). Sculptor's categories:
+   "answer window falls beyond the returned-passage cutoff" (n07, n11) and
+   "exact answer window absent from the candidate turn order" (n09). The owner
+   approved them as written. The developer noted that n09 is misfiled: one of
+   its two answer windows is fifth in the turn order. Of the pitfalls listed
+   above, Sculptor found the pool cutoff and missed the other three.
+2. **Research** (two attempts). Attempt 1 failed only because the check
+   wanted bare need IDs in `expected_fixes` and Sculptor wrote "n07: why". The
+   owner chose to relax the check to read a leading need ID; the prompt did
+   not change. Attempt 2 used 2 searches and opened 2 pages, and specified:
+   keep the first 20 windows of each planned part's turn order instead of 3,
+   and change nothing else. It expected to fix n07 and n11 and, following the
+   analysis, not n09. The owner approved it.
+3. **Build.** `gather_book_candidates(part_candidates=...)` defaults to 3, so
+   production is unchanged; the `round1` search condition opts into 20 on
+   Stage 2's tags. Departures: the switch is an argument the eval runners
+   pass, not an application setting; spec change 4 (whether each answer window
+   survives the merge) is logged in the practice traces for misses only.
+   Astra found no blockers; its three freshness findings were fixed. Part
+   recall stayed 32 of 32 at 20 per part, but the multi-book pool grew from
+   23.6 to 78.3 windows on average.
+4. **Score.** No tuning, because the approach writes no Sculptor data.
+
+| Search | Practice: selected (in pool) | Held-back, reused: selected (in pool) | Mean words handed over (practice / held-back) | Input tokens per need (practice) |
+|---|---|---|---|---|
+| Stage 2: Sculptor's tags | 17 (17) | 16 (16) | 1,278 / 958 | 4,571 |
+| Round 1: 20 per part | **20** (20) | **20** (20) | 4,837 / 4,811 | 11,399 |
+
+Practice gained n07, n09, and n11 and lost none; held-back gained four and
+lost none. Each need still took one Librarian call. The gain comes with
+about 3.8 times (practice) and 5 times (held-back) the words handed to the
+Librarian, about an eighth of the book per question; this is the "more text
+can look like better retrieval" risk, so the cost is reported beside the
+score. The approved specification's test plan expected n09 to remain a miss;
+it passed, and its stated n07 position (16) is 17 counting from 1.
 
 ### The loop
 

@@ -208,8 +208,12 @@ def gather_book_candidates(
     purpose: Literal["evidence_retrieval", "connection_discovery"] = "evidence_retrieval",
     retrieval_score_threshold: float = 0.5,
     max_results: int = 5,
+    part_candidates: int = PART_CANDIDATES,
 ) -> tuple[EvidenceItem, ...]:
-    """Search each planned part in its own book, plus a small whole-request safety net."""
+    """Search each planned part in its own book, plus a small whole-request safety net.
+
+    `part_candidates` is an opt-in experiment switch; production keeps `PART_CANDIDATES`.
+    """
     part_queries = _part_queries(plan)
     # A part that repeats reader text already keeps more hits than the safety net.
     context_queries = tuple(query for query in _context_queries(original) if query not in part_queries)
@@ -243,7 +247,7 @@ def gather_book_candidates(
     for query in part_queries:
         streams = {scope.work_id: search(scope, query) for scope in book_scopes}
         for work_id in _routed_books(streams):
-            per_book[work_id].append(streams[work_id][:PART_CANDIDATES])
+            per_book[work_id].append(streams[work_id][:part_candidates])
     # Without a plan the whole request is the only query, so it keeps the full budget.
     context_budget = CONTEXT_CANDIDATES if part_queries else MAX_BOOK_CANDIDATES
     for scope in book_scopes:

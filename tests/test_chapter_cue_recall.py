@@ -167,6 +167,28 @@ def test_sealed_scores_run_once_and_freeze_every_stage(runs) -> None:
         chapter_cue_recall._lock_stages_for_sealed(runs / "stage1-sealed.json")
 
 
+def test_a_research_round_searches_stage2_cues_under_its_approved_specification(runs, tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(chapter_cue_recall, "RESEARCH_RUNS", tmp_path / "research")
+    _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+    folder = tmp_path / "research" / "round-1"
+    folder.mkdir(parents=True)
+    specification = folder / "specification.json"
+    specification.write_text('{"output": "keep more"}', encoding="utf-8")
+    (folder / "specification-approval.json").write_text(
+        json.dumps({"sha256": chapter_cue_recall._sha256(specification)}), encoding="utf-8",
+    )
+
+    assert (chapter_cue_recall.cue_stage("round1"), chapter_cue_recall.part_candidates("round1")) == (2, 20)
+    assert chapter_cue_recall.part_candidates("stage2") == 3
+    identity = chapter_cue_recall._identity("round1")
+    assert identity["proposal_sha256"] == chapter_cue_recall.approved_sha256(2)
+    assert identity["specification_sha256"] == chapter_cue_recall._sha256(specification)
+    specification.write_text('{"output": "edited"}', encoding="utf-8")
+    with pytest.raises(SystemExit, match="changed after approval"):
+        chapter_cue_recall._identity("round1")
+
+
 def _selection_setup(monkeypatch, picks):
     from src.linger.agents.librarian.models import EvidenceStrengthDecision
     from src.linger.orchestration import evidence_strength
@@ -208,7 +230,7 @@ def test_interrupted_selection_resumes_without_resampling(runs, monkeypatch) -> 
     needs, calls = _selection_setup(monkeypatch, [("wrong",)])
     output = runs / "today-practice-selected.json"
     finished = {
-        "id": needs[0]["id"], "passed": True, "selected": ["right"],
+        "id": needs[0]["id"], "identity": chapter_cue_recall._identity("today"), "passed": True, "selected": ["right"],
         "pool_sha256": chapter_cue_recall._pool_sha256(chapter_cue_recall._pools("practice", "today")[0][3]),
     }
     output.with_suffix(".partial.jsonl").write_text(json.dumps(finished) + "\n", encoding="utf-8")
@@ -217,6 +239,34 @@ def test_interrupted_selection_resumes_without_resampling(runs, monkeypatch) -> 
 
     assert calls == [needs[1]["question"]]
     assert [result["passed"] for result in results] == [True, False]
+
+
+def test_selection_never_resumes_from_other_needs_or_plans(runs, monkeypatch) -> None:
+    needs, calls = _selection_setup(monkeypatch, [("wrong",)])
+    finished = {
+        "id": needs[0]["id"], "identity": {**chapter_cue_recall._identity("today"), "needs_sha256": "older"},
+        "passed": True, "selected": ["right"],
+        "pool_sha256": chapter_cue_recall._pool_sha256(chapter_cue_recall._pools("practice", "today")[0][3]),
+    }
+    (runs / "today-practice-selected.partial.jsonl").write_text(json.dumps(finished) + "\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="cannot be resumed"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))
+    assert calls == []
+
+
+def test_research_rounds_refuse_stale_traces(runs, tmp_path, monkeypatch) -> None:
+    from evals.librarian import research_loop
+
+    monkeypatch.setattr(research_loop, "ROOT", tmp_path / "research")
+    traces = runs / "today-practice-traces.json"
+    traces.write_text(json.dumps({"search": "today", "identity": chapter_cue_recall._identity("today")}), encoding="utf-8")
+    (research_loop._round(2) / "traces.json").write_text(json.dumps({"path": str(traces)}), encoding="utf-8")
+    assert research_loop._traces(2)["search"] == "today"
+
+    traces.write_text(json.dumps({"search": "today", "identity": {"needs_sha256": "older"}}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="is stale"):
+        research_loop._traces(2)
 
 
 def test_selection_refuses_to_run_twice_at_once(runs, monkeypatch) -> None:

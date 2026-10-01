@@ -350,3 +350,26 @@ def test_research_keeps_its_budget_and_cites_only_pages_it_opened():
     assert any("not opened" in text for text in retries)
     assert ledger.searches == ["retrieval pool truncation"] and set(ledger.opened) == {found}
     assert result.sources[0].url == found
+
+
+@pytest.mark.parametrize(("fixes", "valid"), [
+    (["n02"], True),
+    (["n02: the answer window reaches the pool."], True),
+    (["n02 — may also help; check it separately."], True),
+    (["n01 — passes today."], False),
+    (["The answer window reaches the pool."], False),
+])
+def test_expected_fixes_name_a_failed_need_first(fixes, valid):
+    from src.linger.agents.sculptor.research_models import ResearchSpecification, specification_errors
+
+    task = ResearchInput(
+        **_analysis_task().model_dump(), error_analysis=ErrorAnalysis.model_validate(_analysis(("n02",))),
+        max_searches=1, max_pages=1,
+    )
+    specification = ResearchSpecification(
+        target_category="Answer cut from pool", problem="One need.", approach="Keep more hits.",
+        sources=[{"url": "https://example.org/found", "title": "Found", "supports": "Pool size matters."}],
+        retrieval_changes=["Keep five hits per query."], sculptor_data=None, expected_fixes=fixes,
+        risks=["More text to read."], test_plan="Score practice.", limits_check="Windows unchanged.",
+    )
+    assert (specification_errors(specification, task, {"https://example.org/found"}) == []) is valid

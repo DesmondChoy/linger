@@ -18,7 +18,7 @@ from apps.backend.librarian import Librarian
 from evals.synthetic_journals.connection_contract import compile_connection_replay_plan
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
-from src.linger.orchestration.book_evidence import gather_book_candidates
+from src.linger.orchestration.book_evidence import PART_CANDIDATES, gather_book_candidates
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CASES = Path(__file__).with_name("part_recall_cases.json")
@@ -63,7 +63,10 @@ def _required_passages(scenario: Path) -> dict[str, tuple[tuple[str, frozenset[s
     return required
 
 
-def run(cases_path: Path = DEFAULT_CASES, librarian: Librarian | None = None) -> list[CaseResult]:
+def run(
+    cases_path: Path = DEFAULT_CASES, librarian: Librarian | None = None,
+    part_candidates: int = PART_CANDIDATES,
+) -> list[CaseResult]:
     document = json.loads(cases_path.read_text(encoding="utf-8"))
     required = _required_passages(REPOSITORY_ROOT / document["scenario"])
     librarian = librarian or HybridLibrarian()
@@ -78,6 +81,7 @@ def run(cases_path: Path = DEFAULT_CASES, librarian: Librarian | None = None) ->
             book_scopes=tuple(BookScope(**scope) for scope in case["book_scopes"]),
             librarian=librarian,
             purpose="connection_discovery",
+            part_candidates=part_candidates,
         )
         pool_ids = {item.evidence_id for item in pool}
         needed = required.get(case["scene_id"], ())
@@ -97,8 +101,12 @@ def main() -> None:
         "--read-chapter-cues", action="store_true",
         help="search with chapter cues, as chapter-cue activation requires",
     )
+    parser.add_argument(
+        "--part-candidates", type=int, default=PART_CANDIDATES,
+        help="windows kept per planned part, as an Experiment 4 build may opt into",
+    )
     args = parser.parse_args()
-    results = run(args.cases, HybridLibrarian(read_chapter_cues=args.read_chapter_cues))
+    results = run(args.cases, HybridLibrarian(read_chapter_cues=args.read_chapter_cues), args.part_candidates)
     for result in results:
         print(
             f"{result.case_id:18s} recall {result.found}/{result.required} "

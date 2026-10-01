@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from pydantic import Field
@@ -33,6 +34,7 @@ class RetrievalTrace(StrictModel):
     search_steps: list[dict[str, Any]]
     answer_passages: list[TracePassage] = []
     answer_ranks: list[dict[str, Any]] | str = []
+    answer_turn_order: list[dict[str, Any]] = []
 
 
 class ChapterTags(StrictModel):
@@ -126,6 +128,11 @@ def error_analysis_errors(analysis: ErrorAnalysis, task: ErrorAnalysisInput) -> 
     return errors
 
 
+def _leading_need_id(fix: str) -> str:
+    """An expected fix names its need first, alone ("n07") or with a reason ("n07 — why")."""
+    return re.match(r"\s*([\w-]*)", fix).group(1)
+
+
 def specification_errors(
     specification: ResearchSpecification, task: ResearchInput, opened_urls: set[str],
 ) -> list[str]:
@@ -137,6 +144,6 @@ def specification_errors(
     unread = [source.url for source in specification.sources if source.url not in opened_urls]
     if unread:
         errors.append(f"Cite only pages you opened with get_page in this run; not opened: {unread}.")
-    if set(specification.expected_fixes) - failed:
+    if {_leading_need_id(fix) for fix in specification.expected_fixes} - failed:
         errors.append(f"Expected fixes must be failed practice needs: {sorted(failed)}.")
     return errors

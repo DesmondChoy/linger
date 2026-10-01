@@ -114,3 +114,14 @@ def test_captured_combined_scenario_plans_keep_every_required_passage():
     assert sum(result.found for result in results) == sum(result.required for result in results) > 0
     # The old per-book merge sent 60 records for three named books.
     assert max(result.pool_size for result in results if result.case_id.startswith("scene-07")) <= 20
+
+
+def test_an_experiment_can_opt_into_more_windows_per_part():
+    items = gather_book_candidates(
+        BookRequestPlan(parts=(part(NAMED), part(THEME))), LibrarianBookRequestInput(current_line=LINE),
+        book_scopes=(ALICE, KELLER), librarian=Librarian(), part_candidates=5,
+    )
+    assert labels_by_book(items) == {
+        ("pg11", "named"): 5, ("pg11", "theme"): 5, ("pg2397", "theme"): 5,
+        ("pg11", "line"): CONTEXT_CANDIDATES, ("pg2397", "line"): CONTEXT_CANDIDATES,
+    }

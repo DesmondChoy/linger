@@ -23,11 +23,14 @@ from apps.backend.librarian import _paragraphs
 from evals.librarian.chapter_cue_recall import (
     PLANS,
     RUNS,
+    SEARCHES,
     _identity,
     _normalised,
     _needs,
     _read,
     approved_cues,
+    cue_stage,
+    part_candidates,
     revised_corpus,
 )
 from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
@@ -115,7 +118,8 @@ def build(search: str) -> list[dict[str, object]]:
     scope = BookScope(work_id=work_id, book_version_id=document["book_version_id"],
                       chapter_max=document["chapter_max"])
     librarian = _RecordingLibrarian(read_chapter_cues=search != "today")
-    cues = approved_cues(int(search[-1])) if search in ("stage2", "stage3") else None
+    stage = cue_stage(search)
+    cues = approved_cues(stage) if stage else None
     traces = []
     with revised_corpus(work_id, cues) if cues else nullcontext():
         registration = registry.CORPORA[work_id]
@@ -128,7 +132,10 @@ def build(search: str) -> list[dict[str, object]]:
         for need in needs:
             plan = BookRequestPlan.model_validate(plans[need["id"]])
             request = LibrarianBookRequestInput(current_line=need["question"])
-            pool = gather_book_candidates(plan, request, book_scopes=(scope,), librarian=librarian)
+            pool = gather_book_candidates(
+                plan, request, book_scopes=(scope,), librarian=librarian,
+                part_candidates=part_candidates(search),
+            )
             record = selected[need["id"]]
             if [item.evidence_id for item in pool] != (record.get("pool") or scored[need["id"]]):
                 raise SystemExit(f"{need['id']}: retrieval differs from the pool the Librarian selected from.")
@@ -170,6 +177,14 @@ def build(search: str) -> list[dict[str, object]]:
                     _ranks(librarian, scope, query, {window.evidence_id for window in answers})
                     for query in trace["search_queries"]
                 ] if answers else "no single window holds the answer"
+                # Tells a miss cut before the pool from one the Librarian did not select.
+                trace["answer_turn_order"] = [
+                    {"query": step["query"], "evidence_id": window.evidence_id,
+                     "position": next((position for position, (short, _) in enumerate(
+                         step["turn_order_with_rerank_scores"], 1) if short == _short(window.evidence_id)), None),
+                     "in_pool": window.evidence_id in {item.evidence_id for item in pool}}
+                    for step in trace["search_steps"] for window in answers
+                ]
             traces.append(trace)
     output = RUNS / f"{search}-practice-traces.json"
     output.write_text(json.dumps({
@@ -182,7 +197,7 @@ def build(search: str) -> list[dict[str, object]]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--search", choices=("today", "stage1", "stage2", "stage3"), required=True)
+    parser.add_argument("--search", choices=SEARCHES, required=True)
     traces = build(parser.parse_args().search)
     for trace in traces:
         if trace["passed"]:

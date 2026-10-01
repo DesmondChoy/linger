@@ -46,7 +46,11 @@ from src.linger.agents.sculptor.chapter_cue_models import (
 from src.linger.corpus import registry
 from src.linger.corpus.book import parse_chapter_markdown
 from src.linger.corpus.units import load_units, read_unit
-from src.linger.orchestration.book_evidence import evidence_record_from_item, gather_book_candidates
+from src.linger.orchestration.book_evidence import (
+    PART_CANDIDATES,
+    evidence_record_from_item,
+    gather_book_candidates,
+)
 
 NEEDS = Path(__file__).with_name("chapter_cue_needs.json")
 PLANS = Path(__file__).with_name("chapter_cue_plans.json")
@@ -54,7 +58,10 @@ RUNS = Path(__file__).with_name("chapter_cue_runs")
 WORD_BUDGET = 60
 MAX_SELECTED = 5  # Production `max_final_evidence`.
 SELECTION_CONCURRENCY = 4
-SEARCHES = ("today", "stage1", "stage2", "stage3")
+SEARCHES = ("today", "stage1", "stage2", "stage3", "round1")
+# Experiment 4: each research round builds its approved specification on Stage 2's tags.
+ROUND_PART_CANDIDATES = {"round1": 20}
+RESEARCH_RUNS = Path(__file__).with_name("research_runs")
 ROUND_LABELS = {
     "stage1": "Stage 1: the book's existing cues",
     "stage2": "Stage 2: your first rewrite",
@@ -106,20 +113,50 @@ def approved_cues(stage: int) -> dict[int, ChapterCues]:
     return {chapter.chapter_number: chapter for chapter in revision.chapters}
 
 
+def cue_stage(search: str) -> int | None:
+    """The approved cue stage a search reads: its own, or Stage 2 for a research round."""
+    if search in ("stage2", "stage3"):
+        return int(search[-1])
+    return 2 if search in ROUND_PART_CANDIDATES else None
+
+
+def part_candidates(search: str) -> int:
+    return ROUND_PART_CANDIDATES.get(search, PART_CANDIDATES)
+
+
+def approved_specification_sha256(search: str) -> str:
+    """Return the hash of a round's specification only when the owner approved exactly it."""
+    folder = RESEARCH_RUNS / f"round-{search.removeprefix('round')}"
+    approval = _read(folder / "specification-approval.json")
+    if approval["sha256"] != _sha256(folder / "specification.json"):
+        raise SystemExit(f"{folder.name}/specification.json changed after approval; approve it again.")
+    return approval["sha256"]
+
+
 def _identity(search: str) -> dict[str, str | None]:
     """What a score depends on, so later steps can refuse stale results."""
-    return {
+    stage = cue_stage(search)
+    identity = {
         "needs_sha256": _sha256(NEEDS),
         "plans_sha256": _sha256(PLANS),
-        "proposal_sha256": approved_sha256(int(search[-1])) if search in ("stage2", "stage3") else None,
+        "proposal_sha256": approved_sha256(stage) if stage else None,
     }
+    if search in ROUND_PART_CANDIDATES:
+        identity["specification_sha256"] = approved_specification_sha256(search)
+    return identity
+
+
+def _fresh(path: Path, search: str) -> dict[str, object]:
+    """Read a stored result only when it came from the current needs, plans, and approvals."""
+    recorded = _read(path)
+    if recorded.get("identity") != _identity(search):
+        raise SystemExit(f"{path.name} is stale; score it again.")
+    return recorded
 
 
 def _practice_results(search: str) -> list[dict[str, object]]:
     """Return practice results only when they came from the current needs, plans, and proposal."""
-    recorded = _read(RUNS / f"{search}-practice.json")
-    if recorded.get("identity") != _identity(search):
-        raise SystemExit(f"{search}-practice.json is stale; score it again.")
+    recorded = _fresh(RUNS / f"{search}-practice.json", search)
     practice_ids = [need["id"] for need in _needs("practice")[1]]
     if [result["id"] for result in recorded["needs"]] != practice_ids:
         raise SystemExit(f"{search}-practice.json does not cover every practice need.")
@@ -167,7 +204,8 @@ def _pools(set_name: str, search: str) -> list[tuple[dict[str, object], BookRequ
         chapter_max=document["chapter_max"],
     )
     librarian = HybridLibrarian(read_chapter_cues=search != "today")
-    cues = approved_cues(int(search[-1])) if search in ("stage2", "stage3") else None
+    stage = cue_stage(search)
+    cues = approved_cues(stage) if stage else None
     pools = []
     with revised_corpus(document["work_id"], cues) if cues else nullcontext():
         for need in needs:
@@ -175,6 +213,7 @@ def _pools(set_name: str, search: str) -> list[tuple[dict[str, object], BookRequ
             request = LibrarianBookRequestInput(current_line=need["question"])
             pools.append((need, plan, request, gather_book_candidates(
                 plan, request, book_scopes=(scope,), librarian=librarian,
+                part_candidates=part_candidates(search),
             )))
     return pools
 
@@ -246,7 +285,8 @@ async def _select(set_name: str, search: str, output: Path) -> list[dict[str, ob
     if checkpoint.exists():
         done = {record["id"]: record for record in map(json.loads, checkpoint.read_text(encoding="utf-8").splitlines())}
         current = {need["id"]: _pool_sha256(pool) for need, _, _, pool in pools}
-        if any(record["pool_sha256"] != current[need_id] for need_id, record in done.items()):
+        if any(record["pool_sha256"] != current[need_id] or record.get("identity") != identity
+               for need_id, record in done.items()):
             raise SystemExit(f"{checkpoint.name} came from different retrieval; it cannot be resumed.")
     configure_telemetry()
     slots = asyncio.Semaphore(SELECTION_CONCURRENCY)
@@ -270,6 +310,7 @@ async def _select(set_name: str, search: str, output: Path) -> list[dict[str, ob
         by_id = {item.evidence_id: item for item in pool}
         record = {
             "id": need["id"],
+            "identity": identity,
             "chapter": need["chapter"],
             "passed": bool(_containing(need, (by_id[evidence_id] for evidence_id in selected))),
             "reached": bool(_containing(need, pool)),
@@ -506,15 +547,17 @@ def main() -> None:
         _lock_stages_for_sealed(output)
     results = score(args.set_name, args.search)
     _check_selection_still_matches(args.search, args.set_name, output, results)
-    baseline_path = RUNS / f"stage1-{args.set_name}.json"
+    # Stages compare with Stage 1's search, research rounds with Stage 2's.
+    compared = "stage2" if args.search in ROUND_PART_CANDIDATES else "stage1"
+    baseline_path = RUNS / f"{compared}-{args.set_name}.json"
     baseline = (
-        {need["id"]: need["reached"] for need in _read(baseline_path)["needs"]}
-        if args.search in ("stage2", "stage3") and baseline_path.exists() else {}
+        {need["id"]: need["reached"] for need in _fresh(baseline_path, compared)["needs"]}
+        if cue_stage(args.search) and args.search != compared and baseline_path.exists() else {}
     )
     for result in results:
         chapter_found = result["chapter"] in result["pool_chapters"]
         change = ("" if result["id"] not in baseline or baseline[result["id"]] == result["reached"]
-                  else "  GAINED vs Stage 1" if result["reached"] else "  LOST vs Stage 1")
+                  else f"  GAINED vs {compared}" if result["reached"] else f"  LOST vs {compared}")
         print(
             f"{result['id']} ch{result['chapter']:02d} "
             f"{'reached' if result['reached'] else 'MISSED '} "

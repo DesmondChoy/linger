@@ -22,7 +22,7 @@ from typing import Any
 from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import RetryPromptPart, TextPart, ToolCallPart, ToolReturnPart, UserPromptPart
 
-from evals.librarian.chapter_cue_recall import RUNS as CUE_RUNS, _approver
+from evals.librarian.chapter_cue_recall import RUNS as CUE_RUNS, _approver, _fresh
 from src.linger.agents.sculptor.research_models import (
     EarlierRound,
     ErrorAnalysis,
@@ -58,7 +58,7 @@ def _traces(number: int) -> dict[str, Any]:
     """Round 1 starts from Stage 2; later rounds name their traces in `traces.json`."""
     pointer = _round(number) / "traces.json"
     path = Path(_read(pointer)["path"]) if pointer.exists() else STARTING_TRACES
-    return _read(path)
+    return _fresh(path, _read(path)["search"])
 
 
 def _approved(number: int, step: str) -> dict[str, Any]:
@@ -185,7 +185,8 @@ async def research(number: int) -> ResearchSpecification:
              f"**Approach:** {specification.approach}", "", "**Changes:**", "",
              *(f"{index}. {change}" for index, change in enumerate(specification.retrieval_changes, 1)), "",
              f"**Sculptor data:** {specification.sculptor_data or 'none'}", "",
-             f"**Expected fixes:** {', '.join(specification.expected_fixes)}", "", "**Risks:**", "",
+             "**Expected fixes:**", "", *(f"- {fix}" for fix in specification.expected_fixes), "",
+             "**Risks:**", "",
              *(f"- {risk}" for risk in specification.risks), "",
              f"**Test plan:** {specification.test_plan}", "", f"**Limits:** {specification.limits_check}", "",
              "**Sources:**", "", *(f"- [{source.title}]({source.url}): {source.supports}"

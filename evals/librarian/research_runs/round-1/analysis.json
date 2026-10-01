@@ -1,0 +1,128 @@
+{
+  "round": 1,
+  "step": "analysis",
+  "created_at": "2026-10-01T13:36:37+00:00",
+  "model": "openai:gpt-6-luna",
+  "input_sha256": "cb9d2e646c2f8d5e68af9f447a8ba1b7fcbb20ffd9a2f53c74b5ea84bc489ea3",
+  "output": {
+    "notes": [
+      {
+        "need_id": "n01",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n02",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n03",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n04",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n05",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n06",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n07",
+        "passed": false,
+        "note": "The answering passage in chapter 11 explains that Fire Eater felt sorry for Pinocchio and spared him; it was not among the passages returned. The pool instead included a chapter 10 passage about the earlier threat and unrelated passages."
+      },
+      {
+        "need_id": "n08",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n09",
+        "passed": false,
+        "note": "The answering passage in chapter 18 describes Pinocchio burying and watering the coins, but that exact window is absent from the turn-order list and returned pool. The pool instead contains passages about his lie to the Fairy and the Fox’s earlier explanation of the Field of Wonders."
+      },
+      {
+        "need_id": "n10",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n11",
+        "passed": false,
+        "note": "The answering passage in chapter 22 shows Pinocchio barking, the Farmer finding the Weasels, and catching them. The returned passages cover the guard-dog setup and the Weasels’ offer, not that outcome."
+      },
+      {
+        "need_id": "n12",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n13",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n14",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n15",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n16",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n17",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n18",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n19",
+        "passed": true,
+        "note": ""
+      },
+      {
+        "need_id": "n20",
+        "passed": true,
+        "note": ""
+      }
+    ],
+    "categories": [
+      {
+        "name": "Answer window falls beyond the returned-passage cutoff",
+        "definition": "The exact answering window appears in the query’s turn-order candidates but is not in the returned pool; higher-listed windows are returned instead. In n07 the answer ranks 109th by keyword and 8th by meaning and occurs deep in turn order; in n11 the answer occurs just after the first three turn-order entries. 2 traces.",
+        "need_ids": [
+          "n07",
+          "n11"
+        ]
+      },
+      {
+        "name": "Exact answer window absent from the candidate turn order",
+        "definition": "The exact answering window does not appear in the displayed turn-order list or returned pool, although other windows from the answering chapter or about the same episode appear. The answer ranks are 10th by keyword and 4th by meaning in n09. 1 trace.",
+        "need_ids": [
+          "n09"
+        ]
+      }
+    ]
+  }
+}
