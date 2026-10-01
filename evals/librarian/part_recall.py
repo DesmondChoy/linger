@@ -93,8 +93,12 @@ def run(cases_path: Path = DEFAULT_CASES, librarian: Librarian | None = None) ->
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
+    parser.add_argument(
+        "--read-chapter-cues", action="store_true",
+        help="search with chapter cues, as chapter-cue activation requires",
+    )
     args = parser.parse_args()
-    results = run(args.cases)
+    results = run(args.cases, HybridLibrarian(read_chapter_cues=args.read_chapter_cues))
     for result in results:
         print(
             f"{result.case_id:18s} recall {result.found}/{result.required} "

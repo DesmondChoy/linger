@@ -200,7 +200,8 @@ def test_private_pool_retains_overlaps_with_distinct_endings_under_twenty_record
         book_scopes=[BookScope(work_id="pg11", book_version_id=BOOK_VERSION_ID, chapter_max=5)],
     )
     first = librarian._eligible_windows(request)[0]
-    candidates = [Candidate(first.metadata, f"distinct ending {i}", (i + 1, i + 20)) for i in range(20)]
+    candidates = [Candidate(first.metadata, f"distinct ending {i}", (i + 1, i + 20), f"distinct ending {i}")
+                  for i in range(20)]
     with (
         patch.object(librarian, "_bm25", return_value=candidates[:10]),
         patch.object(librarian, "_semantic", return_value=candidates[10:]) as semantic,

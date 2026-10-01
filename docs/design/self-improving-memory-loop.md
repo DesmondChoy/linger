@@ -1,7 +1,8 @@
 # Self-Improving Memory Loop
 
-Status: **Experiment 3 in progress: feasibility check passed and both question
-sets frozen; Stage 1 is next. The memory-curation Experiments 1 and 2 are
+Status: **Experiment 3 in progress: feasibility check passed, both question
+sets frozen, and Stage 1 search wiring done behind an opt-in switch; freezing
+request plans is next. The memory-curation Experiments 1 and 2 are
 superseded. Start at [Where things stand](#where-things-stand-2026-10-01).**
 
 ## Objective
@@ -51,6 +52,18 @@ can mislead. The probe tags were written knowing the needs, so they show the
 mechanism can work, not that Sculptor will find good tags. Planning varies by
 about one need between runs.
 
+Where the tags sit beside the passage matters. With tags placed before each
+passage, the multi-book part recall check lost one required passage (32 of 32
+fell to 29 of 32, all three Scene 06 plans): the Keller passage about the
+Wrentham lake summer, whose section's tags describe rowing and theatre, not
+the lake. Mean pool size also grew from about 24 to 27 records. Tags before
+the passage push the passage's tail past the embedding model's 512-token
+limit; Astra measured 59 of 166 Pinocchio windows truncated with them
+against 3 without. Placed after the passage, as doc2query does, the tags keep part
+recall at 32 of 32 with an unchanged pool of about 24 records. Stage 1 uses
+that placement. Its effect on the Pinocchio practice needs is not yet
+measured.
+
 ### Decisions by the owner
 
 - Stages are named **Stage 1: baseline**, **Stage 2: Sculptor's first
@@ -64,6 +77,12 @@ about one need between runs.
 - **The owner approves each Sculptor rewrite** at Stages 2 and 3, which is the
   human supervision in the claim. The owner may drop this.
 - Astra (gpt-6-astra) runs at **max** reasoning effort.
+- **Chapter tags are opt-in until activation** (2026-10-01). Search reads
+  them only when constructed with `HybridLibrarian(read_chapter_cues=True)`.
+  Production search is unchanged until the sealed run passes and the owner
+  approves activation. The owner chose this when tags placed before the
+  passage lost the Keller passage; the after-passage placement no longer
+  loses it.
 
 ### Done
 
@@ -72,34 +91,40 @@ about one need between runs.
 | Experiments 1 and 2 (superseded). Experiment 1's runner stays; Experiment 2's runner was removed and is recoverable from commit `3926c86` | [Experiment 1](../evaluation/memory-loop-experiment-1-2026-10-01.md), [Experiment 2](../evaluation/memory-loop-experiment-2-2026-10-01.md) |
 | Feasibility check; probe scripts were in a session scratchpad and are not kept | [Chapter-cue feasibility](../evaluation/chapter-cue-feasibility-2026-10-01.md) |
 | Frozen practice and sealed needs | `evals/librarian/chapter_cue_needs.json` |
+| Stage 1 search wiring, opt-in: separate search text, cue digest in the index cache key, reading-scope test | `apps/backend/hybrid_librarian.py`, `tests/test_hybrid_librarian.py` |
 
-All of the above is committed and pushed on `main` (`3926c86` to `d7f332d`).
+Everything above the Stage 1 row is committed and pushed on `main` (`3926c86`
+to `d7f332d`).
 
 ### Beads
 
-- Epic `linger-g3rw`: Experiment 3. `linger-g3rw.1` sealed set is **closed**;
-  `linger-g3rw.2` Stage 1 is **next**; `linger-g3rw.3` is the Sculptor
-  chapter-cue skill and the Stage 2 and 3 runner.
+- Epic `linger-g3rw`: Experiment 3, in dependency order. `linger-g3rw.1`
+  sealed set and `linger-g3rw.2` Stage 1 wiring are **closed**;
+  `linger-g3rw.4` freezes request plans and scores Stage 1 on practice and is
+  **next**;
+  `linger-g3rw.3` is the Sculptor chapter-cue skill and the Stage 2 and 3
+  runner.
 - Experiment 2 follow-ups: `linger-p9iw` (derived summaries competing in
   memory search), `linger-4uix` (Cyrillic in a topic label), `linger-9j42`
   (capture time turned into an event date).
 
 ### Next steps
 
-1. **Stage 1 (`linger-g3rw.2`, about a day).** In
-   `apps/backend/hybrid_librarian.py`, give each candidate a search text
-   (passage plus its chapter's `routing_description`, `characters`, and
-   `retrieval_cues`) separate from the canonical excerpt. Use it for the
-   keyword index, embeddings, and reranker input; keep excerpts and citations
-   canonical. Add the tag digest to the index cache key, and a test that no
-   passage beyond the reader's chapter is returned. Run
-   `tests/test_hybrid_librarian.py` and `uv run python -m evals.librarian.part_recall`.
-2. **Freeze request plans** for every practice and sealed need with one
+1. **Stage 1 wiring (`linger-g3rw.2`), done.** Each candidate has a search
+   text (the passage, then its chapter's `routing_description`, `characters`,
+   and `retrieval_cues`) used by the keyword index, embeddings, and reranker;
+   excerpts and citations stay canonical. It is off unless
+   `read_chapter_cues=True`. Part recall is 32 of 32 both ways
+   (`uv run python -m evals.librarian.part_recall [--read-chapter-cues]`).
+   Astra reviewed the wiring; its cache, test, and placement findings are
+   fixed.
+2. **Freeze request plans (`linger-g3rw.4`)** for every practice and sealed need with one
    production Librarian planning pass, stored beside
    `evals/librarian/chapter_cue_needs.json`.
 3. **Score Stage 1 on the practice set** with a small runner that records, per
    need, whether a passage containing its quote reaches the assessment pool.
-   Do not run the sealed set yet.
+   Run today's search and `HybridLibrarian(read_chapter_cues=True)` on the
+   same frozen plans. Do not run the sealed set yet.
 4. **Sculptor chapter-cue skill (`linger-g3rw.3`).** One typed skill on
    Sculptor's existing Agent. Input: the book's chapters, their current tags,
    and the practice failures. Output: revised tags for every chapter within a
@@ -123,8 +148,8 @@ improve the answers every reader gets about that book.
 
 ## Experiment 3: Sculptor chapter cues for book retrieval
 
-Status: **feasibility check passed and question sets frozen on 2026-10-01;
-stages not built.**
+Status: **feasibility check passed, question sets frozen, and Stage 1 search
+wiring built (opt-in) on 2026-10-01; no stage scored yet.**
 
 Sculptor improves the data the Librarian searches, measures whether book
 retrieval improves, and uses the remaining failures to revise its work once
@@ -166,7 +191,8 @@ visibility to Sculptor, and label status.
 - **Flagged for review:** sealed need s11 (chapter 21) comes from the same
   episode as practice need n11 (chapter 22).
 
-Twenty sealed needs hold about 4 misses at Stage 1, enough room for the
+Twenty sealed needs should hold about 4 misses at Stage 1, an estimate from
+the practice baseline, enough room for the
 decision rule. They support a transparent case study with paired wins and
 losses, not a precise general improvement rate. Labels are accepted without
 prior human review by owner decision, which departs from the usual rule that
@@ -187,15 +213,14 @@ separately, because retrieval alone does not show that the reader benefits.
 |---|---|
 | Aid | Revised chapter `routing_description`, `characters`, and `retrieval_cues`, within a fixed word budget per chapter. |
 | Storage | The existing reviewed chapter metadata, which book registration already lets Sculptor propose. No new file type. |
-| Retrieval | Each passage's keyword text, embedding text, and reranker input include its chapter's cues. Excerpts and citations stay canonical. |
-| Activation | A human approves the metadata diff. The corpus validator checks it, and the cue digest joins the index cache key. |
+| Retrieval | Each passage's keyword text, embedding text, and reranker input include its chapter's cues, placed after the passage. Excerpts and citations stay canonical. |
+| Activation | A human approves the metadata diff. The corpus validator checks it, and the cue digest joins the index cache key. Production reads cues only after the sealed run passes, part recall with cues stays 32 of 32, no sealed need that today's search reaches is lost, and the owner approves; until then the experiment opts in with `read_chapter_cues=True`. |
 | Scope | Cues describe only their own chapter, which reading permissions already bound. |
 
-Search needs a separate search text beside the canonical excerpt, because
-`Candidate.text` currently feeds indexing, embeddings, reranking, and quoted
-excerpts (`apps/backend/hybrid_librarian.py`). Wiring in the existing cues is
-an ordinary improvement every reader gets on its own. It becomes Stage 1, so
-the self-improvement claim rests only on Sculptor's rewrites beyond it.
+Search reads a separate `Candidate.search_text`, while `Candidate.text`
+remains the quoted excerpt (`apps/backend/hybrid_librarian.py`). Wiring in the
+existing cues is Stage 1, so the self-improvement claim rests only on
+Sculptor's rewrites beyond it.
 
 ### The loop
 
@@ -234,7 +259,7 @@ retrieval data and reader answers on one book and one frozen evaluation set.
 | Period | Deliverable |
 |---|---|
 | 1 October, **done** | Feasibility check passed; chapter cues chosen; both question sets written and frozen. |
-| 2–7 October | Stage 1 wiring, frozen request plans, Stage 1 practice score, the chapter-cue skill, the approval step, and the reading-scope test. |
+| 2–7 October | Stage 1 wiring (**done** 1 October, opt-in), frozen request plans, Stage 1 practice score, the chapter-cue skill, the approval step, and the reading-scope test. |
 | 8–14 October | Stages 2 and 3 on practice feedback. Record proposals, approvals, revisions, scores, and cost. |
 | 15–21 October | Sealed run against every frozen stage, paired reader replies, then the owner's review. Activate the approved cues if the rule passes. 22 October is buffer. |
 
@@ -262,6 +287,14 @@ retrieval data and reader answers on one book and one frozen evaluation set.
   `tests/test_provenance_quote_checks.py` and attribution in paired replies.
 - **Sculptor:** gains an offline chapter-cue skill. Extend
   `tests/test_sculptor_runtime_skills.py` and rerun memory-curation cases.
+
+Until activation, search reads chapter cues only in the experiment, so no
+agent's production behavior changes. Activation must run
+`uv run python -m evals.librarian.part_recall --read-chapter-cues` against the
+approved metadata and keep all 32 required passages, must not lose a sealed
+need that today's search reaches, and must rerun the checks above. The
+decision rule compares stages with each other, so these conditions guard what
+production already finds.
 
 Astra reviewed the plan on 2026-10-01 and shaped the measure, the set sizes,
 and the decision rule.
