@@ -2,7 +2,8 @@
 
 Status: **Experiment 4 round 1 passed on 2026-10-01: 20 of 20 practice (Stage 2:
 17), no losses, at about 3.8 times the words handed to the Librarian. See
-[Round 1](#round-1-2026-10-01-passed).** Sculptor runs
+[Round 1](#round-1-2026-10-01-passed) and the
+[Experiment 4 report](../evaluation/retrieval-research-experiment-4-2026-10-01.md).** Sculptor runs
 retrieval experiments, analyses its own errors, researches a better approach
 on the web, and the developer builds what it specifies. The deliverable is a
 working, supervised loop with a full record; results are reported as they
