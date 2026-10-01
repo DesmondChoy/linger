@@ -48,7 +48,7 @@
       <article class="roadmap-card reveal"><small>Remaining scope</small><div class="roadmap-value"><strong>Evaluate</strong><span>authority and operation</span></div><p>The saved Alice benchmark predates the current request-planning path. It does not establish current multi-book reliability, adversarial reading-support coverage, passage-grant correctness, or approved latency and cost budgets.</p></article>
     </div><p><a href="librarian-design.md#35-lifecycle-commands">Corpus adapters and lifecycle commands</a> · <a href="session-passage-design.md">Exact session-supported passages</a> · <a href="synthetic-book-replay-contract.md">Shared book replay contract</a></p></div></section>
 
-    <section class="section" id="next-gates"><div class="shell"><div class="section-head reveal"><h2>Remaining evaluation and tracking work</h2><p>Source snapshot checked against <code>da95b3a</code> on 24 September 2026. This documentation audit makes no new provider-quality claim; saved reports retain their original scope.</p></div><div class="contracts">
+    <section class="section" id="next-gates"><div class="shell"><div class="section-head reveal"><h2>Remaining evaluation and tracking work</h2><p>Source snapshot checked against <code>da95b3a</code> on 24 September 2026. Candidate retention and its configuration were updated on 2 October 2026. No new provider-quality claim is made; saved reports retain their original scope.</p></div><div class="contracts">
       <article class="contract clarification reveal"><code>Authorization coverage</code><h3>Adversarial authorization</h3><p>Evaluate misleading names, curiosity without reading support, indirect follow-ups, privacy, and false-high ceilings with independently adopted Ground truth.</p></article>
       <article class="contract clarification reveal"><code>Operating budgets</code><h3>Operating budgets</h3><p>Approve latency and cost targets for the current runtime. The historical Alice timings do not measure the added book-request skill.</p></article>
       <article class="contract result reveal"><code>Implemented routing</code><h3>Session follow-up routing</h3><p>Current routing falls back to an allowed active book when the Line has no matching identity and no strong conflicting work. The fallback still requires boundary validation.</p></article>
@@ -69,7 +69,7 @@
 
     <section class="section" id="contracts"><div class="shell"><div class="section-head reveal"><h2>Three responses, three meanings</h2><p>The top-level <code>kind</code> is a strict switch for Muse. A question, an empty result, and a system failure cannot be handled as the same thing.</p></div><div class="contracts"><article class="contract clarification reveal"><code>kind: clarification</code><h3>No answer evidence released</h3><p>The reading boundary is missing or ambiguous. Private localization may already have searched. The response contains a focused question and expected answer shape, with no evidence.</p><span class="do-not">For route clarification, the application sends the validated question after safety review. Muse declares no evidence or other tools.</span></article><article class="contract result reveal"><code>kind: result</code><h3>Retrieval completed</h3><p>The outcome is evidence found or no evidence; strength is sufficient, weak, or none. Weak still carries evidence details.</p><span class="do-not">Muse drafts with returned evidence and limitations.</span></article><article class="contract failure reveal"><code>kind: failure</code><h3>Could not complete safely</h3><p>A dependency failed, an evidence ID did not resolve, or integrity validation failed. No unvalidated passage is returned.</p><span class="do-not">The caller handles the failure safely. A retryable flag does not automatically rerun retrieval; there is no direct-read fallback.</span></article></div></div></section>
 
-    <section class="section" id="ranking"><div class="shell"><div class="section-head reveal"><h2>Ranking is not evidence strength</h2><p>A similarity score tells us which passage looks related. Librarian’s final judgement asks whether all eligible evidence can actually answer Muse.</p></div><div class="pipeline reveal"><article class="pipeline-card"><small>Application · candidate pool</small><h3>Keep alternative evidence</h3><p>Judged retrieval retains up to 10 lexical and 10 semantic candidates without public score cutoffs. Public retrieve separately keeps its 0.5 cutoffs and 15-record fused shortlist.</p></article><article class="pipeline-card"><small>Application · ordering</small><h3>Rerank complete passages</h3><p>Score the private candidates using overlapping query/passage windows within the tokenizer budget. Keep each canonical passage’s best score without changing its text or ID.</p></article><article class="pipeline-card"><small>Agent · set judgement</small><h3>Evidence strength</h3><p>Assess planned and omitted original needs against the scoped pool. Return sufficient, weak, or none with selected records and a reason. Ranking alone is not proof.</p></article></div></div></section>
+    <section class="section" id="ranking"><div class="shell"><div class="section-head reveal"><h2>Ranking is not evidence strength</h2><p>A similarity score tells us which passage looks related. Librarian’s final judgement asks whether all eligible evidence can actually answer Muse.</p></div><div class="pipeline reveal"><article class="pipeline-card"><small>Application · candidate pool</small><h3>Keep alternative evidence</h3><p>Private retrieval scores up to 20 candidates per query. Gathering keeps four per planned query in matching books and two per fallback query in every book, then caps the merged pool at 20 per book.</p></article><article class="pipeline-card"><small>Application · ordering</small><h3>Rerank complete passages</h3><p>Score the private candidates using overlapping query/passage windows within the tokenizer budget. Keep each canonical passage’s best score without changing its text or ID. The first four interleaved candidates cover the opening round of all four retrieval methods.</p></article><article class="pipeline-card"><small>Agent · set judgement</small><h3>Evidence strength</h3><p>Assess planned and omitted original needs against the scoped pool. Return sufficient, weak, or none with selected records and a reason. Ranking alone is not proof.</p></article></div></div></section>
 
     <section class="section" id="identity"><div class="shell evidence-box reveal"><p class="eyebrow" style="color:#a7e1d6">Canonical evidence identity</p><h2 style="margin:0 0 18px;font:500 2.4rem Georgia,serif">Every excerpt resolves to one source revision and line range.</h2><p>Section numbers are storage order, not chapter numbers. Keller’s dedication and preface make sec012 Chapter 10. Douglass’s preface, Phillips letter, and biography make sec10 Chapter 7. Reviewed unit mappings preserve literary parts and chapters. Private progress inference covers numbered main-part chapters; other parts need explicit scope.</p><div class="evidence-id">pg11-v01b38ea4-ch05-ln0974-0981</div><div class="id-grid"><div class="id-part"><b>pg11</b><span>stable work ID</span></div><div class="id-part"><b>v01b38ea4</b><span>source-hash prefix</span></div><div class="id-part"><b>ch05</b><span>literary chapter; section corpora use reviewed unit mappings</span></div><div class="id-part"><b>ln0974-0981</b><span>inclusive source lines</span></div></div></div></section>
 
@@ -95,7 +95,12 @@ reranker: Xenova/ms-marco-MiniLM-L-6-v2
 keyword_candidates: 10
 semantic_candidates: 10
 judged_private_candidates_per_query: 20
-judged_merged_candidates: 20
+planned_candidates_per_query_per_book: 4
+fallback_candidates_per_query_per_book: 2
+judged_merged_candidates_per_book: 20
+part_routing_floor: 0.05
+part_routing_margin: 10
+private_window_dedupe: full_containment
 judged_public_cutoffs_applied: false
 max_distinct_queries: 16
 max_query_characters: 2000
@@ -217,7 +222,7 @@ targets: pass</pre><p>This historical 12-case Alice run predates focused plannin
                 "label": "Plan",
                 "title": "Plan focused book needs",
                 "owner": "Librarian · book-request",
-                "copy": "Extract exact context and reader spans without seeing candidate evidence. Search each need plus the original current and earlier reader text; keep that fallback after planning failure.",
+                "copy": "Extract exact context and reader spans before seeing candidate evidence. Search each need plus the original current and earlier reader text. Every allowed book retains fallback candidates, even when an identical planned query routes to another book.",
                 "points": [
                         "Up to eight planned parts",
                         "Uncertain needs remain eligible",
@@ -229,10 +234,11 @@ targets: pass</pre><p>This historical 12-case Alice run predates focused plannin
                 "label": "Retrieve",
                 "title": "Search and rerank scoped candidates",
                 "owner": "Application retrieval services",
-                "copy": "Inside the grant, combine up to 10 lexical and 10 semantic candidates per query without the public cutoffs. Rerank oversized query/passage pairs in overlapping token windows.",
+                "copy": "Inside the grant, combine up to 10 lexical and 10 semantic candidates per query without public cutoffs. Retain four candidates per planned query in matching books. A book is selected alone only when its best score is at least 0.05 and ten times the next book’s score.",
                 "points": [
                         "Interleave lexical, fused, semantic, and reranker streams",
-                        "Merge queries into at most 20 private records",
+                        "Retain two fallback candidates per query per book; reuse identical searches",
+                        "Merge queries into at most 20 private records per book",
                         "Exact passage grants fetch fixed IDs instead"
                 ],
                 "contract": "public retrieve separately uses cutoff 0.5 / fused limit 15"
@@ -243,7 +249,7 @@ targets: pass</pre><p>This historical 12-case Alice run predates focused plannin
                 "owner": "Application evidence resolver",
                 "copy": "Convert candidate records to immutable source identities, unit IDs, line ranges, and exact text before evidence assessment.",
                 "points": [
-                        "Preserve overlapping windows with distinct IDs privately",
+                        "Preserve partial overlaps; remove only fully contained windows from the same source",
                         "No fabricated evidence IDs",
                         "No neighboring text for passage grants"
                 ],
