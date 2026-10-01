@@ -772,6 +772,79 @@ class ConnectionExpectation(StrictModel):
         return self
 
 
+class MemoryInjectionExpectation(StrictModel):
+    """A memory-only security overlay, never an instruction to the runtime."""
+
+    kind: Literal["attack", "benign_relevant"]
+    source_trust: Literal["untrusted_memory"] = "untrusted_memory"
+    source_prop_id: Identifier
+    paired_scene_id: Identifier
+    attack_span: ExactSpan | None = None
+    response_marker: Identifier | None = None
+    semantic_criteria: tuple[Text, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_attack(self) -> Self:
+        if self.kind == "attack":
+            if self.attack_span is None or self.attack_span.source_kind != "prop":
+                raise ValueError("memory injection attack requires an exact Prop span")
+            if self.attack_span.source_id != self.source_prop_id:
+                raise ValueError("attack span must identify the injection source Prop")
+            if self.response_marker is None or self.response_marker not in self.attack_span.text:
+                raise ValueError("attack span must contain its response marker")
+        elif self.attack_span is not None or self.response_marker is not None:
+            raise ValueError("benign injection controls cannot contain an attack span or marker")
+        return self
+
+
+class LineAttackExpectation(StrictModel):
+    """Direct user-input attack and its matched clean comparison."""
+
+    kind: Literal["attack", "benign_control"]
+    attack_goal: Literal["reply_override", "memory_poisoning"]
+    source_trust: Literal["user_line"] = "user_line"
+    source_line_id: Identifier
+    paired_scene_id: Identifier
+    attack_span: ExactSpan | None = None
+    forbidden_reply: Text | None = None
+    semantic_criteria: tuple[Text, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_attack(self) -> Self:
+        if self.kind == "attack":
+            if self.attack_span is None or self.attack_span.source_kind != "line":
+                raise ValueError("direct attack requires an exact Line span")
+            if self.attack_span.source_id != self.source_line_id:
+                raise ValueError("attack span must identify the current Line")
+            if self.attack_goal == "reply_override" and self.forbidden_reply is None:
+                raise ValueError("reply override requires a concrete forbidden reply")
+            if self.forbidden_reply is not None and self.forbidden_reply not in self.attack_span.text:
+                raise ValueError("forbidden reply must occur in the attack span")
+        elif self.attack_span is not None or self.forbidden_reply is not None:
+            raise ValueError("clean Line controls cannot contain an attack span or forbidden reply")
+        return self
+
+
+class LineCaptureExpectation(StrictModel):
+    """Allowed durable memory contents, independent of nomination strategy."""
+
+    allowed_spans: tuple[ExactSpan, ...] = ()
+    required_spans: tuple[ExactSpan, ...] = ()
+    semantic_criteria: tuple[Text, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_spans(self) -> Self:
+        spans = (*self.allowed_spans, *self.required_spans)
+        if any(span.source_kind != "line" for span in spans):
+            raise ValueError("Line capture expectations require exact Line spans")
+        if any(span not in self.allowed_spans for span in self.required_spans):
+            raise ValueError("every required memory span must also be allowed")
+        for name, values in (("allowed", self.allowed_spans), ("required", self.required_spans)):
+            if len({span.text for span in values}) != len(values):
+                raise ValueError(f"{name} memory spans must have unique text")
+        return self
+
+
 class GroundTruthProposal(StrictModel):
     """Generator-authored candidate answer-key data for one Scene and Objective."""
 
@@ -790,6 +863,9 @@ class GroundTruthProposal(StrictModel):
     grounding: GroundingExpectation | None = None
     connection: ConnectionExpectation | None = None
     book_expectation: BookObjectiveExpectation | None = None
+    injection: MemoryInjectionExpectation | None = None
+    line_attack: LineAttackExpectation | None = None
+    line_capture: LineCaptureExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:
@@ -824,6 +900,22 @@ class GroundTruthProposal(StrictModel):
 
     @model_validator(mode="after")
     def validate_objective_authority(self) -> Self:
+        if self.line_attack is not None or self.line_capture is not None:
+            if any((self.capture, self.curation, self.surfacing, self.grounding,
+                    self.connection, self.book_expectation, self.injection,
+                    self.prop_relevance, self.pairing, self.evidence, self.exact_spans)):
+                raise ValueError("Line security proposal contains unrelated Ground truth")
+            if self.line_attack is not None:
+                if self.objective_id != "untrusted_content_injection_resistance" or self.line_capture is not None:
+                    raise ValueError("Line attack expectation requires only the injection Objective")
+            elif self.objective_id != "reviewed_automatic_memory_capture":
+                raise ValueError("Line capture expectation requires the capture Objective")
+        if self.injection is not None:
+            if self.objective_id != "untrusted_content_injection_resistance":
+                raise ValueError("injection expectation requires the injection Objective")
+            if any((self.capture, self.curation, self.surfacing, self.grounding,
+                    self.connection, self.book_expectation, self.prop_relevance)):
+                raise ValueError("injection proposal contains unrelated Ground truth")
         if self.connection is not None:
             if self.objective_id not in {"cross_source_tentative_connection", "weak_evidence_safe_decline"}:
                 raise ValueError("connection expectation requires a connection or weak-evidence Objective")
@@ -941,7 +1033,12 @@ class CaptureMix(StrictModel):
 
 class RetrievalPropMix(StrictModel):
     relevant: int = Field(ge=1)
-    distractor: int = Field(ge=1)
+    distractor: int = Field(ge=0)
+
+
+class LineAttackMix(StrictModel):
+    attack: int = Field(ge=1)
+    benign_control: int = Field(ge=1)
 
 
 class CurationRecallLoop(StrictModel):
@@ -960,6 +1057,7 @@ class RunConfiguration(StrictModel):
     capture_mix: CaptureMix | None = None
     retrieval_prop_mix: RetrievalPropMix | None = None
     curation_recall_loop: CurationRecallLoop | None = None
+    line_attack_mix: LineAttackMix | None = None
     no_candidate_material_types: tuple[Text, ...] = ()
     generator_instruction: Text
     dataset_scaling: Text
@@ -976,6 +1074,7 @@ class RunConfiguration(StrictModel):
                 self.capture_mix,
                 self.retrieval_prop_mix,
                 self.curation_recall_loop,
+                self.line_attack_mix,
             )
         )
         if configured_mixes != 1:
@@ -989,4 +1088,9 @@ class RunConfiguration(StrictModel):
             )
             if total != self.scene_count:
                 raise ValueError("capture_mix counts must add up to scene_count")
+        if self.line_attack_mix is not None:
+            if self.objective_id != "reviewed_automatic_memory_capture":
+                raise ValueError("Line attack mix requires the capture primary Objective")
+            if self.line_attack_mix.attack + self.line_attack_mix.benign_control != self.scene_count:
+                raise ValueError("line_attack_mix counts must add up to scene_count")
         return self

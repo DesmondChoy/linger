@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, release-candidate]
   push:
-    branches: [main]
+    branches: [main, release-candidate]
   workflow_dispatch:
 
 permissions:
@@ -20,13 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
-      # No floating major tag is published for setup-uv.
-      - uses: astral-sh/setup-uv@v10.1.0
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
+          version: '0.8.3'
           enable-cache: true
 
       - name: Install dependencies
@@ -40,7 +40,7 @@ jobs:
             'OPENAI_API_KEY=ci-offline-placeholder' > .env
 
       - name: Cache fastembed models
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ runner.temp }}/fastembed
           key: fastembed-${{ runner.os }}-${{ hashFiles('apps/backend/hybrid_librarian.py') }}
@@ -59,15 +59,15 @@ jobs:
       run:
         working-directory: apps/frontend
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10
+          version: 10.34.6
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
           cache: pnpm
@@ -81,3 +81,122 @@ jobs:
 
       - name: Test Ground truth reviewer
         run: pnpm --dir ../../.agents/skills/review-synthetic-ground-truth/ui test
+
+      - name: Lint frontend
+        run: pnpm lint
+
+      - name: Build frontend
+        run: pnpm build
+
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+        with:
+          category: /language:${{ matrix.language }}
+          output: security/codeql
+      - name: Block high and critical source findings
+        run: python3 .github/scripts/security_gate.py codeql security/codeql
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: codeql-${{ matrix.language }}-${{ github.sha }}
+          path: security/codeql
+          retention-days: 30
+          if-no-files-found: error
+
+  dependencies:
+    name: Dependency security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install verified Trivy
+        run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
+      - name: Scan locked production and development dependencies
+        run: |
+          mkdir -p security
+          "$RUNNER_TEMP/trivy/trivy" fs --scanners vuln --include-dev-deps \
+            --ignorefile /dev/null --format json --output security/dependencies.json \
+            --skip-dirs .git --skip-dirs .venv --skip-dirs node_modules .
+          python3 .github/scripts/security_gate.py trivy security/dependencies.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: dependency-security-${{ github.sha }}
+          path: security
+          retention-days: 30
+          if-no-files-found: error
+
+  image:
+    name: Image (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    env:
+      ARCH: ${{ matrix.arch }}
+      CANDIDATE: linger-candidate:${{ github.sha }}-${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build candidate once
+        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag "$CANDIDATE" .
+      - name: Prove offline startup and persistent state
+        run: bash docker/smoke.sh "$CANDIDATE"
+      - name: Install verified Trivy
+        run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
+      - name: Scan candidate image
+        run: |
+          mkdir -p security
+          "$RUNNER_TEMP/trivy/trivy" image --scanners vuln --ignorefile /dev/null \
+            --format json --output security/image.json "$CANDIDATE"
+          python3 .github/scripts/security_gate.py trivy security/image.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: image-security-${{ github.sha }}-${{ matrix.arch }}
+          path: security
+          retention-days: 30
+          if-no-files-found: error
+      - name: Save tested release candidate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
+        run: |
+          mkdir -p candidate
+          docker save "$CANDIDATE" | gzip -1 > candidate/image.tar.gz
+          python3 .github/scripts/release_candidate.py create --sha "$GITHUB_SHA" \
+            --arch "$ARCH" --image "$CANDIDATE" --directory candidate
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
+        with:
+          name: linger-candidate-${{ github.sha }}-${{ matrix.arch }}
+          path: candidate
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error

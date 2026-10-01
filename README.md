@@ -1,5 +1,8 @@
 # Linger
 
+For tested images, release approval, and deployment with `compose.release.yaml`,
+see the [release guide](docs/releasing.md).
+
 Linger is a multi-agent AI systems project developed for the NUS-ISS Graduate
 Certificate in Architecting AI Systems. It investigates how specialised agents
 can coordinate reasoning, tool use, and memory with traceable decisions and
@@ -142,6 +145,9 @@ transcript databases and account memories are stored in named Docker volumes.
 Stop the stack with `docker compose down`; add `--volumes` only when you also
 intend to delete that persisted application data.
 
+This two-service stack builds the local checkout. To run an approved, combined
+frontend and backend image, follow the [release guide](docs/releasing.md).
+
 ## Try a conversation
 
 For a book-grounded reflection, send a message such as:
@@ -204,9 +210,14 @@ pnpm --dir apps/frontend build
 ```
 
 GitHub Actions runs the backend and frontend unit suites for pull requests and
-pushes to `main`. Backend tests block model-provider requests; tests marked
+pushes to `main` and `release-candidate`. Backend tests block model-provider requests; tests marked
 `embeddings` use real local embedding and reranker models. To exclude those
 tests, run `uv run pytest -m "not embeddings"`.
+
+Live release evaluations and automatic publication start disabled in
+`.github/release-config.json`. Promote changes to `release-candidate` when they
+are ready for release testing. See the [release guide](docs/releasing.md) for
+the switches, required GitHub protections, and manual approval steps.
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported

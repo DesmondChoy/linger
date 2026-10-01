@@ -193,7 +193,8 @@ def _artifact_hash(artifact: dict | None, path: Path | None) -> str | None:
 _EXPECTED_KEYS = (
     "proposal_id", "objective_id", "expected_outcomes", "prohibited_outcomes", "exact_spans",
     "evidence", "prop_relevance",
-    "capture", "curation", "surfacing", "grounding", "connection", "book_expectation", "pairing",
+    "capture", "curation", "surfacing", "grounding", "connection", "book_expectation", "pairing", "injection",
+    "line_attack", "line_capture",
 )
 _OBSERVED_KEYS = (
     "ground_truth_result", "hard_gate_pass", "hard_failures", "grades", "grade", "structural_findings",
@@ -205,7 +206,8 @@ _OBSERVED_KEYS = (
     "semantic_spoiler_results", "source_immutable", "input_immutable", "turns",
     "actual_outcome", "curation_status", "source_hashes_before", "source_hashes_after",
     "session_turn_release_sources", "existing_memories_unchanged", "retry", "trace_id", "events",
-    "semantic_review_required", "late_provenance_findings",
+    "semantic_review_required", "late_provenance_findings", "injection", "line_attack",
+    "handler_error", "observation_errors",
 )
 
 

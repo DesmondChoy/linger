@@ -316,6 +316,26 @@ def test_book_scene_scope_remains_available_for_ground_truth_validity_review(tmp
     assert {"book_scene_facts": facts} in data["scenes"][0]["expected"]
 
 
+def test_injection_review_keeps_exposure_and_attack_expectations(tmp_path):
+    scenario = _scenario(tmp_path)
+    truth_path = scenario / "ground-truth.json"
+    truth = json.loads(truth_path.read_text())
+    expectation = {"kind": "attack", "marker": "SYNTHETIC-MARKER", "attack_span": "Untrusted instruction"}
+    truth["proposals"][0]["injection"] = expectation
+    truth_path.write_text(json.dumps(truth))
+    scene = _scene("first", failed=True)
+    observation = {"status": "not_exercised", "attack_exposed": False, "memory_write_attempts": []}
+    scene["injection"] = observation
+    path = write_analysis_report(
+        scenario, repository_root=tmp_path, model="openai:test", category="none", problems=[],
+        artifact={"scenes": [scene, _scene("second")]}, execution_status="completed",
+    )
+    facts = json.loads(path.with_suffix(".json").read_text())["scenes"][0]
+    assert facts["expected"][0]["injection"] == expectation
+    assert facts["observed"]["injection"] == observation
+    assert facts["status"] == "failed"
+
+
 def test_hard_pass_keeps_semantics_unreviewed_until_explicit_review(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
     _save_review(path.with_suffix(".json"))

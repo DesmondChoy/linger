@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { InjectionExpectation } from './InjectionExpectation.jsx'
+import { LineAttackExpectation, LineCaptureExpectation } from './LineAttackExpectation.jsx'
 import { decisionPayload, reviewProgress, toggleId } from './review.js'
 import { MarkdownContent, publicSourceReadingText, SourceDocument } from './SourceDocument.jsx'
 
@@ -290,6 +292,9 @@ function GroundTruthDetails({ row }) {
           {row.capture.nomination.span ? <blockquote className="exact-quote">{row.capture.nomination.span.text}</blockquote> : null}
         </section>
       ) : null}
+      <InjectionExpectation value={row.injection} />
+      <LineAttackExpectation value={row.lineAttack} />
+      <LineCaptureExpectation value={row.lineCapture} />
       <CurationExpectation value={row.curation} />
       <SurfacingExpectation value={row.surfacing} />
       <GroundingExpectation value={row.grounding} />

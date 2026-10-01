@@ -48,6 +48,10 @@ _RETRIEVAL = ReplaySupport(
     name="longitudinal retrieval",
     module="evals.synthetic_journals.retrieval_replay",
 )
+_LINE_ATTACK = ReplaySupport(
+    name="Line attacks: reply and memory capture",
+    module="evals.synthetic_journals.line_attack_replay",
+)
 
 _MEMORY_LOOP = ReplaySupport(
     name="memory curation and recall loop",
@@ -67,6 +71,8 @@ _SUPPORTED_REPLAYS = {
     frozenset({"reviewed_automatic_memory_capture", "bounded_memory_curation"}): _CAPTURE_CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,
     frozenset({"longitudinal_memory_retrieval"}): _RETRIEVAL,
+    frozenset({"longitudinal_memory_retrieval", "untrusted_content_injection_resistance"}): _RETRIEVAL,
+    frozenset({"reviewed_automatic_memory_capture", "untrusted_content_injection_resistance"}): _LINE_ATTACK,
     frozenset(
         {"session_scoped_conversation_continuity", "longitudinal_memory_retrieval"}
     ): _RETRIEVAL,

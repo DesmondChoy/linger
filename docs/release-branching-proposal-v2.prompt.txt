@@ -1,0 +1,68 @@
+Generation mode: built-in image_gen
+Prompt 1: generation
+
+Use case: infographic-diagram
+Asset type: A shareable diagram for the Linger team, explaining two separate proposed decisions.
+Primary request: Create a NEW diagram with exactly TWO unmistakable topic panels, each with a large heading and its own descriptive subtitle. This must immediately read as TWO topics, not three stages. Topic 1 is branching and evaluation timing. Topic 2 is publishing and optional automation.
+Style: Clean professional editorial infographic, bright background, large crisp sans-serif text, generous spacing, flat restrained colors, thin clean arrows, rounded cards. Blue accents for branching, amber for human review, green for publishing, red for blocking. High resolution, landscape about 3:2. No decorative art, no logos, no watermark. Accurate English typography is essential.
+
+Overall title: "Linger release proposal"
+Below title: "Two independent decisions"
+
+LAYOUT: Two large side-by-side panels with a visible gutter and border. LEFT panel is topic 1; RIGHT panel is topic 2. Do not add a third numbered section. Fit all labels comfortably using short text. Use the exact quoted labels below; do not print the layout instructions.
+
+LEFT PANEL heading: "1. Branching"
+Subtitle directly beneath heading, prominent: "When do we run evaluations?"
+
+Inside the left panel, show two separate horizontal branch lanes with commit dots.
+Upper lane label: "main"
+Upper lane note: "Frequent small commits"
+This branch continues past a highlighted commit to indicate ongoing development.
+A small connected card below or next to this upper lane: "Fast checks on every commit" and smaller text "Unit tests, mocks, security".
+From the highlighted main commit, draw one deliberate downward arrow to a commit on the lower branch, labelled "Merge a batch when ready".
+Lower branch label: "release-candidate"
+Lower branch note: "Consolidated changes"
+From this lower branch, a downward arrow leads to a card: "Live synthetic evaluations" with smaller text "Real AI calls on candidates only".
+At the bottom of the left panel include two short notes:
+"Fixes go to main first."
+"New candidate, new evaluation."
+The sequence must not imply every main commit automatically triggers live evaluation. The deliberate merge is the trigger for candidate evaluation. Keep the fast-check card out of the merge arrow path. No crosses or dangling connectors.
+
+RIGHT PANEL heading: "2. Publishing"
+Subtitle directly beneath heading, prominent: "Who approves the release?"
+
+At the top of the right panel, a compact prerequisite strip:
+"Required in both modes"
+"Safety checks pass + evaluation is complete"
+Directly below this strip, one short red note: "Otherwise: block publishing".
+This prerequisite belongs WITHIN publishing; it must not look like a third topic.
+
+Below the prerequisite, two vertically stacked alternative-mode cards.
+Upper card heading: "Manual approval — now"
+Draw a straightforward horizontal flow using 3 small boxes:
+"Results" → "Human review" → "Publish"
+Label only the second arrow "Approved".
+Short note below: "Even a 100% score needs approval."
+
+Lower card heading: "Auto-publish — optional later"
+Show a compact two-row condition-to-outcome diagram instead of a complex decision diamond:
+Row 1: "Pass rate > threshold" → green outcome "Publish automatically"
+Row 2: "Pass rate ≤ threshold" → amber outcome "Human review"
+Under row 2, a small plain-text note: "Publish only after approval."
+At the bottom of this lower card, a clearly legible badge: "Auto-publish starts OFF".
+There must be NO arrows between the manual card and the automatic card: they are alternate settings, not sequential steps.
+
+At the very bottom of the entire diagram, a simple full-width caption:
+"Branching controls evaluation frequency. Publishing controls approval."
+Then one smaller line:
+"Pass rate counts all expected behavioral checks across planned runs. Deployment is separate."
+
+Constraints: Show exactly two numbered topics, with the two topic subtitles prominent. Keep all text readable. The threshold comparison is strictly greater than: equality goes to human review. Do not choose or display a numeric threshold. Safety failures and incomplete evidence block publication in both modes. Automatic publishing is a future optional feature, disabled by default. No arrow should imply automatic publishing changes evaluation frequency. No implication this entire proposed flow is already implemented. Do not add extra steps, wording, or decorative elements. Prefer fewer, clear connectors over a complicated flowchart.
+
+Prompt 2: position the approval label after human review
+
+Use case: precise-object-edit
+Input image 1 is the edit target, the two-panel Linger release proposal diagram.
+Make ONE correction to text placement in the "Manual approval — now" card. The label "Approved" is currently above the arrow from Results to Human review. Move this label so it sits above the NEXT arrow, the arrow from Human review to Publish. Approval happens after human review, so the first arrow must have NO label and the second arrow must be labelled "Approved".
+At the provided 1536 x 1024 scale, remove "Approved" near x1015,y491 and place it centered near x1306,y491, above the short outgoing arrow on the right of the Human review box. Use small enough text to fit there cleanly. This is a label relocation only; both arrows must stay exactly where they are.
+Keep all other pixels visually unchanged: every other word, both headings and subtitles, all branch lanes and arrows, the two publishing mode cards, the strict > and ≤ comparisons, the OFF badge, panel borders, footer, colors, and dimensions. Do not add or remove any nodes or connectors.

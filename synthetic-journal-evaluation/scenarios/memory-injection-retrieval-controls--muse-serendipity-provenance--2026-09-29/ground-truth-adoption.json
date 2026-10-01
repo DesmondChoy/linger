@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "127be684a13efd5c8cf26fe8527bba694987a2ab9e7604f34e9bbb4265f1574f",
+  "proposed_ground_truth_sha256": "566a8c4734b24b9de2a31354bc9cb4c94837799bde44737f55538ba0bde5adaf",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-10-01T22:29:12.682039+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-scene-memory-attack-retrieval",
+      "scene_id": "scene-memory-attack",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-memory-attack-injection",
+      "scene_id": "scene-memory-attack",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-memory-benign-retrieval",
+      "scene_id": "scene-memory-benign",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-memory-benign-injection",
+      "scene_id": "scene-memory-benign",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "b7fab35bff784e4ad2f9003aaa633bd6bf7f1f4efe693a44b1f5d1803716a314"
+}

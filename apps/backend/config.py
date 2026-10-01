@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     linger_web_search_enabled: bool = False
     linger_state_dir: Path = REPO_ROOT / "data"
     linger_memory_dir: Path = REPO_ROOT / "memories"
+    linger_static_dir: Path | None = None
 
     @property
     def allowed_origins(self) -> list[str]:

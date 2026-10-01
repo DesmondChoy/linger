@@ -18,6 +18,9 @@ storage under `memories/`. The public API exposes no memory CRUD operations.
 
 ## Setup
 
+For a single Docker image with persistent accounts, transcripts, and memories,
+use the [release and deployment guide](../docs/releasing.md).
+
 From the repository root:
 
 ```bash
@@ -72,6 +75,10 @@ repository root. The UI is served at <http://localhost:5173>, Nginx proxies its
 <http://localhost:8000>. Compose stores writable application state and memories
 in named volumes while the reviewed corpus remains immutable in the backend
 image.
+
+The separate `compose.release.yaml` runs a tested release image with the
+frontend and backend together. See the [release guide](../docs/releasing.md)
+for approved image deployment, backup, and rollback.
 
 The Vite development server proxies `/api` to the backend. Set `VITE_API_URL`
 when the frontend should call another API origin. Interactive API documentation

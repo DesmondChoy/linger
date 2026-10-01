@@ -54,6 +54,12 @@ from .models import (
     Scene,
     StrictModel,
     SyntheticBackstory,
+    MemoryInjectionExpectation,
+)
+from .memory_injection import (
+    INJECTION_OBJECTIVE_ID, INJECTION_OBJECTIVES, INJECTION_RUN_CONFIGURATION_ID,
+    InjectionObservation, ObservedMemoryService, observe_injection, store_digest,
+    validate_memory_injection,
 )
 from .replay import (
     RUNTIME_PROMPT_FINGERPRINTS,
@@ -93,6 +99,7 @@ class RetrievalEvaluationExpected(StrictModel):
     relevant_prop_ids: tuple[str, ...]
     distractor_prop_ids: tuple[str, ...]
     ground_truth_status: GroundTruthStatus
+    injection: MemoryInjectionExpectation | None = None
 
 
 class RetrievalEvaluationOutput(StrictModel):
@@ -107,6 +114,7 @@ class RetrievalEvaluationOutput(StrictModel):
     release_source: str
     reply: str
     semantic_review_required: Literal[True] = True
+    injection: InjectionObservation | None = None
 
 
 class RetrievalSceneObservation(StrictModel):
@@ -129,6 +137,7 @@ class RetrievalSceneObservation(StrictModel):
     events: tuple[ConnectionEvaluationEvent, ...]
     agent_exchanges: tuple[AgentExchange, ...]
     semantic_review_required: Literal[True] = True
+    injection: InjectionObservation | None = None
 
 
 CombinedInput = ContinuityEvaluationInput | RetrievalEvaluationInput
@@ -210,6 +219,7 @@ class _RetrievalScene:
     props: tuple[Prop, ...]
     relevant_prop_ids: tuple[str, ...]
     distractor_prop_ids: tuple[str, ...]
+    injection: MemoryInjectionExpectation | None = None
 
 
 async def replay_retrieval_scenes(
@@ -225,18 +235,23 @@ async def replay_retrieval_scenes(
     if selected not in (
         {RETRIEVAL_OBJECTIVE_ID},
         {RETRIEVAL_OBJECTIVE_ID, CONTINUITY_OBJECTIVE_ID},
+        INJECTION_OBJECTIVES,
     ):
         raise ValueError(
             "longitudinal retrieval replay requires longitudinal_memory_retrieval "
-            "alone or with session_scoped_conversation_continuity"
+            "alone, with session_scoped_conversation_continuity, or with the memory injection overlay"
         )
     if backstory.offline_inputs or backstory.source_setups:
         raise ValueError("longitudinal retrieval replay accepts Lines and Props only")
-    if RETRIEVAL_RUN_CONFIGURATION_ID not in backstory.run_configuration_ids:
+    configuration_id = INJECTION_RUN_CONFIGURATION_ID if selected == INJECTION_OBJECTIVES else RETRIEVAL_RUN_CONFIGURATION_ID
+    if configuration_id not in backstory.run_configuration_ids:
         raise ValueError(
             "longitudinal retrieval replay requires the "
-            f"{RETRIEVAL_RUN_CONFIGURATION_ID} run configuration"
+            f"{configuration_id} run configuration"
         )
+    injection_failures = validate_memory_injection(backstory, ground_truth)
+    if injection_failures:
+        raise ValueError("; ".join(injection_failures))
 
     ordered = sorted(backstory.scenes, key=lambda item: item.order)
     continuity_scenes = [
@@ -246,6 +261,7 @@ async def replay_retrieval_scenes(
         scene.scene_id: _retrieval_scene(backstory, ground_truth, scene)
         for scene in ordered
         if scene.objective_ids == (RETRIEVAL_OBJECTIVE_ID,)
+        or set(scene.objective_ids) == INJECTION_OBJECTIVES
     }
     if len(continuity_scenes) + len(retrieval_scenes) != len(ordered):
         raise ValueError(
@@ -316,6 +332,7 @@ async def replay_retrieval_scenes(
                 relevant_prop_ids=retrieval.relevant_prop_ids,
                 distractor_prop_ids=retrieval.distractor_prop_ids,
                 ground_truth_status=status,
+                injection=retrieval.injection,
             )
         cases.append(
             Case(
@@ -378,7 +395,7 @@ async def replay_retrieval_scenes(
                     expected,
                     run_id=run_id,
                     handler=handler,
-                    service=MemoryPolicyService(root / f"retrieval-{inputs.order}"),
+                    service=(ObservedMemoryService if expected.injection else MemoryPolicyService)(root / f"retrieval-{inputs.order}"),
                     account=account,
                 )
                 observations.append(retrieval)
@@ -393,6 +410,7 @@ async def replay_retrieval_scenes(
                     ),
                     release_source=retrieval.release_source,
                     reply=retrieval.reply,
+                    injection=retrieval.injection,
                 )
             raise TypeError("synthetic Scene expectation does not match its input")
 
@@ -489,6 +507,8 @@ def _retrieval_scene(
     )
     lines = {line.line_id: line for line in backstory.lines}
     line = lines[scene.line_ids[0]]
+    injection = next((item.injection for item in ground_truth.proposals
+                      if item.scene_id == scene.scene_id and item.objective_id == INJECTION_OBJECTIVE_ID), None)
     return _RetrievalScene(
         scene_id=scene.scene_id,
         order=scene.order,
@@ -500,6 +520,7 @@ def _retrieval_scene(
         distractor_prop_ids=tuple(
             prop.prop_id for prop in scene_props if prop.prop_id not in relevant
         ),
+        injection=injection,
     )
 
 
@@ -542,6 +563,9 @@ async def _replay_retrieval_scene(
     memory_ids = _seed_props(scene.props, service=service, account=account)
 
     before = {record.memory_id: record for record in service.list_active(account)}
+    before_digest = store_digest(service.root) if expected.injection else None
+    if isinstance(service, ObservedMemoryService):
+        service.observe_writes = True
     recorder = SceneTranscriptRecorder()
     session_id = f"synthetic-eval:{run_id}:scene:{scene.scene_id}"
     request = ChatRequest(
@@ -594,6 +618,18 @@ async def _replay_retrieval_scene(
     if service.capture_enabled(account):
         failures.append("capture_enabled_after_scene")
 
+    injection = None
+    if expected.injection is not None:
+        if not isinstance(service, ObservedMemoryService) or before_digest is None:
+            raise TypeError("injection replay requires observed memory writes")
+        injection = observe_injection(
+            expected.injection, memory_id=memory_ids[expected.injection.source_prop_id],
+            evidence=ledger, exchanges=recorder.exchanges, reply=response.reply,
+            write_attempts=tuple(service.write_attempts), before=before_digest,
+            after=store_digest(service.root),
+        )
+        failures.extend(injection.hard_failures)
+
     hard_failures = tuple(failures)
     ground_truth_result = _ground_truth_result(
         matches=not hard_failures,
@@ -624,6 +660,7 @@ async def _replay_retrieval_scene(
         ground_truth_result=ground_truth_result,
         events=events,
         agent_exchanges=recorder.exchanges,
+        injection=injection,
     )
 
 

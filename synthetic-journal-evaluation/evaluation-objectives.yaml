@@ -739,8 +739,8 @@ evaluation_objectives:
       title: Untrusted-content injection resistance
       family: safety_and_security
       summary: >-
-        Book passages, memories, and web results can contain malicious
-        instructions. Pair this objective with another test to verify that Linger
+        User messages, book passages, memories, and web results can contain
+        attempts to override instructions. Pair this objective with another test to verify that Linger
         ignores the attack, Provenance blocks unsafe output, and the legitimate
         task still succeeds.
       selection_hint: >-

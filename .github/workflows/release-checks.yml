@@ -1,0 +1,240 @@
+name: Release evidence and approval
+
+on:
+  workflow_call:
+    inputs:
+      candidate_sha:
+        required: true
+        type: string
+      ci_run_id:
+        default: ''
+        type: string
+      repetitions:
+        default: '1'
+        type: string
+      model:
+        default: openai:gpt-6-luna
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: release-${{ inputs.candidate_sha }}
+  cancel-in-progress: false
+
+jobs:
+  configuration:
+    name: Read release configuration
+    if: >-
+      github.ref == 'refs/heads/release-candidate' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'release-candidate')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      configuration_sha: ${{ steps.configuration.outputs.configuration_sha }}
+      live_enabled: ${{ steps.configuration.outputs.live_evaluations_enabled }}
+      auto_enabled: ${{ steps.configuration.outputs.auto_publish_enabled }}
+      threshold: ${{ steps.configuration.outputs.auto_publish_threshold }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - id: configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          python3 .github/scripts/release_candidate.py configuration \
+            --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" > release-configuration.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-configuration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-configuration.json
+          retention-days: 30
+          if-no-files-found: error
+
+  candidate:
+    name: Verify release candidate and reviewer setup
+    needs: configuration
+    if: needs.configuration.outputs.live_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.candidate.outputs.candidate_sha }}
+      ci_run_id: ${{ steps.candidate.outputs.ci_run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          CI_RUN_ID: ${{ inputs.ci_run_id }}
+        run: |
+          python3 .github/scripts/release_candidate.py resolve \
+            --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" --run-id "$CI_RUN_ID"
+
+  evaluate:
+    name: Evaluate the tested candidate
+    needs: [configuration, candidate]
+    if: needs.configuration.outputs.live_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    environment: linger-evaluations
+    outputs:
+      image_id: ${{ steps.image.outputs.image_id }}
+      publication_route: ${{ steps.policy.outputs.publication_route }}
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+      CI_RUN_ID: ${{ needs.candidate.outputs.ci_run_id }}
+      LINGER_MODEL: ${{ inputs.model }}
+      REPETITIONS: ${{ inputs.repetitions }}
+      AUTO_PUBLISH_ENABLED: ${{ needs.configuration.outputs.auto_enabled }}
+      AUTO_PUBLISH_THRESHOLD: ${{ needs.configuration.outputs.threshold }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: '0.8.3'
+      - name: Install the candidate's locked evaluation tooling
+        run: |
+          uv sync --locked --dev
+          printf '%s\n' "FASTEMBED_CACHE_PATH=$RUNNER_TEMP/fastembed" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.candidate.outputs.ci_run_id }}
+          name: linger-candidate-${{ needs.candidate.outputs.sha }}-amd64
+          path: candidate
+      - name: Verify and load the original image
+        id: image
+        run: |
+          python3 .github/scripts/release_candidate.py verify --sha "$CANDIDATE_SHA" \
+            --arch amd64 --directory candidate
+      - name: Reuse the candidate's local model files
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          container=$(docker create "$IMAGE_ID")
+          trap 'docker rm -f "$container"' EXIT
+          docker cp "$container:/opt/linger/models" "$FASTEMBED_CACHE_PATH"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-configuration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+      - name: Preflight every Scenario, then run every repetition
+        id: policy
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+          OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
+          EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
+          LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
+          HF_HUB_OFFLINE: '1'
+        run: |
+          policy_args=(--auto-publish-threshold "$AUTO_PUBLISH_THRESHOLD")
+          if [ "$AUTO_PUBLISH_ENABLED" = true ]; then
+            policy_args+=(--auto-publish-enabled)
+          fi
+          uv run --no-sync python -m evals.release run --candidate-sha "$CANDIDATE_SHA" \
+            --image-id "$IMAGE_ID" --model "$LINGER_MODEL" --repetitions "$REPETITIONS" \
+            --output release-evidence/behavioral "${policy_args[@]}"
+      - name: Check live HTTP and streaming behavior in the same image
+        timeout-minutes: 35
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+          OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
+          EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
+          LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
+        run: bash docker/live-smoke.sh "$IMAGE_ID"
+      - name: Show the release evidence and publication route
+        if: always()
+        run: |
+          if [ -f release-evidence/behavioral/report.md ]; then
+            cat release-evidence/behavioral/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: release-evidence-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+          retention-days: 30
+          if-no-files-found: error
+
+  publish:
+    name: Publish ${{ needs.candidate.outputs.sha }} (${{ needs.evaluate.outputs.publication_route }})
+    needs: [configuration, candidate, evaluate]
+    if: >-
+      needs.configuration.outputs.live_enabled == 'true' &&
+      (needs.evaluate.outputs.publication_route == 'manual' ||
+      (needs.evaluate.outputs.publication_route == 'automatic' && needs.configuration.outputs.auto_enabled == 'true'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: ${{ needs.evaluate.outputs.publication_route == 'automatic' && 'linger-release-auto' || 'linger-release' }}
+      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+      CI_RUN_ID: ${{ needs.candidate.outputs.ci_run_id }}
+      GH_TOKEN: ${{ github.token }}
+      PUBLICATION_ROUTE: ${{ needs.evaluate.outputs.publication_route }}
+      CONFIGURATION_SHA: ${{ needs.configuration.outputs.configuration_sha }}
+      LIVE_EVALS_ENABLED: ${{ needs.configuration.outputs.live_enabled }}
+      AUTO_PUBLISH_ENABLED: ${{ needs.configuration.outputs.auto_enabled }}
+      AUTO_PUBLISH_THRESHOLD: ${{ needs.configuration.outputs.threshold }}
+      EVALUATED_IMAGE_ID: ${{ needs.evaluate.outputs.image_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-evidence-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+      - name: Record the human approval
+        if: needs.evaluate.outputs.publication_route == 'manual'
+        run: |
+          mkdir -p release-evidence
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/approvals" > release-evidence/approvals.json
+          jq -e 'any(.[]; .state == "approved" and any(.environments[]; .name == "linger-release"))' \
+            release-evidence/approvals.json
+      - name: Verify and record the publication authorization
+        run: |
+          approval_args=()
+          if [ "$PUBLICATION_ROUTE" = manual ]; then
+            approval_args+=(--approvals release-evidence/approvals.json)
+          fi
+          python3 .github/scripts/release_candidate.py authorize \
+            --sha "$CANDIDATE_SHA" --image-id "$EVALUATED_IMAGE_ID" --route "$PUBLICATION_ROUTE" \
+            --live-enabled "$LIVE_EVALS_ENABLED" --auto-enabled "$AUTO_PUBLISH_ENABLED" \
+            --configuration-sha "$CONFIGURATION_SHA" --threshold "$AUTO_PUBLISH_THRESHOLD" --summary release-evidence/behavioral/summary.json \
+            --output release-evidence/publication.json "${approval_args[@]}"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.candidate.outputs.ci_run_id }}
+          pattern: linger-candidate-${{ needs.candidate.outputs.sha }}-*
+          path: candidates
+      - name: Publish the authorized images without rebuilding
+        run: bash .github/scripts/publish-candidate.sh
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: release-publication-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+          retention-days: 30
+          if-no-files-found: error
