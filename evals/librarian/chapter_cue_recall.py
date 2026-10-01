@@ -214,12 +214,46 @@ async def select(set_name: str, search: str) -> list[dict[str, object]]:
     output = RUNS / f"{search}-{set_name}-selected.json"
     if output.exists():
         raise SystemExit(f"{output.name} exists; each selection runs once.")
+    lock = output.with_suffix(".lock")
+    try:
+        lock.open("x").close()
+    except FileExistsError:
+        raise SystemExit(f"{lock.name} exists: another selection is running, or one stopped; "
+                         "remove the lock once nothing is running.") from None
+    try:
+        return await _select(set_name, search, output)
+    finally:
+        lock.unlink(missing_ok=True)
+
+
+def _pool_sha256(pool: Iterable[EvidenceItem]) -> str:
+    return hashlib.sha256(json.dumps(
+        [(item.evidence_id, item.excerpt) for item in pool], ensure_ascii=False,
+    ).encode()).hexdigest()
+
+
+async def _select(set_name: str, search: str, output: Path) -> list[dict[str, object]]:
+    """Checkpoint each need as it finishes; a resumed run never re-samples a finished need."""
+    from apps.backend.config import get_settings
+    from apps.backend.telemetry import configure_telemetry
+    from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
+    from src.linger.orchestration.evidence_strength import assess_book_evidence
+
     identity = _identity(search)
     pools = _pools(set_name, search)
+    checkpoint = output.with_suffix(".partial.jsonl")
+    done = {}
+    if checkpoint.exists():
+        done = {record["id"]: record for record in map(json.loads, checkpoint.read_text(encoding="utf-8").splitlines())}
+        current = {need["id"]: _pool_sha256(pool) for need, _, _, pool in pools}
+        if any(record["pool_sha256"] != current[need_id] for need_id, record in done.items()):
+            raise SystemExit(f"{checkpoint.name} came from different retrieval; it cannot be resumed.")
     configure_telemetry()
     slots = asyncio.Semaphore(SELECTION_CONCURRENCY)
 
     async def run(need, plan, request, pool) -> dict[str, object]:
+        if need["id"] in done:
+            return done[need["id"]]
         decision, error, responses = None, None, []
         if pool:
             async with slots:
@@ -234,20 +268,28 @@ async def select(set_name: str, search: str) -> list[dict[str, object]]:
                 responses = [message for message in messages if isinstance(message, ModelResponse)]
         selected = decision.relevant_evidence_ids if decision else ()
         by_id = {item.evidence_id: item for item in pool}
-        return {
+        record = {
             "id": need["id"],
             "chapter": need["chapter"],
             "passed": bool(_containing(need, (by_id[evidence_id] for evidence_id in selected))),
             "reached": bool(_containing(need, pool)),
             "selected": list(selected),
             "evidence_strength": decision.evidence_strength if decision else "none",
+            "strength_reason": decision.strength_reason if decision else None,
+            "limitations": list(decision.limitations) if decision else [],
             "error": error,
+            "pool": [item.evidence_id for item in pool],
+            "pool_sha256": _pool_sha256(pool),
             "pool_size": len(pool),
             "pool_words": sum(len(item.excerpt.split()) for item in pool),
+            "selected_words": sum(len(by_id[evidence_id].excerpt.split()) for evidence_id in selected),
             "model_calls": len(responses),
             "input_tokens": sum(response.usage.input_tokens for response in responses),
             "output_tokens": sum(response.usage.output_tokens for response in responses),
         }
+        with checkpoint.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+        return record
 
     results = list(await asyncio.gather(*(run(*entry) for entry in pools)))
     output.write_text(json.dumps({
@@ -259,6 +301,7 @@ async def select(set_name: str, search: str) -> list[dict[str, object]]:
         "passed": sum(result["passed"] for result in results),
         "needs": results,
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    checkpoint.unlink()
     return results
 
 
@@ -462,6 +505,7 @@ def main() -> None:
     if args.set_name == "sealed":
         _lock_stages_for_sealed(output)
     results = score(args.set_name, args.search)
+    _check_selection_still_matches(args.search, args.set_name, output, results)
     baseline_path = RUNS / f"stage1-{args.set_name}.json"
     baseline = (
         {need["id"]: need["reached"] for need in _read(baseline_path)["needs"]}
@@ -484,6 +528,22 @@ def main() -> None:
         "set": args.set_name, "search": args.search, "identity": identity,
         "reached": reached, "needs": results,
     }, indent=2) + "\n", encoding="utf-8")
+
+
+def _check_selection_still_matches(search: str, set_name: str, output: Path, results: list[dict[str, object]]) -> None:
+    """Refuse to rescore a condition whose stored Librarian selection saw different passages."""
+    selection = RUNS / f"{search}-{set_name}-selected.json"
+    if not selection.exists():
+        return
+    stored = {need["id"]: need.get("pool") for need in _read(selection)["needs"]}
+    previous = {need["id"]: need["pool"] for need in _read(output)["needs"]} if output.exists() else {}
+    for result in results:
+        expected = stored.get(result["id"]) or previous.get(result["id"])
+        if expected is not None and expected != result["pool"]:
+            raise SystemExit(
+                f"{result['id']}: retrieval differs from the pool {selection.name} was selected from; "
+                "record the change as a new condition instead."
+            )
 
 
 def _lock_stages_for_sealed(output: Path) -> None:

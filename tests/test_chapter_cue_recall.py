@@ -167,29 +167,60 @@ def test_sealed_scores_run_once_and_freeze_every_stage(runs) -> None:
         chapter_cue_recall._lock_stages_for_sealed(runs / "stage1-sealed.json")
 
 
-def test_selection_passes_only_when_a_selected_passage_holds_the_quote(runs, monkeypatch) -> None:
+def _selection_setup(monkeypatch, picks):
     from src.linger.agents.librarian.models import EvidenceStrengthDecision
     from src.linger.orchestration import evidence_strength
 
-    need = json.loads(NEEDS.read_text(encoding="utf-8"))["practice"]["needs"][0]
+    needs = json.loads(NEEDS.read_text(encoding="utf-8"))["practice"]["needs"][:2]
     item = lambda evidence_id, text: type("Item", (), {"evidence_id": evidence_id, "excerpt": text})()
-    pool = (item("wrong", "Unrelated text."), item("right", f"Before. {need['quote']} After."))
+    pools = {need["id"]: (item("wrong", "Unrelated text."), item("right", f"Before. {need['quote']} After."))
+             for need in needs}
     monkeypatch.setattr(chapter_cue_recall, "_pools", lambda set_name, search: [
-        (need, BookRequestPlan(parts=()), LibrarianBookRequestInput(current_line=need["question"]), pool),
-    ] * 2)
+        (need, BookRequestPlan(parts=()), LibrarianBookRequestInput(current_line=need["question"]), pools[need["id"]])
+        for need in needs
+    ])
     monkeypatch.setattr(chapter_cue_recall, "evidence_record_from_item", lambda item: item)
-    picks = iter([("right",), ("wrong",)])
+    calls = []
 
-    async def assess(plan, records, **kwargs):
+    async def assess(plan, records, original_request, **kwargs):
+        calls.append(original_request.current_line)
         return EvidenceStrengthDecision(
-            evidence_strength="sufficient", strength_reason="Test.", relevant_evidence_ids=next(picks),
+            evidence_strength="sufficient", strength_reason="Test.", relevant_evidence_ids=picks[len(calls) - 1],
         )
 
     monkeypatch.setattr(evidence_strength, "assess_book_evidence", assess)
     monkeypatch.setattr(chapter_cue_recall, "SELECTION_CONCURRENCY", 1)
+    return needs, calls
+
+
+def test_selection_passes_only_when_a_selected_passage_holds_the_quote(runs, monkeypatch) -> None:
+    _selection_setup(monkeypatch, [("right",), ("wrong",)])
     results = asyncio.run(chapter_cue_recall.select("practice", "today"))
 
     assert [result["passed"] for result in results] == [True, False]
     assert all(result["reached"] for result in results)
+    assert not list(runs.glob("*.partial.jsonl")) and not list(runs.glob("*.lock"))
     with pytest.raises(SystemExit, match="runs once"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+
+def test_interrupted_selection_resumes_without_resampling(runs, monkeypatch) -> None:
+    needs, calls = _selection_setup(monkeypatch, [("wrong",)])
+    output = runs / "today-practice-selected.json"
+    finished = {
+        "id": needs[0]["id"], "passed": True, "selected": ["right"],
+        "pool_sha256": chapter_cue_recall._pool_sha256(chapter_cue_recall._pools("practice", "today")[0][3]),
+    }
+    output.with_suffix(".partial.jsonl").write_text(json.dumps(finished) + "\n", encoding="utf-8")
+
+    results = asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+    assert calls == [needs[1]["question"]]
+    assert [result["passed"] for result in results] == [True, False]
+
+
+def test_selection_refuses_to_run_twice_at_once(runs, monkeypatch) -> None:
+    _selection_setup(monkeypatch, [])
+    (runs / "today-practice-selected.lock").touch()
+    with pytest.raises(SystemExit, match="another selection is running"):
         asyncio.run(chapter_cue_recall.select("practice", "today"))

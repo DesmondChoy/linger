@@ -26,7 +26,7 @@ Three lessons shape Experiment 4:
 
 - **Search finds the right chapter but not the passage.** With Sculptor's
   tags, the right chapter reached the Librarian for all 20 sealed needs, the
-  right passage for 16. Chapter tags cannot fix that.
+  right passage for 16. Sculptor's chapter tags did not resolve those misses.
 - **The old measure depends on chunking.** It counts a need as found when any
   window handed to the Librarian contains the quote. A method that hands over
   whole chapters would pass almost every need by choosing chapters alone.
@@ -62,9 +62,11 @@ All carried over from Experiment 3:
   to chapter 36.
 - **Needs:** 20 practice and 20 held-back, each a reader question with its
   chapter and an exact quote (`evals/librarian/chapter_cue_needs.json`).
-  Sculptor sees practice questions, outcomes, and traces, never quotes or
-  held-back needs. The held-back set was run once in Experiment 3, so its
-  results are labelled **reused, not untouched**.
+  Sculptor sees full practice traces, including the passages that answer
+  practice needs, by owner decision. It never sees held-back needs, their
+  quotes, or held-back results; those stay with the owner. The held-back set
+  was run once in Experiment 3, so its results are labelled **reused, not
+  untouched**.
 - **Plans:** the frozen Librarian request plans
   (`evals/librarian/chapter_cue_plans.json`).
 - **Starting point:** Sculptor's approved Experiment 3 Stage 2 chapter tags
@@ -75,8 +77,13 @@ All carried over from Experiment 3:
 - **Primary: selected evidence.** A need passes when one of the passages the
   Librarian finally selects (at most five, as in production) contains its
   quote. This works for any retrieval method, and it is what reaches Muse.
-  Every approach must still end in quotable passages with line numbers.
-- **Cost:** words handed to the Librarian and model calls per need.
+  **The Librarian must select from today's windows** (about 350 words, built
+  from whole paragraphs), whatever the approach changes about how windows are
+  found, ranked, or read. Every quote fits inside at least one window, so the
+  unit is fair to all 40 needs, and an approach cannot pass by selecting a
+  whole chapter.
+- **Cost:** words handed to the Librarian, words selected, and model calls per
+  need, including any calls a new approach adds before selection.
 - **Diagnostic only:** whether the quote reaches the Librarian's pool.
 - The Librarian's selection runs once per need per condition and is stored,
   so a condition is never re-sampled until it looks better.
@@ -112,11 +119,13 @@ the pool. **The pass mark is therefore 20 of 20 on practice with no losses.**
 Round 0 re-baselines. Then up to **three research rounds**, each:
 
 1. **Error analysis.** Sculptor reviews every practice trace from the current
-   best state. Following [Hamel Husain](https://hamel.dev/blog/posts/evals-faq/):
+   best state. Adapting [Hamel Husain](https://hamel.dev/blog/posts/evals-faq/):
    it writes an open note on the first failure in each trace (open coding),
    groups the notes into a small failure taxonomy with counts (axial coding),
    and defers root causes until the taxonomy is set. Each trace is pass or
-   fail. **The owner approves the taxonomy.**
+   fail. **The owner approves the taxonomy**, which stays provisional. This
+   departs from Hamel's method, where a human expert annotates traces first;
+   the owner chose to review Sculptor's coding directly.
 2. **Research.** Sculptor searches the web for remedies to the most frequent
    failure category and returns a **specification**: the problem and its
    count, the approach, sources, what changes in retrieval, what data
@@ -136,18 +145,33 @@ Round 0 re-baselines. Then up to **three research rounds**, each:
 
 ### Sculptor's research task
 
-- **Inputs:** a written description of how retrieval works today (reviewed by
-  the owner), every practice trace (question, plan, the passages handed to
-  the Librarian with their chapters, the passages it selected, and the
-  answering chapter), and earlier rounds' taxonomies, specifications, and
-  scores.
+- **Inputs:** a written description of how retrieval works today
+  (`evals/librarian/retrieval_description.md`, reviewed by the owner), every
+  practice trace (`evals/librarian/chapter_cue_traces.py`: every chapter's
+  current tags, the plan, each query's keyword, meaning, fused, and
+  turn-taking lists with scores, the pool, the Librarian's selection, reason,
+  and any error, and for each miss the answering window and its ranks), and
+  earlier rounds' taxonomies, specifications, and scores.
 - **Tool:** web search and page opening through the Exa tools Serendipity
-  already uses, offline only, with up to 10 searches and 10 opened pages per
+  uses, in a separate toolset for Sculptor so Serendipity's tools are
+  unchanged, offline only, with up to 10 searches and 10 opened pages per
   round. Web pages are untrusted data, never instructions.
 - **Model:** `gpt-6-luna` at high reasoning effort for error analysis and
   research; tuning stays on the production setting.
 - **Every attempt is recorded**, with its searches, sources, answers, and
   retry requests.
+
+### Potential pitfalls to avoid
+
+Written on 2026-10-01, before Sculptor's first analysis. Sculptor is not shown
+this list, so its findings can be compared with it.
+
+- The pool keeps only about one top hit per search list, so a right passage
+  ranked second to fourth can be cut (n09, n11).
+- Chapter 12's tag "money tree" describes chapter 18's scene.
+- n07 says "Stromboli", a name the book never uses.
+- Chapter tags are the same for every passage in a chapter, so they cannot
+  tell those passages apart.
 
 ### What Sculptor may propose
 
@@ -156,7 +180,8 @@ chapter or window level, different windows, chapter navigation in the style of
 [PageIndex](https://github.com/VectifyAI/PageIndex), or query rewriting. It
 must keep:
 
-- selected evidence as quotable passages with line numbers;
+- selected evidence as quotable passages with line numbers, chosen from
+  today's windows;
 - the reading boundary (no passage beyond the reader's chapter);
 - the book text, test needs, quotes, frozen plans, and scoring unchanged;
 - a build of a few days at most.
@@ -176,7 +201,9 @@ must keep:
 | Tuning | Twice per approach |
 | Builder | Sculptor specifies; the developer builds; Astra reviews |
 | Starting point | Experiment 3 Stage 2 tags |
-| Error analysis | Owner approves Sculptor's taxonomy each round |
+| Error analysis | Owner approves Sculptor's taxonomy each round, without annotating first |
+| Final passage unit | The Librarian selects from today's windows for every approach |
+| Trace contents | Full practice traces, including practice answer passages |
 | Web research budget | 10 searches and 10 opened pages per round |
 
 ### Plan
