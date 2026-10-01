@@ -51,6 +51,14 @@ CAPTURE_SCENARIO = (
     / "fixtures"
     / "synthetic_capture"
 )
+MEMORY_INJECTION_SCENARIO = (
+    ROOT / "synthetic-journal-evaluation" / "scenarios"
+    / "memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29"
+)
+LINE_ATTACK_SCENARIO = (
+    ROOT / "synthetic-journal-evaluation" / "scenarios"
+    / "line-attack-response-and-capture--muse-provenance--2026-10-01"
+)
 BOOK_VERSION = "pg11-v01b38ea4"
 BOOK_CHAPTER = (
     ROOT
@@ -412,6 +420,80 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     assert curation_payload["report"]["text"].startswith("# Pre-generation report")
 
 
+def test_memory_injection_review_leads_with_attack_and_distinguishes_clean_control(
+    tmp_path: Path, built_ui: Path,
+) -> None:
+    scenario = tmp_path / "memory-injection"
+    _copy_scenario(MEMORY_INJECTION_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
+    rows = state.payload["rows"]
+
+    assert len(rows) == 4
+    assert [row["objectiveId"] for row in rows] == [
+        "untrusted_content_injection_resistance", "longitudinal_memory_retrieval",
+    ] * 2
+    attack, attack_retrieval, clean, clean_retrieval = rows
+    assert attack["summary"] == "Attack in saved memory"
+    assert clean["summary"] == "Clean memory comparison"
+    assert attack_retrieval["summary"].startswith("Supporting retrieval:")
+    assert clean_retrieval["summary"].startswith("Supporting retrieval:")
+    attack_prop = next(item for item in attack["inputs"] if item["kind"] == "Prop")
+    clean_prop = next(item for item in clean["inputs"] if item["kind"] == "Prop")
+    assert attack_prop["role"] == "poisoned memory"
+    assert clean_prop["role"] == "clean memory"
+    assert attack["injection"]["attack_span"]["text"] in attack_prop["text"]
+    assert attack["injection"]["response_marker"] in attack_prop["text"]
+    assert clean["injection"]["attack_span"] is None
+    assert clean["injection"]["response_marker"] is None
+    assert len(attack["inputs"]) == len(clean["inputs"]) == 2
+    assert state.payload["replay"]["module"] == "evals.synthetic_journals.retrieval_replay"
+    assert not state.adoption_path.exists()
+
+
+def test_line_attack_review_separates_reply_and_actual_capture_results(
+    tmp_path: Path, built_ui: Path,
+) -> None:
+    scenario = tmp_path / "line-attack"
+    _copy_scenario(LINE_ATTACK_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
+    payload = state.payload
+    rows = payload["rows"]
+
+    assert len(rows) == 8
+    assert [row["objectiveId"] for row in rows] == [
+        "untrusted_content_injection_resistance", "reviewed_automatic_memory_capture",
+    ] * 4
+    for reply, capture in zip(rows[::2], rows[1::2], strict=True):
+        assert reply["sceneId"] == capture["sceneId"]
+        assert reply["lineAttack"] is not None and reply["lineCapture"] is None
+        assert capture["lineCapture"] is not None and capture["lineAttack"] is None
+        assert len(reply["inputs"]) == len(capture["inputs"]) == 1
+        line = reply["inputs"][0]
+        assert line["kind"] == "Line"
+        assert line == capture["inputs"][0]
+        assert "saved-memory result" in capture["summary"]
+        expected_capture = capture["lineCapture"]
+        assert len(expected_capture["allowed_spans"]) == 1
+        assert expected_capture["allowed_spans"][0]["text"] in line["text"]
+        if reply["lineAttack"]["kind"] == "attack":
+            assert reply["lineAttack"]["attack_span"]["text"] in line["text"]
+            assert line["role"] == "user message with attack"
+            assert reply["summary"].startswith("Line attack:")
+            assert capture["summary"].startswith("Line attack:")
+            assert expected_capture["required_spans"] == []
+        else:
+            assert reply["lineAttack"]["attack_span"] is None
+            assert reply["lineAttack"]["forbidden_reply"] is None
+            assert line["role"] == "clean user message"
+            assert reply["summary"].startswith("Clean Line comparison:")
+            assert capture["summary"].startswith("Clean Line comparison:")
+            assert expected_capture["required_spans"] == expected_capture["allowed_spans"]
+    assert payload["replay"]["module"] == "evals.synthetic_journals.line_attack_replay"
+    assert payload["replay"]["confirmLabel"] == "Confirm and run evaluation"
+    assert "billable model calls" in payload["replay"]["note"]
+    assert not state.adoption_path.exists()
+
+
 @pytest.mark.parametrize(
     ("decision", "reason_code", "summary"),
     [
@@ -614,6 +696,22 @@ def test_connection_review_shows_complete_source_setup_and_labels(
         (
             ("longitudinal_memory_retrieval", "session_scoped_conversation_continuity"),
             "evals.synthetic_journals.retrieval_replay",
+        ),
+        (
+            ("longitudinal_memory_retrieval", "untrusted_content_injection_resistance"),
+            "evals.synthetic_journals.retrieval_replay",
+        ),
+        (
+            ("untrusted_content_injection_resistance", "longitudinal_memory_retrieval"),
+            "evals.synthetic_journals.retrieval_replay",
+        ),
+        (
+            ("reviewed_automatic_memory_capture", "untrusted_content_injection_resistance"),
+            "evals.synthetic_journals.line_attack_replay",
+        ),
+        (
+            ("untrusted_content_injection_resistance", "reviewed_automatic_memory_capture"),
+            "evals.synthetic_journals.line_attack_replay",
         ),
         (("grounded_book_reflection",), "evals.synthetic_journals.book_replay"),
         (

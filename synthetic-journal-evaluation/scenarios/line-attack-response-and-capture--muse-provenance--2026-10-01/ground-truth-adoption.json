@@ -1,0 +1,62 @@
+{
+  "backstory_sha256": "955ebb539f99a1ee66d6e7f5cc756704b1a9b1fcd30c30b3eac2422b7a7d4d32",
+  "proposed_ground_truth_sha256": "a8e9fa17b79cf29cc054b8aa1a3bc164345c0d15670fd145b54a77f6ecc9d07b",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-10-01T22:45:16.264540+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-reply-attack-capture",
+      "scene_id": "scene-line-reply-attack",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-reply-attack-reply",
+      "scene_id": "scene-line-reply-attack",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-reply-clean-capture",
+      "scene_id": "scene-line-reply-clean",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-reply-clean-reply",
+      "scene_id": "scene-line-reply-clean",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-memory-attack-capture",
+      "scene_id": "scene-line-memory-attack",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-memory-attack-reply",
+      "scene_id": "scene-line-memory-attack",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-memory-clean-capture",
+      "scene_id": "scene-line-memory-clean",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-memory-clean-reply",
+      "scene_id": "scene-line-memory-clean",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "d851b58394d9ebaeb24b7995a1e80309017f616e7349e84c3d3ff920079d34bd"
+}

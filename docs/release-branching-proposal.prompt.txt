@@ -1,0 +1,55 @@
+Generation mode: built-in image_gen
+Prompt 1: initial generation
+
+Use case: infographic-diagram
+Asset type: A high-resolution diagram to share with the Linger development team in chat or a presentation.
+Primary request: Explain a PROPOSED two-branch workflow and two publishing modes. This is a proposal, not an assertion that the workflow is already implemented. Manual approval remains the starting policy. Future automatic publishing is optional and disabled by default.
+Style/medium: Polished, restrained editorial flowchart. Flat shapes, generous whitespace, crisp large sans-serif text, light background, subtle rounded corners, clear directional arrowheads. Minimal icons only when helpful. Give blue to development, amber to human review, green to publishing, red to blocked outcomes. No decorative artwork, gradients, or 3D.
+Composition: Wide landscape about 3:2, high resolution. Three horizontal bands with clear spacing. All text must be readable in a shared full-screen image. Exact labels below. Do not print the instructional words about layout.
+
+Top title: "Linger release proposal"
+Subtitle: "Two branches. Manual publishing by default."
+
+BAND 1, heading "1. Choose when to run expensive evaluations"
+Use two genuinely separate branch lanes:
+Upper lane: a horizontal line with several small commit dots, labelled "main" and "Frequent small commits". It continues to the right after a selected commit, showing development can continue. A connected small card says "Fast checks on every commit" and below it "Unit tests, mocks, security".
+Lower lane: a shorter branch line labelled "release-candidate" and "Consolidated changes". A single downward arrow from one selected main commit to a release-candidate commit says "Merge a batch when ready". Clearly show that this is deliberate, not an automatic transfer on every main commit. From the release-candidate commit draw a rightward arrow to a card "Live synthetic evaluations" with smaller text "Run on release candidates only".
+Below the branch lanes, include one short note: "Fixes go to main first, then into a new candidate."
+
+BAND 2, heading "2. Check the non-negotiable requirements"
+From the evaluation card, connect cleanly into a central gate card reading "Safety checks pass + evaluation is complete".
+From this gate, one red rightward arrow labelled "No" ends in a red card "Block publishing" with subtext "Fix or rerun, then reassess".
+From the gate, one downward arrow labelled "Yes" leads into band 3. This is a prerequisite for BOTH publishing modes. Behavioral quality misses do not mean this gate fails. Critical safety failures and incomplete evaluation do fail it.
+
+BAND 3, heading "3. Apply the selected publishing mode"
+Create two horizontal rows, each with one unambiguous end-to-end flow. They are ALTERNATIVE modes, not sequential steps or simultaneous jobs.
+Row A is emphasized as the default:
+An amber tag "MANUAL — DEFAULT" then a box "Human review" then an arrow labelled "Approved" to a green box "Publish tested version". Smaller text beneath human review: "Reviewer can approve or request fixes".
+Row B is subtly dashed or otherwise identified as a future option:
+A tag "AUTO — OPTIONAL LATER" then a decision box "Pass rate > threshold?"
+YES path: arrow labelled "Yes" to a green box "Publish tested version".
+NO path: arrow labelled "No: at or below" to an amber box "Human review". From this box an arrow labelled "Approved" must connect to the same green publishing outcome in this row. Place the human review box beneath the decision box if necessary to avoid crossed lines.
+Within row B or directly beneath it include: "Auto-publish starts OFF".
+
+Footer, two concise lines:
+"Pass rate = passed behavioral judgments / all expected behavioral judgments."
+"Publishing makes the tested release available. Production deployment is separate."
+
+Constraints: Preserve the strict greater-than comparison: equality routes to human review. Show no numeric example threshold and do not imply a chosen threshold. Safety failures can never be bypassed by a high pass percentage or by ordinary human review. Include all planned repetitions in the meaning of expected judgments, but do not add dense explanatory text. No arrow from main directly to live evaluations or publishing. No implication that each main commit triggers an expensive evaluation. No fake provider logos, no watermark, no code snippets, no extra policy claims. Every arrow must clearly start and end at the intended node. Keep the human approval step explicit in manual mode. Render the exact English labels accurately. If space is tight, increase the canvas height rather than making labels tiny.
+
+Prompt 2: final correction
+
+Use case: precise-object-edit
+Asset type: Final Linger release proposal infographic for sharing with the team.
+Input image 1 is the edit target.
+Change exactly one thing: remove the short vertical green arrow between the two green "Publish tested version" boxes at the far right of band 3. The upper publishing box belongs only to the MANUAL row and the lower publishing box belongs only to the AUTO row. These are ALTERNATIVE modes, so there must be no connector between those two publishing boxes. Restore the light background and dashed boundary cleanly where that extra arrow is removed.
+Keep every other arrow intact, including the "Approved" path from the lower Human review box into the LOWER Publish tested version box.
+Keep all text, typography, layout, dimensions, colors, branch lines, nodes, labels, other arrows, footer, and all other pixels visually unchanged. Do not remove or add any other text or shapes. Preserve both green publishing boxes.
+
+Prompt 3: restore the approval connector in the automatic mode
+
+Use case: precise-object-edit
+Input image 1 is the edit target: the latest Linger release proposal infographic.
+Make one tiny correction in the bottom AUTO — OPTIONAL LATER row only. The green line labelled "Approved", leaving the lower amber "Human review" box, currently ends without reaching the lower green "Publish tested version" box. Extend that SAME horizontal line with a short 90-degree upward turn and a green arrowhead that touches the bottom edge of the LOWER green "Publish tested version" box. At the provided 1536 x 1024 image scale, the existing line ends at approximately x1355,y909; add its upward continuation to the bottom edge of the LOWER box at approximately x1355,y874, with its arrowhead pointing upward. This is the only mark to add.
+Do not connect the lower green publishing box to the upper green publishing box. Keep the gap between the two publishing boxes empty.
+Everything else must remain visually identical: all text, typography, colors, dimensions, whitespace, shapes, branch nodes, and all existing arrows. Do not erase any existing connector. Do not move any label or box. The bottom Human review approved route must visibly end in the lower publishing outcome.

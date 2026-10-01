@@ -3,14 +3,14 @@
 import asyncio
 import json
 from collections.abc import AsyncIterator
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 from dataclasses import asdict
 from time import perf_counter
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 # Configure the exporter before application-owned spans can be created.
@@ -26,6 +26,7 @@ from . import sessions  # noqa: E402
 from .auth import AccountDependency, router as auth_router  # noqa: E402
 from .chat_turn import ChatTurnError, run_chat_turn  # noqa: E402
 from .config import get_settings  # noqa: E402
+from .deployment import DeploymentReadiness, mount_frontend  # noqa: E402
 from .logger import configure_logging  # noqa: E402
 from src.linger.orchestration.progress_context import (  # noqa: E402
     ProgressEvent,
@@ -40,7 +41,17 @@ from .transcripts import TranscriptStore, TranscriptTurn  # noqa: E402
 configure_logging()
 
 settings = get_settings()
-app = FastAPI(title="Linger Chat API")
+readiness = DeploymentReadiness(settings)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.linger_static_dir is not None:
+        await asyncio.to_thread(readiness.check)
+    yield
+
+
+app = FastAPI(title="Linger Chat API", lifespan=lifespan)
 app.include_router(library_router)
 app.include_router(auth_router)
 memory_service = MemoryPolicyService(settings.linger_memory_dir)
@@ -84,6 +95,12 @@ def _claim_session(session_id: str, account_id: str) -> bool:
 @app.get("/api/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "model": settings.linger_model}
+
+
+@app.get("/api/ready")
+async def ready() -> JSONResponse:
+    await asyncio.to_thread(readiness.check)
+    return JSONResponse(readiness.result, status_code=200 if readiness.ready else 503)
 
 
 async def _run_turn(
@@ -339,3 +356,7 @@ def delete_session(session_id: str, context: AccountDependency) -> None:
         raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
     sessions.clear(session_id)
     transcript_store.delete(context.account_id, session_id)
+
+
+if settings.linger_static_dir is not None:
+    mount_frontend(app, settings.linger_static_dir)

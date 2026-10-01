@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "release-regression-v1",
+  "scenarios": [
+    "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18",
+    "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+    "sensitive-inference-and-capture-veto--muse-provenance--2026-09-19",
+    "memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29",
+    "line-attack-response-and-capture--muse-provenance--2026-10-01"
+  ]
+}

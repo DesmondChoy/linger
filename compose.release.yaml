@@ -1,0 +1,20 @@
+services:
+  linger:
+    image: ${LINGER_IMAGE:-linger:local}
+    build: .
+    env_file: ${LINGER_ENV_FILE:-.env}
+    environment:
+      LINGER_STATE_DIR: /var/lib/linger
+      LINGER_MEMORY_DIR: /var/lib/linger/memories
+      LINGER_STATIC_DIR: /app/static
+      LINGER_ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      FASTEMBED_CACHE_PATH: /opt/linger/models
+      HF_HUB_OFFLINE: "1"
+    ports:
+      - "127.0.0.1:8080:8000"
+    volumes:
+      - linger-state:/var/lib/linger
+    restart: unless-stopped
+    stop_grace_period: 60s
+volumes:
+  linger-state:

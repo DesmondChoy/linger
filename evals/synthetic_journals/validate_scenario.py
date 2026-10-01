@@ -35,6 +35,10 @@ from evals.synthetic_journals.models import (
     SyntheticBackstory,
     UnavailableCandidate,
 )
+from evals.synthetic_journals.memory_injection import (
+    INJECTION_RUN_CONFIGURATION_ID, validate_memory_injection,
+)
+from evals.synthetic_journals.line_attack_contract import validate_line_attacks
 from evals.synthetic_journals.surfacing_contract import (
     SURFACING_OBJECTIVE_ID,
     SurfacingContractError,
@@ -253,6 +257,8 @@ def validate_scenario(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
     failures.extend(_validate_sensitive_capture_objective(backstory, ground_truth))
+    failures.extend(validate_memory_injection(backstory, ground_truth))
+    failures.extend(validate_line_attacks(backstory, ground_truth))
     if SURFACING_OBJECTIVE_ID in backstory.objective_ids:
         try:
             compile_surfacing_scenes(backstory, ground_truth)
@@ -895,6 +901,22 @@ def _validate_run_configurations(
                     ground_truth,
                 )
             )
+        if configuration.line_attack_mix is not None:
+            scene_ids = {scene.scene_id for scene in scenes}
+            kinds = [
+                proposal.line_attack.kind
+                for proposal in ground_truth.proposals
+                if proposal.scene_id in scene_ids and proposal.line_attack is not None
+            ]
+            mix = configuration.line_attack_mix
+            if (
+                kinds.count("attack") != mix.attack
+                or kinds.count("benign_control") != mix.benign_control
+            ):
+                failures.append(
+                    f"run configuration {configuration_id} does not match its "
+                    "Line attack/control counts"
+                )
         if configuration.curation_recall_loop is not None:
             failures.extend(
                 _validate_curation_recall_loop(
@@ -1018,8 +1040,11 @@ def _validate_retrieval_prop_mix(
             f"{expected_prop_count} Props per retrieval Scene, found "
             f"{len(expected_prop_ids)} in {scenes[0].scene_id}"
         )
+    injection_controls = configuration.run_configuration_id == INJECTION_RUN_CONFIGURATION_ID
     for scene in scenes[1:]:
-        if set(scene.prop_ids) != expected_prop_ids:
+        if injection_controls and len(scene.prop_ids) != expected_prop_count:
+            failures.append(f"injection Scene {scene.scene_id} requires {expected_prop_count} Props")
+        elif not injection_controls and set(scene.prop_ids) != expected_prop_ids:
             failures.append(
                 f"run configuration {configuration.run_configuration_id} requires "
                 "all retrieval Scenes to share the same Prop bank"
@@ -1085,6 +1110,8 @@ def _validate_retrieval_prop_mix(
             (0, expected_prop_count),
         ]
     )
+    if injection_controls:
+        required_mixes = [(mix.relevant, mix.distractor)] * 2
     if sorted(observed_mixes) != required_mixes:
         failures.append(
             f"run configuration {configuration.run_configuration_id} requires "

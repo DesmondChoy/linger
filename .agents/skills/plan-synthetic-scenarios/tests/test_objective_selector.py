@@ -21,7 +21,7 @@ sys.modules[SPEC.name] = selector
 SPEC.loader.exec_module(selector)
 
 
-def test_current_catalog_has_eleven_unique_objectives() -> None:
+def test_current_catalog_has_ten_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
     document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
@@ -58,6 +58,7 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
         "supported_replay_combinations"
     ] == [
         ["reviewed_automatic_memory_capture", "bounded_memory_curation"],
+        ["bounded_memory_curation", "cross_source_tentative_connection"],
         ["session_scoped_conversation_continuity", "longitudinal_memory_retrieval"],
         ["grounded_book_reflection", "spoiler_boundary_clarification"],
         ["cross_source_tentative_connection", "weak_evidence_safe_decline"],

@@ -142,6 +142,19 @@ def _stub_replay(
     return calls
 
 
+@pytest.mark.parametrize("flushed", [True, False])
+def test_completed_evaluation_findings_remain_separate_from_execution_blockers(scenario_repo, monkeypatch, flushed):
+    repository, _ = scenario_repo
+    menu_path, number = _menu(repository)
+    _stub_replay(monkeypatch, artifact=_artifact(failed=True), stderr=_marker(flushed=flushed))
+    result = run_scenario.run_selected(menu_path, number, "openai:confirmed-model", repository_root=repository)
+    assert result["status"] == "failed"
+    assert result["execution_status"] == "completed"
+    assert len(result["evaluation_findings"]) == 1
+    assert bool(result["blocking_problems"]) is not flushed
+    assert set(result["problems"]) == set(result["evaluation_findings"] + result["blocking_problems"])
+
+
 @pytest.mark.parametrize("failed_index", [None, 0, 11])
 def test_guided_combined_run_preserves_original_files_and_reports_both_objectives(
     scenario_repo, monkeypatch, failed_index
