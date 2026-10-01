@@ -154,6 +154,8 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "sculptor.memory-curation",
         "sculptor.memory-surfacing",
         "sculptor.chapter-cues",
+        "sculptor.retrieval-error-analysis",
+        "sculptor.retrieval-research",
         "serendipity.connection-discovery",
         "serendipity.memory-recall",
         "serendipity.source-gathering",

@@ -1,6 +1,6 @@
 # Sculptor
 
-Sculptor owns one reusable PydanticAI object, `sculptor_agent`, with three
+Sculptor owns one reusable PydanticAI object, `sculptor_agent`, with five
 application-selected skills. All produce proposals. A separate model run
 selects each task's instructions and output schema from
 [`skills.py`](skills.py).
@@ -9,6 +9,8 @@ selects each task's instructions and output schema from
 |---|---|---|
 | [Memory curation](skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `SculptorResponse` | `propose_curation` is used by the callable reviewed curation loop and bounded-curation evaluation. |
 | [Memory surfacing](skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfacingDecision` | `propose_surfacing` supports offline evaluation only. Chat never runs it, and it has no scheduling or notification consumer. |
+| [Retrieval error analysis](skills/retrieval-error-analysis/SKILL.md) | `ErrorAnalysisInput` → `ErrorAnalysis` | `propose_error_analysis`, offline Experiment 4 only. |
+| [Retrieval research](skills/retrieval-research/SKILL.md) | `ResearchInput` → `ResearchSpecification` | `propose_research`, offline Experiment 4 only; web search with budgets. |
 | [Chapter cues](skills/chapter-cues/SKILL.md) | `ChapterCueRevisionInput` → `ChapterCueRevision` | `propose_chapter_cues` supports the offline chapter-cue experiment (`evals/librarian/chapter_cue_recall.py`). It revises every chapter's description, characters, and retrieval cues from practice search outcomes; a human approves each proposal before search reads it. |
 
 Curation receives two to twelve existing memories selected for one account.
@@ -38,12 +40,20 @@ schedule work, and a proposal does not deliver a message.
 Chapter cues receives a book's chapter text and current cues, a word budget,
 and earlier rounds of practice outcomes, including the failure patterns it
 named before. It returns the failure patterns it sees and cues for every
-chapter. The `ChapterCueValidation` capability retries missing or repeated
+chapter. The `SculptorTaskValidation` capability retries missing or repeated
 chapters and over-budget cues within the run. It never changes book text,
 and only an approved proposal reaches search, through a temporary corpus copy.
 
-All skills have no tools. Memory curation and surfacing retain one output
-retry; chapter cues retain two. Shared instructions in
+Retrieval error analysis and retrieval research support Experiment 4
+(`evals/librarian/research_loop.py`). Error analysis reads practice retrieval
+traces and returns a note per trace and counted failure categories. Research
+reads the owner-approved analysis, searches the web through a per-run
+`ResearchSearch` capability (Exa `web_search` and `get_page`, with search and
+page budgets, opening only URLs it found), and returns a specification that a
+developer builds. Both run at high reasoning effort.
+
+Only retrieval research has tools. Memory curation and surfacing retain one
+output retry; chapter cues, error analysis, and research retain two. Shared instructions in
 `agents.sculptor` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain the common trust and authority rules. Each run adds only the selected
 `SKILL.md`, with no retained history or shared request state. Fingerprints cover

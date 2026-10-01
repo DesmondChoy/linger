@@ -19,6 +19,8 @@ calls or transfer application authority to a model.
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
 | Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
+| Sculptor | [Retrieval error analysis](../src/linger/agents/sculptor/skills/retrieval-error-analysis/SKILL.md) | `ErrorAnalysisInput` → `ErrorAnalysis` | `propose_error_analysis`, offline only; one note per practice trace and categories covering every failure are retried in-run |
+| Sculptor | [Retrieval research](../src/linger/agents/sculptor/skills/retrieval-research/SKILL.md) | `ResearchInput` → `ResearchSpecification` | `propose_research`, offline only; the only Sculptor skill with tools: a per-run `ResearchSearch` (Exa `web_search` and `get_page`) with search and page budgets, opening only URLs it found, and citing only pages it opened |
 | Sculptor | [Chapter cues](../src/linger/agents/sculptor/skills/chapter-cues/SKILL.md) | `ChapterCueRevisionInput` → `ChapterCueRevision` | `propose_chapter_cues`, offline only; chapter coverage and the word budget are retried in-run, and a human approves before search reads the cues |
 | [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
 | Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
@@ -48,6 +50,8 @@ flowchart LR
     Sculptor --> Curation[Memory curation]
     Sculptor --> Surfacing[Memory surfacing]
     Sculptor --> Cues[Chapter cues]
+    Sculptor --> ErrorAnalysis[Retrieval error analysis]
+    Sculptor --> Research[Retrieval research]
     Serendipity --> Connection[Connection discovery]
     Serendipity --> Recall[Memory recall]
     Serendipity --> Gathering[Source gathering]

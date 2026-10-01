@@ -4,6 +4,12 @@ from src.linger.agents.sculptor.chapter_cue_models import (
     ChapterCueRevision,
     ChapterCueRevisionInput,
 )
+from src.linger.agents.sculptor.research_models import (
+    ErrorAnalysis,
+    ErrorAnalysisInput,
+    ResearchInput,
+    ResearchSpecification,
+)
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
     CurationProposal,
@@ -60,4 +66,28 @@ CHAPTER_CUES = RuntimeSkill[ChapterCueRevisionInput, ChapterCueRevision](
     output_retries=2,
 )
 
-SKILLS = (MEMORY_CURATION, MEMORY_SURFACING, CHAPTER_CUES)
+RETRIEVAL_ERROR_ANALYSIS = RuntimeSkill[ErrorAnalysisInput, ErrorAnalysis](
+    role="Sculptor",
+    name="retrieval-error-analysis",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(PACKAGE, "skills/retrieval-error-analysis/SKILL.md"),
+    input_type=ErrorAnalysisInput,
+    output_type=ErrorAnalysis,
+    validators=("src.linger.agents.sculptor.research_models.error_analysis_errors",),
+    output_retries=2,
+)
+
+RETRIEVAL_RESEARCH = RuntimeSkill[ResearchInput, ResearchSpecification](
+    role="Sculptor",
+    name="retrieval-research",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(PACKAGE, "skills/retrieval-research/SKILL.md"),
+    input_type=ResearchInput,
+    output_type=ResearchSpecification,
+    tools=("web_search", "get_page"),
+    capabilities=("src.linger.agents.sculptor.research_search.ResearchSearch",),
+    validators=("src.linger.agents.sculptor.research_models.specification_errors",),
+    output_retries=2,
+)
+
+SKILLS = (MEMORY_CURATION, MEMORY_SURFACING, CHAPTER_CUES, RETRIEVAL_ERROR_ANALYSIS, RETRIEVAL_RESEARCH)
