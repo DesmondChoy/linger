@@ -1,0 +1,82 @@
+{
+  "case_id": "muse-revision-attribution-order-v1",
+  "rules": [
+    "R12: when rephrasing a flagged claim keep who said what and the order of events, and reassess support for the new wording",
+    "R6: keep unflagged sentences word for word or delete them",
+    "R4: keep the retained source declared and mapped"
+  ],
+  "description": "The draft changes who a character speaks to and moves her warning after the departure. The finding names both errors in one sentence.",
+  "reader_message": "Who saw the storm coming?",
+  "reading": {"work_title": "The Ferry at Lowmere", "chapter_max": 1},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "lowmere-c1-warning",
+      "chapter": 1,
+      "location": "Chapter 1, passage 2",
+      "text": "Before the boat left, Marta looked at the sky and told Oren that a storm was coming. Oren only laughed and untied the rope."
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 1, Marta warns the whole crew about the storm after the boat has already left. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-warning",
+        "source_location": "Chapter 1, passage 2",
+        "supported_claims": [
+          "In Chapter 1, Marta warns the whole crew about the storm after the boat has already left.",
+          "Oren only laughs and unties the rope."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "misattribution",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "Marta warns the whole crew about the storm after the boat has already left"
+        },
+        "explanation": "The passage has Marta speak only to Oren, and before the boat leaves. The sentence changes who she speaks to and moves her warning after the departure."
+      }
+    ],
+    "needs_source_sentences": [],
+    "previously_accepted_claims": ["Oren only laughs and unties the rope."],
+    "retained_sources": [{"source_kind": "book_corpus", "evidence_id": "lowmere-c1-warning"}],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [0],
+    "repaired_sentences": [0],
+    "forbidden_patterns": ["\\bcrew\\b", "\\balready left\\b", "\\bafter the boat\\b", "\\bafter (?:it|they) (?:had )?(?:left|sailed|departed)\\b"],
+    "required_patterns": ["Marta[^.?!]*\\bOren\\b|\\bOren\\b[^.?!]*Marta", "\\bbefore\\b|\\babout to (?:leave|sail|depart|set off)\\b|\\bhad not yet\\b"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-warning", "claim_pattern": "Marta"}
+    ],
+    "source_terms": ["Marta", "Oren", "storm", "boat", "rope", "crew", "sky"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren that a storm is coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-warning",
+        "source_location": "Chapter 1, passage 2",
+        "supported_claims": [
+          "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren that a storm is coming.",
+          "Oren only laughs and unties the rope."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}

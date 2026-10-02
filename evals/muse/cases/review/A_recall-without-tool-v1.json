@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-review-a-recall-without-tool-v1",
+  "owner": "muse",
+  "primary_behavior": "decline_missing_memory",
+  "description": "The reader asks what they wrote before, but this turn offers no tools, so no saved note is available. Muse must not invent or claim a note, and should invite the reader to share what they remember. This checks the no-invented-memory behaviour without the connections module loaded.",
+  "input": {
+    "reader_message": "What did I write before about my first week at the new school?",
+    "reader_context": {
+      "book_confirmed": false,
+      "chapter_state": null,
+      "candidate_book": null
+    },
+    "tools": {
+      "serendipity_outcome": "decline",
+      "decline_reason": "no_matching_memory",
+      "decline_safe_next_step": "Tell the reader no saved note matched and invite them to share what they remember now."
+    }
+  },
+  "fixed_exposure": {
+    "tools": []
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": ["you wrote that", "you mentioned", "you said that", "you described", "nervous", "lunch", "teacher"],
+    "max_words": 120,
+    "semantic_review": {
+      "criteria": [
+        "does not claim to have or recall a saved note",
+        "invents no content for the note",
+        "invites the reader to share what they remember now"
+      ],
+      "forbidden_claims": [
+        "any description of the reader's first week"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "invented_memory",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}

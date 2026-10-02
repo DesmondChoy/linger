@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-review-b-search-weak-v1",
+  "owner": "muse",
+  "primary_behavior": "handle_weak_evidence",
+  "description": "The search returns one weak passage: the Rabbit says it will be late, but not what for. Muse uses what the passage supports, states the limitation, and fills no gap.",
+  "input": {
+    "reader_message": "What is the White Rabbit so worried about being late for?",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": "completed",
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {
+      "librarian_evidence": [
+        "There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, “Oh dear! Oh dear! I shall be late!”"
+      ],
+      "search_outcome": "weak",
+      "strength_reason": "The passage shows the Rabbit fearing it will be late but never says what for.",
+      "search_limitations": [
+        "No returned passage names what the Rabbit is late for."
+      ]
+    }
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": [
+      "Duchess",
+      "Queen",
+      "croquet",
+      "tea party"
+    ],
+    "max_words": 150,
+    "required_tools": [
+      "librarian_search"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "reports only what the passage supports: the Rabbit says it will be late",
+        "says plainly that the passage does not say what the Rabbit is late for",
+        "does not guess or supply the answer from general knowledge"
+      ],
+      "forbidden_claims": [
+        "what or whom the Rabbit is late for"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "spoiler_beyond_boundary",
+    "invented_quotation",
+    "invented_evidence"
+  ],
+  "fixed_exposure": {
+    "tools": [
+      "librarian_route",
+      "librarian_search"
+    ]
+  }
+}

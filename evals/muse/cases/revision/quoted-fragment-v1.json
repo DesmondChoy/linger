@@ -1,0 +1,82 @@
+{
+  "case_id": "muse-revision-quoted-fragment-v1",
+  "rules": [
+    "R15/R14: remove an unnecessary quoted fragment by rewriting the idea as supported plain prose; never replace it with a shorter quoted fragment",
+    "R4: keep the retained source declared and mapped to the rewritten claim",
+    "C21/G9: keep quotation mechanics out of the reply"
+  ],
+  "description": "The reader did not ask for wording. The draft puts altered words in quotation marks as a character's speech; the finding says the words are not in the passage and the quotation is not needed.",
+  "reader_message": "How does Ines seem to feel about the ferry at the start?",
+  "reading": {"work_title": "The Ferry at Lowmere", "chapter_max": 1},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "lowmere-c1-animal",
+      "chapter": 1,
+      "location": "Chapter 1, passage 3",
+      "text": "“It is a patient animal,” Ines said of the ferry, “and it knows its own way home.” She stood at the rail long after the others went below."
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 1, Ines calls the ferry \"a slow animal that knows the way,\" which makes the crossing sound almost tame. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-animal",
+        "source_location": "Chapter 1, passage 3",
+        "supported_claims": [
+          "In Chapter 1, Ines calls the ferry \"a slow animal that knows the way,\" which makes the crossing sound almost tame.",
+          "She stays at the rail long after the others go below."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "misattribution",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "a slow animal that knows the way"
+        },
+        "explanation": "These words are presented as Ines's own, but the passage does not contain them. The reader did not ask for her wording, so this quotation is not needed."
+      }
+    ],
+    "needs_source_sentences": [],
+    "previously_accepted_claims": ["She stays at the rail long after the others go below."],
+    "retained_sources": [{"source_kind": "book_corpus", "evidence_id": "lowmere-c1-animal"}],
+    "source_quote_interiors": ["a slow animal that knows the way,"]
+  },
+  "expect": {
+    "flagged_sentences": [0],
+    "repaired_sentences": [0],
+    "forbidden_patterns": ["\\bslow animal\\b", "knows the way", "[\"“”]"],
+    "required_patterns": ["\\bferry\\b"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-animal", "claim_pattern": "ferry"}
+    ],
+    "source_terms": ["Ines", "ferry", "animal", "patient", "home", "rail", "crossing"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 1, Ines speaks of the ferry as a patient animal that knows its own way home. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-animal",
+        "source_location": "Chapter 1, passage 3",
+        "supported_claims": [
+          "In Chapter 1, Ines speaks of the ferry as a patient animal that knows its own way home.",
+          "She stays at the rail long after the others go below."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}
