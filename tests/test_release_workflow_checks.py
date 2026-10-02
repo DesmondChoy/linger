@@ -108,7 +108,7 @@ def test_candidate_configuration_ref_must_be_an_exact_sha(monkeypatch):
         candidate.configuration(REPO, "release-candidate")
 
 
-def candidate_api(monkeypatch, *, comparison="ahead", expired=False):
+def candidate_api(monkeypatch, *, comparison="ahead"):
     run = trusted_run() | {"id": 42, "html_url": "https://example.test/ci/42"}
     calls = []
 
@@ -122,15 +122,13 @@ def candidate_api(monkeypatch, *, comparison="ahead", expired=False):
             return {"status": comparison}
         if path == "environments/linger-release":
             return {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type": "User"}]}]}
-        if path == "actions/runs/42/artifacts?per_page=100":
-            return {"artifacts": [{"name": f"linger-candidate-{SHA}-{arch}", "expired": expired} for arch in ("amd64", "arm64")]}
         pytest.fail(f"Unexpected API path: {path}")
 
     monkeypatch.setattr(candidate, "api", github)
     return calls
 
 
-def test_resolve_finds_retained_successful_rc_push_not_main(monkeypatch):
+def test_resolve_accepts_successful_rc_push_without_retained_images(monkeypatch):
     calls = candidate_api(monkeypatch)
     assert candidate.resolve(REPO, SHA, "")["ci_run_id"] == "42"
     assert "branch=release-candidate" in calls[0]
@@ -140,12 +138,6 @@ def test_resolve_finds_retained_successful_rc_push_not_main(monkeypatch):
 def test_resolve_rejects_candidate_removed_from_release_branch(monkeypatch, comparison):
     candidate_api(monkeypatch, comparison=comparison)
     with pytest.raises(ValueError, match="reachable"):
-        candidate.resolve(REPO, SHA, "42")
-
-
-def test_resolve_rejects_expired_tested_images(monkeypatch):
-    candidate_api(monkeypatch, expired=True)
-    with pytest.raises(ValueError, match="retained"):
         candidate.resolve(REPO, SHA, "42")
 
 
@@ -269,27 +261,33 @@ def test_declared_ungraded_continuity_targets_are_excluded_from_score():
     assert authorize(summary)["publication"]["judgments_total"] == 2
 
 
-def test_archive_tampering_is_rejected_before_docker_load(tmp_path, monkeypatch):
-    (tmp_path / "image.tar.gz").write_bytes(b"changed image")
-    (tmp_path / "candidate.json").write_text(json.dumps({
-        "schema_version": 1, "candidate_sha": SHA, "architecture": "amd64",
-        "image_id": IMAGE, "archive_sha256": "0" * 64,
-    }))
+def test_inspect_image_checks_the_evaluated_digest_without_archive_metadata(monkeypatch):
     calls = []
-    monkeypatch.setattr(candidate, "command", lambda *args: calls.append(args))
-    with pytest.raises(ValueError, match="checksum"):
-        candidate.verify_candidate(SHA, "amd64", tmp_path)
-    assert calls == []
+    image = {"Id": IMAGE, "Architecture": "amd64", "Os": "linux", "Config": {"Labels": {"org.opencontainers.image.revision": SHA}}}
+
+    def docker(*args):
+        calls.append(args)
+        return json.dumps([image])
+
+    monkeypatch.setattr(candidate, "command", docker)
+    assert candidate.inspect_image(SHA, IMAGE) == {"candidate_sha": SHA, "image_id": IMAGE, "platform": "linux/amd64"}
+    assert calls == [("docker", "image", "inspect", IMAGE)]
+
+
+def test_inspect_image_rejects_mutable_tags_before_docker(monkeypatch):
+    monkeypatch.setattr(candidate, "command", lambda *_: pytest.fail("A tag is not an evaluated identity"))
+    with pytest.raises(ValueError, match="digest"):
+        candidate.inspect_image(SHA, "linger:latest")
 
 
 def test_image_must_match_revision_platform_and_digest():
     image = {"Id": IMAGE, "Architecture": "amd64", "Os": "linux", "Config": {"Labels": {"org.opencontainers.image.revision": SHA}}}
-    candidate.validate_image(image, SHA, "amd64", IMAGE)
+    candidate.validate_image(image, SHA, IMAGE)
     for key, value in (("Id", "sha256:" + "0" * 64), ("Architecture", "arm64"), ("Os", "windows"), ("Config", {"Labels": {}})):
         changed = copy.deepcopy(image)
         changed[key] = value
         with pytest.raises(ValueError):
-            candidate.validate_image(changed, SHA, "amd64", IMAGE)
+            candidate.validate_image(changed, SHA, IMAGE)
 
 
 def test_trivy_low_findings_reported_but_high_findings_block():

@@ -78,7 +78,7 @@ jobs:
             --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" --run-id "$CI_RUN_ID"
 
   evaluate:
-    name: Evaluate the tested candidate
+    name: Build and evaluate the release candidate
     needs: [configuration, candidate]
     if: needs.configuration.outputs.live_enabled == 'true'
     runs-on: ubuntu-24.04
@@ -99,6 +99,31 @@ jobs:
         with:
           ref: ${{ needs.candidate.outputs.sha }}
           persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-configuration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+      - name: Build the release image once
+        id: image
+        run: |
+          docker build --platform linux/amd64 --build-arg VCS_REF="$CANDIDATE_SHA" \
+            --iidfile "$RUNNER_TEMP/release-image-id" .
+          image_id=$(cat "$RUNNER_TEMP/release-image-id")
+          python3 .github/scripts/release_candidate.py image --sha "$CANDIDATE_SHA" \
+            --image-id "$image_id" > release-evidence/image.json
+      - name: Prove offline startup and persistent state
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: bash docker/smoke.sh "$IMAGE_ID"
+      - name: Install verified Trivy
+        run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
+      - name: Scan the release image before live evaluation
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          "$RUNNER_TEMP/trivy/trivy" image --scanners vuln --ignorefile /dev/null \
+            --format json --output release-evidence/image-security.json "$IMAGE_ID"
+          python3 .github/scripts/security_gate.py trivy release-evidence/image-security.json
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: '0.8.3'
@@ -106,17 +131,6 @@ jobs:
         run: |
           uv sync --locked --dev
           printf '%s\n' "FASTEMBED_CACHE_PATH=$RUNNER_TEMP/fastembed" >> "$GITHUB_ENV"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          github-token: ${{ github.token }}
-          run-id: ${{ needs.candidate.outputs.ci_run_id }}
-          name: linger-candidate-${{ needs.candidate.outputs.sha }}-amd64
-          path: candidate
-      - name: Verify and load the original image
-        id: image
-        run: |
-          python3 .github/scripts/release_candidate.py verify --sha "$CANDIDATE_SHA" \
-            --arch amd64 --directory candidate
       - name: Reuse the candidate's local model files
         env:
           IMAGE_ID: ${{ steps.image.outputs.image_id }}
@@ -124,10 +138,6 @@ jobs:
           container=$(docker create "$IMAGE_ID")
           trap 'docker rm -f "$container"' EXIT
           docker cp "$container:/opt/linger/models" "$FASTEMBED_CACHE_PATH"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: release-configuration-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release-evidence
       - name: Preflight every Scenario, then run every repetition
         id: policy
         env:
@@ -156,6 +166,19 @@ jobs:
           EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
           LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
         run: bash docker/live-smoke.sh "$IMAGE_ID"
+      - name: Save the evaluated image for this release run
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          mkdir -p release-image
+          docker save "$IMAGE_ID" | gzip -1 > release-image/image.tar.gz
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-image/image.tar.gz
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
       - name: Show the release evidence and publication route
         if: always()
         run: |
@@ -225,11 +248,9 @@ jobs:
             --output release-evidence/publication.json "${approval_args[@]}"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          github-token: ${{ github.token }}
-          run-id: ${{ needs.candidate.outputs.ci_run_id }}
-          pattern: linger-candidate-${{ needs.candidate.outputs.sha }}-*
-          path: candidates
-      - name: Publish the authorized images without rebuilding
+          name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-image
+      - name: Publish the authorized image without rebuilding
         run: bash .github/scripts/publish-candidate.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
