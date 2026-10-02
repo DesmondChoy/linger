@@ -107,6 +107,36 @@ def _record(runs, search: str, reached: set[str]) -> None:
     }), encoding="utf-8")
 
 
+@pytest.mark.parametrize("source", [
+    "src/linger/orchestration/book_evidence.py",
+    "apps/backend/hybrid_librarian.py",
+])
+def test_saved_scores_are_stale_after_retrieval_implementation_changes(runs, monkeypatch, source) -> None:
+    _record(runs, "today", {"n01"})
+    recorded = runs / "today-practice.json"
+    assert chapter_cue_recall._fresh(recorded, "today")["needs"]
+
+    changed = Path(chapter_cue_recall.__file__).resolve().parents[2] / source
+    original_hash = chapter_cue_recall._sha256
+    monkeypatch.setattr(
+        chapter_cue_recall, "_sha256",
+        lambda path: "changed-source" if path.resolve() == changed else original_hash(path),
+    )
+
+    with pytest.raises(SystemExit, match="today-practice.json is stale"):
+        chapter_cue_recall._fresh(recorded, "today")
+
+
+def test_saved_scores_are_stale_after_the_search_candidate_budget_changes(runs, monkeypatch) -> None:
+    _record(runs, "today", {"n01"})
+    recorded = runs / "today-practice.json"
+    assert chapter_cue_recall._fresh(recorded, "today")["needs"]
+    monkeypatch.setattr(chapter_cue_recall, "PART_CANDIDATES", chapter_cue_recall.PART_CANDIDATES + 1)
+
+    with pytest.raises(SystemExit, match="today-practice.json is stale"):
+        chapter_cue_recall._fresh(recorded, "today")
+
+
 def test_scoring_refuses_a_proposal_changed_after_approval(runs) -> None:
     proposal = _propose(runs, 2)
     chapter_cue_recall.approve(2)
@@ -180,8 +210,9 @@ def test_a_research_round_searches_stage2_cues_under_its_approved_specification(
     )
 
     assert (chapter_cue_recall.cue_stage("round1"), chapter_cue_recall.part_candidates("round1")) == (2, 20)
-    assert chapter_cue_recall.part_candidates("stage2") == 3
+    assert chapter_cue_recall.part_candidates("stage2") == 4
     identity = chapter_cue_recall._identity("round1")
+    assert identity["part_candidates"] == 20
     assert identity["proposal_sha256"] == chapter_cue_recall.approved_sha256(2)
     assert identity["specification_sha256"] == chapter_cue_recall._sha256(specification)
     specification.write_text('{"output": "edited"}', encoding="utf-8")

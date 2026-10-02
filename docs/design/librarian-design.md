@@ -6,6 +6,9 @@ Implementation checked against `da95b3a` on September 24, 2026. Historical
 measurements below retain their original dates and scope; they are not a new
 evaluation of this revision.
 
+Candidate retention and its configuration summary were updated on October 2,
+2026. The earlier subsystem audit and historical measurements remain unchanged.
+
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
 responsibilities and safeguards in [`../specification.md`](../specification.md).
@@ -709,7 +712,11 @@ At most 20 private candidates per query
         ↓
 Reranker scores overlapping token windows and retains each passage's best score
         ↓
-Interleave keyword, semantic, and reranker ranks; merge queries into at most 20 candidates
+Interleave keyword, fused, semantic, and reranker results; retain four per planned query
+        ↓
+Keep each part in clearly matching books, plus two fallback candidates per query per book
+        ↓
+Remove fully contained windows; merge into at most 20 candidates per book
         ↓
 Resolve final passages to exact canonical chapter lines
         ↓
@@ -725,15 +732,33 @@ when planning fails or omits a need. Queries are split into chunks of at most
 2,000 characters, with at most 16 distinct queries. Exceeding that budget fails
 without widening scope or silently dropping the remaining reader input.
 
-Both callers then use `retrieve_for_judgement`.
-Each query retains up to 20 independent keyword and semantic candidates,
-interleaving their ranks with reranker ranks. The combined private pool also
-has a 20-record cap and interleaves the query streams before deduplication.
-Reranker demotion or a score below its cutoff does not remove a candidate from
-this private judgment pool. Reranking uses overlapping windows that fit the
-encoder's actual query-and-passage token budget and assigns each canonical
-passage its maximum window score. The evidence text and source range remain
-unchanged. Scope filtering happens before retrieval and judgment.
+Both callers use `retrieve_for_judgement`. The hybrid retriever returns up to
+20 private candidates per query, interleaving keyword, fused, semantic, and
+reranker results. These records have no public score cutoff. Reranking uses
+overlapping windows that fit the encoder's token budget and assigns each
+canonical passage its maximum window score. Evidence text and source ranges
+remain unchanged. Scope filtering happens before retrieval and judgment.
+
+`gather_book_candidates` searches each planned query in every allowed book.
+It retains four candidates in the strongest-matching book when that book's
+best score is at least 0.05 and at least ten times the next book's best score.
+Otherwise, it retains four per book. Four covers the opening round of all four
+retrieval methods, including a reranker leader that appears fourth in the
+interleaved list. The list is not sorted by reranker score.
+
+The original Line and each prior reader statement independently retain two
+candidates per query per book. This fallback also applies to books excluded
+by part routing. Identical searches share cached results within the invocation,
+keyed by the complete book scope and effective query. Query reuse does not
+remove the fallback allowance. Without planned queries, each fallback query
+retains up to 20 candidates per book.
+
+The application interleaves the retained streams, removes fully contained
+windows, and caps the result at 20 records per book. This is a bounded recall
+policy: a large request can still exceed the merged budget. Experiment 4 can
+override the per-part allowance with `part_candidates=20`; production uses four.
+New Experiment 4 results include retrieval source hashes and the candidate
+allowance in their identity, so results from older retention rules are stale.
 
 The caller's release limit is separate from this private budget and is supplied
 as `max_evidence_records`. Muse clamps `max_final_evidence` to 1–5. Serendipity
@@ -763,10 +788,12 @@ the 0.5 cutoff. Finishing Chapter 7 already permits that passage; changing the
 corpus numbering or widening the spoiler boundary would not repair the miss.
 
 The restriction is applied before search. Duplicate evidence IDs keep one
-canonical record. Private candidates retain overlapping source windows when
-their IDs differ, while ordinary public retrieval suppresses strongly
-overlapping windows in its fused shortlist. Text is never paraphrased during
-candidate selection.
+canonical record. During private candidate gathering, a later window is removed
+only if an earlier window contains its entire source range in the same work,
+revision, part, chapter, and source hash. Partial overlaps remain because their
+unique lines may contain the answer. Ordinary public retrieval still suppresses
+strongly overlapping windows in its fused shortlist. Candidate selection never
+paraphrases or stitches source text.
 
 ### 4.5 Reranking versus evidence strength
 
@@ -1221,9 +1248,9 @@ No new provider evaluation was performed for this documentation update.
 | Evidence identity | Book version + chapter + canonical source lines |
 | Derived windows | 350-word target with 60-word overlap; whole paragraphs stay inside a canonical unit |
 | Initial thresholds | Public search uses 0.5 semantic and reranker cutoffs; private judgment retains its bounded candidate pool below those cutoffs |
-| Candidate limits | Public retrieval fuses at most 15; judged retrieval scores and retains up to 20 per query and 20 merged. Production tools return at most 5 selected records |
+| Candidate limits | Public retrieval fuses at most 15; private retrieval scores up to 20 per query. Gathering retains four per planned query in routed books, two per fallback query per book, and at most 20 merged per book. Production tools return at most 5 selected records |
 | Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
-| Hybrid fusion | RRF with `k = 60`; public shortlist uses 50% overlap deduplication. Private selection interleaves lexical, fused, semantic, and reranked streams and deduplicates by ID |
+| Hybrid fusion | RRF with `k = 60`; public shortlist uses 50% overlap deduplication. Private selection interleaves lexical, fused, semantic, and reranked streams. Gathering removes duplicate IDs and fully contained windows, preserving partial overlaps |
 | Historical release quality | August 17 report: 91.7% recall, 100% precision, 91.7% strength accuracy, zero measured spoiler exposure on 12 Alice cases; not current multi-book validation |
 
 ### 8.2 Open
