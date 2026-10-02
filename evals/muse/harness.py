@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Literal, Self, get_args
 
@@ -10,6 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic import model_validator
 
 DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases") / "main"
+# Additive review cases: several may share a behaviour, and none joins the main pack.
+REVIEW_CASE_DIRECTORY = Path(__file__).with_name("cases") / "review"
 
 PrimaryBehavior = Literal[
     # Context and reading boundary
@@ -56,6 +59,32 @@ ForbiddenOutcome = Literal[
     "diagnosis",
 ]
 
+# Labels only review cases may use, for behaviours the main pack does not name.
+ReviewBehavior = Literal[
+    "relay_gathered_sources",
+    "handle_weak_evidence",
+    "handle_failed_retrieval",
+    "cite_prior_evidence",
+    "avoid_repair_narration",
+    "report_missing_evidence",
+]
+ReflectionTool = Literal["librarian_route", "librarian_search", "serendipity_explore"]
+ConnectionIntent = Literal[
+    "find_connection", "gather_sources", "get_recommendation", "recall_memory",
+]
+DeclineReason = Literal[
+    "no_permitted_evidence",
+    "insufficient_evidence",
+    "unsupported_cue",
+    "generic_theme_match",
+    "no_matching_memory",
+    "no_clear_winner",
+    "spoiler_boundary",
+    "source_scope_violation",
+    "unsafe_evidence",
+    "retrieval_unavailable",
+]
+
 REQUIRED_BEHAVIORS = frozenset(get_args(PrimaryBehavior))
 
 PROBE_BEHAVIORS = frozenset(
@@ -93,32 +122,56 @@ class WebSource(StrictModel):
 class ToolTranscript(StrictModel):
     """What Muse's tools return for the graded reply, if called.
 
-    A `proposal` cites all librarian evidence and web sources; a `recall`
-    returns the reader's own memory records.
+    A `proposal` cites all librarian evidence, web sources, and memory
+    records; a `recall` returns the reader's own memory records; `gathered`
+    returns every supplied record as a source bundle, plus any sources the
+    reader named that were not found.
+
+    Review-only knobs (unset keeps every original case unchanged):
+    - `search_outcome` sets what `librarian_search` returns once it is
+      permitted; unset keeps the original rule (`sufficient` with evidence,
+      `none` without). `none` returns no passages; `failure` returns a
+      retryable `RetrievalFailure`.
+    - `route_outcome` makes `librarian_route` return `routed` (chapter
+      scope) or `passages` (exact passage permission) even when the reader
+      context has no validated boundary; `librarian_search` then answers
+      only after that route call, as production binds permission to it.
     """
 
     librarian_evidence: tuple[str, ...] = ()
-    serendipity_outcome: Literal["proposal", "decline", "recall"] | None = None
+    search_outcome: Literal["sufficient", "weak", "none", "failure"] | None = None
+    strength_reason: str | None = None
+    search_limitations: tuple[str, ...] = ()
+    route_outcome: Literal["routed", "passages"] | None = None
+    serendipity_outcome: Literal["proposal", "decline", "recall", "gathered"] | None = None
     decline_safe_next_step: str | None = None
-    decline_reason: Literal["insufficient_evidence", "no_matching_memory"] = (
-        "insufficient_evidence"
-    )
+    decline_reason: DeclineReason = "insufficient_evidence"
     connection_claim: str | None = None
     connection_follow_up: str | None = None
     web_sources: tuple[WebSource, ...] = ()
     memory_records: tuple[str, ...] = ()
+    unfound_sources: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def validate_outcome_payload(self) -> Self:
+        records = len(self.librarian_evidence) + len(self.web_sources) + len(self.memory_records)
         if self.serendipity_outcome == "proposal":
             if not self.connection_claim or not self.connection_follow_up:
                 raise ValueError("a proposal requires a claim and a follow-up")
-            if len(self.librarian_evidence) + len(self.web_sources) < 2:
+            if records < 2:
                 raise ValueError("a proposal compares at least two records")
         if self.serendipity_outcome == "recall" and not self.memory_records:
             raise ValueError("a recall requires memory records")
         if self.serendipity_outcome == "decline" and not self.decline_safe_next_step:
             raise ValueError("a decline requires a safe next step")
+        if self.serendipity_outcome == "gathered" and not records:
+            raise ValueError("a gathered bundle requires at least one record")
+        if self.unfound_sources and self.serendipity_outcome != "gathered":
+            raise ValueError("unfound sources belong to a gathered bundle")
+        if self.search_outcome in {"sufficient", "weak"} and not self.librarian_evidence:
+            raise ValueError(f"a {self.search_outcome} search requires librarian evidence")
+        if self.route_outcome == "passages" and not self.librarian_evidence:
+            raise ValueError("a passages route requires librarian evidence")
         return self
 
 
@@ -136,6 +189,29 @@ class MuseEvalInput(StrictModel):
     reader_context: ReaderContext
     tools: ToolTranscript = ToolTranscript()
     history: tuple[HistoryTurn, ...] = ()
+    # Exact book records an earlier released reply cited (`MuseDraftInput.prior_evidence`).
+    prior_evidence: tuple[str, ...] = ()
+    # `TurnPolicy.allow_memory_capture`; off, as in every original case, unless set.
+    allow_memory_capture: bool = False
+
+
+class FixedExposure(StrictModel):
+    """Tools the draft is offered, set by the case instead of turn triage.
+
+    It isolates Muse's own behaviour from triage nondeterminism. A pinned
+    intent restricts `serendipity_explore` to that intent, as triage does.
+    """
+
+    tools: tuple[ReflectionTool, ...] = ()
+    pinned_intent: ConnectionIntent | None = None
+
+    @model_validator(mode="after")
+    def validate_exposure(self) -> Self:
+        if len(self.tools) != len(set(self.tools)):
+            raise ValueError("fixed exposure lists each tool once")
+        if self.pinned_intent is not None and "serendipity_explore" not in self.tools:
+            raise ValueError("a pinned intent requires serendipity_explore")
+        return self
 
 
 class CaseInvariants(StrictModel):
@@ -163,6 +239,17 @@ class ExpectedResponse(StrictModel):
     # The reply must quote at least one five-word span from a supplied source.
     must_quote_source: bool = False
     semantic_review: SemanticReview
+    # Additive gates, graded into their own report columns (never `hard_pass`).
+    required_tools: tuple[ReflectionTool, ...] = ()
+    forbidden_tools: tuple[ReflectionTool, ...] = ()
+    allowed_intents: tuple[ConnectionIntent, ...] = ()
+    max_serendipity_calls: int | None = Field(default=None, ge=0)
+    must_cite_urls: tuple[str, ...] = ()
+    required_terms: tuple[str, ...] = ()
+    # At least one `session_line` declaration quoting an earlier reader line verbatim.
+    require_session_line: bool = False
+    memory_kind: Literal["memory_candidate", "no_memory_candidate"] | None = None
+    memory_reasons: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def validate_probe_asks(self) -> Self:
@@ -183,6 +270,8 @@ class MuseEvalCase(StrictModel):
     expected: ExpectedResponse
     invariants: CaseInvariants
     forbidden_outcomes: tuple[ForbiddenOutcome, ...] = Field(min_length=3)
+    # Unset: turn triage decides the offered tools, as in production.
+    fixed_exposure: FixedExposure | None = None
 
     @model_validator(mode="after")
     def validate_case_contract(self) -> Self:
@@ -253,6 +342,17 @@ class MuseEvalCase(StrictModel):
         return self
 
 
+class MuseReviewCase(MuseEvalCase):
+    """An additive review case: may share a behaviour, use a review label, or be a successor.
+
+    IDs are `muse-review-<agent>-<name>-v<n>`; a mis-specified case keeps its
+    ID and gains a `-v2` successor rather than being edited.
+    """
+
+    case_id: str = Field(pattern=r"^muse-review-[a-e]-[a-z0-9-]+-v[1-9][0-9]*$")
+    primary_behavior: PrimaryBehavior | ReviewBehavior
+
+
 class GradeResult(StrictModel):
     """Deterministic result; semantic prose quality is reported separately."""
 
@@ -288,6 +388,156 @@ def load_muse_eval_cases(
             "Muse baseline must contain exactly one case for each required behavior"
         )
     return tuple(cases)
+
+
+def load_review_cases(
+    case_directory: Path = REVIEW_CASE_DIRECTORY,
+) -> tuple[MuseEvalCase, ...]:
+    """Load the additive review cases; any number per behaviour, none required."""
+    cases: list[MuseEvalCase] = []
+    for path in sorted(case_directory.glob("*.json")):
+        try:
+            cases.append(
+                MuseReviewCase.model_validate_json(path.read_text(encoding="utf-8"))
+            )
+        except (OSError, ValidationError) as exc:
+            raise ValueError(f"invalid Muse review case: {path}") from exc
+    case_ids = [case.case_id for case in cases]
+    if len(case_ids) != len(set(case_ids)):
+        raise ValueError("Muse review case IDs must be unique")
+    return tuple(cases)
+
+
+class AdditiveGrade(StrictModel):
+    """Stricter gates reported beside `hard_pass`, never folded into it.
+
+    - `leak_failures`: every case; internal identifiers, agent names, or
+      citation-repair mechanics in the reply (none of which the reader or a
+      source supplied).
+    - `tool_failures`: the case's optional tool and intent expectations.
+    - `reply_failures`: the case's optional required URLs, terms, and
+      session-line declaration.
+    - `memory_failures`: the case's optional nomination kind and reasons; a
+      nominated `memory_candidate` must also be the exact reader-message slice
+      its offsets name.
+    """
+
+    leak_failures: tuple[str, ...]
+    tool_failures: tuple[str, ...]
+    reply_failures: tuple[str, ...]
+    memory_failures: tuple[str, ...] = ()
+
+
+# Tool, intent, and contract field names that belong to Muse's machinery, not
+# to anything a reader should see.
+INTERNAL_IDENTIFIERS = (
+    "librarian_route", "librarian_search", "serendipity_explore",
+    "find_connection", "gather_sources", "get_recommendation", "recall_memory",
+    "exact_quote", "evidence_id", "evidence_ids", "evidence_uses", "supported_claims",
+    "limit_claims", "source_location", "source_kind", "safe_next_step",
+    "tentative_claim", "suggested_follow_up", "evidence_strength", "strength_reason",
+    "spoiler_ceiling", "chapter_max", "reading_context", "context_resolution",
+    "muse_turn", "allow_retrieval", "allow_connection", "memory_candidate",
+    "no_memory_candidate", "reason_code", "prior_evidence", "relevance_note",
+    "book_corpus", "session_line", "unfound_sources", "pinned_intent",
+    "MuseCandidate", "MuseDraftInput", "MuseRevisionInput", "ModelRetry",
+)
+AGENT_NAMES = ("Librarian", "Serendipity", "Provenance", "Sculptor")
+# Muse describing its own citation repair ("no period inside the quotation marks").
+_REPAIR_MECHANICS = {
+    "punctuation_in_quote": re.compile(
+        r"\b(period|full stop|comma|punctuation)\b[^.?!\n]{0,40}"
+        r"\b(inside|outside|within|in)\b[^.?!\n]{0,25}\bquot(e|es|ation)",
+        re.IGNORECASE,
+    ),
+    "quotation_marks": re.compile(r"\bquotation marks?\b", re.IGNORECASE),
+    "character_for_character": re.compile(r"\bcharacter[- ]for[- ]character\b", re.IGNORECASE),
+    "citation_mechanics": re.compile(
+        r"\b(citation|declaration|evidence record|source id)s? "
+        r"(check|checks|error|errors|format|rules?|validator)\b",
+        re.IGNORECASE,
+    ),
+}
+
+
+def grade_additive(
+    case: MuseEvalCase,
+    reply: str,
+    *,
+    tool_calls: Sequence[str] = (),
+    serendipity_intents: Sequence[str | None] = (),
+    evidence_uses: Sequence[Mapping[str, object]] = (),
+    memory: Mapping[str, object] | None = None,
+) -> AdditiveGrade:
+    """Stricter deterministic gates; a term the reader or a source supplied is exempt."""
+    supplied = " \n".join(_quote_sources(case))
+    supplied_lower = supplied.lower()
+    leaks: list[str] = []
+    for term in INTERNAL_IDENTIFIERS:
+        if re.search(rf"\b{re.escape(term)}\b", reply) and term.lower() not in supplied_lower:
+            leaks.append(f"internal_identifier:{term}")
+    for name in AGENT_NAMES:
+        if re.search(rf"\b{name}\b", reply) and not re.search(rf"\b{name}\b", supplied):
+            leaks.append(f"agent_name:{name}")
+    for label, pattern in _REPAIR_MECHANICS.items():
+        if pattern.search(reply) and not pattern.search(supplied):
+            leaks.append(f"repair_mechanics:{label}")
+
+    expected = case.expected
+    tool_failures = [
+        f"missing_tool:{tool}" for tool in expected.required_tools if tool not in tool_calls
+    ]
+    tool_failures += [
+        f"forbidden_tool:{tool}" for tool in expected.forbidden_tools if tool in tool_calls
+    ]
+    if expected.allowed_intents:
+        tool_failures += [
+            f"disallowed_intent:{intent}"
+            for intent in dict.fromkeys(serendipity_intents)
+            if intent not in expected.allowed_intents
+        ]
+    if (
+        expected.max_serendipity_calls is not None
+        and tool_calls.count("serendipity_explore") > expected.max_serendipity_calls
+    ):
+        tool_failures.append("too_many_serendipity_calls")
+
+    lowered = reply.lower()
+    reply_failures = [f"missing_url:{url}" for url in expected.must_cite_urls if url not in reply]
+    reply_failures += [
+        f"missing_term:{term}" for term in expected.required_terms if term.lower() not in lowered
+    ]
+    earlier_lines = [turn.reader for turn in case.input.history]
+    if expected.require_session_line and not any(
+        use.get("source_kind") == "session_line"
+        and any(str(use.get("quote", "")) in line for line in earlier_lines)
+        for use in evidence_uses
+    ):
+        reply_failures.append("missing_session_line")
+
+    memory_failures: list[str] = []
+    if memory is not None:
+        kind = memory.get("kind")
+        reason = memory.get("reason_code")
+        if expected.memory_kind is not None and kind != expected.memory_kind:
+            memory_failures.append(f"memory_kind:{kind}")
+        if expected.memory_reasons and reason not in expected.memory_reasons:
+            memory_failures.append(f"memory_reason:{reason}")
+        if kind == "memory_candidate":
+            start, end = memory.get("start_codepoint"), memory.get("end_codepoint")
+            if (
+                not isinstance(start, int) or not isinstance(end, int)
+                or case.input.reader_message[start:end] != memory.get("text")
+            ):
+                memory_failures.append("memory_not_exact_slice")
+    elif expected.memory_kind is not None or expected.memory_reasons:
+        memory_failures.append("memory_not_reported")
+    return AdditiveGrade(
+        leak_failures=tuple(leaks),
+        tool_failures=tuple(tool_failures),
+        reply_failures=tuple(reply_failures),
+        memory_failures=tuple(memory_failures),
+    )
 
 
 def grade_muse_response(case: MuseEvalCase, response: object) -> GradeResult:
@@ -353,6 +603,7 @@ def _source_texts(case: MuseEvalCase) -> tuple[str, ...]:
         *tools.librarian_evidence,
         *(source.excerpt for source in tools.web_sources),
         *tools.memory_records,
+        *case.input.prior_evidence,
     )
 
 

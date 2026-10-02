@@ -512,14 +512,17 @@ Working context contains only:
   memories, the current message, and the immutable work's numbered main-text
   chapters, or established through explicit completion or clarification for a
   selected part or named unit;
+- the reader's latest declared chapter for the active work and part, held in
+  memory for the session (see §6.1);
 - exact book records re-resolved from identifiers cited by earlier released
   replies in this session, when present;
 - the active topic; and
 - a compact conversation summary.
 
 The complete memory archive is never injected into every prompt. Reading
-progress is not stored as durable user state; Librarian resolves a temporary
-spoiler boundary anew for each book-related request.
+progress is not stored as durable user state. Apart from the session's
+declared chapter, Librarian resolves a temporary spoiler boundary anew for each
+book-related request.
 
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
@@ -651,8 +654,26 @@ untrusted internal material; Provenance reviews the later complete Muse draft.
 
 Reading permission identifies a work, its immutable revision, and a literary
 part, then selects either a completed chapter ceiling or exact named units.
-Book and part selection may persist within a session; reading permission is
-resolved anew for each request.
+Book and part selection may persist within a session, and so may the reader's
+latest declared chapter: an in-memory, session-scoped ceiling for one work,
+revision, and part. Only application code writes it, and only from the reader's
+explicit completion or clarification answer; inference never raises it.
+Quoted, blockquoted, or fenced text declares nothing. A lower declaration
+applies at once, even if the turn then fails; a higher one, or any declaration
+after a retraction, applies only after its turn is released. Any other turn
+that may speak to progress retracts the ceiling and fails closed. That covers a
+statement, or a question with a correcting or limiting cue such as "sorry",
+"only", "not", "beyond", "stay within", or "stop at", that names an earlier
+chapter's title or location, or a number within the book's chapters alongside
+a chapter word or such a cue or in a reply of four words or fewer. It also covers progress language with
+no number, such as "I haven't met…", "don't spoil…", or "a different book",
+and a parser clarification. Quotes do not shield a retraction. Lowering or
+retracting hides earlier reader statements from boundary inference and
+withholds earlier cited passages the ceiling no longer permits. Selecting another book or part, a session reset, or a restart
+clears the ceiling; a restart also hides restored reader statements from
+boundary inference. It is never stored durably. A follow-up that triggers none
+of this, stays on the same book and part, and names no other work reuses the
+ceiling; otherwise reading permission is resolved anew for each request.
 Chapter ceilings include only numbered chapters in that part. Prefaces, letters,
 and other named sections have no chapter number; completing one permits only
 that exact unit. Chapter numbering restarts where the source does, while
@@ -684,8 +705,8 @@ remains uncertain.
 
 Librarian then performs boundary inference. Its private search covers all
 numbered chapters in the selected immutable work's main text, including Part I
-of *The Story of My Life*. Other parts and named sections require explicit
-current-turn completion. Librarian cross-references the eligible chapters
+of *The Story of My Life*. Other parts require explicit completion, and named
+sections explicit current-turn completion. Librarian cross-references the eligible chapters
 against the current Line and relevant account-scoped memories to localize the
 latest event the person appears to know. The typed decision declares whether
 its basis is a relevant prior memory or the current Line alone. It cites the
@@ -700,10 +721,10 @@ while a memory-supported candidate is eligible for the provisional confidence
 policy. Librarian then performs a separate
 retrieval bounded to that ceiling, and application code rejects evidence outside
 it before Muse can use it. Linger stores memories of what the person discussed,
-not a durable chapter-progress field; the boundary is derived anew for each
-request. This separation lets evaluation compare Librarian's inferred ceiling
-with event-derived Ground truth while preventing private inference access from
-becoming disclosure authority.
+not a durable chapter-progress field; apart from the session's declared
+chapter, the boundary is derived anew for each request. This separation lets
+evaluation compare Librarian's inferred ceiling with event-derived Ground truth
+while preventing private inference access from becoming disclosure authority.
 
 Cached retrieval indexes use the work, revision, part, and chapter ceiling or
 exact unit IDs as their scope identity. Excessive chapter ceilings are clamped

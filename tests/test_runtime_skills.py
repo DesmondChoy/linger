@@ -176,9 +176,14 @@ def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, mo
     for assignment in assignments:
         package = f"src.linger.agents.{assignment.role.lower()}"
         assert load_prompt("agents", assignment.role.lower()) == assignment.shared_instructions
-        assert load_instructions(
-            package, f"skills/{assignment.name}/SKILL.md"
-        ) == assignment.instructions
+        core = load_instructions(package, f"skills/{assignment.name}/SKILL.md")
+        if assignment.skill_id == "muse.reflection":
+            # The complete text is the core followed by every module resource.
+            modules = ("revision", "routing", "grounding", "connections")
+            parts = [core, *(load_instructions(package, f"skills/reflection/{name}.md") for name in modules)]
+            assert assignment.instructions == "\n\n".join(parts)
+        else:
+            assert core == assignment.instructions
 
 
 def test_validator_roles_keep_fixed_output_contracts() -> None:

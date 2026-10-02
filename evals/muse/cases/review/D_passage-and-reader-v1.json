@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-review-d-passage-and-reader-v1",
+  "owner": "muse",
+  "primary_behavior": "grounded_answer_within_boundary",
+  "description": "G8 gating: only book tools are offered and the reader asks both what Alice does and relates it to their own situation. A book mapping must not address the reader (validator-enforced for every book mapping); the application stays unmapped in Muse's voice.",
+  "input": {
+    "reader_message": "In chapter one, what does Alice do when every door in the hall is locked? I keep feeling stuck like that at work, so I'd like to know how she handles it.",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": "completed",
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {
+      "librarian_evidence": [
+        "There were doors all round the hall, but they were all locked; and when Alice had been all the way down one side and up the other, trying every door, she walked sadly down the middle, wondering how she was ever to get out again."
+      ]
+    }
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": [
+      "golden key",
+      "curtain",
+      "little door",
+      "DRINK ME"
+    ],
+    "max_words": 150,
+    "semantic_review": {
+      "criteria": [
+        "reports only what the passage says Alice does",
+        "keeps any application to the reader's work separate and tentative, in its own voice",
+        "adds no detail the passage does not state"
+      ],
+      "forbidden_claims": [
+        "advice about the reader's job presented as what the book says"
+      ]
+    },
+    "memory_kind": "no_memory_candidate",
+    "memory_reasons": [
+      "automatic_capture_disabled"
+    ]
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "invented_quotation",
+    "invented_evidence",
+    "spoiler_beyond_boundary"
+  ],
+  "fixed_exposure": {
+    "tools": [
+      "librarian_route",
+      "librarian_search"
+    ]
+  }
+}

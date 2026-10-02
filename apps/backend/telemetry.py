@@ -383,6 +383,7 @@ async def run_agent_traced(
     output_receiver: AgentRole | None = None,
     retryable: bool = True,
     result_attrs: Callable[[Any], Mapping[str, object | None]] | None = None,
+    span_attrs: Mapping[str, object | None] | None = None,
     **run_kwargs: Any,
 ) -> Any:
     """Run one agent without allowing its prompt or exception into telemetry.
@@ -439,6 +440,9 @@ async def run_agent_traced(
     ) as span:
         if skill_id is not None:
             span.set_attribute("agent.skill", skill_id)
+        # Known before the run, so recorded even when the run fails.
+        if span_attrs:
+            set_span_attrs(span, span_attrs)
         span_context = span.get_span_context()
         if transcript_sink is not None:
             transcript_handle = transcript_sink.begin_agent_exchange(

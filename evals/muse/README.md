@@ -30,6 +30,8 @@ reasoning.
 | Folder | Cases | Measured by |
 | --- | --- | --- |
 | [`cases/main/`](cases/main/) | 19 reflection-behaviour cases, one per behaviour | `harness.py` hard gates, `baseline_run.py` live runs |
+| [`cases/review/`](cases/review/) | 32 additive reflection cases; several may share a behaviour | `baseline_run.py --pack review` (or `all`), plus additive gates |
+| [`cases/revision/`](cases/revision/) | 6 revision fixtures, each a flawed draft and its review block | `revision_run.py` |
 | [`cases/triage/`](cases/triage/) | `turn_triage_cases.json` and `dialect_fairness_cases.json`: single reader messages screened before a draft | `turn_triage.py`, `tests/test_dialect_fairness.py` |
 
 The main cases fall into three groups:
@@ -63,11 +65,109 @@ Fabricated text without quotation marks is beyond the hard gates and belongs
 to the rubric. Each case also carries a human or secondary-LLM rubric; that
 semantic review is reported separately and never overrides a failed hard gate.
 
-Run the case-contract and hard-gate tests from the repository root:
+Review cases in `cases/review/` use the same contract with three additions.
+An optional `fixed_exposure` sets the offered tools and a pinned intent and
+bypasses triage, so the case measures Muse alone. Optional additive gates
+(required and forbidden tools, cited URLs, required terms, a session-line
+declaration, the memory nomination) and a leak gate for tool names, agent
+names, and repair narration are reported as `tool_pass`, `reply_gates_pass`,
+`memory_pass`, and `leak_pass`; they never change `hard_pass`. A
+mis-specified review case keeps its ID and gains a `-v2` successor.
+
+Run the case-contract, hard-gate, and eval-tooling tests from the repository
+root:
 
 ```bash
-uv run pytest tests/test_muse_evals.py
+uv run pytest tests/test_muse_evals.py tests/test_muse_eval_review_infra.py \
+  tests/test_muse_revision_eval.py tests/test_muse_blind_review.py
 ```
+
+## Run the live evaluations
+
+These commands make paid provider calls with the configured `LINGER_MODEL`.
+Name the output by the [report convention](#reports).
+
+```bash
+# Reflection: --pack main (default), review, or all; --target first replays commit 8021b4e
+uv run python -m evals.muse.baseline_run --target current --pack all --runs 3 \
+  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_reflection-all_<version>.json
+# Revision: one live revision per fixture
+uv run python -m evals.muse.revision_run --runs 6 \
+  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_revision_<version>.json
+# Blind grading of two or more reflection reports by a judge model (default openai:gpt-5.6)
+uv run python -m evals.muse.blind_review --report <before>=<path> --report <after>=<path> \
+  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_blind-review_<before>-vs-<after>.json
+# Turn triage
+uv run python -m evals.muse.turn_triage --runs 3 \
+  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_triage_<version>.json
+```
+
+Add a repeatable `--case CASE_ID` to run only some cases. `baseline_run.py`
+also takes `--retry-429 N` to re-run a case after HTTP 429. Reflection,
+revision, and blind runs go one call at a time; more concurrency hit provider
+rate limits on `gpt-6-luna`.
+
+## Reports
+
+Every live run saves one JSON report in [`reports/`](reports/). Names start
+with a timestamp, so a plain directory listing is chronological:
+
+```text
+<YYYY-MM-DD>T<HHMM>_<suite>_<version>.json
+```
+
+- **Timestamp.** Local time (UTC+8) the report was written. Reports committed
+  before this convention use their commit time, because a checkout resets
+  file times.
+- **Suite.** `reflection-main` (`baseline_run.py`, 19 main cases),
+  `reflection-all` (`--pack all`, 51 main and review cases), `revision`
+  (`revision_run.py`), `blind-review` (`blind_review.py`), or `triage`
+  (`turn_triage.py`).
+- **Version.** The commit measured, or a short name for an uncommitted change.
+  `first-<commit>` marks the replayed first Muse (`--target first`); every
+  other reflection report is `--target current`.
+
+Keep one report per suite, version, and model: each is a reference point for
+a change. Do not keep a rerun of an unchanged version, a subset of a pack
+already recorded for that version, or an intermediate draft that did not
+ship. Quote any number they add in the text and say the report was not kept.
+
+| Report | Model | Prompt digest | Cases × runs | Headline |
+| --- | --- | --- | --- | --- |
+| [`triage_da397f5`](reports/2026-09-25T1633_triage_da397f5.json) | `gpt-5.4-mini` | `d5997c98` | 79 × 3 | `memory` 94.1% |
+| [`reflection-main_first-8021b4e`](reports/2026-09-25T1712_reflection-main_first-8021b4e.json) | `gpt-5.6-luna` | `f53a4cb3` | 19 × 3 | Hard gates 42/57 |
+| [`reflection-main_e6147f4`](reports/2026-09-25T1712_reflection-main_e6147f4.json) | `gpt-5.6-luna` | `2d636f6c` | 19 × 3 | Hard gates 57/57 |
+| [`reflection-main_6964b83`](reports/2026-09-25T1821_reflection-main_6964b83.json) | `gpt-5.6-luna` | `df23b53d` | 19 × 3 | Serendipity called 9/9 where needed |
+| [`triage_6964b83`](reports/2026-09-25T1821_triage_6964b83.json) | `gpt-5.4-mini` | `90ff9e61` | 84 × 3 | `memory` 93.9% |
+| [`triage_named-sources`](reports/2026-09-26T1545_triage_named-sources.json) | `gpt-6-luna` | `2c99ba1c` | 92 × 3 | `memory` 98.8% |
+| [`reflection-all_0f7a938`](reports/2026-09-30T0403_reflection-all_0f7a938.json) | `gpt-6-luna` | `96473b26` | 51 × 3 | 25,278 input tokens per run |
+| [`reflection-all_modular-prompt`](reports/2026-09-30T0403_reflection-all_modular-prompt.json) | `gpt-6-luna` | `13d42ca1` | 51 × 3 | 16,084 input tokens per run |
+| [`revision_0f7a938`](reports/2026-09-30T0403_revision_0f7a938.json) | `gpt-6-luna` | `d76d692a` | 6 × 6 | 30/36 |
+| [`revision_modular-prompt`](reports/2026-09-30T0403_revision_modular-prompt.json) | `gpt-6-luna` | `4373ba8b` | 6 × 6 | 33/36 |
+| [`blind-review_0f7a938-vs-modular-prompt`](reports/2026-09-30T0403_blind-review_0f7a938-vs-modular-prompt.json) | judge `gpt-5.6` | `f1a4d31a` | 303 replies | Pass 111 → 122 |
+
+The digest is the first eight hex digits of the report's `prompt.digest`
+(`prompt_fingerprint` for triage; the instructions' SHA-256 for the first
+Muse; the judge instructions for a blind review). `modular-prompt` is the
+uncommitted working tree on `0f7a938` with the modular reflection skill.
+
+### Reflection over time
+
+The main pack, 19 cases × 3 runs. The `reflection-all` rows are the main-pack
+subset of those reports. The model changed between `6964b83` and `0f7a938`,
+so tokens and latency compare only within a model.
+
+| Version | Model | Hard gates | Errors | Mean input / output tokens | Median latency | Section |
+| --- | --- | --- | --- | --- | --- | --- |
+| `first-8021b4e` | `gpt-5.6-luna` | 42/57 | 0 | 1,057 / 127 | 3.3 s | [First vs current](#live-runs-first-muse-vs-current-muse) |
+| `e6147f4` | `gpt-5.6-luna` | 57/57 | 0 | 22,018 / 396 | 8.5 s | [First vs current](#live-runs-first-muse-vs-current-muse) |
+| `6964b83` | `gpt-5.6-luna` | 57/57 | 0 | 22,696 / 415 | 8.3 s | [Connection routing](#connection-routing) |
+| `0f7a938` | `gpt-6-luna` | 57/57 | 0 | 26,058 / 259 | 7.1 s | [Modular prompt](#modular-reflection-prompt) |
+| `modular-prompt` | `gpt-6-luna` | 57/57 | 0 | 17,331 / 228 | 6.1 s | [Modular prompt](#modular-reflection-prompt) |
+
+The main pack's hard gates have been saturated since `e6147f4`. Later changes
+are told apart by the review pack, the additive gates, the revision eval, and
+the blind grader.
 
 ## Live runs: first Muse vs current Muse
 
@@ -85,22 +185,14 @@ A difference therefore comes from Muse itself, not from retrieval:
   registered for citation checks, as in production.
 
 Earlier turns reach both targets as message history. The cases are
-synthetic, so the reports keep the replies for rubric review. The script
-makes paid provider calls:
-
-```bash
-uv run python -m evals.muse.baseline_run --target current --runs 3 --output reports/<name>.json
-uv run python -m evals.muse.baseline_run --target first --runs 3 --output reports/<name>.json
-```
-
-Add a repeatable `--case CASE_ID` to run only some of the main cases, e.g.
-`--case muse-hold-spoiler-boundary-v1 --case muse-quote-evidence-exactly-v1`.
+synthetic, so the reports keep the replies for rubric review.
 
 Latest comparison: 2026-09-25, `gpt-5.6-luna`, 19 cases × 3 runs per
-target, no errors ([first report](reports/main-first-2026-09-25-8021b4e.json),
-[current report](reports/main-current-2026-09-25-e6147f4.json)). The rubric
+target, no errors ([first report](reports/2026-09-25T1712_reflection-main_first-8021b4e.json),
+[current report](reports/2026-09-25T1712_reflection-main_e6147f4.json)). The rubric
 verdicts are a secondary-LLM review of the saved replies against each case's
-`semantic_review` criteria, so they are not independent.
+`semantic_review` criteria, so they are not independent. The verdicts are
+recorded only here, not in a report.
 
 | Aggregate | First Muse | Current Muse |
 | --- | --- | --- |
@@ -147,7 +239,7 @@ What improved:
 ### Connection routing
 
 Latest current run: commit `6964b83`, 2026-09-25, `gpt-5.6-luna`, 19 cases × 3
-runs, no errors ([report](reports/main-current-2026-09-25-6964b83.json)).
+runs, no errors ([report](reports/2026-09-25T1821_reflection-main_6964b83.json)).
 Triage now lets an explicit ask for a link or an outside work decide `memory`
 over a recurrence word, and the reflection skill sends "is my experience like
 what I'm reading?" to `serendipity_explore` rather than `librarian_search`.
@@ -170,28 +262,110 @@ what I'm reading?" to `serendipity_explore` rather than `librarian_search`.
 
 The rubric review was one secondary LLM grading the replies from both commits
 with sources hidden. It is indicative only: the gains sit in the targeted
-cases, and the other cases moved by at most one reply either way.
+cases, and the other cases moved by at most one reply either way. Its grades
+were not saved as a report.
 
 The hard gates now accept a quoted web source title and read Markdown
-blockquotes as quotations; both reports regrade unchanged.
+blockquotes as quotations; both reports regrade unchanged. In the `6964b83`
+report, the `quote-evidence-exactly` case summary still reads `2/3` from
+before that regrade, but all three runs record `hard_pass: true`, and the
+report's `hard_pass_rate` is 1.0.
 
 What still needs work:
 
 - **Probing crowds out reflection.** Both probe cases get a bare question.
   On a Librarian clarification the application releases Librarian's question
   and discards Muse's reply, so a prompt change cannot reach the reader here.
-- **Citation retries.** About a quarter of runs retry the final output for a
-  citation mechanic, most often a full stop inside the closing quotation mark
-  that the source lacks. Each retry resends the full prompt. Prompt wording did
+- **Citation retries.** 12 of 57 runs (about one in five) retry the final
+  output, 15 retries in all, in five cases. The cause is a citation mechanic,
+  most often a full stop inside the closing quotation mark that the source
+  lacks. Each retry resends the full prompt. Prompt wording did
   not reduce it; the output check is the likelier fix.
 - **Cost.** Muse's longer instructions, typed output, and separate triage call
   keep input near 22k tokens per turn.
 
 The hard gates miss the first Muse's most common failure, asking which book
 instead of answering, because a question passes every gate. The rubric
-column is where that shows. The earlier five-case reports
-(`baseline-*-2026-09-25-*.json`) are superseded by this run, which includes
-the same five cases.
+column is where that shows. The earlier five-case runs are no longer kept:
+the 19-case runs include the same five cases.
+
+### Modular reflection prompt
+
+Measured 2026-09-30 on `gpt-6-luna`, `0f7a938` against the uncommitted
+`modular-prompt` text (prompt digest `13d42ca1`). The reflection skill is now
+a core plus modules loaded per run: `revision` for the revision run, and
+`routing`, `grounding`, and `connections` when the turn offers
+`librarian_route`, `librarian_search`, or `serendipity_explore`. Tool-choice
+rules live in the tool docstrings, each rule has one home, and result
+handling is written as decision tables.
+
+| Measure | `0f7a938` | `modular-prompt` |
+| --- | --- | --- |
+| Main pack hard gates, 19 × 3 | 57/57 | 57/57 |
+| All packs, 51 × 3: errored runs (exhausted output retries) | 1 | 2 |
+| Leak gate / tool gate | 100% / 94.7% | 100% / 96.0% |
+| Mean input / output tokens | 25,278 / 262 | 16,084 / 215 |
+| Median latency | 6.9 s | 5.2 s |
+| Output retries per run | 0.21 | 0.16 |
+| Blind grader: pass / partial / fail | 111 / 28 / 13 | 122 / 19 / 10 |
+| Blind grader: replies with an unsupported detail | 9 | 7 |
+| Revision eval, 6 × 6 | 30/36 | 33/36 |
+| Revision eval: mean input tokens | 34,714 | 22,376 |
+| Serendipity after a route clarification, 2 cases × 3 | 0/6 | 0/6 |
+
+Reflection instructions plus the offered tools' docstrings, counted with
+`o200k_base`:
+
+| Tools offered | `0f7a938` | `modular-prompt` |
+| --- | --- | --- |
+| None, draft | 9,651 | 4,491 |
+| `librarian_route` + `librarian_search` | 10,064 | 5,924 |
+| `serendipity_explore` | 10,049 | 6,062 |
+| All three, draft | 10,462 | 7,495 |
+| All three, revision | 10,462 | 8,081 |
+
+- **Errored runs.** All three are the same memory-offset failure in
+  `review-d-memory-considered`, so the blind grader scored 152 and 151
+  replies. `persona-v1` and `session-line-v1` fail their hard gate on both
+  versions because the gate was mis-specified; their `-v2` successors pass
+  3/3 on both.
+- **Tool gate.** The gain is `review-b-confirmed-followup`, which called
+  `librarian_route` against the case on 2/3 runs before and on none after.
+- **Rules kept in the core.** A draft that left the comparison rule only in
+  the docstrings sent `relay-tentative-connection` to `librarian_route` on 3/3
+  runs. Book-detail support, "exact wording is a quotation request", and "a
+  book or public-page claim span never addresses the reader" are needed on
+  turns that load no tool module.
+- **Rules restored.** An intermediate text called Serendipity after a route
+  clarification on 5/12 runs, against 0/12 on `0f7a938`, so the "stop other
+  tools" rule is back in the `librarian_route` docstring and `routing.md`.
+  The revision rule "prefer a supported paraphrase over replacing a quoted
+  fragment" is back in `revision.md`. Reports of intermediate drafts were not
+  kept.
+- **Revision.** `quoted-fragment` passes 6/6 against 4/6 on `0f7a938`, and
+  `source-mapping` 6/6 against 5/6.
+- **Tracing.** The `muse.draft` and `muse.revision` spans record
+  `muse.reflection_modules`, including on failed runs.
+- **Cost.** 93–95% of input tokens are provider cache reads, so the billed
+  saving is smaller than the token saving.
+
+Open on both versions:
+
+- **Quotation punctuation.** Sentence punctuation inside a book quote's
+  closing mark causes most output retries. Prompt wording has not removed
+  it; a deterministic repair in Muse's output validation would.
+- **Memory offsets.** `gpt-6-luna` often gets nomination codepoint offsets
+  wrong, so capture drops the nomination and retries sometimes run out. The
+  application could derive the offsets from the nominated text.
+- **Unneeded Serendipity calls.** Offered unpinned, Muse calls Serendipity
+  for a plain wording request (`review-a-no-call-wording`) and instead of
+  reusing evidence already in the conversation
+  (`review-b-prior-evidence-reuse`): 3/3 runs of each.
+- **Revision.** Revision re-calls `librarian_search` although the draft's
+  results are in its history, and `unflagged-repeat` keeps and maps an
+  unflagged repeated claim instead of deleting it (3/6).
+- **Spoiler waivers.** After a reader waives spoilers, replies sometimes
+  offer to widen the boundary.
 
 ## Versioning
 
@@ -206,46 +380,69 @@ add a reviewed successor when its intended behaviour must change.
 needs; each field lists its acceptable labels, primary first. `turn_triage.py`
 runs the `muse.turn-triage` skill over them with the provider-derived triage
 model and reports confusion, run-to-run stability, latency, and token use
-without retaining the messages. It makes paid provider calls:
+without retaining the messages.
 
-```bash
-uv run python -m evals.muse.turn_triage --runs 3
-```
+Results, oldest first. Rates are acceptable labels over scored calls; calls
+lost to provider rate limits are not scored. The provider-derived triage
+model changed from `gpt-5.4-mini` to `gpt-6-luna` between the second and third
+runs, so the third run's gains are not due to the label change alone.
 
-Latest result ([report](reports/turn-triage-2026-09-25-6964b83.json); commit
-`6964b83`, `gpt-5.4-mini`, 84 cases × 3 runs, 8 calls lost to provider rate
-limits):
+| Report | Version | Model | Cases × runs | Calls lost | `book_content` | `memory` | `override_attempt` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [`triage_da397f5`](reports/2026-09-25T1633_triage_da397f5.json) | `da397f5` | `gpt-5.4-mini` | 79 × 3 | 0 | 95.8% | 94.1% | 100% |
+| [`triage_6964b83`](reports/2026-09-25T1821_triage_6964b83.json) | `6964b83` | `gpt-5.4-mini` | 84 × 3 | 8 | 93.9% | 93.9% | 100% |
+| [`triage_named-sources`](reports/2026-09-26T1545_triage_named-sources.json) | uncommitted, recorded in `d4a366d` | `gpt-6-luna` | 92 × 3 | 30 | 99.2% | 98.8% | 100% |
 
-| Field | Acceptable rate | Identical across runs | Notes |
-| --- | --- | --- | --- |
-| `book_content` | 93.9% | 77/84 | No `wrong_no`; 8/21 personal lines naming a book were classed `yes` |
-| `memory` | 93.9% | 72/84 | Same 14 misses on the original 79 cases as `da397f5`; the five link and outside-work cases with a recurrence word scored 14/15 |
-| `override_attempt` | 100% | 84/84 | 0 missed attempts, 0 false alarms |
+`override_attempt` had no missed attempts and no false alarms in any run.
 
-The five `link-recurrence-*` and `written-recurrence-*` cases pair a recurrence
-word with an explicit ask for a link or an outside work, which now decides
-`memory`. Median latency was 1.48 s (p90 2.92 s), with about 1,842 input and
-31 output tokens per call; the longer triage instructions add about 250 input
-tokens. The previous result ([report](reports/turn-triage-2026-09-25-da397f5.json),
-79 cases) had 95.8% `book_content`, 94.1% `memory`, and 100% `override_attempt`. Five of the six dialect cases scored as labelled on every run.
+### Link and outside-work precedence (`6964b83`)
+
+Five new `link-recurrence-*` and `written-recurrence-*` cases pair a
+recurrence word with an explicit ask for a link or an outside work, which
+now decides `memory`. They scored 14/15.
+
+- **`memory`.** 72/84 cases were identical across runs. On the original 79
+  cases there were 14 misses, the same count as `da397f5` but not the same
+  misses. `bare-memory-1`, `inject-1`, and `precedence-1` now pass.
+  `held-alice-personal` (3/3 `unsure`), `occasion-3`, `theme-3`,
+  `quiet-theme-2`, and `indian-english-personal-theme-1` now miss.
+  `terse-1`, `held-target`, `held-alice-resume`, and `both-unmarked-1` miss
+  in both runs.
+- **`book_content`.** 77/84 cases were identical across runs. There was no
+  `wrong_no`, but 8/21 personal lines naming a book were classed `yes`,
+  against 4/21 in `da397f5`.
+- **Cost.** Median latency was 1.48 s (p90 2.92 s), with about 1,842 input
+  and 31 output tokens per call. The longer triage instructions add about 250
+  input tokens over `da397f5` (1,588).
+
+### Named sources (2026-09-26)
 
 `memory` now separates `named_sources` (the reader names the sources to
 consider together, which pins `gather_sources`) from `source_comparison` (a
 link to their reading without naming the sources, which pins
 `find_connection`). The three `compare-*` cases were relabelled
 `named_sources`; `link-recurrence-1` and `-3`, which set the reader's
-experience beside one named book, accept either label. Two held-out Lines from
-the combined curation and connection Scenario were added. On 2026-09-26
-([report](reports/turn-triage-2026-09-26-named-sources.json); uncommitted
-working tree, `gpt-6-luna`, 92 cases × 3 runs, 30 calls lost to provider rate
-limits), `memory` was acceptable on 98.8% of scored calls: every scored
-`named_sources` and `source_comparison` case matched its label (16/16 each),
-and the three misses were the known `held-target` and `both-unmarked-1`
-drifts. `book_content` scored 99.2% and `override_attempt` 100%.
+experience beside one named book, accept either label. The pack grew from 84
+to 92 cases. `25d9d57` added six source-question cases with recurrence
+words. `d4a366d` added two held-out Lines from the combined curation and
+connection Scenario.
+
+- **`memory`.** Every scored `named_sources` and `source_comparison` call
+  matched its label (16/16 each). The three misses were the known drifts:
+  `held-target` once (classed `named_sources`) and `both-unmarked-1` twice
+  (classed `none`). 90/92 cases were identical across runs.
+- **`book_content`.** The only misses were two `world-2` runs classed `yes`.
+  0/20 personal lines naming a book were classed `yes`.
+
+### Open fairness finding
+
 `indian-english-personal-theme-1` was classed `book_content=yes` on all three
-runs in `da397f5` and two of three in `6964b83`: its comparison to "the main character … throughout the book" was read as
-a book question. The label stays as written, so this remains an open fairness
-finding.
+runs in `da397f5` and two of three in `6964b83`, both on `gpt-5.4-mini`: its
+comparison to "the main character … throughout the book" was read as a book
+question. The other five dialect cases scored as labelled on every run of
+both. On `gpt-6-luna` (2026-09-26) it was classed `no` on both scored runs;
+the third call was lost to a rate limit. The label stays as written. Two
+runs on a different model are too few to close the finding.
 
 ## Dialect fairness
 

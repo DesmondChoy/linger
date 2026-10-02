@@ -11,7 +11,7 @@ calls or transfer application authority to a model.
 
 | Role and assignment | Skill instructions | Input and output | Application entry point |
 |---|---|---|---|
-| [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md), including revision | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
+| [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md) core, plus application-selected modules for [revision](../src/linger/agents/muse/skills/reflection/revision.md), [routing](../src/linger/agents/muse/skills/reflection/routing.md), [grounding](../src/linger/agents/muse/skills/reflection/grounding.md), and [connections](../src/linger/agents/muse/skills/reflection/connections.md) | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
 | Muse | [Turn triage](../src/linger/agents/muse/skills/turn-triage/SKILL.md) | `TurnTriageInput` → `TurnNeeds` | `triage_turn` classifies what the current reader message needs, from that message alone; no tools. Chat runs it once per reader turn, after the emotional preflight, to decide which tools Muse is offered |
 | [Librarian](../src/linger/agents/librarian/README.md) · [assignment](../src/linger/agents/librarian/skills.py) | [Boundary inference](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary`; deterministic grant validation follows |
 | Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` checks a proposed chapter boundary independently; receives no proposed grant or memories |
@@ -69,6 +69,17 @@ instructions live under `agents.<role>` in the packaged
 returns fresh per-run instructions, retries, metadata, and, where needed, an
 output contract. Typed task entry points project trusted input, select the
 constant, invoke the role's Agent, and apply existing domain checks.
+
+Muse reflection is a core `SKILL.md` plus module files beside it. The
+application composes each run's instructions with `reflection_run_options(revision=...,
+tools=...)`: the core always loads, the `revision` module loads only for the
+revision run, and the `routing`, `grounding`, and `connections` modules load only
+when the turn's `ToolExposure` offers `librarian_route`, `librarian_search`, and
+`serendipity_explore`. An unset exposure loads every tool module. Tool-choice
+rules live in the tool docstrings, which reach the model only with their tool;
+the modules keep result handling and reply composition. `REFLECTION.instructions`
+and `muse.prompt.INSTRUCTIONS` remain the complete text with every module, so
+fingerprints cover all of it and prompt-leak checks see all of it.
 
 Muse reflection and Serendipity retain fixed output schemas. Serendipity keeps
 its registered output validator. Muse's candidate checks run in its
@@ -140,8 +151,9 @@ and `own_earlier_reflections`, `named_sources`, `source_comparison`, and
 `outside_recommendation` pin its `intent` to `recall_memory`, `gather_sources`,
 `find_connection`, and `get_recommendation`.
 `unsure`, or a tool offered only because it ran earlier, leaves the intent open.
-A confirmed reading context or a pending clarification always adds the book
-tools. Only tools that ran in a released turn are remembered, matching the
+A pending clarification, or a reading context confirmed in the current turn,
+always adds the book tools; a chapter carried from an earlier turn leaves
+exposure to triage. Only tools that ran in a released turn are remembered, matching the
 session history and evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
@@ -408,7 +420,7 @@ evidence; they do not describe this refactor or replace maintained docs.
 ## Resource distribution and verification
 
 `uv build` creates a wheel and source archive containing `prompts/prompt_catalog.yaml`
-and all assigned `SKILL.md` resources. `importlib.resources` resolves the catalogue
+and all assigned `SKILL.md` resources and their module files. `importlib.resources` resolves the catalogue
 from `src.linger.prompts` and skills from each installed role package. Prompt
 and skill loading do not depend on a repository checkout or the process working
 directory. Corpus data, configuration, and evaluation Scenarios retain their
