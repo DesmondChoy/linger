@@ -70,9 +70,10 @@ Muse asks for a title and author if the answer requires a book, or continues
 personal reflection when it does not.
 
 Naming a book establishes identity only. A later title answer does not confirm
-an earlier chapter guess. Retrieval still requires explicit current-turn
-completion, a validated memory-supported boundary, or exact session-supported
-passage permission. Application code enforces the permitted revision and the
+an earlier chapter guess. Retrieval still requires explicit completion, in this
+turn or carried from the reader's latest declaration in the session, a
+validated memory-supported boundary, or exact session-supported passage
+permission. Application code enforces the permitted revision and the
 chapter ceiling or exact passage IDs. Passage permission does not establish
 chapter completion.
 

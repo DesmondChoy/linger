@@ -20,7 +20,7 @@ _ORDINALS = (
     "twenty sixth", "twenty seventh", "twenty eighth", "twenty ninth", "thirtieth",
 )
 
-_NUMBER_WORDS = {
+NUMBER_WORDS = {
     word: value
     for words in (_CARDINALS, _ORDINALS)
     for value, word in enumerate(words, start=1)
@@ -52,5 +52,5 @@ def parse_chapter_answer(message: str) -> int | None:
             return None
         chapter = int(digits)
     else:
-        chapter = _NUMBER_WORDS.get(reference, 0)
+        chapter = NUMBER_WORDS.get(reference, 0)
     return chapter if 1 <= chapter <= _MAX_CHAPTER else None

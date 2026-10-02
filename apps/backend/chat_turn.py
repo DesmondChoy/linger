@@ -80,7 +80,7 @@ from src.linger.services.memory import (
     MemoryServiceError,
 )
 
-from . import sessions
+from . import reading_progress, sessions
 from .chapter_reference import parse_chapter_answer
 from .config import get_settings
 from .contracts import (
@@ -135,13 +135,15 @@ TITLE_LEAD_PATTERN = re.compile(
     r"^\s*(?:in|from)\s+(?P<title>[^,.!?]+)",
     re.IGNORECASE,
 )
+PROGRESS_ADVERBS = r"(?:(?:now|just|already|finally|recently|only|actually|really)\s+){0,2}"
 TITLE_END_PATTERN = re.compile(
-    r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|completed|through|up to|at|on))\b",
+    rf"\s*(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
+    r"(?:read|finished|completed|through|up to|at|on))\b",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
-    r"\b(?:i(?:'ve|’ve| have)\s+(?:now\s+)?(?:finished|completed|read\s+through|got\s+through)|"
-    r"i\s+(?:now\s+)?(?:finished|completed)|i(?:'m| am)\s+(?:now\s+)?done\s+with)\b",
+    rf"\b(?:i(?:['’]ve|['’]d| have| had)\s+{PROGRESS_ADVERBS}(?:finished|completed|read\s+through|got\s+through)|"
+    rf"i\s+{PROGRESS_ADVERBS}(?:finished|completed)|i(?:'m| am)\s+{PROGRESS_ADVERBS}done\s+with)\b",
     re.IGNORECASE,
 )
 COMPLETED_CHAPTER_SUBJECT_PATTERN = re.compile(
@@ -217,7 +219,9 @@ READ_NAMED_PATTERN = re.compile(
 
 
 def _completed_location(message: str) -> str | None:
-    completion = COMPLETION_PATTERN.search(message) or READ_NAMED_PATTERN.search(message)
+    # Someone else's words, quoted or fenced, declare nothing for the reader.
+    unquoted = reading_progress.mask_quotes(message)
+    completion = COMPLETION_PATTERN.search(unquoted) or READ_NAMED_PATTERN.search(unquoted)
     if completion is None:
         return None
     location = DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
@@ -986,6 +990,8 @@ def _apply_initial_reading(
 async def _turn_tool_exposure(
     request: ChatRequest,
     inspection: TurnInspection,
+    *,
+    carried: bool,
 ) -> ToolExposure:
     """Triage the reader message once and fix the tools Muse is offered this turn."""
     started = perf_counter()
@@ -1002,8 +1008,9 @@ async def _turn_tool_exposure(
         exposure = expose_tools(
             needs,
             previously_called=sessions.called_tools(request.session_id),
+            # A ceiling carried from an earlier turn says nothing about this message's needs.
             book_override=(
-                inspection.muse_turn.get("reading_context") is not None
+                (inspection.muse_turn.get("reading_context") is not None and not carried)
                 or sessions.pending_clarification(request.session_id) is not None
             ),
         )
@@ -1065,14 +1072,19 @@ async def _run_chat_pipeline(
     public_source_urls: tuple[str, ...] | None = None,
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
-    prior_evidence = _rehydrate_session_evidence(request.session_id)
+    pending_progress, carried = None, False
     if connection_book_scopes is not None:
         resolution = _apply_connection_book_scopes(request, connection_book_scopes)
+    elif initial_reading is not None:
+        resolution = _apply_initial_reading(request, initial_reading)
     else:
-        resolution = (
-            _apply_initial_reading(request, initial_reading)
-            if initial_reading is not None else resolve_reading_context(request)
+        resolution, pending_progress, carried = reading_progress.apply(
+            request, resolve_reading_context(request),
+            parser_patterns=(IN_PROGRESS_PATTERN, COMPLETION_PATTERN, READ_NAMED_PATTERN),
         )
+    prior_evidence = reading_progress.permitted_evidence(
+        request.session_id, _rehydrate_session_evidence(request.session_id),
+    )
     release: ReflectionRelease | None = None
     # Self-harm always wins: a first-person self-harm phrase skips the
     # language guard so the emotional-boundary preflight below still applies.
@@ -1138,7 +1150,7 @@ async def _run_chat_pipeline(
     nested_connections: tuple[ConnectionRunInspection, ...] = ()
     if release is None:
         # The revision reuses the draft's exposure: triage runs once per reader turn.
-        exposure = await _turn_tool_exposure(request, inspection)
+        exposure = await _turn_tool_exposure(request, inspection, carried=carried)
         review_context["override_attempt"] = exposure.override_attempt
         token = set_confirmed_reading(
             ConfirmedReading(
@@ -1233,6 +1245,7 @@ async def _run_chat_pipeline(
         review_finding_codes=release.review_finding_codes,
         tool_names=release.tool_names,
     )
+    reading_progress.commit(request.session_id, pending_progress, release.release_source)
     return inspection, release, capture
 
 

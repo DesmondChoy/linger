@@ -151,8 +151,9 @@ and `own_earlier_reflections`, `named_sources`, `source_comparison`, and
 `outside_recommendation` pin its `intent` to `recall_memory`, `gather_sources`,
 `find_connection`, and `get_recommendation`.
 `unsure`, or a tool offered only because it ran earlier, leaves the intent open.
-A confirmed reading context or a pending clarification always adds the book
-tools. Only tools that ran in a released turn are remembered, matching the
+A pending clarification, or a reading context confirmed in the current turn,
+always adds the book tools; a chapter carried from an earlier turn leaves
+exposure to triage. Only tools that ran in a released turn are remembered, matching the
 session history and evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
