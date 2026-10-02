@@ -31,7 +31,11 @@ from apps.backend.contracts import (
     MuseRevisionReview,
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
-from src.linger.agents.muse.skills import REFLECTION
+from src.linger.agents.muse.skills import (
+    REFLECTION,
+    reflection_modules,
+    reflection_run_options,
+)
 from src.linger.agents.muse.claim_repair import (
     accepted_claims_for_revision,
     draft_sentences_for_revision,
@@ -83,7 +87,12 @@ from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
-from src.linger.orchestration.turn_context import turn_evidence, active_memories, connection_book_scopes
+from src.linger.orchestration.turn_context import (
+    active_memories,
+    connection_book_scopes,
+    tool_exposure,
+    turn_evidence,
+)
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
@@ -106,6 +115,26 @@ MUSE_REQUEST_LIMIT = (
 # attempts. A model that answers with calls to tools it was never given would
 # otherwise keep earning fresh retry prompts.
 PROVENANCE_REVIEW_REQUEST_LIMIT = CANDIDATE_REVIEW.output_retries + 1
+
+
+def _reflection_options(*, revision: bool) -> dict[str, Any]:
+    """Muse's run options carrying only the modules this mode and turn's tool exposure need."""
+    exposure = tool_exposure()
+    return reflection_run_options(
+        revision=revision, tools=None if exposure is None else exposure.tools
+    )
+
+
+def _reflection_module_attrs(*, revision: bool) -> dict[str, object]:
+    """The fixed names of the reflection modules the run loaded, for its span."""
+    exposure = tool_exposure()
+    return {
+        "muse.reflection_modules": list(
+            reflection_modules(
+                revision=revision, tools=None if exposure is None else exposure.tools
+            )
+        )
+    }
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
@@ -1112,12 +1141,13 @@ async def _reflection_reply(
             prompt_template_id=DRAFT_PROMPT_FINGERPRINT.template_id,
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
+            span_attrs=_reflection_module_attrs(revision=False),
             message_history=history,
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=False),
         )
     except Exception:
         return _record_release(
@@ -1331,12 +1361,13 @@ async def _reflection_reply(
             prompt_template_id=REVISION_PROMPT_FINGERPRINT.template_id,
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
+            span_attrs=_reflection_module_attrs(revision=True),
             message_history=[*history, *draft_result.new_messages()],
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=True),
         )
     except Exception:
         return _record_release(
