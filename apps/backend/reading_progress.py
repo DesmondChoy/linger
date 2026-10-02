@@ -17,9 +17,11 @@ from .contracts import ContextResolution
 from .schemas import ChatRequest
 
 QUOTED = re.compile(
-    r"(?s:```.*?```)|\"[^\"]*\"|“[^”]*”|«[^»]*»|(?<!\w)['‘].*?['’](?!\w)|`[^`\n]*`|^[ \t]*>[^\n]*",
+    r"(?s:```.*?```)|\"[^\"]*\"|[“«]|(?<!\w)['‘]|`[^`\n]*`|^[ \t]*>[^\n]*",
     re.MULTILINE,
 )
+# Closers for QUOTED's bare openers; a single quote must close on its own line.
+CLOSERS = {"“": re.compile("”"), "«": re.compile("»"), "'": re.compile(r"['’](?!\w)|\n")}
 A = "['’]"
 NUMBER_WORD = "(?:" + "|".join(
     word.replace(" ", r"[\s-]") for word in sorted(NUMBER_WORDS, key=len, reverse=True)
@@ -65,7 +67,26 @@ class PendingProgress:
 
 def mask_quotes(text: str) -> str:
     """Blank quoted, blockquoted, and fenced text, keeping every offset."""
-    return QUOTED.sub(lambda match: " " * len(match.group()), text)
+    # Closers are found by a forward scan rather than regex backtracking: once an opener has no closer,
+    # no later opener of its kind before the same limit can close either, so unclosed runs stay linear.
+    parts, copied, position = [], 0, 0
+    unclosed_until = dict.fromkeys(CLOSERS, -1)
+    while match := QUOTED.search(text, position):
+        start, end = match.span()
+        kind = "'" if match.group() == "‘" else match.group()
+        if kind in CLOSERS:
+            if start < unclosed_until[kind]:
+                position = end
+                continue
+            close = CLOSERS[kind].search(text, end)
+            if close is None or close.group() == "\n":
+                unclosed_until[kind] = close.start() if close else len(text)
+                position = end
+                continue
+            end = close.end()
+        parts += [text[copied:start], " " * (end - start)]
+        copied = position = end
+    return "".join(parts) + text[copied:]
 
 
 def _words(text: str) -> str:

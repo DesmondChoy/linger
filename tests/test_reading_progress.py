@@ -300,6 +300,13 @@ def test_switching_books_drops_the_ceiling_without_superseding_statements(reader
     "My friend wrote ‘I have finished chapter 12’ on her blog.",
     "From the forum: «I've finished chapter 12»",
     'She posted:\n"Big news.\nI\'ve finished chapter 12!"',
+    "My friend texted “I’ve finished chapter 12.\n“And the ending was wild,” she added.",
+    "My friend texted “I’ve finished chapter 12 and the “twist” is wild” lol",
+    "My friend wrote ‘I have finished chapter 12 and the ‘twist’ is wild’ on her blog.",
+    (
+        "She wrote ‘" + "It was a long and winding season of reading, slow and patient. " * 6
+        + "I’ve finished chapter 12, and nothing was the same.’ on her blog."
+    ),
 ])
 def test_quoted_progress_retracts_but_never_raises(reader, message) -> None:
     reader.say(T1)
