@@ -40,7 +40,6 @@ from src.linger.evaluation_transcript import (
 from src.linger.orchestration.progress_context import emit_progress
 
 from .config import get_settings
-from .contracts import EvidenceBundle, LibrarianRequest
 
 SERVICE_NAME = "linger-backend"
 EVALUATION_SERVICE_NAME = "linger-evals"
@@ -559,29 +558,6 @@ def connection_scope_attrs(task: ConnectionDiscoveryInput) -> dict[str, object]:
         attributes["scope.part_id"] = book_scope.part_id
         attributes["scope.unit_ids"] = list(book_scope.unit_ids)
     return attributes
-
-
-def librarian_request_attrs(request: LibrarianRequest) -> dict[str, object]:
-    """Validated public-corpus scope without the reader-derived query."""
-    return {
-        "tool.name": "librarian_search",
-        "tool.retry_count": 0,
-        "scope.work_id": [scope.work_id for scope in request.book_scopes],
-        "scope.book_version_id": [
-            scope.book_version_id for scope in request.book_scopes
-        ],
-        "scope.chapter_max": [scope.chapter_max for scope in request.book_scopes],
-        "scope.part_id": [scope.part_id for scope in request.book_scopes],
-        "scope.unit_ids": [identity for scope in request.book_scopes for identity in scope.unit_ids],
-    }
-
-
-def evidence_attrs(bundle: EvidenceBundle) -> dict[str, object]:
-    """Public evidence identifiers and count, never excerpts or notes."""
-    return {
-        "retrieval.item_count": len(bundle.items),
-        "retrieval.evidence_ids": [item.evidence_id for item in bundle.items],
-    }
 
 
 def review_attrs(review: ProvenanceReview) -> dict[str, object]:

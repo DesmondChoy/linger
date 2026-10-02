@@ -27,7 +27,7 @@ from apps.backend.config import get_settings
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.telemetry import configure_component_evaluation_telemetry
 from src.linger.agents.build import build_model
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.agents.serendipity.agent import build_serendipity_agent

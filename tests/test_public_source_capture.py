@@ -25,11 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 class FakeExaClient:
     def __init__(
         self, text="A public literary image.", *, search_url=URL, page_url=URL,
-        published_date=None, author=None,
+        title=TITLE, published_date=None, author=None,
     ):
         self.text = text
         self.search_url = search_url
         self.page_url = page_url
+        self.title = title
         self.published_date = published_date
         self.author = author
         self.calls = []
@@ -44,7 +45,7 @@ class FakeExaClient:
     async def get_contents(self, url, **kwargs):
         self.calls.append(("get_contents", url))
         return SimpleNamespace(results=[SimpleNamespace(
-            url=self.page_url, title=TITLE, published_date=self.published_date,
+            url=self.page_url, title=self.title, published_date=self.published_date,
             author=self.author, text=self.text,
         )])
 
@@ -67,6 +68,7 @@ def test_maintained_formatter_and_guarded_bound_match_replay(body, published_dat
     snapshot = capture(client)
     expected = f"Title: {TITLE}\nURL: {URL}{metadata_headers}\n\n{body}"[:8_000]
     assert snapshot.text == expected
+    assert snapshot.title == TITLE
     assert snapshot.source_sha256 == hashlib.sha256(expected.encode()).hexdigest()
     assert snapshot.retrieved_at.utcoffset() == timedelta(0)
     assert client.calls == [("search", "literary imagery"), ("get_contents", URL)]
@@ -92,6 +94,15 @@ def test_maintained_formatter_and_guarded_bound_match_replay(body, published_dat
     events[2] = replace(events[2], evidence_json=(json.dumps(record),))
     grades = grade_connection_scene(scene, response(), events, {"memory": "memory-runtime"})
     assert all("public_source_changed_or_unresolved" in grade.failures for grade in grades)
+
+
+@pytest.mark.parametrize("title", [None, ""])
+def test_missing_title_preserves_runtime_header_and_source_identity(title):
+    snapshot = capture(FakeExaClient(title=title))
+
+    assert snapshot.text == f"Title: (untitled)\nURL: {URL}\n\nA public literary image."
+    assert snapshot.title == URL
+    assert snapshot.url == URL
 
 
 def test_capture_requires_the_exact_search_lead_before_opening():

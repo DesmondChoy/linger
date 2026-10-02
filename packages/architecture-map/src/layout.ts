@@ -26,7 +26,7 @@ function group(options: Pick<LayoutGroup, 'id' | 'label' | 'y' | 'height'>): Lay
 }
 
 function compose(options: {
-  scene: Scene
+  scene: Pick<Scene, 'nodes'>
   groups: LayoutGroup[]
   height: number
   position: (node: GraphNode) => Pick<GraphNode, 'x' | 'y'>
@@ -39,7 +39,7 @@ function compose(options: {
   }
 }
 
-export function layoutScene(scene: Scene): SceneLayout {
+export function layoutScene(scene: Pick<Scene, 'nodes'>): SceneLayout {
   const ids = new Set(scene.nodes.map(node => node.id))
   const scaledX = (node: GraphNode) => node.x * width / 1200
   const onConversation = (node: GraphNode) => conversationIds.has(node.id)

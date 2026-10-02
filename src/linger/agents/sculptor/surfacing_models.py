@@ -13,7 +13,7 @@ from pydantic import (
     model_validator,
 )
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.sculptor.models import CuratableMemory
 
 

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from pydantic_ai import Agent
 
 from apps.backend.telemetry import run_agent_traced
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.agents.provenance.skills import CURATION_REVIEW
 from src.linger.agents.provenance.curation_models import (

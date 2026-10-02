@@ -242,7 +242,7 @@ Substantially more than §4.2.1 had at the equivalent point. Verified 2026-09-08
 | Both decisions in one review | [`models.py:106`](../../src/linger/agents/provenance/models.py#L106) | Validators reject an unexplained `reject_capture`, and capture findings may not point at `candidate.response` |
 | `contains_sensitive_content` derived | [`models.py:164`](../../src/linger/agents/provenance/models.py#L164) | A computed property over capture findings, so it cannot contradict the decision |
 | Capture rules in the prompt | [`prompt.py:188`](../../src/linger/agents/provenance/prompt.py#L188) | States the grounds and the non-downgrade rule explicitly |
-| Sole flag origin | [`capture.py`](../../src/linger/orchestration/capture.py) | `candidate_from_review` checks exact-span slicing, blankness, and evidence resolution; `vetoed_candidate` fails closed when no verdict exists |
+| Sole flag origin | [`capture.py`](../../src/linger/orchestration/capture.py) | `candidate_from_review` checks exact-span slicing, blankness, and evidence resolution. Review failures produce a safe decline and cannot reach storage. |
 | Three deterministic gates | [`memory.py:159-163`](../../src/linger/services/memory.py#L159-L163) | `automatic_capture_disabled`, `upstream_review_rejected_capture`, `sensitive_content_not_allowed` |
 | All three suppression reasons | [`chat_turn.py:361,393`](../../apps/backend/chat_turn.py#L361) | `emotional_boundary_`, `clarification_`, `safe_decline_capture_suppressed` |
 | Content-free inspection | [`schemas.py:24`](../../apps/backend/schemas.py#L24) | `CaptureInspection` reports all four stages plus `reason_code` |
@@ -435,9 +435,9 @@ as it depends on the veto representation and validator support.
    speculatively.
 3. **Should an infrastructure failure in the capture path grade as a
    failure?** D7 settled this for reflection: yes, deliberately. A review that
-   never completes is treated exactly as a veto by `vetoed_candidate`, so the
-   fail-closed behaviour is correct and the *grade* should still be a failure so
-   the rate stays visible. Recommend matching D7 rather than reopening it.
+   never completes produces a safe decline, and the chat workflow skips storage.
+   The *grade* should still be a failure so the rate stays visible. Recommend
+   matching D7 rather than reopening it.
 
 ## 13. Curation review — the second 4.2.2 gate (f4db8d0)
 

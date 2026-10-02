@@ -187,7 +187,7 @@ export function edgeDetail(edge: GraphEdge, turn: TurnRecord): ComponentDetail {
 
 export function detailFor(
   selection: { kind: 'node'; id: ComponentId } | { kind: 'edge'; id: string },
-  scene: Scene,
+  scene: Pick<Scene, 'edges'>,
   turn: TurnRecord,
 ): ComponentDetail | null {
   if (selection.kind === 'node') return componentDetail(selection.id, turn)

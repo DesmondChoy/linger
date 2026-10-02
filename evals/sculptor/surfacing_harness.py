@@ -6,7 +6,7 @@ from typing import Literal, Self
 
 from pydantic import Field, ValidationError, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.sculptor.surfacing_models import (
     SURFACING_DECISION_ADAPTER,
     AtTime,

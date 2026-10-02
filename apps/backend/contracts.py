@@ -6,7 +6,7 @@ from src.linger.contracts.reading import ReadingScope, validate_selector
 
 from pydantic import BaseModel, Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.models import DraftSentence, RetainedSource
 from src.linger.agents.provenance.models import RiskFinding
 from src.linger.contracts.emotional import EmotionalContentPolicy

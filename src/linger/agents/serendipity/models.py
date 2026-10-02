@@ -8,7 +8,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, TypeAdapter, model_validator
 
 from apps.backend.contracts import BookScope, EvidenceItem
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 

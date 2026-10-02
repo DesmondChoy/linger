@@ -11,7 +11,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, computed_field, field_validator, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.models import EvidenceUse, MemoryNomination, limit_claim_texts
 from src.linger.agents.provenance.excerpt_feedback import literal_source_context
 from src.linger.agents.provenance.quotation_audit import (

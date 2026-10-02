@@ -1527,13 +1527,16 @@ to the source setup's URLs. Public snapshots define adopted source identity and
 exact expected support. Changed or unavailable live evidence cannot count as
 successful restraint.
 
-The [`capture_public_source` helper](../evals/synthetic_journals/capture_public_source.py)
-opens a supplied public URL through Exa without a model call and renders the
-snapshot with the same formatter used by runtime retrieval. It preserves
-available publication and author metadata and records the source hash and
-retrieval time. Matching the formatter prevents metadata differences alone from
-breaking exact-source checks. Replay requires the observed excerpt to occur in
-the adopted snapshot and contain the expected supporting text.
+The [`public_source_capture` command](../evals/synthetic_journals/public_source_capture.py)
+searches through the production guarded Exa tools and opens the supplied URL
+only if the search returns that exact URL. It makes no model call. The command
+requires `--source-id`, `--url`, `--public-query`, and a new `--output` path.
+It writes a `PublicSourceSnapshot` with the runtime's formatted, bounded
+excerpt, including available publication and author metadata, plus the source
+hash and retrieval time. Matching the runtime format prevents metadata
+differences alone from breaking exact-source checks. Replay requires the
+observed excerpt to occur in the adopted snapshot and contain the expected
+supporting text.
 
 The replay records invocation, retrieval, selection, presentation, independent
 review, and deterministic release, including the first failed stage and stages

@@ -8,7 +8,7 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.provenance.curation_models import (
     CurationProvenanceReview,
     review_digest,

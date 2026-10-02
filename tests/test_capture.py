@@ -9,10 +9,10 @@ from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.orchestration.capture import (
     CaptureBindingError,
     candidate_from_review,
-    vetoed_candidate,
 )
 from src.linger.services.memory import (
     AccountContext,
+    AutomaticMemoryCandidate,
     MemoryPolicyError,
     MemoryPolicyService,
 )
@@ -112,18 +112,10 @@ class CandidateFromReviewTests(unittest.TestCase):
                 source_event_id="turn-5",
             )
 
-    def test_unreviewed_candidate_fails_closed(self) -> None:
-        text = "Unreviewed"
-        candidate = vetoed_candidate(
-            nomination=nomination(text),
-            source_text=text,
-            source_event_id="turn-6",
-        )
-        self.assertFalse(candidate.review_allows_capture)
-
-    def test_blank_unreviewed_candidate_fails_binding(self) -> None:
+    def test_blank_nomination_fails_binding(self) -> None:
         with self.assertRaisesRegex(CaptureBindingError, "blank"):
-            vetoed_candidate(
+            candidate_from_review(
+                review("allow_capture"),
                 nomination=nomination(" \t\n"),
                 source_text=" \t\n",
                 source_event_id="turn-blank",
@@ -254,11 +246,11 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         self.assertEqual("automatic_capture_disabled", caught.exception.reason)
 
     def test_unreviewed_candidate_is_refused(self) -> None:
-        text = "Unreviewed"
-        candidate = vetoed_candidate(
-            nomination=nomination(text),
-            source_text=text,
+        candidate = AutomaticMemoryCandidate(
+            text="Unreviewed",
             source_event_id="turn-unreviewed",
+            review_allows_capture=False,
+            contains_sensitive_content=False,
         )
         with self.assertRaises(MemoryPolicyError) as caught:
             self.service.save_automatic(self.account, candidate)

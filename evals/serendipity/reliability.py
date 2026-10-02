@@ -40,7 +40,7 @@ from pydantic import Field
 
 from apps.backend.config import get_settings
 from apps.backend.telemetry import configure_component_evaluation_telemetry
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.serendipity.agent import build_serendipity_agent
 from src.linger.agents.serendipity.prompt import (
     MEMORY_RECALL_PROMPT_FINGERPRINT,

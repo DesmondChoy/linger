@@ -4,17 +4,13 @@ from __future__ import annotations
 
 from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import AwareDatetime, Field, TypeAdapter
 from pydantic import field_validator, model_validator
 
-
-class StrictModel(BaseModel):
-    """Reject schema drift and keep curation values immutable."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
+from src.linger.contracts import base
 
 
-class CuratableMemory(StrictModel):
+class CuratableMemory(base.StrictModel):
     """The minimum memory data Sculptor needs to propose curation."""
 
     memory_id: str = Field(min_length=1)
@@ -27,35 +23,35 @@ class CurationMemory(CuratableMemory):
     recorded_at: AwareDatetime | None = None
 
 
-class ExistingDuplicateLink(StrictModel):
+class ExistingDuplicateLink(base.StrictModel):
     """One supplied memory and the supplied memories already linked to it."""
 
     memory_id: str = Field(min_length=1)
     duplicate_memory_ids: tuple[str, ...] = Field(min_length=1)
 
 
-class ExistingTombstone(StrictModel):
+class ExistingTombstone(base.StrictModel):
     """One supplied memory already suppressed from retrieval."""
 
     memory_id: str = Field(min_length=1)
     canonical_memory_id: str | None = None
 
 
-class ExistingDerivedSummary(StrictModel):
+class ExistingDerivedSummary(base.StrictModel):
     """One derived summary already stored for supplied memories."""
 
     source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=12)
     summary: str = Field(min_length=1)
 
 
-class ExistingTopicGroup(StrictModel):
+class ExistingTopicGroup(base.StrictModel):
     """One topic group already assigned to supplied memories."""
 
     source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=12)
     topic_label: str = Field(min_length=1)
 
 
-class ExistingCuration(StrictModel):
+class ExistingCuration(base.StrictModel):
     """Application-owned curation already applied to the supplied memories."""
 
     duplicate_links: tuple[ExistingDuplicateLink, ...] = ()
@@ -80,7 +76,7 @@ class ExistingCuration(StrictModel):
         )
 
 
-class AccountScopedMemories(StrictModel):
+class AccountScopedMemories(base.StrictModel):
     """A bounded memory set selected for one account by application code."""
 
     account_scope: str = Field(min_length=1)
@@ -97,7 +93,7 @@ class AccountScopedMemories(StrictModel):
         return self
 
 
-class SourceMemoryAction(StrictModel):
+class SourceMemoryAction(base.StrictModel):
     """A proposed action whose provenance resolves to supplied memories."""
 
     source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=12)
@@ -156,7 +152,7 @@ class RetrievalTombstone(SourceMemoryAction):
         return self
 
 
-class RetrievalRestore(StrictModel):
+class RetrievalRestore(base.StrictModel):
     """Restore one tombstoned original to the retrieval view."""
 
     action: Literal["restore_to_retrieval"]
@@ -180,14 +176,14 @@ CurationAction = Annotated[
 ]
 
 
-class CurationProposal(StrictModel):
+class CurationProposal(base.StrictModel):
     """One read-only curation proposal for deterministic validation."""
 
     kind: Literal["curation_proposal"]
     action: CurationAction
 
 
-class NoCurationProposal(StrictModel):
+class NoCurationProposal(base.StrictModel):
     """An explicit decision to leave the supplied memories unchanged."""
 
     kind: Literal["no_curation_proposal"]

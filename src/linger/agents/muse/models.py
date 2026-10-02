@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 
 MemoryCandidateReasonCode = Literal[
     "durable_reflection",
