@@ -55,7 +55,12 @@ identities, and retry limits. They never hash reader input, retrieved evidence,
 or other request content. `prompt.template_id` identifies the task, and
 `prompt.digest` records its automatically computed SHA-256 digest.
 `agent.skill` records the application-selected skill identifier. Role and stage
-continue to identify the task and its caller.
+continue to identify the task and its caller. On the `muse.draft` and
+`muse.revision` spans, `muse.reflection_modules` lists the reflection modules
+the run loaded (`revision`, `routing`, `grounding`, `connections`), chosen by
+the run mode and the tools the turn offered; the always-loaded core is not
+listed. It is set before the run, so a failed run records it too. The span's
+`prompt.digest` still covers the complete skill, every module included.
 
 `model.provider` and `model.name` describe the model that actually ran: the
 per-run `model` option when one is supplied (for example Muse turn triage's

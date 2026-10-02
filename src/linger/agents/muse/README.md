@@ -14,7 +14,16 @@ Draft and revision are separate model runs on the same Agent object.
 tools, output validator, and retry limits. `agents.muse` in the
 [`prompt catalogue`](../../prompts/prompt_catalog.yaml) contains Muse's shared purpose
 and authority rules. The Agent's base instructions contain only that entry.
-The application supplies the selected skill instructions on each run.
+The application supplies the selected skill instructions on each run. The
+reflection skill is a core [`SKILL.md`](skills/reflection/SKILL.md) plus modules:
+[`revision`](skills/reflection/revision.md) for the revision run, and
+[`routing`](skills/reflection/routing.md),
+[`grounding`](skills/reflection/grounding.md), and
+[`connections`](skills/reflection/connections.md) when the turn offers
+`librarian_route`, `librarian_search`, or `serendipity_explore`.
+`reflection_run_options` composes them from the mode and the turn's tool
+exposure; the tool docstrings in [`tools.py`](tools.py) carry the rules for when
+to call each tool.
 All resources load from the package without depending
 on the working directory. The [runtime skills architecture](../../../../docs/agent-skills.md)
 describes the common assignment mechanism.
@@ -99,8 +108,8 @@ and continuity replays exercise the same reflection skill. Component cases and
 synthetic runs remain separate from independently adopted product evaluation
 results. Photograph input remains an unimplemented product target.
 
-[`prompt.py`](prompt.py) exports fingerprints of the effective shared and skill
-instructions, relevant contracts, tool permissions, validator, and retry limits.
+[`prompt.py`](prompt.py) exports fingerprints of the effective shared and complete skill
+instructions (every module), relevant contracts, tool permissions, validator, and retry limits.
 Draft and revision retain separate fingerprints because their input contracts
 differ. `build_muse_agent(model)` and the reusable Agent's model override support
 local tests and evaluation without changing production configuration.
