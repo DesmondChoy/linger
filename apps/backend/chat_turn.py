@@ -111,25 +111,25 @@ triage_model = build_triage_model()
 # Triage only narrows Muse's tools, so a slow or failed call is abandoned.
 TRIAGE_TIMEOUT_SECONDS = 10.0
 
-CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.IGNORECASE)
+CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\b", re.IGNORECASE)
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
-    r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
+    r"(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
 TITLE_PREFIX_PATTERN = re.compile(
     r"(?:\bi(?:'m| am)\s+(?:still\s+)?reading|"
     r"\bi(?:'ve|’ve| have)?\s+read(?!\s+through\b)|"
-    r"^\s*(?:reading|read(?!\s+through\b)))\s+(?P<title>.+)$",
+    r"^\s*(?:reading|read(?!\s+through\b)))(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
-TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
+TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)(?>\s+(?P<title>.+))$", re.IGNORECASE)
 TITLE_SUFFIX_SEARCH_PATTERN = re.compile(
-    r"\b(?:of|in|from|(?:while\s+)?reading)\s+(?P<title>.+)$",
+    r"\b(?:of|in|from|(?:while\s+)?reading)(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
 TITLE_REFLECTION_CLAUSE_PATTERN = re.compile(
     r"\b(?:and|but)\b|,\s*\w+ing\b", re.IGNORECASE,
 )
-TITLE_SCENE_LABEL_PATTERN = re.compile(r"\s*(?:,[^,]+,|\([^()]+\))\s*")
+TITLE_SCENE_LABEL_PATTERN = re.compile(r"\A\s*+(?:,[^,]+,|\([^()]+\))\s*+\Z")
 # "In <title>, I've completed chapter 8" puts the title before the chapter.
 TITLE_LEAD_PATTERN = re.compile(
     r"^\s*(?:in|from)\s+(?P<title>[^,.!?]+)",
@@ -137,7 +137,7 @@ TITLE_LEAD_PATTERN = re.compile(
 )
 PROGRESS_ADVERBS = r"(?:(?:now|just|already|finally|recently|only|actually|really)\s+){0,2}"
 TITLE_END_PATTERN = re.compile(
-    rf"\s*(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
+    rf"(?<!\s)\s*+(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
     r"(?:read|finished|completed|through|up to|at|on))\b",
     re.IGNORECASE,
 )
@@ -207,7 +207,7 @@ NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
 DECLARATION_END_PATTERN = re.compile(
     r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)|"
-    r"(?:[,—]\s*|\s+(?:and|but)\s+)"
+    r"(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
     r"|what|why|how|tell|can|could|would|please)\b)",
     re.IGNORECASE,
@@ -273,7 +273,7 @@ def _named_book_title(location: str, selection: sessions.BookSelection | None) -
                     match = re.search(rf"\b{re.escape(_location_words(label))}\b", message)
                     if match:
                         end = max(end, match.end())
-    qualifier = re.search(r"\b(?:of|in)\s+(.+)$", message[end:])
+    qualifier = re.search(r"\b(?:of|in)(?>\s+(.+))$", message[end:])
     return qualifier.group(1) if qualifier else None
 
 

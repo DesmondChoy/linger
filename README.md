@@ -216,8 +216,12 @@ tests, run `uv run pytest -m "not embeddings"`.
 
 Live release evaluations and automatic publication start disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
-are ready for release testing. See the [release guide](docs/releasing.md) for
-the switches, required GitHub protections, and manual approval steps.
+are ready for release testing. When enabled, the release run builds, scans, and
+tests one Linux AMD64 image, then publishes that same image after the configured
+approval decision. Auto-publishing remains off until evaluation results justify
+a threshold. See the [release guide](docs/releasing.md) for the switches,
+required GitHub protections, and manual approval steps, and the
+[release flow diagram](docs/release-flow-end-to-end.png) for the full process.
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported
