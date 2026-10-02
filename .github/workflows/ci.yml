@@ -148,31 +148,22 @@ jobs:
           if-no-files-found: error
 
   image:
-    name: Image (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    name: Image (amd64)
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     env:
-      ARCH: ${{ matrix.arch }}
-      CANDIDATE: linger-candidate:${{ github.sha }}-${{ matrix.arch }}
+      CANDIDATE: linger-candidate:${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Build candidate once
-        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag "$CANDIDATE" .
+      - name: Build the AMD64 image
+        run: docker build --platform linux/amd64 --build-arg VCS_REF="$GITHUB_SHA" --tag "$CANDIDATE" .
       - name: Prove offline startup and persistent state
         run: bash docker/smoke.sh "$CANDIDATE"
       - name: Install verified Trivy
         run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
-      - name: Scan candidate image
+      - name: Scan the image
         run: |
           mkdir -p security
           "$RUNNER_TEMP/trivy/trivy" image --scanners vuln --ignorefile /dev/null \
@@ -181,22 +172,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: image-security-${{ github.sha }}-${{ matrix.arch }}
+          name: image-security-${{ github.sha }}-amd64
           path: security
           retention-days: 30
-          if-no-files-found: error
-      - name: Save tested release candidate
-        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
-        run: |
-          mkdir -p candidate
-          docker save "$CANDIDATE" | gzip -1 > candidate/image.tar.gz
-          python3 .github/scripts/release_candidate.py create --sha "$GITHUB_SHA" \
-            --arch "$ARCH" --image "$CANDIDATE" --directory candidate
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
-        with:
-          name: linger-candidate-${{ github.sha }}-${{ matrix.arch }}
-          path: candidate
-          retention-days: 30
-          compression-level: 0
           if-no-files-found: error

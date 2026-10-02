@@ -1,4 +1,4 @@
-"""Bind release evidence to successful release-candidate CI and the images that CI tested."""
+"""Validate release candidates, evaluated images, and publication evidence."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def validate_run(run: dict, sha: str, repository: str) -> None:
         raise ValueError("The candidate run is not the CI workflow.")
     for key in ("repository", "head_repository"):
         if run.get(key, {}).get("full_name", "").lower() != repository.lower():
-            raise ValueError("Candidate artifacts must come from this repository, never a fork.")
+            raise ValueError("Candidate CI must run in this repository, never a fork.")
 
 
 def validate_environment(environment: dict) -> None:
@@ -97,12 +97,6 @@ def resolve(repository: str, sha: str, run_id: str) -> dict:
     if comparison.get("status") not in {"ahead", "identical"}:
         raise ValueError("Candidate commit is no longer reachable on release-candidate.")
     validate_environment(api(repository, "environments/linger-release"))
-    artifacts = api(repository, f"actions/runs/{run['id']}/artifacts?per_page=100")["artifacts"]
-    for arch in ("amd64", "arm64"):
-        name = f"linger-candidate-{sha}-{arch}"
-        matches = [artifact for artifact in artifacts if artifact["name"] == name and not artifact["expired"]]
-        if len(matches) != 1:
-            raise ValueError(f"Exactly one retained {arch} candidate is required. Re-run CI if artifacts expired.")
     return {"candidate_sha": sha, "ci_run_id": str(run["id"]), "ci_url": run["html_url"]}
 
 
@@ -173,47 +167,23 @@ def publication_authorization(
     }
 
 
-def archive_hash(path: Path) -> str:
-    with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
-
-
-def validate_image(info: dict, sha: str, arch: str, image_id: str) -> None:
+def validate_image(info: dict, sha: str, image_id: str) -> None:
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("Candidate SHA must be a full Git commit identity.")
     if not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
         raise ValueError("Candidate image ID must be a sha256 digest.")
-    if info.get("Id") != image_id or info.get("Architecture") != arch or info.get("Os") != "linux":
-        raise ValueError("Loaded image identity or architecture differs from the tested candidate.")
+    if info.get("Id") != image_id or info.get("Architecture") != "amd64" or info.get("Os") != "linux":
+        raise ValueError("Loaded image identity or platform differs from the evaluated Linux AMD64 candidate.")
     if info.get("Config", {}).get("Labels", {}).get("org.opencontainers.image.revision") != sha:
         raise ValueError("Image revision label differs from the selected candidate SHA.")
 
 
-def create_manifest(sha: str, arch: str, image: str, directory: Path) -> dict:
-    if not re.fullmatch(r"[0-9a-f]{40}", sha):
-        raise ValueError("Candidate SHA must be a full Git commit identity.")
-    info = json.loads(command("docker", "image", "inspect", image))[0]
-    validate_image(info, sha, arch, info["Id"])
-    manifest = {
-        "schema_version": 1, "candidate_sha": sha, "architecture": arch,
-        "image_id": info["Id"], "archive_sha256": archive_hash(directory / "image.tar.gz"),
-    }
-    (directory / "candidate.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    return manifest
-
-
-def verify_candidate(sha: str, arch: str, directory: Path) -> dict:
-    manifest = json.loads((directory / "candidate.json").read_text())
-    if (manifest.get("schema_version"), manifest.get("candidate_sha"), manifest.get("architecture")) != (1, sha, arch):
-        raise ValueError("Artifact does not describe the requested candidate.")
-    archive = directory / "image.tar.gz"
-    if archive_hash(archive) != manifest.get("archive_sha256"):
-        raise ValueError("Candidate archive checksum changed.")
-    image_id = manifest.get("image_id", "")
+def inspect_image(sha: str, image_id: str) -> dict:
     if not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
-        raise ValueError("Artifact image ID is not a digest.")
-    command("docker", "load", "--input", str(archive))
+        raise ValueError("Candidate image ID must be a sha256 digest.")
     info = json.loads(command("docker", "image", "inspect", image_id))[0]
-    validate_image(info, sha, arch, image_id)
-    return manifest
+    validate_image(info, sha, image_id)
+    return {"candidate_sha": sha, "image_id": image_id, "platform": "linux/amd64"}
 
 
 def emit(value: dict) -> None:
@@ -244,12 +214,8 @@ def main() -> int:
     authorize_parser.add_argument("--auto-enabled", required=True)
     authorize_parser.add_argument("--threshold", required=True)
     authorize_parser.add_argument("--configuration-sha", required=True)
-    for action in ("create", "verify"):
-        child = commands.add_parser(action)
-        child.add_argument("--arch", choices=["amd64", "arm64"], required=True)
-        child.add_argument("--directory", type=Path, required=True)
-        if action == "create":
-            child.add_argument("--image", required=True)
+    image_parser = commands.add_parser("image")
+    image_parser.add_argument("--image-id", required=True)
     for child in commands.choices.values():
         child.add_argument("--sha", required=True)
     args = parser.parse_args()
@@ -265,12 +231,11 @@ def main() -> int:
                 threshold=args.threshold, configuration_sha=args.configuration_sha,
                 approvals=json.loads(args.approvals.read_text()) if args.approvals else [],
             )
-            result["evaluation_summary_sha256"] = archive_hash(args.summary)
+            with args.summary.open("rb") as stream:
+                result["evaluation_summary_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
             args.output.write_text(json.dumps(result, indent=2) + "\n")
-        elif args.action == "create":
-            result = create_manifest(args.sha, args.arch, args.image, args.directory)
         else:
-            result = verify_candidate(args.sha, args.arch, args.directory)
+            result = inspect_image(args.sha, args.image_id)
         emit(result)
         return 0
     except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError) as exc:

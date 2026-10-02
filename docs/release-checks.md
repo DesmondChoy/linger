@@ -14,11 +14,10 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | CodeQL (javascript-typescript) | JavaScript and TypeScript source analysis with the same severity gate |
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
-| Image (arm64) | The same checks on a native ARM runner |
 
 CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
 
-CI saves release image archives only for pushes to `release-candidate`. Release selection requires the entire CI run to have succeeded. A candidate records its commit, native architecture, Docker image ID, and archive checksum. Release selection rejects PR runs, forks, pushes to other branches, expired artifacts, and commits no longer reachable on `release-candidate`.
+CI checks its image and discards it. Release selection requires the entire CI run to have succeeded for the selected SHA. It rejects PR runs, forks, pushes to other branches, and commits no longer reachable on `release-candidate`. When live evaluations are enabled, the release run builds a fresh Linux AMD64 image at the selected SHA and records its Docker image ID. That build must pass Trivy scanning and the offline smoke before live evaluations begin.
 
 ## Release configuration
 
@@ -26,29 +25,13 @@ CI saves release image archives only for pushes to `release-candidate`. Release 
 
 | Setting | Default | Behavior |
 | --- | --- | --- |
-| `live_evaluations_enabled` | `false` | Enables paid release evaluations after candidate CI. When false, automatic and manual release entry points skip live evaluation and publication. |
+| `live_evaluations_enabled` | `false` | Enables the release image build and paid evaluations after candidate CI. When false, automatic and manual release entry points skip the release build, live evaluation, and publication. |
 | `auto_publish_enabled` | `false` | When false, every eligible candidate requires human approval. When true, the automated percentage can select automatic publication. |
-| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. |
+| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. The current value is an uncalibrated placeholder. |
 
 The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables evaluations or publication.
 
-```mermaid
-flowchart TD
-    A[Change PR] --> B[Deterministic and security CI]
-    B --> C[Merge to main]
-    C --> D[Deliberate promotion PR to release-candidate]
-    D --> E[Candidate push CI and saved images]
-    E --> F{Live evaluations enabled?}
-    F -->|No| G[Stop: no live calls or publication]
-    F -->|Yes| H[Adopted Scenario suite and live HTTP smoke]
-    H --> I{Safety or evidence blocker?}
-    I -->|Yes| J[Block publication]
-    I -->|No| K{Auto publishing enabled and score above threshold?}
-    K -->|No| L[Human review in linger-release]
-    L -->|Approved| M[Publish the same tested images to GHCR]
-    K -->|Yes| M
-    M --> N[Operator deploys the approved digest]
-```
+![End-to-end release flow, from development checks and candidate promotion to optional evaluations, publication approval, and operator deployment](release-flow-end-to-end.png)
 
 ## Behavioral release suite
 
@@ -72,7 +55,7 @@ Direct-Line cases start with empty isolated stores and capture enabled. The norm
 
 The default is one repetition, configurable as a positive integer. No automatic retry discards a failing observation. Effective model settings, source hashes, suite hash, candidate SHA, image identity, artifacts, and Logfire links are recorded. Previous approved results can be compared locally with `--previous-approved`; the comparison is informational. The suite and source counts can be regenerated without provider calls with `python -m evals.release check`, as shown in the [release guide](releasing.md#select-a-candidate-manually).
 
-After the 22-Scene suite completes without blockers, the original container performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns.
+After the 22-Scene suite completes without blockers, the release image performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns.
 
 ## Publication decision
 
@@ -98,6 +81,8 @@ For a threshold of `95`, a score of `95%` goes to review. A score of `96%` quali
 
 Automatic publication accepts the limits of these automated checks. It does not certify useful responses, paraphrased attack resistance, or semantic safety. Reports retain semantic-review hints and warnings. Ground truth adoption approves the answer key, not the generated responses.
 
+The current threshold of `95` has no calibration data behind it. Automatic publication remains disabled until evaluation evidence supports an agreed threshold and policy. Offline routing tests establish the switch and threshold behavior; they do not establish the quality of live responses or validate a live publication.
+
 `summary.json` records the route and its reason under `publication`, with `judgments_passed`, `judgments_total`, `automated_pass_percentage`, `threshold`, and `auto_publish_enabled`. It labels the score as `adopted deterministic judgments` and semantic assessment as `not_automatically_graded`. The run also separates reviewable behavioral failures from blocking failures.
 
 ## Triggers and approval
@@ -106,17 +91,19 @@ Automatic publication accepts the limits of these automated checks. It does not 
 | --- | --- | --- |
 | Release checks (manual) | Dispatch on `release-candidate` with a successful candidate SHA | Respects the committed live-evaluation switch; one repetition by default |
 | Release checks after candidate promotion | Successful `release-candidate` push CI | Respects the same switch; no paid evaluation for ordinary `main` commits |
-| Release evidence and approval | Called by either entry point | Candidate validation, optional paid evaluations and HTTP smoke, then publication routing |
-| GHCR publication | Complete evidence without blockers, followed by the selected approval route | Pushes the saved images, without rebuilding; records an immutable multi-platform digest |
+| Release evidence and approval | Called by either entry point | Candidate validation, a fresh AMD64 build with scan and offline smoke, paid evaluations and HTTP smoke, then publication routing; skipped while live evaluations are disabled |
+| GHCR publication | Complete evidence without blockers, followed by the selected approval route | Pushes the tested AMD64 image from the same release run without rebuilding; records its immutable registry digest |
 | Local deployment | Operator follows the release guide | Pulls the approved digest; never automatically updates a running service |
 
 The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The setup check requires configured reviewers for the manual route before paid release evaluation. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
 
-The `release-publication-<sha>-<run>-<attempt>` artifact contains `publication.json` and `approved-release.json`. `publication.json` binds the decision and configuration SHA to the evaluated image. `approved-release.json` adds both platform image identities and the published registry digest.
+The evaluation job saves its tested image in an artifact for the publication job in the same run. The publication job checks the loaded image ID, Linux AMD64 platform, and candidate revision against the evaluation evidence before pushing. The workflow does not reuse images from earlier CI runs or rebuild the approved image.
+
+The `release-publication-<sha>-<run>-<attempt>` artifact contains `publication.json` and `approved-release.json`. `publication.json` binds the decision and configuration SHA to the evaluated image. `approved-release.json` adds the published registry digest and image identity.
 
 Environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
 
-CI artifacts, security reports, release evidence, and approval records are retained for 30 days. Keep approved release evidence and previous image digests outside that expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
+Security reports, release evidence, and approval records are retained for 30 days. The image artifact used between jobs expires after seven days. An expired image requires a new release run and a new approval decision. Keep approved release evidence and previous image digests outside the evidence expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
 
 ## Deployment contract
 
@@ -130,6 +117,8 @@ CI artifacts, security reports, release evidence, and approval records are retai
 | `/api/ready` | Configuration, storage, corpus, packaged local models, and frontend readiness; no paid inference |
 | `LINGER_IMAGE` | Local build tag or approved immutable registry reference used by `compose.release.yaml` |
 | `LINGER_ENV_FILE` | Private runtime environment file, default `.env`; never copied into the image |
+
+The published image targets `linux/amd64`. Apple Silicon hosts use Docker's AMD64 emulation, with a possible performance cost. The release does not include a native ARM64 image.
 
 The Ubuntu 24.04 image uses Python 3.12 and one non-root Uvicorn worker. It includes canonical corpus, runtime skills and prompts, built frontend, local embedding and reranking models, and their file hashes. The model cache is readable by the runtime user and remains owned by root. The frontend intentionally includes the committed synthetic evaluation and architecture catalog snapshots. It excludes provider keys, local Logfire credentials, account databases, private memories, Beads state, raw evaluation reports, and notebooks.
 

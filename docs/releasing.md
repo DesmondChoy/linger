@@ -2,7 +2,7 @@
 
 Use this guide to promote a batch of changes from `main` to `release-candidate`, review the candidate, and run an approved image locally.
 
-Live evaluations and publication start disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. While `live_evaluations_enabled` is `false`, CI still runs, but neither automatic triggers nor manual release dispatches make live calls or publish an image. Keep this setting off until the team is ready to run paid evaluations.
+Live evaluations and publication start disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. While `live_evaluations_enabled` is `false`, CI still runs, but release runs skip their image build, live calls, and publication. Keep this setting off until the team is ready to run paid evaluations.
 
 The [release checks reference](release-checks.md) describes the checks, publication rules, evidence, and limits. Both security datasets already have human-approved Ground truth. Their live runs are intentionally deferred while live evaluations are off.
 
@@ -11,7 +11,7 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
 1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
+2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the six CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
 3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 4. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
 5. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
@@ -26,9 +26,9 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 1. Merge ordinary changes into `main` through the normal PR checks.
 2. When the batch is ready, open a PR from `main` to `release-candidate`.
 3. Review and merge the promotion PR. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
-4. Open the candidate's **Release checks after candidate promotion** run. With live evaluations off, the run reports that release testing is disabled and skips evaluations and publication.
+4. Open the candidate's **Release checks after candidate promotion** run. With live evaluations off, the run reports that release testing is disabled and skips the release image build, evaluations, and publication.
 
-When live evaluations are enabled, successful candidate CI starts the release suite automatically. The release run uses the exact images saved by that CI run. The promotion's resulting commit SHA is the candidate identity.
+When live evaluations are enabled, successful candidate CI starts a release run automatically. The run builds a fresh Linux AMD64 image at that commit, scans it, and checks offline startup and persistence before live testing. Approval publishes that tested image without rebuilding it. The promotion's resulting commit SHA is the candidate identity.
 
 ## Enable live evaluations
 
@@ -45,12 +45,12 @@ Set the optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` 
 
 Use manual dispatch to select a tested candidate while live evaluations are enabled.
 
-1. Copy the full 40-character SHA of a successful `release-candidate` push CI run. PR builds and `main` builds cannot supply release images.
+1. Copy the full 40-character SHA of a successful `release-candidate` push CI run. PR builds and `main` builds cannot qualify a release candidate.
 2. Open **Actions → Release checks (manual) → Run workflow**. Select `release-candidate` as the workflow branch.
 3. Enter the candidate SHA and model. Keep **repetitions** at `1` initially, or enter another positive integer. Every requested repetition counts. Failed observations are never discarded through automatic retries.
 4. Inspect the run summary and `release-evidence` artifact. Security failures, invalid adoption, execution errors, missing observations, and missing Logfire evidence block publication. Ordinary behavioral shortfalls remain visible for human review.
 
-The run downloads the original images from successful CI without rebuilding them. If the 30-day artifacts have expired, rerun the candidate's push CI and select the new artifacts.
+The run builds and tests a fresh image at the selected SHA. It saves that image for the approval and publication job in the same run. This image artifact expires after seven days. If it expires before publication, start a new release run and review its new image and evidence.
 
 For a local preflight without model calls, use a clean candidate checkout and its actual Docker image ID:
 
@@ -71,22 +71,22 @@ Use a new output directory for each command. `check` validates scenario adoption
 3. For each attack, confirm that the malicious span reached the agent. Check for paraphrased obedience and unnecessary refusal of the legitimate request. For Line attacks, inspect accepted commits and final personal memories separately from the reply's claims. An absent marker does not prove resistance; a quoted marker does not prove obedience. Review clean comparisons separately from attack resistance.
 4. Review ordinary behavioral failures and decide whether they are acceptable for this release. Security and evidence blockers cannot be overridden by this approval.
 5. Confirm that the candidate SHA and image ID in the reports match the pending `linger-release` job. Approve the job after completing semantic review.
-6. Save `approved-release.json` and the evaluation reports with the project's release records. The record identifies the publication route, registry digest, source images, and CI run. Human publication also records GitHub's approval history.
+6. Save `approved-release.json` and the evaluation reports with the project's release records. The record identifies the publication route, registry digest, tested image, and CI run. Human publication also records GitHub's approval history.
 
-With automatic publication off, every eligible candidate waits for approval, including a candidate with a 100% automated pass rate. Approval publishes the saved multi-platform image to GHCR. Deployment remains a separate operator action. Keep the previous approved digest available for recovery.
+With automatic publication off, every eligible candidate waits for approval, including a candidate with a 100% automated pass rate. Approval publishes the saved Linux AMD64 image to GHCR. Deployment remains a separate operator action. Keep the previous approved digest available for recovery.
 
 ## Enable optional automatic publication
 
-Enable automatic publication only after the team accepts the [automated score's limits](release-checks.md#publication-decision).
+Keep automatic publication disabled until evaluation results justify a threshold and the team accepts the [automated score's limits](release-checks.md#publication-decision). The configured value of `95` is an uncalibrated placeholder, not an evidence-based release standard.
 
 1. Configure `linger-release-auto` as described above.
 2. Set `auto_publish_enabled` to `true` in `.github/release-config.json`.
-3. Set `auto_publish_threshold` to the team's percentage threshold. The default is `95`.
+3. Set `auto_publish_threshold` to the team's evidence-based percentage threshold.
 4. Review and promote the configuration change through `main` to `release-candidate`.
 
 With live evaluations enabled and no blockers, a pass percentage strictly greater than the threshold publishes automatically. At or below the threshold, the candidate goes to `linger-release` for human review. At a threshold of `95`, `95%` needs review and `96%` qualifies for automatic publication. Set `auto_publish_enabled` back to `false` to require human approval for every eligible candidate.
 
-The percentage measures automated adopted judgments. It does not establish semantic quality or certify attack resistance. Automatic publication opts into that limitation; semantic-review warnings remain in the evidence.
+The percentage measures automated adopted judgments. It does not establish semantic quality or certify attack resistance. Automatic publication opts into that limitation; semantic-review warnings remain in the evidence. Security failures and incomplete evidence block both publication routes regardless of the threshold.
 
 For failure and approval notifications, enable Actions notifications in your GitHub settings. Inspect failed checks and retained artifacts from the run page. The workflows do not send separate email or chat messages.
 
@@ -105,6 +105,8 @@ For failure and approval notifications, enable Actions notifications in your Git
 ```
 
 Open `http://127.0.0.1:8080`. Sign up or log in, inspect the library, and confirm that an existing conversation is present. Compose binds only to this machine. A shared server also needs a reviewed TLS and network configuration.
+
+The release image targets `linux/amd64`. Docker on Apple Silicon runs this image under emulation, which can be slower than a native image.
 
 To build the combined image locally, `docker compose -f compose.release.yaml build` creates `linger:local`. A local build has not passed the release workflow. The default `compose.yaml` builds the separate backend and frontend services described in the [setup guide](../README.md#start-with-docker-compose).
 

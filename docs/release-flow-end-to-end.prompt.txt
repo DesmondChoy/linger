@@ -1,89 +1,57 @@
-Generation mode: built-in image_gen
-Prompt 1: generation
+Updated 2026-10-03 using built-in imagegen.
 
-Use case: infographic-diagram
-Asset type: A readable, shareable full release-flow diagram for the Linger development team.
-Primary request: Show the COMPLETE proposed path from a developer's change to a running release, including failure handling. The previous diagram showed only branching and publishing; this one must show the beginning, middle, and end. Preserve two key proposal changes: deliberate promotion from main to release-candidate controls expensive evaluations; publishing remains manual by default, with optional threshold-based automatic publishing later.
-Style: Professional, clean flat flowchart. White or near-white background, large crisp sans-serif labels, generous spacing, rounded boxes, precise arrowheads. Restrained blue for development, purple for evaluation, amber for human review, green for publish/run, red for blocked or failed states. No logos, illustrations, gradients, shadows, tiny dense paragraphs, or watermarks.
-Canvas: Tall portrait, about 3:4, high resolution. Use four spacious horizontal phase bands stacked vertically, with a clear downward main flow. Readable as a full-page diagram. Each phase contains a few short nodes flowing left to right; connect the end of one phase cleanly to the beginning of the next. Avoid crossed connectors. Fit all content by increasing height if necessary.
+Prompt 1: update the maintained end-to-end diagram
+
+Use case: infographic-diagram, editing existing end-to-end release diagram.
+Edit target is the supplied PNG. Replace it with an updated, polished four-phase Linger release-flow diagram, preserving the clean flat visual style, tall portrait page, white background, rounded boxes, crisp readable typography and blue/purple/amber/green phase colors. Red means blocked. Prioritize accurate arrows, concise labels and large legible text. No watermark. This is the only maintained release diagram; remove obsolete proposed-flow wording.
 
 Title: "Linger: from code change to running release"
-Subtitle: "Proposed end-to-end release flow"
-Small status note below title: "Manual publishing first. Branch and threshold changes are proposed."
+Subtitle: "Live evaluations OFF • Auto-publishing OFF"
+Small note: "Single architecture: linux/amd64"
 
-PHASE 1 heading: "1. Develop and verify"
-Main flow, left to right:
-"Code change" → "Pull request" → "Review + offline checks" → "Merge to main"
-Below "Review + offline checks", short text: "Tests, mocks, lint, security".
-Continue within this phase on a second row:
-"main CI" → "Build + check image" → "Save tested version"
-Below "main CI": "No paid AI calls".
-Below "Build + check image": "Startup, storage, vulnerability checks".
-Below "Save tested version": "Commit + image identity".
-Clearly connect Merge to main down to main CI.
-A small red side note connected to the checks says "Failed check → fix and resubmit". No path bypassing failed checks.
-Meaning: ordinary changes are small and frequent. The candidate image is built and checked once for its exact main version, saved for later use, and reused at publication without rebuilding.
+Phase 1 blue: "1. Develop and verify"
+Main flow: "Code change" → "Pull request" → "Review + CI" → "Merge to main"
+CI details below: "Tests • lint • frontend build • CodeQL • Trivy • image smoke"
+Short note: "CI runs on main and release-candidate. No paid AI calls."
+A failed-check red side outcome: "Fix in main"
+DO NOT include saved CI images or archive reuse.
 
-PHASE 2 heading: "2. Select a candidate and evaluate"
-Main flow:
-"Promote tested version" → "Preflight" → "Live AI evaluation" → "Results + evidence"
-Below "Promote tested version": "main → release-candidate" and "Only when a batch is ready".
-This is a deliberate selection of the saved tested main version; keep its identity. Do not depict a new rebuild here.
-Below "Preflight": "Verify version, suite, settings".
-One small side input, attached to Preflight, reads "Approved Ground truth" with smaller note "Human review when scenarios change". This is an input already approved for the suite, not a mandatory new approval on every release.
-Below "Live AI evaluation": "Synthetic suite + API streaming checks".
-Below "Results + evidence": "Behavioral score, reports, traces".
-A small red note from Preflight says "Missing approval or invalid setup → stop".
-A prerequisite strip immediately after Results + evidence says:
-"Before publishing: safety checks pass and evidence is complete"
-Then a red branch "No" → "Block release; fix and rerun".
-A green branch "Yes" leads into phase 3.
-Critical security/safety failures and missing or incomplete evidence block publication in either mode. Ordinary behavioral-quality misses may reach human review.
+Phase 2 purple: "2. Promote and evaluate"
+"Promote main to release-candidate" → "Candidate CI passes" → decision "Live evaluations enabled?"
+NO branch to "Stop: no release build, live calls or publication"
+YES branch (label "When enabled") to "Verify candidate + approved Ground truth" → "Build release image" → "Scan + offline smoke" → "Live suite + API checks"
+Below build box: "Fresh AMD64 build at selected commit"
+Below live box: "Results, reports and traces"
+After live checks, prominent prerequisite: "Security passes + complete evidence"
+Failure branch red to "Block publication; fix and rerun"; success branch to Phase3.
+Keep connector from scan failures also to blocked outcome.
+No suggestion that ordinary behavioral misses must all pass. The high automated pass rate is separate from hard blockers.
 
-PHASE 3 heading: "3. Approve and publish"
-Inside this phase show TWO alternative routes, clearly distinct, with no connector between the modes.
-Route A has an amber badge "MANUAL — DEFAULT NOW".
-Flow: "Human review" → an arrow labelled "Approved" → a small outcome box "Ready to publish".
-Under Human review: "Even at 100%".
-A small red note under this route says "Changes requested → fix in main and rerun".
-Route B has a dashed outline and badge "AUTO — OPTIONAL LATER".
-Draw two condition rows:
-"Pass rate > threshold" → "Ready to publish"
-"Pass rate ≤ threshold" → "Human review" → arrow labelled "Approved" → "Ready to publish"
-Short badge: "Auto-publish starts OFF".
-Use no numerical example threshold. Equality must route to review. Keep the comparison signs exact.
-The ready-to-publish outcomes from these alternative routes converge below to ONE shared green publication box:
-"Publish the tested image"
-Subtext: "GHCR registry • no rebuild".
-Below that box: "Record version, evidence and approval".
-This approval record distinguishes human and automatic approval; do not imply a bot impersonates a human reviewer.
+Phase 3 amber: "3. Approve and publish"
+Two clear alternative publishing modes:
+MANUAL — DEFAULT: "Human review" → approved → "Publish"
+Subtext "Even at 100%"
+AUTO — OPTIONAL: "Pass rate > threshold" → "Publish"
+and "Pass rate ≤ threshold" → "Human review" → approved → "Publish"
+All outcomes converge into ONE green box "Publish the tested image to GHCR"
+Small transfer note above that box: "Same-run image handoff • no rebuild"
+Below box "Record commit, image digest, evidence and approval"
+Include small note: "Auto-publishing stays OFF until a threshold is justified."
+No paid calls in publication job. All publication routes require prior mandatory checks.
 
-PHASE 4 heading: "4. Deploy and verify"
-The shared publication box connects down into this phase.
-Main flow:
-"Operator deploys" → "Verify the running app" → "Running release"
-Below Operator deploys: "Pull the approved image • back up state".
-Below Verify the running app: "Readiness, login, saved conversation".
-Below Running release: "Inspect logs and errors".
-Label the arrow from verification to running "Healthy".
-A red downward branch from Verify the running app, labelled "Failed", ends in "Roll back" with subtext "Previous approved image + compatible state".
-A short note within this phase: "Deployment is a separate manual action".
-Do not depict an automatic production deployment triggered by publication. Backups and stored state must be preserved.
+Phase4 green: "4. Deploy and verify"
+"Operator deploys approved digest" → "Verify readiness + saved state" → "Running release"
+Verification failure red branch "Roll back to previous approved version"
+Notes: "Deployment is a separate manual action" and "Preserve accounts, conversations and memories"
+Bottom footer: "Pass rate measures automated checks, not semantic safety. Fixes return to main."
 
-Footer, two short lines:
-"Fixes return to main, then a new candidate is evaluated."
-"Pass rate = passed behavioral checks / all expected checks across planned runs."
+All arrows must join actual nodes and show a continuous start-to-end flow. Route lines in spacious gaps and never across text. Use generous width/height rather than tiny text. Keep the diagrams accurate: CI images are not transferred to release. Release builds one fresh image, scans/smokes/evaluates it, and transfers only that same tested image within the release workflow for approval and publication. No ARM64, no multi-platform manifests, no numerical example threshold, no assertion of successful live evaluation. This replaces the old diagram as the current release design.
 
-Accuracy constraints: Complete beginning-to-end story, not just the two policy options. All phase titles and quoted labels must be rendered accurately. Do not claim the target workflow is fully implemented or hosted. No paid live synthetic evaluation for every main commit. The same saved, tested image is ultimately published. Existing Ground truth approvals are reused until the scenario changes. Critical safety failures cannot be overridden by threshold or ordinary reviewer approval. Manual approval is required even at a 100% behavioral score when automatic publishing is OFF. Threshold automation is optional later. Keep publication and manual deployment separate. Every arrow must land in the intended box; no duplicate accidental paths. Use concise labels and generous spacing rather than compressing text.
+Prompt 2: correct connectors and distinguish readiness from publication
 
-Prompt 2: connect phases explicitly
-
-Use case: precise-object-edit
-Input image 1 is the edit target: the complete four-phase Linger release diagram.
-Correct ONLY two inter-phase connectors so the entire process has an unbroken start-to-end flow. Keep every existing box, label, heading, subtitle, internal connector, color, font, and size unchanged.
-
-1. Add a blue connector from "Save tested version" in phase 1 to "Promote tested version" in phase 2. Route it through the empty gap between those panels and around the outside left edge, without crossing any text or nodes. At the provided 1024 x 1536 scale, leave the bottom of Save tested version near its right end at x915,y384, travel down to the inter-panel gap near y442, travel left to x7 in the exterior margin, then down to y530, then right with an arrowhead entering the LEFT edge of Promote tested version at x41,y530. Use a thin clean blue line matching the diagram. The output connector must start at the Save tested version box and end at the Promote tested version box. Preserve the Commit + image identity caption and phase 2 heading untouched.
-
-2. Replace the short green connector currently going from "Record version, evidence and approval" down to the phase 4 header. Instead connect the bottom of that record box directly to the LEFT edge of "Operator deploys". Route it through the inter-panel gap and outside left edge, avoiding all text. At the provided scale, leave the record box bottom near x512,y1190, go down to y1216 in the gap, then left to x7, down to y1305, then right with an arrowhead entering Operator deploys at x52,y1305. Use the existing green color. Remove the former short arrow into the phase 4 header so it cannot be mistaken for a shortcut to the app-verification box.
-
-Do not alter any other arrow. Do not add new wording, new nodes, a third publishing mode, or a new branch. All existing labels must remain visually identical, especially Ground truth, the > and ≤ comparisons, manual approval, OFF, no rebuild, and deployment as a separate manual action. The two new connectors may cross panel border lines only where they enter or leave a phase. They must not cross or cover any existing text.
+Use case: precise-object-edit. Input is the edit target, the four-band Linger diagram. Preserve all panels, typography, content and colors except the following exact corrections. No new concepts.
+1. Correct the blue inter-phase arrow: it must go FROM "Merge to main" TO THE LEFT EDGE OF "Promote main to release-candidate". Currently it wrongly ends on phase2's heading near x264,y414. Remove that dangling end. Route the blue line down from merge box to y403, left along the inter-panel gap to x7, down the outer left margin to y505, then right with arrowhead entering the promote box at x42,y505. Do not cross phase heading or any other text.
+2. Correct the red scan-failure arrow: the red line starts at the bottom of "Scan + offline smoke", travels down then right and up into "Block publication; fix and rerun". Remove the erroneous red arrowhead pointing UP INTO "Scan + offline smoke" at x134,y707. The source end must be a plain outgoing line; only the block-publication end has an arrowhead. Add tiny label "Failed" on the red line below scan if space.
+3. Correct the green inter-phase arrow FROM "Record commit, image digest, evidence and approval" TO THE LEFT EDGE OF "Operator deploys approved digest". Currently ends in phase4 heading. Remove that short dangling segment. Route down to gap y1217, left to outer margin x7, then down to y1308, then right with arrowhead into the operator-deploys box at x47,y1308. Avoid text.
+4. In phase3 change the three small boxes labelled only "Publish" to "Ready to publish". The shared large green "Publish the tested image to GHCR" is the actual publication step. Use smaller but readable text within existing boxes if needed.
+Preserve exact labels for current OFF settings, Linux/amd64, > and ≤, preflight/build/scan/live ordering, manual even100%, no-rebuild/same-run handoff, security/evidence blockers, deployment as separate manual action. No other changes. Coordinates assume supplied1024x1536 and scale proportionally.
