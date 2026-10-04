@@ -18,7 +18,7 @@ calls or transfer application authority to a model.
 | Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
-| Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
+| Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`, offline only; account identity is excluded and decision validation follows |
 | Sculptor | [Retrieval error analysis](../src/linger/agents/sculptor/skills/retrieval-error-analysis/SKILL.md) | `ErrorAnalysisInput` → `ErrorAnalysis` | `propose_error_analysis`, offline only; one note per practice trace and categories covering every failure are retried in-run |
 | Sculptor | [Retrieval research](../src/linger/agents/sculptor/skills/retrieval-research/SKILL.md) | `ResearchInput` → `ResearchSpecification` | `propose_research`, offline only; the only Sculptor skill with tools: a per-run `ResearchSearch` (Exa `web_search` and `get_page`) with search and page budgets, opening only URLs it found, and citing only pages it opened |
 | Sculptor | [Chapter cues](../src/linger/agents/sculptor/skills/chapter-cues/SKILL.md) | `ChapterCueRevisionInput` → `ChapterCueRevision` | `propose_chapter_cues`, offline only; chapter coverage and the word budget are retried in-run, and a human approves before search reads the cues |
@@ -42,6 +42,7 @@ flowchart LR
     App --> Sculptor[Sculptor Agent]
     App --> Serendipity[Serendipity Agent]
     App --> Provenance[Provenance Agent]
+    Muse --> Triage[Turn triage]
     Muse --> Reflection[Reflection and bounded revision]
     Librarian --> Boundary[Boundary inference]
     Librarian --> Identify[Event identification]
@@ -81,14 +82,14 @@ the modules keep result handling and reply composition. `REFLECTION.instructions
 and `muse.prompt.INSTRUCTIONS` remain the complete text with every module, so
 fingerprints cover all of it and prompt-leak checks see all of it.
 
-Muse reflection and Serendipity retain fixed output schemas. Serendipity keeps
+Muse reflection uses the Agent's default `MuseCandidate` schema. Serendipity keeps
 its registered output validator. Muse's candidate checks run in its
 `MuseSkillBoundary` capability, which applies `validate_muse_output` to every
 `MuseCandidate` and limits each run to the selected skill's tools, because a
 registered validator would forbid the `TurnNeeds` contract that turn triage
-selects per run. Turn triage may also select a smaller per-run model from
-`build_triage_model`, which derives it from the `LINGER_MODEL` provider and
-falls back to `LINGER_MODEL` itself. Serendipity's fixed schema covers all three of its skills, and its
+selects per run. `build_triage_model` selects the triage model from the
+`LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
+and the configured model for Anthropic. Serendipity's fixed schema covers all three of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
 returns `MemoryRecall` or a decline, a `gather_sources` task returns
 `SourceBundle` or a decline, and every other intent returns
@@ -135,10 +136,19 @@ bounded `search_librarian`, scope-gated `search_memories`, and application-grant
 Exa capabilities. A skill assignment describes those capabilities; it cannot
 grant access to an account, evidence, or the web.
 
+Sculptor's retrieval research receives its `ResearchSearch` capability for one
+offline run. Its other skills have no tools. `SculptorTaskValidation` checks
+chapter-cue coverage and word budgets and error-analysis trace coverage during
+output retries. `ResearchSearch` validates the research specification against
+the approved failure categories and the pages that the run opened. Each
+application entry point repeats its checks before returning the result. Error
+analysis and research use `openai_reasoning_effort="high"` for those runs.
+
 ## Muse tool exposure
 
 Chat triages the reader message once per turn, after the emotional preflight
-and never on a turn that preflight stops. `expose_tools` then fixes the tools
+and never on a turn that preflight stops. Triage has a 10-second timeout and a
+two-request budget, including its one output retry. `expose_tools` then fixes the tools
 offered to the draft and to any revision:
 
     offered = tools run in this session's earlier released turns
@@ -195,9 +205,13 @@ from persistent session history. A first review may request one revision,
 whose context remains bounded by the original turn's authority. The stable
 `MuseCandidate` validator retries invalid evidence IDs, source locations,
 quotation copies, and missing visible links for declared public sources before
-application review. A revision addresses every reported finding and audits the
-complete reply and its mappings for missed defects, within the same evidence
-authority. Muse never releases its own reply.
+application review. The revision input marks the draft sentences that each
+response finding names. Muse can rewrite those sentences and delete sentences;
+it preserves the wording of unflagged sentences it retains. Source-dependent
+sentences require complete source mappings or deletion. If a finding cannot be
+located, the application omits the sentence restrictions. The second review
+still checks the complete reply within the original evidence authority. Muse
+never releases its own reply.
 
 Librarian's chapter-boundary decision begins with one explicit assessment per
 supplied memory. Each assessment names canonical passages and explains whether
@@ -279,8 +293,9 @@ source has a separate contribution judgment and a literal supporting excerpt;
 collective support cannot borrow from undeclared sources or other occurrences.
 The validator checks completeness and consistency while semantic support remains
 Provenance's responsibility. Muse revision validation preserves mappings for
-unchanged accepted claims and retained source quotations. The next review still
-checks the whole candidate independently.
+unchanged accepted claims and retained source quotations. Sources that the
+first review found contributing stay declared unless a finding rejects the
+source itself. The next review still checks the whole candidate independently.
 
 When validated routing requires clarification, the application also supplies
 the exact question in `context.required_clarification`. Provenance can review
@@ -347,7 +362,10 @@ flowchart TD
     Line[Current reader Line] --> A[Application: select emotional preflight]
     A --> P[Provenance Agent]
     P -->|apply boundary or failure| Fixed[Application-owned response]
-    P -->|continue reflection| Draft[Application: select Muse reflection]
+    P -->|continue reflection| Triage[Application: select Muse turn triage]
+    Triage --> M[Muse Agent]
+    M -->|turn needs| Exposure[Application fixes tool exposure]
+    Exposure --> Draft[Application: select Muse reflection]
     Draft --> M[Muse Agent]
     M -->|candidate only| Review[Application: select candidate review]
     Review --> P
@@ -393,17 +411,30 @@ than a subset the model picks. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 
 `run_curation_loop` implements reviewed curation as a callable application
-workflow. The chat handler does not initiate it. Standalone bounded-curation
-replay without an injected handler runs production proposal, review, application,
-and audit verification in an isolated
-temporary store. It records retrieval-state outcomes and verifies source
-preservation. A passing replay does not establish later conversational retrieval
-quality. The default combined capture-and-curation runner uses an allowing
-Provenance test double, so it does not measure that review's semantics. Surfacing
-has an offline supplied-batch execution and grading path. It does not retrieve memories,
-schedule future contact, or deliver a response. Chat never runs surfacing.
-System-playbook proposals remain a product target with no implemented runtime
-skill.
+workflow. After an eligible automatic capture, chat selects the captured record
+and up to eleven matching earlier originals through `curate_after_capture`.
+Sculptor receives their source text, capture times, and existing curation for
+that batch. Provenance reviews a separate, exactly bound curation proposal
+before the service applies it. This workflow preserves the settled reply and
+the original capture if curation fails.
+
+Standalone bounded-curation and combined capture-and-curation replay use
+production Sculptor and Provenance by default, then verify application, audit,
+and source preservation in isolated stores. The combined runner's curation
+Scenes use designated Props, so they do not exercise capture-triggered batch
+selection. A passing curation replay does not establish later conversational
+retrieval quality. Surfacing has an offline supplied-batch execution and grading
+path. It does not retrieve memories, schedule contact, or deliver a response.
+Chat never runs surfacing.
+
+The [offline retrieval loop](../evals/librarian/README.md) uses Sculptor's
+chapter-cue, retrieval-error-analysis, and retrieval-research skills. It
+records practice failures, requires human approval of each analysis or
+proposal, and measures the approved retrieval condition against fixed packs.
+Sculptor proposes cues or a retrieval specification; the owner implements and
+activates an approved specification. These skills have no authority to edit
+production code, grant book access, or change a running chat. General
+system-playbook proposals remain a product target.
 
 Evaluation registers the five reusable role objects once through
 `evaluation_agents()` and lists the assigned skills through `evaluation_skills()`.
@@ -412,10 +443,12 @@ records its selected skill, role, stage, and fingerprint, so multiple tasks on
 the same Agent remain distinguishable. Muse draft and revision fingerprints
 include their respective input schema within the same reflection skill.
 
-The full prompt fingerprint set includes all skills, including offline
-surfacing and curation review. Objective-specific execution identities retain
-their narrower comparison scope. Existing submission PDFs remain historical
-evidence; they do not describe this refactor or replace maintained docs.
+Synthetic replay's `RUNTIME_PROMPT_FINGERPRINTS` includes conversation tasks,
+curation, surfacing, and curation review. Offline chapter cues, error analysis,
+and retrieval research expose fingerprints through their own application entry
+points. Objective-specific execution identities retain their narrower
+comparison scope. Existing submission PDFs remain historical evidence and do
+not replace maintained docs.
 
 ## Resource distribution and verification
 
@@ -431,4 +464,4 @@ output validators, permitted tools, request isolation, and evaluation model
 overrides using the installed PydanticAI implementation. Resource checks also
 load skills from a different working directory. Provider-backed evaluation
 remains necessary for claims about model decision quality; this structural
-refactor does not replace those evaluations.
+verification does not establish those outcomes.

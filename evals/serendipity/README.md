@@ -12,7 +12,7 @@ controlled ConnectionDiscoveryInput
                 ↓
         production Serendipity agent
                 ↓
- ConnectionProposal | ConnectionDecline
+ ConnectionProposal | MemoryRecall | ConnectionDecline
 + observed search and evidence ledger
 ```
 
@@ -267,21 +267,35 @@ separately:
 
 ```bash
 uv run python -m evals.serendipity.reliability --repeat 5 \
-	--output evals/serendipity/reports/component-reliability-<date>.json
+	--output evals/serendipity/reports/component-reliability.json
 ```
 
-`--tier regression` or `--tier capability` runs one tier; `--case ID` runs
-named cases. The report records the prompt digest for each skill that ran.
+The reliability command accepts these options:
+
+| Option | Meaning |
+| --- | --- |
+| `--output PATH` | Required durable JSON report. |
+| `--repeat N` | Runs per case, defaulting to 5. |
+| `--case ID` | Limits the run to a named case; repeat for several cases. |
+| `--tier regression` or `--tier capability` | Limits the run to one tier. |
+| `--concurrency N` | Parallel runs, defaulting to 1. Values above 1 make latency comparisons unreliable. |
+| `--no-logfire` | Skips Logfire configuration while retaining provider calls and the local report. |
+
+The report records the prompt digest for each skill that ran. `pass_at_k`
+means a case passed at least once; `pass_pow_k` means every repetition passed.
+Their difference identifies cases whose outcome changes across identical
+inputs. Tier summaries keep regression and capability results separate.
 
 The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,
 usage, latency, and per-case failures. Content-bearing evaluation data must use
 synthetic or public fixtures only.
 
-The runner selects the production `connection-discovery` skill for every case.
+The runner selects the production `memory-recall` skill for `recall_memory`
+cases and `connection-discovery` for the other component cases.
 It reuses one Serendipity Agent across the suite while creating each case's
 dependencies and permitted Exa capability separately. The report's `skill_id`
-and Pydantic Evals case metadata identify `serendipity.connection-discovery`.
+and Pydantic Evals case metadata identify the selected skill.
 The prompt fingerprint covers shared and selected instructions, input and output
 contracts, permitted tools and capabilities, validation, and retry limits.
 Model injection preserves this selected configuration and its fixed output

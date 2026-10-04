@@ -263,9 +263,17 @@ ranked lexically: cue fit, reflective value, safety. The ordinal indices used fo
 comparison are never exposed or summed into a confidence number.
 
 `comparison_note` explains why each candidate ranks above or below another.
-The shortlist must contain two or three distinct, eligible candidates for a
-proposal. If fewer than two survive or no candidate clearly wins, Serendipity
-declines instead of padding the matrix.
+The shortlist must contain two or three distinct, eligible interpretations
+and cite at least two evidence records across the shortlist. Candidates may
+share records when their interpretations differ. If fewer than two candidates
+survive or no candidate clearly wins, Serendipity declines.
+
+A candidate that answers only one of several requested sources or concerns
+has `cue_fit=partial`. When the evidence supports several concerns, the skill
+requires a candidate that addresses them together. If the reader asks for
+their own earlier context, a matching memory remains part of that comparison
+and its evidence IDs. Facts from an inspected record cannot support a candidate
+that omits the record.
 
 ## Proposal and decline
 
@@ -369,13 +377,15 @@ still be relayed with fixed inspection metadata.
 
 ## Evaluation scope
 
-The [component pack](../../../../evals/serendipity/README.md) exercises this same
-skill with controlled book and web tool evidence. Its reports retain
-`serendipity.connection-discovery`, effective instruction and contract
-fingerprints, and observed searches. The memory scenario in `cases/future/`
-remains outside that component baseline. Synthetic connection replay and the
-direct production replay also exercise Muse, Provenance, and release validation;
-a component pass does not establish a product objective result.
+The [component pack](../../../../evals/serendipity/README.md) exercises discovery
+and memory recall with controlled book, memory, and web evidence. Reports retain
+the selected skill ID, effective instruction and contract fingerprints, and
+observed searches. Regression and capability tiers report separately; repeated
+runs measure both at-least-once and every-run success. Source gathering is
+covered by unit tests and cross-source replay and has no component cases.
+Synthetic connection replay and direct production replay also exercise Muse,
+Provenance, and release validation. A component pass does not establish a
+product objective result.
 
 ## Related
 

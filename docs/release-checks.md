@@ -15,7 +15,16 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
-CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
+CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. A CodeQL error without a numeric security severity also blocks. The gate resolves SARIF rule metadata from the driver or an extension and rejects missing or conflicting rule references. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
+
+The same gates accept saved reports locally:
+
+```bash
+	python .github/scripts/security_gate.py codeql security/codeql
+	python .github/scripts/security_gate.py trivy security/dependencies.json
+```
+
+The CodeQL argument accepts a SARIF file or a directory of `*.sarif` files. The Trivy argument accepts a JSON report. These commands inspect existing reports and do not run a scanner.
 
 CI checks its image and discards it. Release selection requires the entire CI run to have succeeded for the selected SHA. It rejects PR runs, forks, pushes to other branches, and commits no longer reachable on `release-candidate`. When live evaluations are enabled, the release run builds a fresh Linux AMD64 image at the selected SHA and records its Docker image ID. That build must pass Trivy scanning and the offline smoke before live evaluations begin.
 
@@ -55,7 +64,26 @@ Direct-Line cases start with empty isolated stores and capture enabled. The norm
 
 The default is one repetition, configurable as a positive integer. No automatic retry discards a failing observation. Effective model settings, source hashes, suite hash, candidate SHA, image identity, artifacts, and Logfire links are recorded. Previous approved results can be compared locally with `--previous-approved`; the comparison is informational. The suite and source counts can be regenerated without provider calls with `python -m evals.release check`, as shown in the [release guide](releasing.md#select-a-candidate-manually).
 
-After the 22-Scene suite completes without blockers, the release image performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns.
+The Scenario suite runs in the candidate checkout with its locked Python dependencies and local model files copied from the release image. After the 22-Scene suite completes without blockers, the release image performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns in GitHub Actions.
+
+## Release check command
+
+`python -m evals.release` accepts a `check` or `run` action and writes `summary.json` and `report.md` in the specified output directory. `check` performs preflight without provider calls. `run` performs preflight and then executes every required Scenario for every repetition. Each Scenario attempt has a 1,800-second timeout.
+
+| Option | Behavior |
+| --- | --- |
+| `--candidate-sha SHA` | Required full lowercase 40-character Git SHA. Must match the checkout's `HEAD` when `.git` is present. |
+| `--image-id sha256:ID` | Required Docker image identity with 64 lowercase hexadecimal characters after the prefix. The CLI validates its format. The workflow verifies the actual image. |
+| `--model PROVIDER:MODEL` | Required provider and model for the suite. Effective role settings are recorded in the report. |
+| `--repetitions N` | Positive integer, default `1`. Every requested observation counts. |
+| `--output PATH` | Required directory that does not exist yet. |
+| `--previous-approved PATH` | Optional earlier `summary.json` for an informational comparison. The CLI does not verify its approval. |
+| `--auto-publish-enabled` | Enables automatic-route selection in the report. Does not publish an image or change GitHub configuration. |
+| `--auto-publish-threshold PERCENT` | Finite percentage from 0 to 100, default `95`. The automatic route requires a strictly greater score. |
+
+The local CLI does not read `.github/release-config.json`. Its `run` action makes paid calls regardless of the GitHub switch. Image build, vulnerability scans, HTTP smoke, environment approval, and registry publication are separate workflow steps.
+
+Exit status `0` covers `ready`, `passed`, and `review_required`. A `ready` report confirms only preflight. A `review_required` report retains ordinary behavioral failures. Blocking or failed runs exit `1`, and invalid command inputs exit `2`. Runtime or Scenario source changes invalidate the evidence and prevent remaining attempts from starting.
 
 ## Publication decision
 

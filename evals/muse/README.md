@@ -84,32 +84,83 @@ uv run pytest tests/test_muse_evals.py tests/test_muse_eval_review_infra.py \
 
 ## Run the live evaluations
 
-These commands make paid provider calls with the configured `LINGER_MODEL`.
-Name the output by the [report convention](#reports).
+Reflection and revision use the configured `LINGER_MODEL`. The standalone
+triage runner uses the provider's triage model unless `--main-model` is set;
+blind review uses its selected judge model. These commands make paid provider
+calls. Replace the angle-bracketed placeholders and name the output by the
+[report convention](#reports).
 
 ```bash
 # Reflection: --pack main (default), review, or all; --target first replays commit 8021b4e
 uv run python -m evals.muse.baseline_run --target current --pack all --runs 3 \
-  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_reflection-all_<version>.json
+	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_reflection-all_<version>.json'
 # Revision: one live revision per fixture
 uv run python -m evals.muse.revision_run --runs 6 \
-  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_revision_<version>.json
-# Blind grading of two or more reflection reports by a judge model (default openai:gpt-5.6)
-uv run python -m evals.muse.blind_review --report <before>=<path> --report <after>=<path> \
-  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_blind-review_<before>-vs-<after>.json
+	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_revision_<version>.json'
+# Blind grading of two or more reflection reports by a distinct judge model
+uv run python -m evals.muse.blind_review --report 'before=<path>' --report 'after=<path>' \
+	--judge-model openai:gpt-5.6 \
+	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_blind-review_<before>-vs-<after>.json'
 # Turn triage
 uv run python -m evals.muse.turn_triage --runs 3 \
-  --output evals/muse/reports/<YYYY-MM-DD>T<HHMM>_triage_<version>.json
+	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_triage_<version>.json'
 ```
 
-Add a repeatable `--case CASE_ID` to run only some cases. `baseline_run.py`
-also takes `--retry-429 N` to re-run a case after HTTP 429. Reflection,
-revision, and blind runs go one call at a time; more concurrency hit provider
-rate limits on `gpt-6-luna`.
+Reflection, revision, and blind runs process one case or reply at a time.
+Triage runs up to four cases concurrently. `--help` prints each command's
+options without a provider call.
+
+### Command options
+
+| Option | Commands | Meaning and default |
+| --- | --- | --- |
+| `--output PATH` | All four runners | Writes the full JSON report. Reflection, revision, and triage also print the full report; blind review prints only a summary. Without this option, no report file is written. |
+| `--runs N` | `baseline_run`, `revision_run`, `turn_triage` | Repeats each selected case, default `3`. Blind review grades each saved reply once. |
+| `--case CASE_ID` | `baseline_run`, `revision_run`, `blind_review` | Repeatable case filter. Reflection and revision default to their selected pack; blind review defaults to known cases shared by every supplied report. |
+| `--target first\|current` | `baseline_run` | Required. `first` reads the Muse instructions from Git commit `8021b4e`; `current` uses the checked-out implementation. |
+| `--pack main\|review\|all` | `baseline_run` | Selects the 19 main cases, 32 review cases, or both. Default `main`. |
+| `--retry-429 N` | `baseline_run` | Retries a rate-limited case up to `N` times, default `0`. Waits 30 seconds multiplied by the retry number and records the attempts. |
+| `--cases PATH` | `turn_triage` | Loads a labelled JSON case pack. Default `evals/muse/cases/triage/turn_triage_cases.json`. |
+| `--main-model` | `turn_triage` | Uses `LINGER_MODEL` instead of the provider-derived triage model. |
+| `--report [LABEL=]PATH` | `blind_review` | Repeat at least twice for saved `baseline_run` reports. Labels must be unique and default to each file's stem. |
+| `--judge-model PROVIDER:NAME` | `blind_review` | Uses an OpenAI, Google, or Anthropic judge, default `openai:gpt-6-luna`. The value must differ from `LINGER_MODEL`. |
+| `--seed N` | `blind_review` | Controls the reply shuffle, default `0`. |
+
+The standard `LINGER_MODEL` and the default judge are both
+`openai:gpt-6-luna`, so supply `--judge-model` explicitly under the standard
+configuration. The example uses the judge from the saved comparison report.
+Configure the chosen provider's API key as described in the
+[project setup](../../README.md#install-and-configure).
+
+### What each runner measures
+
+`baseline_run` exercises the draft with fixed tool results. A review case's
+`fixed_exposure` bypasses triage to isolate reflection behavior. The report
+includes offered tools, pinned intent, loaded reflection modules, evidence
+declarations, memory nomination, retry categories, and token use by request
+cause. The hard gates and additive gates remain separate.
+
+`revision_run` replays each fixture's flawed draft through a scripted model,
+validates that draft with the production validator, and then makes one live
+revision. The revision receives the production envelope, draft messages,
+review findings, accepted claims, retained sources, and sentence restrictions.
+It measures the rewrite against fixed rules without a live Provenance review.
+
+`blind_review` hides the report identity, shuffles the saved replies, and asks
+the judge to assess the case's semantic criteria, forbidden claims, and
+unsupported details. It maps grades back to reports only after grading. The
+judge sees the case's supplied evidence but cannot establish whether Muse
+called the relevant tool. One judge without human calibration supplies
+secondary evidence, not an independent product evaluation.
+
+Reflection and revision aggregate hard-pass rates exclude errored calls.
+Their per-case fractions retain the requested run count. Report errors and
+exhausted output retries alongside pass rates; a high pass rate alone does not
+describe reliability.
 
 ## Reports
 
-Every live run saves one JSON report in [`reports/`](reports/). Names start
+Use `--output` to save each live run in [`reports/`](reports/). Names start
 with a timestamp, so a plain directory listing is chronological:
 
 ```text
@@ -120,6 +171,7 @@ with a timestamp, so a plain directory listing is chronological:
   before this convention use their commit time, because a checkout resets
   file times.
 - **Suite.** `reflection-main` (`baseline_run.py`, 19 main cases),
+  `reflection-review` (`--pack review`, 32 review cases),
   `reflection-all` (`--pack all`, 51 main and review cases), `revision`
   (`revision_run.py`), `blind-review` (`blind_review.py`), or `triage`
   (`turn_triage.py`).
@@ -187,7 +239,7 @@ A difference therefore comes from Muse itself, not from retrieval:
 Earlier turns reach both targets as message history. The cases are
 synthetic, so the reports keep the replies for rubric review.
 
-Latest comparison: 2026-09-25, `gpt-5.6-luna`, 19 cases × 3 runs per
+Recorded comparison: 2026-09-25, `gpt-5.6-luna`, 19 cases × 3 runs per
 target, no errors ([first report](reports/2026-09-25T1712_reflection-main_first-8021b4e.json),
 [current report](reports/2026-09-25T1712_reflection-main_e6147f4.json)). The rubric
 verdicts are a secondary-LLM review of the saved replies against each case's
@@ -238,9 +290,9 @@ What improved:
 
 ### Connection routing
 
-Latest current run: commit `6964b83`, 2026-09-25, `gpt-5.6-luna`, 19 cases × 3
+Recorded run: commit `6964b83`, 2026-09-25, `gpt-5.6-luna`, 19 cases × 3
 runs, no errors ([report](reports/2026-09-25T1821_reflection-main_6964b83.json)).
-Triage now lets an explicit ask for a link or an outside work decide `memory`
+Triage lets an explicit ask for a link or an outside work decide `memory`
 over a recurrence word, and the reflection skill sends "is my experience like
 what I'm reading?" to `serendipity_explore` rather than `librarian_search`.
 
@@ -252,12 +304,12 @@ what I'm reading?" to `serendipity_explore` rather than `librarian_search`.
 | Median latency | 8.5 s | 8.3 s |
 | Mean input / output tokens | 22,018 / 396 | 22,696 / 415 |
 
-- **Web instruction.** The excerpt with the planted instruction now reaches
+- **Web instruction.** The excerpt with the planted instruction reaches
   Muse on every run, and no reply follows it; the replies cite the essay and
-  its URL. The case now measures injection resistance.
+  its URL. The case measures injection resistance.
 - **Connection and decline.** Replies relay Serendipity's tentative link or
   its decline and safe next step, instead of an empty direct book search.
-- **Superseded detail.** Muse no longer repeats the replaced value, even to
+- **Superseded detail.** Muse omits the replaced value, even to
   contrast it with the correction.
 
 The rubric review was one secondary LLM grading the replies from both commits
@@ -265,7 +317,7 @@ with sources hidden. It is indicative only: the gains sit in the targeted
 cases, and the other cases moved by at most one reply either way. Its grades
 were not saved as a report.
 
-The hard gates now accept a quoted web source title and read Markdown
+The hard gates accept a quoted web source title and read Markdown
 blockquotes as quotations; both reports regrade unchanged. In the `6964b83`
 report, the `quote-evidence-exactly` case summary still reads `2/3` from
 before that regrade, but all three runs record `hard_pass: true`, and the
@@ -286,13 +338,13 @@ What still needs work:
 
 The hard gates miss the first Muse's most common failure, asking which book
 instead of answering, because a question passes every gate. The rubric
-column is where that shows. The earlier five-case runs are no longer kept:
-the 19-case runs include the same five cases.
+column is where that shows. The retained 19-case runs include the same five
+cases as the unretained exploratory runs.
 
 ### Modular reflection prompt
 
 Measured 2026-09-30 on `gpt-6-luna`, `0f7a938` against the uncommitted
-`modular-prompt` text (prompt digest `13d42ca1`). The reflection skill is now
+`modular-prompt` text (prompt digest `13d42ca1`). The reflection skill is
 a core plus modules loaded per run: `revision` for the revision run, and
 `routing`, `grounding`, and `connections` when the turn offers
 `librarian_route`, `librarian_search`, or `serendipity_explore`. Tool-choice
@@ -369,8 +421,9 @@ Open on both versions:
 
 ## Versioning
 
-The current case schema is version 1. Every case declares `schema_version: 1`
-and uses a `-v1` case ID. Bump the schema version only for an incompatible
+The current case schema is version 1. Every reflection case declares
+`schema_version: 1`; its case ID carries a revision suffix such as `-v1` or
+`-v2`. Bump the schema version only for an incompatible
 format change. Do not silently weaken or replace an accepted baseline case;
 add a reviewed successor when its intended behaviour must change.
 
@@ -397,15 +450,15 @@ runs, so the third run's gains are not due to the label change alone.
 
 ### Link and outside-work precedence (`6964b83`)
 
-Five new `link-recurrence-*` and `written-recurrence-*` cases pair a
+Five `link-recurrence-*` and `written-recurrence-*` cases pair a
 recurrence word with an explicit ask for a link or an outside work, which
-now decides `memory`. They scored 14/15.
+decides `memory`. They scored 14/15.
 
 - **`memory`.** 72/84 cases were identical across runs. On the original 79
   cases there were 14 misses, the same count as `da397f5` but not the same
-  misses. `bare-memory-1`, `inject-1`, and `precedence-1` now pass.
+  misses. `bare-memory-1`, `inject-1`, and `precedence-1` pass.
   `held-alice-personal` (3/3 `unsure`), `occasion-3`, `theme-3`,
-  `quiet-theme-2`, and `indian-english-personal-theme-1` now miss.
+  `quiet-theme-2`, and `indian-english-personal-theme-1` miss.
   `terse-1`, `held-target`, `held-alice-resume`, and `both-unmarked-1` miss
   in both runs.
 - **`book_content`.** 77/84 cases were identical across runs. There was no
@@ -417,14 +470,14 @@ now decides `memory`. They scored 14/15.
 
 ### Named sources (2026-09-26)
 
-`memory` now separates `named_sources` (the reader names the sources to
+`memory` separates `named_sources` (the reader names the sources to
 consider together, which pins `gather_sources`) from `source_comparison` (a
 link to their reading without naming the sources, which pins
-`find_connection`). The three `compare-*` cases were relabelled
-`named_sources`; `link-recurrence-1` and `-3`, which set the reader's
+`find_connection`). The three `compare-*` cases use `named_sources`;
+`link-recurrence-1` and `-3`, which set the reader's
 experience beside one named book, accept either label. The pack grew from 84
-to 92 cases. `25d9d57` added six source-question cases with recurrence
-words. `d4a366d` added two held-out Lines from the combined curation and
+to 92 cases. The 92-case pack includes six source-question cases with
+recurrence words and two held-out Lines from the combined curation and
 connection Scenario.
 
 - **`memory`.** Every scored `named_sources` and `source_comparison` call

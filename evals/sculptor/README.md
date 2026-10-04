@@ -5,11 +5,14 @@ curation role. The owner identifier in every case is `sculptor`; Muse,
 Provenance, and the Memory & Policy Service retain their separate capture,
 review, and write responsibilities.
 
-One reusable `sculptor_agent` runs two application-selected skills:
-[memory curation](../../src/linger/agents/sculptor/skills/memory-curation/SKILL.md)
-and [memory surfacing](../../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md).
+One reusable `sculptor_agent` runs five application-selected skills:
+[memory curation](../../src/linger/agents/sculptor/skills/memory-curation/SKILL.md),
+[memory surfacing](../../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md),
+[chapter cues](../../src/linger/agents/sculptor/skills/chapter-cues/SKILL.md),
+[retrieval error analysis](../../src/linger/agents/sculptor/skills/retrieval-error-analysis/SKILL.md),
+and [retrieval research](../../src/linger/agents/sculptor/skills/retrieval-research/SKILL.md).
 Each entry point selects its typed output schema and retains independent
-role-and-task tracing. A role model override applies to both tasks. Evaluation
+role-and-task tracing. A role model override applies to all five tasks. Evaluation
 skill IDs and fingerprints distinguish their contracts and effective shared
 and task instructions, even though they share the Agent object.
 
@@ -34,9 +37,11 @@ uv run pytest tests/test_sculptor_evals.py
 ## Provider-backed bounded-curation replay
 
 The standalone synthetic scenario runner resolves each isolated Scene's active,
-same-account Props and calls production `run_curation_loop`. Sculptor proposes
-an action, Provenance reviews the exact bound proposal, and the Memory & Policy
-Service applies an allowed action and verifies its audit record:
+same-account Props and calls production `run_curation_loop`. Sculptor sees each
+source's capture time when supplied and the curation already applied to the
+selected memories. It proposes an action, Provenance reviews the exact bound
+proposal, and the Memory & Policy Service applies an allowed action and
+verifies its audit record:
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
@@ -62,10 +67,17 @@ comparison. See
 scenario topology, review command, and replay options.
 
 The [combined capture and curation runner](../synthetic_journals/README.md#combined-capture-and-curation-replay)
-uses production Sculptor with a controlled allowing Provenance adapter. Its
-application and audit checks therefore do not measure production curation
-review. Curation receives designated Props in isolated storage; captured
-records do not become curation inputs.
+uses production Sculptor and production Provenance. Curation receives
+designated Props in isolated storage; captured records do not become curation
+inputs. That runner grades the reviewed curation loop but does not exercise
+chat's capture-triggered batch selection.
+
+The [memory curation and recall loop](../synthetic_journals/README.md#memory-curation-and-recall-loop-replay)
+measures recall before curation and after one, two, and three cumulative rounds.
+Every repetition starts with the same isolated Prop bank. Sculptor receives
+existing curation state and capture times without reader Lines or relevance
+labels. This experiment measures retrieval outcomes separately from proposal
+quality, review decisions, and immutable-source checks.
 
 ## Offline memory-surfacing decisions
 
@@ -86,6 +98,21 @@ notification authority.
 
 Memory surfacing is offline only. Chat never runs it, so these scores measure
 Sculptor's decisions, not a conversational reply.
+
+## Offline retrieval improvement
+
+The [Librarian evaluation guide](../librarian/README.md#chapter-cue-and-retrieval-research-experiments)
+documents three further Sculptor tasks and their commands. The chapter-cues task revises
+every chapter's metadata within a word budget, using practice search outcomes.
+Error analysis reads practice traces and names counted failure categories.
+Retrieval research uses the approved analysis and bounded Exa searches to
+propose a specification for a developer.
+
+These experiments require owner approval of exact proposals before later
+stages consume them. They keep every attempt, freeze request plans, and measure
+candidate recall separately from Librarian's selected evidence. Held-back
+needs do not enter Sculptor's inputs. Research proposals do not edit code,
+change the production retriever, or establish an end-to-end release result.
 
 ## Versioning
 

@@ -2,12 +2,8 @@
 
 Status: **Five registered corpora with bounded chapter, reading-unit, and exact-passage retrieval**
 
-Implementation checked against `da95b3a` on September 24, 2026. Historical
-measurements below retain their original dates and scope; they are not a new
-evaluation of this revision.
-
-Candidate retention and its configuration summary were updated on October 2,
-2026. The earlier subsystem audit and historical measurements remain unchanged.
+Historical measurements below retain their original dates and scope. They do
+not evaluate every aspect of the current implementation.
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -726,7 +722,8 @@ Librarian assesses the plan and original reader request against the permitted ev
 Muse `librarian_search` and Serendipity `search_librarian` accept no
 model-written book query. Application code supplies the original reader cue and
 earlier reader statements to `plan_book_request` before retrieval. Each planned
-book need becomes a separate query from its exact reader spans. The original
+book need becomes a separate query from its exact reader spans. The plan
+identifies each named event in a requested sequence separately. The original
 current message and earlier reader statements remain fallback queries, including
 when planning fails or omits a need. Queries are split into chunks of at most
 2,000 characters, with at most 16 distinct queries. Exceeding that budget fails
@@ -757,15 +754,17 @@ The application interleaves the retained streams, removes fully contained
 windows, and caps the result at 20 records per book. This is a bounded recall
 policy: a large request can still exceed the merged budget. Experiment 4 can
 override the per-part allowance with `part_candidates=20`; production uses four.
-New Experiment 4 results include retrieval source hashes and the candidate
-allowance in their identity, so results from older retention rules are stale.
+Experiment 4 result identities include retrieval source hashes and the candidate
+allowance, so results from older retention rules are stale.
 
 The caller's release limit is separate from this private budget and is supplied
 as `max_evidence_records`. Muse clamps `max_final_evidence` to 1–5. Serendipity
 clamps `max_results_per_source` to 1–5 for the selected book search. It can
-select an allowed `work_ids` subset and must do so when multiple books are
-available; the final record budget is shared across that search, not multiplied
-by the number of books. The judge assesses the original request alongside
+select an allowed `work_ids` subset when multiple books are available. A
+title-free reading connection with `search_all_granted_books` searches every
+granted work regardless of the model's subset. The final record budget is
+shared across that search, not multiplied by the number of books. The judge
+assesses the original request alongside
 the plan, including omitted needs. An oversized or invalid selection fails
 closed instead of silently truncating the evidence behind its verdict.
 
@@ -794,6 +793,15 @@ revision, part, chapter, and source hash. Partial overlaps remain because their
 unique lines may contain the answer. Ordinary public retrieval still suppresses
 strongly overlapping windows in its fused shortlist. Candidate selection never
 paraphrases or stitches source text.
+
+`HybridLibrarian(read_chapter_cues=True)` appends each chapter's reviewed
+description, characters, and retrieval cues to the text used by BM25,
+embeddings, and reranking. Cues follow the passage so embedding truncation
+discards cue text first. They never enter canonical evidence excerpts or alter
+evidence IDs. The index identity includes cue metadata when this option is
+enabled. Production defaults to passage-only search. The
+[offline evaluation commands](../../evals/librarian/README.md#chapter-cue-and-retrieval-research-experiments)
+use temporary corpus copies for approved cue revisions.
 
 ### 4.5 Reranking versus evidence strength
 
@@ -857,6 +865,9 @@ at this stage does not trigger another retrieval pass.
 `necessary_support`. Deterministic checks require
 unique mappings, valid selected IDs, and coverage of every part for a
 `sufficient` verdict. Selection must also fit `max_evidence_records`. Application
+validation supplies span, support, coverage, and selection errors to the
+Agent's single repair retry. Unknown IDs receive up to three similar supplied
+IDs as repair suggestions, without silently changing the output. Application
 code returns the existing `EvidenceStrengthDecision` fields to either caller.
 The mapping's meaning remains a model judgment; structural validation does not
 prove that a passage answers the question. No request plan changes reading
@@ -1065,7 +1076,9 @@ judged_retrieval:
   semantic_candidates: 10
   public_score_cutoffs_applied: false
   max_private_candidates_per_query: 20
-  max_merged_candidates: 20
+  candidates_per_planned_part: 4
+  candidates_per_context_query: 2
+  max_merged_candidates_per_book: 20
   max_query_characters: 2000
   max_distinct_queries: 16
 

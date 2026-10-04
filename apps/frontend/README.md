@@ -5,6 +5,11 @@ records on one page. Chat is the product-facing path. The map, saved
 evaluations, Reader, and Inspect are developer tools for corpus interaction and
 backend debugging.
 
+The landing page offers live chat through username and password sign-in, plus
+saved synthetic evaluations that require no account. The browser remembers
+the login token in local storage. **Sign out** revokes that token and returns
+to the landing page; an expired token also returns the reader to sign-in.
+
 ## Chat and live inspection
 
 Chat sends session-scoped reflection turns and displays released replies,
@@ -16,6 +21,8 @@ Nothing is sent until you press **Send**. Sample prompts have no answer key.
 The frontend calls `/api/chat/stream` and uses content-free progress events to
 show which agents run and which handoffs occur. It displays the whole reply
 after the backend approves release. Draft replies never stream to the browser.
+Replies render Markdown, quotations, and source links. Other raw HTML is
+discarded. Source details belong to the released reply.
 
 The collaboration map follows the turn while it runs. For completed turns,
 select a component or connection to inspect the contract it carried, alongside
@@ -51,8 +58,12 @@ architecture and documents the shared snapshot commands.
 backend's book registry and exact revision grants, then fetches canonical text
 by chapter or named section. It reveals a summary only after an explicit
 spoiler warning and hides that summary when you select another location.
-Contents group units by part, and books open at the first main narrative
-chapter.
+Contents group units by part. A book opens at the last unit viewed in this
+browser, or its first main narrative chapter when no position is saved.
+The bookshelf shows each work's title, author, and saved location. **Contents**
+selects a chapter or named section, and the navigation beneath the text moves
+to the previous or next unit. Browser bookmarks are diagnostic state and do
+not record completed reading.
 
 Selecting or revealing a Reader location does not establish a spoiler ceiling
 for chat. Diagnostic output cannot grant retrieval, release, capture, or storage
@@ -86,12 +97,19 @@ Vite 8 requires Node 20.19+ or 22.12+.
 
 ## Session behavior
 
-The browser creates one UUID-backed session per page load. Reloading starts a
-fresh session. **New chat** clears the previous backend session, local
-conversation, turn records, and progress before creating a new session ID.
-Account-scoped memories persist across sessions. If a chat request fails, the
-frontend removes its pending reader message and reply placeholder from the
-local conversation.
+Entering live chat loads the signed-in account's saved conversations and
+inspection records, oldest first, and continues the latest session. A reader
+with no saved conversation starts with a generated UUID. Reloading restores
+saved history. Released Muse replies and application clarifications persist
+across backend restarts; boundary replies and safe declines do not enter the
+saved transcript.
+
+**New chat** creates another session below the earlier conversations, keeping
+their messages and turn records in the feed. **Delete** removes one conversation
+after confirmation, including its saved inspection details and backend reading
+state. Deleting the active conversation starts a fresh session. Account-scoped
+memories persist across sessions and conversation deletion. If a chat request
+fails, the frontend removes its pending reader message and reply placeholder.
 
 Book identity and progress come from the reader's chat messages and validated
 backend context. An active book can resolve an indirect book follow-up without
@@ -101,6 +119,11 @@ A book the reader names or confirms stays active when a routing tool cannot
 resolve a later question. Naming a different book clears the old selection,
 including when the new title is unavailable. A completed chapter declaration
 can advance the active book without repeating its title.
+The backend carries an explicit completed chapter across ordinary follow-ups
+about that book and part. A lower or unclear progress correction lowers or
+retracts the carried ceiling. Backend restarts clear reading permission, even
+when the conversation text returns from storage. Library navigation never
+supplies that permission.
 
 When the reader asks about their own earlier reflections or preferences, Muse
 can ask Serendipity to recall authorized memories without a book or web access.

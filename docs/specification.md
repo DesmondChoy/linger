@@ -92,7 +92,8 @@ approval. Content about sensitive traits is never captured.
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
 - adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation;
-- two bounded recursive self-improvement loops — failure-to-eval promotion and a Sculptor-curated system playbook (Section 9).
+- offline, owner-reviewed retrieval-improvement experiments, plus proposed
+  failure-to-eval promotion and a Sculptor-curated system playbook (Section 9).
 
 ### 3.2 Stretch
 
@@ -126,15 +127,16 @@ The system contains five reasoning agents and one deterministic service:
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
 | **Librarian** | Judges request-scoped reading boundaries and the strength of supplied evidence. Application orchestration and retrieval services select candidates, enforce scope, fuse results, and rerank evidence. | None |
-| **Sculptor** | Curates bounded sets of existing memories for retrieval while preserving originals. In offline evaluation only, it also judges whether a supplied memory is useful now or should remain unsurfaced. Its separate scheduled system-playbook task runs outside user conversations (Section 9.2). | May propose curation changes, surfacing decisions, and playbook pull requests; no direct writes or user-facing release |
+| **Sculptor** | Curates bounded sets of existing memories while preserving originals. Offline tasks judge memory surfacing, propose chapter cues, analyse retrieval failures, and research retrieval specifications. A scheduled system-playbook task remains a proposal (Section 9.2). | Proposals and decisions only; no direct writes or user-facing release |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. It separately reviews complete Sculptor curation proposals against their exact source snapshots and returns an `allow`, `revise`, or `reject` verdict bound to the proposal digest. | None |
 | **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture and curation policy, access, storage, idempotency, source freshness, audit verification, and the retrieval projection. It accepts only reviewed commands whose immutable proposal digest matches an `allow` verdict. | Commits validated writes |
 
 The Memory & Policy Service derives account identity from authenticated request
 context and never accepts it from model output; agents cannot choose or widen
-account scope. The product-facing web application exposes Muse conversation and
-session reset. It exposes no diagnostic Reader or Inspect surface, Serendipity
+account scope. The product-facing web application exposes sign-in, Muse
+conversation, saved conversation history, new chats, and conversation deletion.
+It exposes no diagnostic Reader or Inspect surface, Serendipity
 proposal, search or evidence payloads, memory-management UI, or public memory
 CRUD API. The local development frontend may mount Reader and a read-only
 per-turn Inspect projection so developers can exercise the corpus and debug the
@@ -149,7 +151,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
 | **Librarian** | No model tools. Boundary inference receives privately selected candidates from the work's numbered main-text chapters and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
-| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter runs only offline; chat never requests it. | Pydantic AI typed input and output contracts |
+| **Sculptor** | Curation, surfacing, chapter cues, and retrieval error analysis have no tools. Offline retrieval research alone can call `web_search` and `get_page` over public technical sources. Every task returns typed proposals or decisions and has no write authority. | Pydantic AI typed contracts; research-only `ResearchSearch` capability over Exa |
 | **Serendipity** | Search the authenticated account's active memories and internal book evidence through the same bounded Linger adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
@@ -159,23 +161,30 @@ Each logical role owns one reusable production PydanticAI `Agent` object. The
 application selects one assigned runtime skill before a model run. It does not
 spawn an Agent object for every request or ask the model to discover skills.
 The same object can execute concurrent runs with separate request state. All
-roles retain the configured `LINGER_MODEL`; consolidation changes neither the
-model-call structure nor the application-owned release and storage decisions.
+roles use the configured `LINGER_MODEL` for their main tasks. Muse turn triage
+uses the configured provider's small model: `gpt-6-luna` for OpenAI,
+`gemini-2.5-flash` for Google, and `LINGER_MODEL` for Anthropic. Application code
+owns release and storage decisions regardless of the model selection.
 
 | Role | Assigned runtime skills | Current consumers |
 |---|---|---|
-| Muse | Reflection and revision | Chat drafts and the single permitted revision use one reflection skill and the stable `MuseCandidate` output. |
+| Muse | Reflection; turn triage | Drafts and one permitted revision return `MuseCandidate`. The no-tool triage call returns `TurnNeeds` for application-selected tool exposure. |
 | Librarian | Boundary inference; event identification; book request; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
-| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and bounded-curation replay; offline surfacing evaluation. Chat never runs surfacing. |
+| Sculptor | Memory curation; memory surfacing; chapter cues; retrieval error analysis; retrieval research | Reviewed curation, offline surfacing, and owner-reviewed retrieval experiments. Chat never invokes surfacing or research. |
 | Serendipity | Connection discovery; memory recall; source gathering | Muse's `serendipity_explore` tool, which selects recall with the `recall_memory` intent and gathering with the `gather_sources` intent, and component evaluation of connection discovery. |
 | Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
 
 The maintained [agent runtime skills architecture](agent-skills.md) links each
 assignment to its packaged `SKILL.md`, typed inputs, outputs, validation, and
 permitted capabilities. Shared instructions contain only policy common to the
-role. Per-run instructions add only the selected skill. Muse and Serendipity
-retain fixed output schemas with registered validators; other roles select
-their output schema and retry budget per run. Prompts never load repository
+role. Per-run instructions add the selected skill. Muse reflection always loads
+its core and selects `routing`, `grounding`, and `connections` modules from the
+tools exposed for that run. A revision also loads `revision`. The skill digest
+covers the complete module set, while `muse.reflection_modules` records the
+modules sent to the model. Muse triage uses its own output contract;
+reflection retains `MuseCandidate`. Serendipity keeps its fixed output union
+and validates it against the selected intent. Other roles select their output
+schema and retry budget per run. Prompts never load repository
 development instructions or treat reader content, memories, retrieved evidence,
 or model candidates as instructions.
 
@@ -297,14 +306,16 @@ transport extraction does not change the diagram's agent topology.
 
 ```mermaid
 flowchart TD
-    A[Application: typed draft and managed Muse history] --> M[Muse Agent: reflection skill]
+    A[Application: current Line after preflight] --> T[Muse Agent: turn triage]
+    T --> G[Application: tool grants, reflection modules, and bounded history]
+    G --> M[Muse Agent: reflection skill]
     M -->|optional model-selected tool| L[Application Librarian adapters]
     L --> B[Librarian Agent: boundary inference when needed]
     B --> I[Librarian Agent: identify event for a chapter candidate]
     I --> R[Application: validate boundary and retrieve within scope]
     R --> E[Librarian Agent: evidence assessment]
     E --> M
-    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery or recall]
+    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery, recall, or source gathering]
     S -->|validated selected evidence| M
     M -->|candidate only| P[Provenance Agent: candidate review]
     P -->|first revise only| V[Application: bounded revision input]
@@ -338,8 +349,11 @@ durable capture (Section 4.2.5).
 
 1. The Memory & Policy Service resolves 2–12 requested memory identifiers to
    immutable originals within the authenticated account.
-2. Sculptor receives only those identifiers and source texts and returns one
-   typed `CurationProposal | NoCurationProposal`. It has no tools.
+2. Sculptor receives those identifiers, source texts, capture dates, and the
+   existing summaries, duplicate links, topic groups, and tombstones whose
+   sources are wholly inside the selected batch. It returns one typed
+   `CurationProposal | NoCurationProposal` and has no tools. Capture dates
+   describe when a record was saved; event dates must come from its text.
 3. For a proposal, application code snapshots every referenced original,
    constructs an immutable `CurationPlan`, and hashes its account scope,
    current ordered curation-state digest, complete proposal, and source-record
@@ -495,8 +509,9 @@ outcome and does not invent a new memory or run capture-triggered curation.
 A curation success never authorises a response without the separate release gate.
 
 Memory surfacing is offline only. Chat never runs Sculptor surfacing, and Muse
-receives no surfacing hand-off. A reply can use a personal memory only when Muse
-requests Serendipity memory recall through its ordinary tool path. The offline
+receives no surfacing hand-off. A reply can use personal memories returned by
+Serendipity's authorised recall, source-gathering, or connection-discovery tools.
+The ordinary evidence declarations and release checks apply. The offline
 surfacing runner in Section 7.2.2 evaluates Sculptor's `surface_now`, `defer`,
 and `do_not_surface` decisions over supplied memories.
 
@@ -516,8 +531,7 @@ Working context contains only:
   memory for the session (see §6.1);
 - exact book records re-resolved from identifiers cited by earlier released
   replies in this session, when present;
-- the active topic; and
-- a compact conversation summary.
+- a bounded suffix of released conversation history.
 
 The complete memory archive is never injected into every prompt. Reading
 progress is not stored as durable user state. Apart from the session's
@@ -532,6 +546,18 @@ conversational message history; an emotional-boundary or safe-decline turn
 keeps only its content-free record. Only identifiers from successfully released
 Muse replies may be re-resolved on a later turn, and session reset removes
 these handles with the conversation.
+
+Muse receives at most eight recent released turns and 16,000 characters across
+reader messages and replies, dropping whole oldest turns. Accounts and tokens
+persist in `data/accounts.sqlite3`. Released Muse replies and application
+clarifications persist per account in `data/transcripts.sqlite3`, including
+their local inspection records. Boundary replies and safe declines are not
+saved as transcript turns. Restoring a transcript supplies conversational
+context, but excludes its earlier reader statements from boundary inference.
+Reading progress, tool history, and evidence handles remain in-process state.
+**New chat** selects a fresh session while preserving earlier saved chats.
+Deleting a conversation removes its transcript and live session state while
+preserving account memories.
 
 ### 5.2 Memory record
 
@@ -1005,24 +1031,19 @@ the sole exception.
 
 ### 6.7 Request rate limiting
 
-`session_id` is reader-chosen and unauthenticated, so it cannot anchor a
-request budget; a caller can rotate it freely. The application instead limits
-at most 10 chat requests per rolling 60 seconds per client network address
-(`request.client.host`, with a fixed fallback key when it is absent),
-enforced before emotional preflight, triage, or any agent runs. `POST
-/api/chat` and `POST /api/chat/stream` share one budget. `X-Forwarded-For` is
-never trusted for this key: no proxy sits in front of this deployment, and the
-header is reader-supplied. A refused request receives `429` with a
-`Retry-After` header giving the whole seconds until the oldest request leaves
-the window, and a fixed, content-free message; the streaming endpoint returns
-this as an ordinary HTTP error before opening a stream. A refusal is not itself
-recorded, so a caller that keeps trying cannot extend its own wait. The
-refusal emits only fixed failure metadata; the address is never recorded in
-telemetry. Two limitations are accepted for the prototype: readers sharing one
-network address, including the fallback key, share one budget, and the counters
-live in the serving process, like session state. Each Muse, Provenance, and
-Librarian model run separately carries its own fixed per-run usage cap as
-defence against a looping model, independent of this request-level limit.
+The application allows at most 10 chat requests per rolling 60 seconds per
+authenticated account, before emotional preflight, triage, or any agent runs.
+`POST /api/chat` and `POST /api/chat/stream` share one budget. Changing a
+reader-chosen session ID does not reset that budget. A refused request receives
+`429`, a fixed message, and `Retry-After` with the whole seconds until the oldest
+request leaves the window. The streaming endpoint returns this HTTP error
+before opening a stream. Refused attempts do not extend the wait.
+
+The limiter records only fixed failure metadata in telemetry. Its counters
+live in the serving process and reset on restart; it does not provide a shared
+budget across multiple backend processes. Muse, Provenance, Librarian, and
+Serendipity runs also have fixed request or tool-call limits appropriate to
+their tasks, independently of the HTTP request limit.
 
 ### 6.8 Message normalisation
 
@@ -1105,24 +1126,24 @@ short non-English one. It never refuses a message that:
   such as "Ch. 12" or "p. 45", or a bare "yes", "ok", "hmm");
 - has its top-classified language's confidence within a clear margin of
   English's confidence, or no classification at all; or
-- is, on the whole, classified as English, which is what a book title,
-  character name, or quoted foreign phrase inside an otherwise English
-  sentence resolves to.
+- has less than half of its counted letters in confidently non-English
+  windows, so an isolated foreign title or phrase need not block an English
+  message.
 
 It refuses only when the compressed fastText `lid.176` model (bundled with
 `fast-langdetect`, so detection is offline and deterministic; the model is
-CC BY-SA 3.0) classifies a non-English language as the clear top result over
-the first 80 characters: at least 0.7 confidence in that language, and at
-least a 0.5 margin over English's own confidence among the top three
-results. These thresholds were set from observed detector behaviour: a
-genuine single-language sentence scores its own language at 0.9-1.0 with
-English absent from the top results, while mixed text scores its top
-language around 0.6.
+CC BY-SA 3.0) classifies windows across the message. Words are packed into
+approximately 80-character windows, with a short trailing window merged into
+the previous one. Each detector call reads at most 80 characters. A window
+counts as non-English when its top language has at least 0.7 confidence and a
+0.5 margin over English among the top three results. Windows classified as
+English count toward the denominator; uncertain and non-prose windows do not.
+The guard refuses only when confidently non-English windows contain at least
+half of the counted letters.
 
 Inspection records `application_language_boundary`, with every model trace
-marked skipped and capture suppressed, mirroring how the emotional boundary
-records a preflight release, so a reviewer can tell the two apart only by
-the release source, never by a difference in what ran.
+marked skipped and capture suppressed. The release source identifies the
+language guard independently of emotional preflight outcomes.
 
 ## 7. Evaluation and acceptance
 
@@ -1163,6 +1184,15 @@ either connection or weak-evidence Objective alone or both in either order;
 legacy weak-evidence scenarios delegate to the narrower reflection runner.
 The combined `connection_curation_replay` runner accepts exactly bounded memory
 curation and cross-source tentative connection, in either selection order.
+Dedicated security scenarios combine `untrusted_content_injection_resistance`
+with longitudinal memory retrieval or reviewed automatic memory capture. Their
+matched attack and clean-control Scenes measure exposure, response behavior,
+and actual storage operations separately. The retrieval runner handles the
+memory-injection combination; `line_attack_replay` handles direct reader-Line
+attacks. These are specific supported combinations, not general support for
+every injection Scenario. The
+[security replay guide](../evals/synthetic_journals/README.md#memory-injection-controls)
+defines their run configurations and grading limits.
 The offline surfacing runner is invoked directly and is not registered for
 catalogue replay. Registration
 does not make historical scenarios compatible with current schemas or establish
@@ -1388,12 +1418,11 @@ five-behavior curation contract still applies.
 The combined run retains the original Backstory hash, adoption identity, and
 Scene identifiers. Both paths use one isolated evaluation account. Curation
 Props do not enter capture storage, and captured records do not become curation
-inputs. The default combined runner passes a Sculptor handler to the shared
-curation helper, which selects `_AllowingProvenance`. Its curation review is an
-allowing test double. Recorded `allow` outcomes therefore do not establish live
-Provenance judgment. Standalone `curation_replay` without an injected handler
-uses production Provenance. The combined run exercises application and audit
-behavior, but does not exercise the capture-triggered chat curation in Section 4.2.5.
+inputs. The combined runner and standalone `curation_replay` use production
+Sculptor and Provenance when no test handler is injected. They record the actual
+proposal, review decision, application outcome, and audit checks. The combined
+run does not exercise capture-triggered batch selection in Section 4.2.5 because
+its curation Scenes use designated Props.
 
 The combined `connection_curation_replay` runner accepts exactly bounded memory
 curation and cross-source tentative connection. It retains the original
@@ -1598,13 +1627,24 @@ Resolved run configurations keep each imbalance tied to the entity and Objective
 
 ### 7.3 Deployment checks
 
-The test deployment supports multiple accounts and up to five concurrent sessions. A basic load test reports success rate, p95 latency, and per-session model cost.
+The application supports multiple accounts with separate saved conversations
+and memory scope. Deployment acceptance targets up to five concurrent sessions,
+with a load test reporting success rate, p95 latency, and per-session model cost.
+This target requires measured deployment evidence.
+
+`GET /api/health` reports liveness and the configured model. `GET /api/ready`
+checks configuration, storage, SQLite integrity, canonical corpora, and local
+embedding and reranker models. Release images also verify packaged model
+checksums and frontend assets. Readiness is offline and does not validate
+provider credentials through a live request. The [release guide](releasing.md)
+documents image smoke tests, approvals, deployment, backup, and rollback;
+[release checks](release-checks.md) defines the evaluation evidence.
 
 ## 8. Operations and change control
 
 The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI as a thin HTTP transport adapter. The public `run_chat_turn` application boundary owns deterministic orchestration, including session rollback, context resolution, agent sequencing, output release, and automatic capture. `POST /api/chat` supplies trusted dependencies and maps cancellation, success, and application failure to HTTP. `POST /api/chat/stream` wraps that same handler with content-free progress events and one final result or error; synthetic replay calls the application boundary directly. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Every model invocation records a stable prompt-template ID and an automatically computed SHA-256 digest. Runtime skill digests cover the effective shared and selected instructions, input and output schemas, tool and capability permissions, validator identities, and retry limits. They exclude runtime content and require no manual prompt version counter. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Corpus builds, policies, tool contracts, schemas, and evaluation scenes are versioned. The proposed system playbook follows the same requirement if adopted. Every model invocation records a stable prompt-template ID and an automatically computed SHA-256 digest. Runtime skill digests cover the effective shared and selected instructions, input and output schemas, tool and capability permissions, validator identities, and retry limits. They exclude runtime content and require no manual prompt version counter. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Deployment verification exercises rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 Failure ownership is explicit. Exceptions from an agent invocation are model failures. Deterministic envelope, candidate-output, review-output, finding-location, and release checks are non-retryable validation failures. Instrumentation projection defects are non-retryable application failures. All failure paths record fixed metadata without exception text.
 
@@ -1639,7 +1679,8 @@ and **Provenance run**; their surrounding `muse.draft`,
 origin, receiver, and contract attributes.
 
 For the ordinary reviewed-capture Scene, the trace sequence is application to
-Provenance emotional preflight, application to Muse draft, application to
+Provenance emotional preflight, Muse turn triage, application-owned tool
+exposure, application to Muse draft, application to
 Provenance candidate review, deterministic Memory & Policy processing, and
 release. An `apply_boundary` or `apply_self_harm_boundary` preflight
 terminates before Muse exactly as specified in Section 4.1. These are
@@ -1649,7 +1690,8 @@ application-mediated transitions, not agent-selected delegation.
 
 Linger considers a deliberately bounded form of **recursive self-improvement (RSI)**: the system may help improve its regression coverage and operational guidance while humans retain approval authority over every change. This follows current frontier practice, which frames near-term RSI not as a model modifying its own weights or prompts autonomously, but as agents improving the scaffolding around the model through feedback loops that end in reviewed, gated changes. Any adopted loop must preserve that boundary and cannot grant an agent new runtime authority.
 
-Two loops are in scope.
+Sections 9.1 and 9.2 describe proposed operational loops. The implemented
+offline curation and retrieval experiments are described in Section 9.5.
 
 ### 9.1 Failure-to-eval promotion
 
@@ -1663,6 +1705,9 @@ Two loops are in scope.
 
 ### 9.2 Sculptor-curated system playbook
 
+This is a proposed scheduled workflow. The runtime has no system-playbook skill
+or autonomous scheduler.
+
 **Pain point.** Every agent system accumulates operational lessons — recurring Provenance critique patterns, evaluation-failure clusters, retrieval quirks, prompt gotchas — and they evaporate because nothing owns them. Current harness-engineering practice keeps these lessons in a versioned playbook that developers — and, where useful, prompts — draw on at the moment they are relevant. Maintaining such a playbook is curation work: deduplicate, summarise, link, and prune — which is precisely Sculptor's existing skill set, pointed at a second corpus.
 
 **Mechanism.** A scheduled Sculptor task, run outside user conversations, reads only operational records permitted by the [telemetry data contract](telemetry.md), evaluation results, and developer notes, then proposes playbook edits: merge duplicate lessons, summarise clusters, retire stale entries, and link related ones. The playbook is a versioned repository file, not a record in the user memory store; the Memory & Policy Service is not involved. Sculptor's output is a proposed pull request; humans review and CI gates the merge, identical to any other change under Section 8.
@@ -1672,7 +1717,7 @@ Two loops are in scope.
 **Product direction.** Section 4.2.5 runs Sculptor curation in chat only after
 a successful new durable capture. Memory surfacing stays offline: chat never
 runs it, and Sculptor gains no write or release authority. The scheduled
-operational playbook remains a separate task. Continuous monitoring and
+operational playbook is a separate proposal. Continuous monitoring and
 unsolicited out-of-conversation resurfacing remain excluded by Section 3.3.
 
 **Relationship to failure-to-eval promotion.** If the project adopts the workflow in Section 9.1, failure-to-eval promotion will produce regression coverage, while Section 9.2 will continue to curate operational guidance. The two concerns remain separate.
@@ -1682,12 +1727,15 @@ unsolicited out-of-conversation resurfacing remain excluded by Section 3.3.
 ### 9.3 Boundaries
 
 - Every adopted RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation scenes itself.
-- Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
+- The proposed operational loops run outside user conversations. Offline
+  experiments are invoked explicitly and grant no user-facing authority.
 - No agent gains write authority. Playbook changes, and any future evaluation
   data, must enter through repository review rather than the Memory & Policy
   Service. Sculptor's product-side role remains proposal-only; only the service
   may apply an exactly reviewed product-memory proposal.
-- Loops consume only the operational metadata permitted by the [telemetry data contract](telemetry.md).
+- Operational proposals consume only the records permitted by the
+  [telemetry data contract](telemetry.md). Offline experiments use reviewed
+  synthetic inputs and their own recorded outcomes.
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
 ### 9.4 Practice-module alignment
@@ -1699,3 +1747,35 @@ These loops are the specification's explicit answer to the practice-module brief
 - **Testing data.** The evaluation-objective catalog defines the intended security coverage. A future downstream design must define the test data, harness, review process, and lifecycle.
 - **Agent design documentation.** The system playbook demonstrates Sculptor's curation contract generalising across two memory stores under identical safeguards — an agent-design argument, not an added subsystem.
 - **Responsible-AI governance.** Both loops are bounded, human-in-the-loop, and auditable: every change they produce is versioned, reviewed, and traceable, aligning the self-improvement story with the module's governance and accountability requirements.
+
+### 9.5 Offline curation and retrieval experiments
+
+The `memory_loop_replay` command compares recall before and after reviewed
+Sculptor curation on one adopted synthetic Scenario. It measures both retrieval
+and the released answer, retains source hashes, and records each round's
+curation decision. These results describe that Scenario and model run.
+
+The chapter-cue workflow freezes Librarian request plans, measures retrieval
+against practice or held-back requests, and asks Sculptor to propose bounded
+search cues. Cues affect opt-in search text while canonical book passages
+remain the evidence. The chapter-cue runner records proposed revisions and
+requires owner approval before use.
+
+The retrieval-research workflow gives Sculptor practice traces and a description
+of the retrieval implementation. Its `retrieval-error-analysis` skill identifies
+where passages disappear. After owner approval, `retrieval-research` can use
+Exa to inspect public technical sources and return a typed specification with
+source URLs. The application validates those URLs against pages opened during
+that run. The owner reviews each input before the model runs and freezes it for
+that attempt. A developer implements an approved specification and measures it
+against the same practice and held-back requests.
+
+Production retrieval keeps four candidates per planned part and at most 20 per
+book before assessment. The research comparison can retain 20 per planned part;
+this is an opt-in evaluation setting. A measured retrieval result does not
+establish end-to-end conversational reliability or approve a production change.
+The [Librarian evaluation guide](../evals/librarian/README.md) documents commands,
+options, and output files. The
+[experiment design](design/self-improving-memory-loop.md) and
+[retrieval research report](evaluation/retrieval-research-experiment-4-2026-10-01.md)
+record the approval process, stopping rule, results, and reuse of held-back data.

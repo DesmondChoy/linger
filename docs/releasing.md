@@ -2,9 +2,9 @@
 
 Use this guide to promote a batch of changes from `main` to `release-candidate`, review the candidate, and run an approved image locally.
 
-Live evaluations and publication start disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. While `live_evaluations_enabled` is `false`, CI still runs, but release runs skip their image build, live calls, and publication. Keep this setting off until the team is ready to run paid evaluations.
+Live evaluations and publication are disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. While `live_evaluations_enabled` is `false`, CI still runs, but release runs skip their image build, live calls, and publication. Keep this setting off until the team is ready to run paid evaluations.
 
-The [release checks reference](release-checks.md) describes the checks, publication rules, evidence, and limits. Both security datasets already have human-approved Ground truth. Their live runs are intentionally deferred while live evaluations are off.
+The [release checks reference](release-checks.md) describes the checks, publication rules, evidence, and limits. Both security datasets have human-approved Ground truth. Their live runs are intentionally deferred while live evaluations are off.
 
 ## Configure GitHub once
 
@@ -62,7 +62,9 @@ For a local preflight without model calls, use a clean candidate checkout and it
 	  --output tmp/release-preflight
 ```
 
-Use a new output directory for each command. `check` validates scenario adoption and configuration but does not verify the supplied local image ID. The GitHub workflow verifies that image before invoking the gate. A direct local replay is a separate paid operation. The optional `--previous-approved PATH` compares counts with an earlier approved `summary.json`; that comparison cannot override a blocker.
+Use a fresh output directory for each command. The candidate SHA must be the full lowercase SHA of the checkout's `HEAD`. `check` validates scenario adoption and configuration but does not verify the supplied local image ID. The GitHub workflow verifies that image before invoking the gate. The optional `--previous-approved PATH` compares counts with an earlier approved `summary.json`. That comparison cannot override a blocker.
+
+To run the paid Scenario suite locally, replace `check` with `run` and choose another output directory. The local command does not read the GitHub live-evaluation switch. It records a publication recommendation, but does not build, scan, publish, or approve an image, or run the separate HTTP smoke. See the [command reference](release-checks.md#release-check-command) for every option and exit status.
 
 ## Review and approve a candidate
 
@@ -114,6 +116,24 @@ The release image serves the frontend and backend from one origin and one backen
 
 Existing host data is not imported automatically. To move host accounts, transcripts, and memories, stop the old process and copy a consistent snapshot into the new state volume with ownership `10001:10001`. Test the snapshot with a disposable volume before using it for real accounts.
 
+## Check an image locally
+
+Run the offline smoke against a built or pulled image:
+
+```bash
+	bash docker/smoke.sh linger:local
+```
+
+The smoke starts a container with networking disabled and creates a disposable state volume. It checks the frontend, readiness, authentication, account isolation, saved state, restart, and container replacement, then removes its container and volume.
+
+To check rollback compatibility with an approved image, pass that image as the second argument:
+
+```bash
+	bash docker/smoke.sh linger:local ghcr.io/desmondchoy/linger@sha256:PREVIOUS_DIGEST
+```
+
+Without the second argument, replacement uses the same image and tests persistence across container recreation. For paid HTTP and streaming checks, select `LINGER_MODEL`, export the matching provider key, and run `bash docker/live-smoke.sh IMAGE`. That command uses disposable state and writes `release-evidence/http-smoke.json`.
+
 ## Back up state and roll back
 
 1. Stop new traffic and allow active turns to finish. Stop the service with `docker compose -f compose.release.yaml stop`; Compose allows 60 seconds for shutdown.
@@ -129,4 +149,4 @@ Existing host data is not imported automatically. To move host accounts, transcr
 3. Set `LINGER_IMAGE` to the previous approved digest. Run `docker compose -f compose.release.yaml pull`, then `docker compose -f compose.release.yaml up -d --no-build --wait`.
 4. Check `/api/ready`, log in, and verify library access, a saved conversation, and memory access. Check logs before resuming traffic.
 
-Never run `docker compose -f compose.release.yaml down -v` during an update or recovery. That command deletes the state volume. This change adds no database migration. For a future incompatible schema change, restore the matching full snapshot into a separate volume and verify it before switching traffic.
+Never run `docker compose -f compose.release.yaml down -v` during an update or recovery. That command deletes the state volume. The release workflow has no database migration step. For an incompatible schema change, restore the matching full snapshot into a separate volume and verify it before switching traffic.

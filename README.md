@@ -21,9 +21,10 @@ a small literary corpus.
 **Librarian** assesses reading boundaries and book evidence. **Serendipity**
 recalls saved memories and explores connections across memories, books, and
 authorised web sources.
-**Sculptor** proposes memory curation after a reviewed capture and, in offline
-evaluation only, memory surfacing decisions. **Provenance** reviews emotional boundaries, reply
-candidates, and curation proposals.
+**Sculptor** proposes memory curation after a reviewed capture. Its offline
+tasks evaluate memory surfacing, propose chapter search cues, analyse retrieval
+failures, and research retrieval improvements. **Provenance** reviews emotional
+boundaries, reply candidates, and curation proposals.
 
 Each role uses one reusable PydanticAI Agent with application-selected runtime
 skills. Typed task contracts keep each invocation's context and permissions
@@ -52,11 +53,17 @@ retain their own tools and context rules, including Muse's session history.
 
 ## Current prototype
 
-The local app places chat, a live agent map, and turn inspection on one page.
+The local app places English-language chat, a live agent map, and turn inspection
+on one page.
 It supports book-grounded reflection, recall from available account memories,
 and connections to memories, books, and optional public-web sources. A recall
 request can return one matching memory without requiring alternative candidates.
 General factual questions do not use private memories as reference material.
+
+After emotional preflight, Muse classifies the current message with its turn-triage skill.
+Application code uses that result and the available reading context to expose
+only the relevant specialist tools. Reflection instructions include the modules
+for those tools, plus revision guidance when a reply needs correction.
 
 Librarian breaks book questions into focused searches and assesses the evidence
 against the full request. Reading permission comes from explicit progress or
@@ -64,6 +71,9 @@ validated inference from reader statements and eligible memories. Provenance
 reviews the complete reply, including quotations, attribution, and claim
 support. Bounded repairs check quotation text and retain source mappings for
 unchanged accepted claims before the application checks release.
+An explicit completed chapter carries across follow-ups about the same book
+and part. A correction can lower or retract that permission. The chapter
+ceiling lasts only for the running session; it is not a durable reading log.
 
 Interactive memory capture is disabled by default, and the app exposes no
 memory-management actions. Controlled workflows support reviewed capture,
@@ -73,8 +83,11 @@ offline evaluation.
 
 This is a prototype with username and password accounts. Accounts and
 per-account conversation history persist in local SQLite files under `data/`
-and survive restarts. Chat content
-is sent to the configured model provider. Optional backend telemetry records
+and survive restarts. Signing in restores saved chats and continues the latest
+conversation. **New chat** starts another conversation while keeping earlier
+ones in the feed. **Delete** removes a conversation and its saved inspection
+details. Chat content is sent to the configured model provider. Optional backend
+telemetry records
 metadata rather than conversation content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
 
@@ -107,7 +120,9 @@ pnpm install --dir apps/frontend
 Edit `.env` to set `LINGER_MODEL` and the matching API key. The example selects
 `openai:gpt-6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
 prefix use `GOOGLE_API_KEY`; models with `anthropic:` use `ANTHROPIC_API_KEY`.
-Only the selected provider's key is needed.
+Only the selected provider's key is needed. The standard OpenAI model uses low
+reasoning effort. Turn triage uses the provider's configured small model, as
+described in the [app guide](apps/README.md#setup).
 
 Public-web discovery is optional and requires both `EXA_API_KEY` and
 `LINGER_WEB_SEARCH_ENABLED=true`. See [app configuration](apps/README.md#setup)
@@ -128,8 +143,9 @@ uv run uvicorn apps.backend.main:app --reload
 pnpm --dir apps/frontend dev
 ```
 
-Open <http://localhost:5173>. Interactive API documentation is available at
-<http://127.0.0.1:8000/docs>.
+Open <http://localhost:5173> and create an account or sign in to use live chat.
+The synthetic-persona path opens saved evaluations without sign-in or model
+calls. Interactive API documentation is available at <http://127.0.0.1:8000/docs>.
 
 ### Start with Docker Compose
 
@@ -211,10 +227,11 @@ pnpm --dir apps/frontend build
 
 GitHub Actions runs the backend and frontend unit suites for pull requests and
 pushes to `main` and `release-candidate`. Backend tests block model-provider requests; tests marked
-`embeddings` use real local embedding and reranker models. To exclude those
-tests, run `uv run pytest -m "not embeddings"`.
+`embeddings` use real local embedding and reranker models. Their first run needs
+the model files in cache or permission to download them. To exclude those tests,
+run `uv run pytest -m "not embeddings"`.
 
-Live release evaluations and automatic publication start disabled in
+Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
 are ready for release testing. When enabled, the release run builds, scans, and
 tests one Linux AMD64 image, then publishes that same image after the configured
@@ -243,6 +260,26 @@ Individual agent evaluation guides cover [Muse](evals/muse/README.md),
 [Serendipity](evals/serendipity/README.md), and [Sculptor](evals/sculptor/README.md).
 The Provenance guide includes candidate risk-code, curation risk-code, and claim
 mapping commands. Live evaluation commands use the configured model provider.
+
+The component and offline guides document these evaluation entry points:
+
+| Task | Command | Guide |
+|---|---|---|
+| Compare Muse drafts and review outcomes | `uv run python -m evals.muse.baseline_run --help` | [Muse evaluations](evals/muse/README.md) |
+| Test one revision against fixed findings | `uv run python -m evals.muse.revision_run --help` | [Muse evaluations](evals/muse/README.md) |
+| Judge paired replies with hidden model labels | `uv run python -m evals.muse.blind_review --help` | [Muse evaluations](evals/muse/README.md) |
+| Measure chapter-cue retrieval and selected evidence | `uv run python -m evals.librarian.chapter_cue_recall --help` | [Librarian evaluations](evals/librarian/README.md) |
+| Run Sculptor's retrieval analysis and research stages | `uv run python -m evals.librarian.research_loop --help` | [Librarian evaluations](evals/librarian/README.md) |
+| Compare recall before and after reviewed curation | `uv run python -m evals.synthetic_journals.memory_loop_replay --help` | [Synthetic evaluations](evals/synthetic_journals/README.md) |
+| Inspect release evidence checks and suite execution | `uv run python -m evals.release --help` | [Release checks](docs/release-checks.md) |
+
+Sculptor's retrieval experiments use fixed practice and held-back requests.
+Owners review each input and approve analyses and specifications before
+dependent stages run. Chapter cues and larger
+per-part candidate pools are opt-in evaluation settings. The
+[experiment design](docs/design/self-improving-memory-loop.md) and
+[retrieval research report](docs/evaluation/retrieval-research-experiment-4-2026-10-01.md)
+describe the method, recorded results, and limits.
 
 ## Documentation
 

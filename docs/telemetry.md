@@ -34,7 +34,8 @@ the exported-payload test are updated together.
 |---|---|
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
-| Agent and model | Agent role, selected skill, and stage; the provider and name of the model that actually executed the run; its effective decoding settings; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
+| Agent and model | Agent role, selected skill, and stage; selected Muse reflection modules; the provider and name of the model that actually executed the run; its effective decoding settings; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
+| Turn triage | Fixed book-content, memory-need, and override labels; triage failure flag; registered tools offered to Muse; pinned Serendipity intent |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
@@ -62,6 +63,15 @@ the run mode and the tools the turn offered; the always-loaded core is not
 listed. It is set before the run, so a failed run records it too. The span's
 `prompt.digest` still covers the complete skill, every module included.
 
+`muse.turn_triage` records `triage.book_content`, `triage.memory`, and
+`triage.override_attempt` when the classifier returns a result. The parent
+`chat.tool_exposure` span records those labels, `triage.failed`,
+`triage.exposed_tools`, and `triage.pinned_intent`. The offered tools and intent
+describe the application's decision for the draft and revision. A failed or
+timed-out classifier records `triage.failed=true` and
+`triage.override_attempt=unknown`; it omits the unclassified needs. These spans
+contain no reader message or triage explanation.
+
 `model.provider` and `model.name` describe the model that actually ran: the
 per-run `model` option when one is supplied (for example Muse turn triage's
 smaller model), otherwise the agent's own configured model. They come from
@@ -79,16 +89,16 @@ AI's own precedence, later layers win), as a compact JSON string. A
 `model_settings` layer supplied as a callable is skipped, since resolving it
 requires a run context this projection does not have.
 
-Recording uses a fixed allowlist of scalar decoding keys — `temperature`,
+Recording uses a fixed allowlist of scalar decoding keys: `temperature`,
 `top_p`, `top_k`, `max_tokens`, `seed`, `presence_penalty`,
 `frequency_penalty`, `parallel_tool_calls`, `thinking`, `service_tier`,
-`openai_reasoning_effort`, `anthropic_effort`, and `timeout` (only when
-numeric) — and only `bool`, `int`, `float`, or `str` values. Every other
+`openai_reasoning_effort`, `anthropic_effort`, and numeric `timeout`. Values
+must be `bool`, `int`, `float`, or `str`. Every other
 `ModelSettings` field is excluded because it can carry content or end-user
 identifiers (for example `openai_prediction` or `openai_user`).
 The attribute is omitted entirely when no allowlisted settings are in effect,
-or when resolving the effective model or its settings fails for any reason —
-that failure falls back to the configured model identity and records no
+or when resolving the effective model or its settings fails. That failure
+falls back to the configured model identity and records no
 `model.settings` rather than breaking the run.
 
 Hand-off metadata describes observable logical routing through the
@@ -247,6 +257,8 @@ chronological application-owned sequence. A normal reviewed-capture Scene is:
 case
   -> chat.turn
   -> provenance.emotional_boundary -> Provenance run -> model call
+  -> chat.tool_exposure -> muse.turn_triage -> Muse run -> model call
+  -> reflection.release
   -> muse.draft -> Muse run -> model call
   -> provenance.review -> Provenance run -> model call
   -> proposal_comparison or adopted_hard_gate_grade evaluator
@@ -257,10 +269,16 @@ Human HTTP traffic adds a transport span around the same application span:
 ```text
 chat.request
   -> chat.turn
-  -> provenance.emotional_boundary -> Provenance run -> model call
-  -> muse.draft -> Muse run -> model call
-  -> provenance.review -> Provenance run -> model call
+  -> provenance.emotional_boundary
+  -> chat.tool_exposure -> muse.turn_triage
+  -> reflection.release
+  -> muse.draft
+  -> provenance.review
 ```
+
+Human traffic records these application spans with metadata only. Native
+agent-run and model-call message panels require the synthetic evaluation
+instrumentation described above.
 
 `chat.request` owns only route-template, method, response-status, and HTTP
 outcome metadata. `chat.turn` owns session rollback, agent sequencing, release,
@@ -282,22 +300,32 @@ case
 
 A no-change decision ends after Sculptor. A Provenance `revise` or `reject`
 verdict prevents application. Memory recall uses `serendipity.recall` with
-`agent.skill=memory-recall`; source gathering uses `serendipity.gather` with
-`agent.skill=source-gathering`; connection discovery uses `serendipity.discovery`
-with `agent.skill=connection-discovery`.
+`agent.skill=serendipity.memory-recall`; source gathering uses
+`serendipity.gather` with `agent.skill=serendipity.source-gathering`; connection
+discovery uses `serendipity.discovery` with
+`agent.skill=serendipity.connection-discovery`.
 
-The combined capture-and-curation runner injects Sculptor's proposal handler
-and an approving curation-review adapter. Its curation Scenes exercise
-application and source auditing, but have no live Provenance curation-review
-span. The standalone curation runner uses the production reviewer by default.
+Offline Sculptor calls use `sculptor.surfacing`, `sculptor.chapter_cues`,
+`sculptor.retrieval_error_analysis`, or `sculptor.retrieval_research`. The
+chapter-cue and retrieval-research commands configure the metadata-only backend
+service and save attempt records locally. Running those commands does not
+enable content-bearing Logfire export. Their research queries, opened pages,
+proposals, and attempt messages remain outside backend telemetry.
+
+The combined capture-and-curation runner and standalone curation runner use
+production Sculptor and Provenance by default. Their curation Scenes record
+`sculptor.curation` and, when a proposal requires review,
+`provenance.curation_review`, followed by application and source auditing.
+Injected test handlers can replace those calls; their artifacts describe the
+configured handlers and must not be presented as production-review evidence.
 
 If emotional preflight returns `apply_boundary` or `apply_self_harm_boundary`,
 the trace stops before Muse and the application releases the matching fixed
-boundary response. Otherwise Muse
+boundary response. Otherwise turn triage fixes the offered tools, then Muse
 receives a discriminated draft envelope whose `muse_turn.user_message` contains
 the synthetic Line, and Provenance later receives a separate candidate-review
 envelope. A revision adds another Muse and Provenance cycle within the same
-case.
+case and reuses the original tool exposure.
 
 Proposal mode emits `proposal_comparison` with `matches_proposal` or
 `differs_from_proposal`. When the exact scenario has a validated independent
