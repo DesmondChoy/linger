@@ -181,7 +181,7 @@ class RetainedSource(StrictModel):
 
 
 class SentenceMapping(StrictModel):
-    """One draft declaration whose mapped text falls in a flagged sentence."""
+    """One draft declaration whose mapped text falls in a draft sentence."""
 
     source_kind: Literal["book_corpus", "memory", "web", "session_line"]
     # The reader's quoted line identifies a session_line source.
@@ -203,7 +203,10 @@ class DraftSentence(StrictModel):
     )
     source_mappings: tuple[SentenceMapping, ...] = Field(
         default=(),
-        description="A flagged sentence's draft mappings; returned word for word with these, it is unchanged.",
+        description=(
+            "The sentence's draft mappings. A flagged sentence returned word for word with these is "
+            "unchanged; kept wording no finding disputes keeps these sources."
+        ),
     )
 
 

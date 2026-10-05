@@ -138,6 +138,7 @@ class RevisionExpectation(StrictModel):
     forbidden_patterns: tuple[str, ...] = ()
     required_patterns: tuple[str, ...] = ()
     required_declarations: tuple[DeclarationExpectation, ...] = ()
+    forbidden_declarations: tuple[DeclarationExpectation, ...] = ()
     # Words that mark source-dependent content: in a new sentence they must sit
     # inside a mapped span.
     source_terms: tuple[str, ...] = ()
@@ -283,7 +284,7 @@ def draft_sentences(case: RevisionCase):
             text=draft.reply[start:end], flagged=bool(named),
             needs_source=index in case.review.needs_source_sentences,
             finding_indexes=named,
-            source_mappings=_sentence_mappings(draft, start, end) if named else (),
+            source_mappings=_sentence_mappings(draft, start, end),
         ))
     return tuple(sentences)
 
@@ -506,6 +507,9 @@ def grade_revision(case: RevisionCase, output) -> dict[str, Any]:
     for wanted in expect.required_declarations:
         if not any(_declaration_matches(use, wanted) for use in output.evidence_uses):
             failures.append(f"missing_declaration: {wanted.model_dump(exclude_none=True)}")
+    for unwanted in expect.forbidden_declarations:
+        if any(_declaration_matches(use, unwanted) for use in output.evidence_uses):
+            failures.append(f"forbidden_declaration: {unwanted.model_dump(exclude_none=True)}")
 
     for pattern in expect.required_patterns:
         if not re.search(pattern, reply, re.IGNORECASE):
@@ -552,6 +556,7 @@ _RETRY_CATEGORIES = (
     ("new sentence is not beside", "misplaced_new_sentence"),
     ("unmapped content source-dependent", "needs_source_unmapped"),
     ("no longer declares it", "retained_source_dropped"),
+    ("kept from the draft and no finding disputes it", "added_source"),
     ("had accepted source mappings", "accepted_claim_unmapped"),
     ("identified this retained text as a source quotation", "retained_quote_unbound"),
     ("reads as a source quotation", "unbound_quote"),

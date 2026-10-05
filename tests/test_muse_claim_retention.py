@@ -345,3 +345,45 @@ def test_actual_muse_validator_rejects_a_dropped_retained_source():
         assert validate_muse_output(SimpleNamespace(prompt=json.dumps(payload)), kept) is kept
     finally:
         reset_turn_evidence(token)
+
+
+def test_retained_source_losing_its_only_claim_needs_a_rewritten_claim_not_other_kept_wording():
+    from src.linger.agents.muse.claim_repair import added_source_errors, draft_sentences_for_revision
+
+    promise, stays = "He promises to return within the hour.", "Then he decides lateness hardly matters and stays."
+
+    def answer(reply, promise_claims, delay_claims):
+        return MuseCandidate.model_validate({
+            "reply": reply,
+            "evidence_uses": [
+                {"source_kind": "book_corpus", "evidence_id": record.evidence_id,
+                 "source_location": record.location, "supported_claims": list(claims)}
+                for record, claims in ((PROMISE, promise_claims), (DELAY, delay_claims))
+            ],
+            "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+        })
+
+    draft = answer(f"{promise} {stays}", [promise], [stays])
+    verdict = ProvenanceReview.model_validate({
+        "response_decision": "revise", "capture_decision": "no_candidate",
+        "emotional_boundary_decision": "not_required",
+        "findings": [{"code": "unsupported_claim", "applies_to": "response", "location": WORDING,
+                      "explanation": "The passages do not establish that he stays."}],
+        "claim_audit": [{
+            "group_index": index, "supported": supported, "support_summary": "Fixture verdict.",
+            "source_contributions": [{"declaration_index": index, "claim_index": 0, "contributes": True,
+                                      "source_excerpt": record.text}],
+        } for index, (record, supported) in enumerate(((PROMISE, True), (DELAY, False)))],
+    })
+    retained = retained_sources_for_revision(draft, verdict)
+    assert [source.evidence_id for source in retained] == [PROMISE.evidence_id, DELAY.evidence_id]
+    marks = draft_sentences_for_revision(draft, verdict, ())
+
+    def errors(revision):
+        return [*retained_source_errors(revision, retained),
+                *added_source_errors(revision, marks, verdict.response_findings)]
+
+    attached = errors(answer(promise, [promise], [promise]))
+    assert [(error["value"], error.get("evidence_id")) for error in attached] == [(promise, DELAY.evidence_id)]
+    rewritten = "Then he decides lateness hardly matters."
+    assert errors(answer(f"{promise} {rewritten}", [promise], [rewritten])) == []

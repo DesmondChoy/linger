@@ -11,7 +11,9 @@ from src.linger.agents.muse.models import (
 )
 
 if TYPE_CHECKING:
-    from src.linger.agents.provenance.models import FindingLocation, ProvenanceReview, UncoveredResponseSpan
+    from src.linger.agents.provenance.models import (
+        FindingLocation, ProvenanceReview, RiskFinding, UncoveredResponseSpan,
+    )
 
 
 def _occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
@@ -242,7 +244,7 @@ def draft_sentences_for_revision(
             flagged=bool(findings),
             needs_source=_overlaps(start, end, needs_source),
             finding_indexes=findings,
-            source_mappings=_sentence_mappings(candidate, start, end) if findings else (),
+            source_mappings=_sentence_mappings(candidate, start, end),
         ))
     return tuple(sentences)
 
@@ -280,6 +282,60 @@ def _unmapped_words(candidate: MuseCandidate, start: int, end: int) -> int:
                 covered[a:b] = b"\1" * (b - a)
     unmapped = "".join(" " if covered[index] else reply[index] for index in range(start, end))
     return len(_WORD.findall(_MARKDOWN_LINK.sub(" ", unmapped)))
+
+
+def added_source_errors(
+    candidate: MuseCandidate, draft_sentences: tuple[DraftSentence, ...], findings: tuple[RiskFinding, ...],
+) -> list[dict[str, object]]:
+    """Keep the draft's sources on draft wording no finding disputes; new wording may cite any source."""
+    if not draft_sentences:
+        return []
+    texts = [_normalized(sentence.text) for sentence in draft_sentences]
+    draft = " ".join(texts)
+    disputed: list[tuple[int, int]] = []
+    mapped: list[tuple[int, int, tuple[str, str]]] = []
+    offset = 0
+    for sentence, text in zip(draft_sentences, texts):
+        for index in sentence.finding_indexes:
+            if index >= len(findings):
+                continue
+            location = findings[index].location
+            quote = getattr(location, "quote", None) if location.source_field == "candidate.response" else None
+            # A finding on a declaration frees every mapping in the sentences it names.
+            disputed.extend(quote and _occurrences(draft, _normalized(quote)) or [(offset, offset + len(text))])
+        for mapping in sentence.source_mappings:
+            mapped.extend((a, b, (mapping.source_kind, mapping.evidence_id))
+                          for a, b in _occurrences(draft, _normalized(mapping.mapped_text)))
+        offset += len(text) + 1
+    errors = []
+    for use in candidate.evidence_uses:
+        source = (use.source_kind, use.quote if use.source_kind == "session_line" else use.evidence_id)
+        for claim in use.supported_claims:
+            # A kept claim may end where the draft continued: "taller." for "taller, grounding…",
+            # but "asks." is not "asks who".
+            text = _normalized(claim)
+            stem = text.rstrip(" .,;:!?") or text
+            found = _occurrences(draft, text) or [
+                (a, b) for a, b in _occurrences(draft, stem) if draft[b:b + 1] in ("", *".,;:!?")
+            ]
+            if any(_overlaps(a, b, disputed) for a, b in found):
+                continue
+            # New wording, and draft wording the draft left unmapped, may cite any source.
+            before = {key for a, b, key in mapped if _overlaps(a, b, found)}
+            if before and source not in before:
+                start = candidate.reply.find(claim)
+                errors.append({
+                    "path": "evidence_uses", "value": claim,
+                    "response_start": start, "response_end": start + len(claim),
+                    "source_kind": use.source_kind, "evidence_id": source[1],
+                    "error": (
+                        "This wording was kept from the draft and no finding disputes it or its sources, "
+                        "so it must keep the draft's sources: remove this added source from it. If a "
+                        "retained source now has no claim, rewrite the flagged claim to state what "
+                        "that source establishes rather than attaching the source to other text."
+                    ),
+                })
+    return errors
 
 
 def draft_sentence_errors(
@@ -369,7 +425,7 @@ def draft_sentence_errors(
                 "A review finding names this sentence, and no sentence it names was repaired: "
                 "this one came back unchanged with the same sources. Repair at least one of "
                 "them: rewrite the sentence to state only what the source establishes, delete "
-                "it, or change the sentence's source mapping."
+                "it, or change a source mapping the finding disputes."
             ),
         })
     return errors
