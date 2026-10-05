@@ -250,22 +250,73 @@ def draft_sentences_for_revision(
             finding_indexes=findings,
             source_mappings=_sentence_mappings(candidate, start, end),
         ))
-    return tuple(sentences)
+    return label_sentences(candidate, tuple(sentences))
+
+
+def _label_units(reply: str) -> list[list[int]]:
+    """Runs of sentence indexes joined by a quotation the splitter cut; every other sentence alone."""
+    from src.linger.agents.provenance.quotation_audit import quoted_response_spans
+
+    spans = _sentence_spans(reply)
+    quotes = [(quote.start, quote.end) for quote in quoted_response_spans(reply)]
+    units: list[list[int]] = []
+    for index, (start, _) in enumerate(spans):
+        if index and any(a < spans[index - 1][1] and start < b for a, b in quotes):
+            units[-1].append(index)
+        else:
+            units.append([index])
+    return units
+
+
+def label_sentences(
+    candidate: MuseCandidate, sentences: tuple[DraftSentence, ...],
+) -> tuple[DraftSentence, ...]:
+    """Label each unit of unflagged sentences whose text and declarations the revision can carry whole."""
+    spans = _sentence_spans(candidate.reply)
+    labels: dict[int, str] = {}
+    for unit in _label_units(candidate.reply):
+        start, end = spans[unit[0]][0], spans[unit[-1]][1]
+        if any(sentences[i].flagged or sentences[i].needs_source for i in unit):
+            continue
+        if not _carried_without_loss(candidate, start, end):
+            continue
+        labels.update((i, f"{{{{SENTENCE_{unit[0] + 1}}}}}") for i in unit)
+    return tuple(sentence.model_copy(update={"label": labels.get(i)}) for i, sentence in enumerate(sentences))
+
+
+def _carried_without_loss(candidate: MuseCandidate, start: int, end: int) -> bool:
+    """Every limit and quote touching the unit lies inside it, beside a supported claim of the same source."""
+    reply = candidate.reply
+    for use in candidate.evidence_uses:
+        quote = getattr(use, "exact_quote", None)
+        touching = [found for text in (*limit_claim_texts(use), *((quote,) if quote else ()))
+                    for found in _occurrences(reply, text) if _overlaps(start, end, [found])]
+        if not touching:
+            continue
+        if any(a < start or end < b for a, b in touching):
+            return False
+        if not any(_WORD.search(reply[max(a, start):min(b, end)])
+                   for claim in use.supported_claims for a, b in _occurrences(reply, claim)
+                   if _overlaps(start, end, [(a, b)])):
+            return False
+    return True
 
 
 def _sentence_mappings(candidate: MuseCandidate, start: int, end: int) -> tuple[SentenceMapping, ...]:
-    """Each declaration whose mapped text overlaps the sentence span."""
+    """Each declared text that overlaps the sentence span, with its declaration and field."""
     reply = candidate.reply
-    mappings: dict[tuple[str, str, str], SentenceMapping] = {}
-    for use in candidate.evidence_uses:
+    mappings = []
+    for index, use in enumerate(candidate.evidence_uses):
         source = use.quote if use.source_kind == "session_line" else use.evidence_id
         quote = getattr(use, "exact_quote", None)
-        for text in (*use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ())):
-            if _overlaps(start, end, _occurrences(reply, text)):
-                mappings[(use.source_kind, source, text)] = SentenceMapping(
-                    source_kind=use.source_kind, evidence_id=source, mapped_text=text,
-                )
-    return tuple(mappings.values())
+        for field, texts in (("supported_claims", use.supported_claims), ("limit_claims", limit_claim_texts(use)),
+                             ("exact_quote", (quote,) if quote else ())):
+            mappings += [
+                SentenceMapping(source_kind=use.source_kind, evidence_id=source, mapped_text=text,
+                                declaration_index=index, field=field)
+                for text in texts if _overlaps(start, end, _occurrences(reply, text))
+            ]
+    return tuple(mappings)
 
 
 def _mapping_keys(mappings: tuple[SentenceMapping, ...]) -> set[tuple[str, str, str]]:

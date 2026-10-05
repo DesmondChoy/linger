@@ -15,10 +15,12 @@ upstream of it held fixed:
 - Muse then revises once on `LINGER_MODEL`, with the production revision
   envelope, message history, tool exposure, run options, and output
   validators (`validate_muse_output` reads the revision envelope).
-- The revised candidate is graded deterministically against rule-derived
-  expectations. Output retries are counted and classified, and exhausted
-  retries (`UnexpectedModelBehavior`, a safe decline in production) are
-  reported separately from provider errors.
+- The revised candidate, after its sentence labels are expanded, is graded
+  deterministically against rule-derived expectations. Each run also records
+  label use and `raw_outputs`, every attempt as the model wrote it. Output
+  retries are counted and classified, and exhausted retries
+  (`UnexpectedModelBehavior`, a safe decline in production) are reported
+  separately from provider errors.
 
 The revision run sends `reflection_run_options(revision=True, ...)`, so the
 model sees the modules production would load for the case's offered tools.
@@ -267,7 +269,9 @@ def _sentence_spans(text: str) -> list[tuple[int, int]]:
 
 def draft_sentences(case: RevisionCase):
     """Production placement (`draft_sentences_for_revision`) for the fixture's findings."""
-    from src.linger.agents.muse.claim_repair import _finding_intervals, _overlaps, _sentence_mappings
+    from src.linger.agents.muse.claim_repair import (
+        _finding_intervals, _overlaps, _sentence_mappings, label_sentences,
+    )
     from src.linger.agents.muse.models import DraftSentence
 
     draft = _candidate(case.draft)
@@ -286,7 +290,7 @@ def draft_sentences(case: RevisionCase):
             finding_indexes=named,
             source_mappings=_sentence_mappings(draft, start, end),
         ))
-    return tuple(sentences)
+    return label_sentences(draft, tuple(sentences))
 
 
 def findings(case: RevisionCase):
@@ -586,7 +590,9 @@ def retry_categories(messages: list[ModelMessage]) -> list[list[str]]:
             categories = []
             for error in errors:
                 text, path = str(error.get("error", "")), str(error.get("path", ""))
-                category = next((name for marker, name in _RETRY_CATEGORIES if marker in text), None)
+                # Label expansion errors name their own kind.
+                category = error.get("label_error") or next(
+                    (name for marker, name in _RETRY_CATEGORIES if marker in text), None)
                 if category is None:
                     category = "exact_quote" if "exact_quote" in path else (
                         "evidence_id" if "evidence_id" in path or "source_location" in path else "other"
@@ -594,6 +600,51 @@ def retry_categories(messages: list[ModelMessage]) -> list[list[str]]:
                 categories.append(category)
             attempts.append(categories or ["other"])
     return attempts
+
+
+def raw_outputs(messages: list[ModelMessage]) -> list[dict[str, Any]]:
+    """Each output attempt as the model wrote it, sentence labels unexpanded."""
+    return [
+        part.args_as_dict() for message in messages for part in getattr(message, "parts", ())
+        if isinstance(part, ToolCallPart) and part.tool_name == "final_result"
+    ]
+
+
+def label_use(case: RevisionCase, messages: list[ModelMessage], output) -> dict[str, Any]:
+    """How the accepted output call kept the draft's labelled sentences."""
+    from src.linger.agents.muse.labels import accepted_output_call
+    from src.linger.agents.muse.models import LABEL_TRACE
+
+    units: dict[str, list[str]] = {}
+    for sentence in draft_sentences(case):
+        if sentence.label:
+            units.setdefault(sentence.label, []).append(_normalized(sentence.text))
+    raw = accepted_output_call(messages).args_as_dict()
+    reply = str(raw.get("reply", ""))
+    used = [label for label in units if label in reply]
+    revised = {_normalized(output.reply[start:end]) for start, end in _sentence_spans(output.reply)}
+    return {
+        "labels_available": len(units),
+        "labels_used": len(used),
+        "labelled_retyped": sum(label not in used and set(texts) <= revised for label, texts in units.items()),
+        # Expansion changed the reply text or label text inside the declarations.
+        "expansion_changed": reply != output.reply or bool(
+            LABEL_TRACE.search(json.dumps(raw.get("evidence_uses"), ensure_ascii=False))),
+    }
+
+
+def label_annotated_errors(messages: list[ModelMessage]) -> int:
+    """Retry errors that name the label behind the text they concern."""
+    count = 0
+    for message in messages:
+        for part in getattr(message, "parts", ()):
+            if isinstance(part, RetryPromptPart) and isinstance(part.content, str):
+                try:
+                    errors = json.loads(part.content).get("errors") or []
+                except (ValueError, AttributeError):
+                    continue
+                count += sum(bool(error.get("from_labels")) for error in errors)
+    return count
 
 
 def _tool_calls(messages: list[ModelMessage]) -> list[str]:
@@ -636,11 +687,14 @@ async def run_case(case: RevisionCase, model: Model) -> dict[str, Any]:
                     "retry_exhausted": True,
                     "retries": sum(isinstance(p, RetryPromptPart) for m in new for p in m.parts),
                     "retry_categories": retry_categories(new),
+                    "label_annotated_errors": label_annotated_errors(new),
+                    "raw_outputs": raw_outputs(new),
                     "seconds": round(perf_counter() - started, 2),
                 }
     finally:
         reset()
     new = result.new_messages()
+    # Grading reads the expanded candidate, as release does.
     grade = grade_revision(case, result.output)
     categories = retry_categories(new)
     return {
@@ -649,6 +703,9 @@ async def run_case(case: RevisionCase, model: Model) -> dict[str, Any]:
         **grade,
         "retries": len(categories),
         "retry_categories": categories,
+        **label_use(case, new, result.output),
+        "label_annotated_errors": label_annotated_errors(new),
+        "raw_outputs": raw_outputs(new),
         "tool_calls": _tool_calls(new),
         "modules": list(reflection_modules(revision=True, tools=case.exposed_tools)),
         "instructions_sha256": hashlib.sha256(options["instructions"].encode("utf-8")).hexdigest(),
@@ -699,6 +756,10 @@ async def measure(
     return {
         "target": "current",
         "model": model.model_name,
+        "labels": {
+            key: sum(call.get(key, 0) for call in answered)
+            for key in ("labels_available", "labels_used", "labelled_retyped", "expansion_changed")
+        } | {"label_annotated_errors": sum(call.get("label_annotated_errors", 0) for call in calls)},
         "prompt": REVISION_PROMPT_FINGERPRINT.model_dump(mode="json"),
         "runs": runs,
         "cases": len(selected),

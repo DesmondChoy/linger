@@ -87,7 +87,12 @@ its registered output validator. Muse's candidate checks run in its
 `MuseSkillBoundary` capability, which applies `validate_muse_output` to every
 `MuseCandidate` and limits each run to the selected skill's tools, because a
 registered validator would forbid the `TurnNeeds` contract that turn triage
-selects per run. `build_triage_model` selects the triage model from the
+selects per run. In a revision the boundary first expands sentence labels in the
+raw output, before schema validation. `MuseCandidate` itself rejects the label
+stem (`SENTENCE_` followed by a number) and any `{{`/`}}` wrapper, including
+fullwidth and HTML-entity forms, in its reply, claims, quotes and memory text, in
+every mode, so a mangled label is a retry rather than released text. Other
+invented markers that use neither are not detected. `build_triage_model` selects the triage model from the
 `LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
 and the configured model for Anthropic. Serendipity's fixed schema covers all three of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
@@ -207,7 +212,13 @@ whose context remains bounded by the original turn's authority. The stable
 quotation copies, and missing visible links for declared public sources before
 application review. The revision input marks the draft sentences that each
 response finding names. Muse can rewrite those sentences and delete sentences;
-it preserves the wording of unflagged sentences it retains. Source-dependent
+it preserves the wording of unflagged sentences it retains. Each unflagged unit
+that can be carried losslessly has a label such as `{{SENTENCE_2}}`: Muse keeps
+it by copying the label, and the application inserts the draft text and its
+draft declarations, shaped as a typed revision would declare them. The draft is
+the output call pydantic-ai accepted in the revision's message history; if that
+call cannot be identified, or does not rebuild the listed sentences and
+mappings exactly, no label is usable. Source-dependent
 sentences require complete source mappings or deletion. If a finding cannot be
 located, the application omits the sentence restrictions. The second review
 still checks the complete reply within the original evidence authority. Muse
