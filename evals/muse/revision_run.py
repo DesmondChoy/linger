@@ -266,23 +266,26 @@ def _sentence_spans(text: str) -> list[tuple[int, int]]:
 
 def draft_sentences(case: RevisionCase):
     """Production placement (`draft_sentences_for_revision`) for the fixture's findings."""
-    from src.linger.agents.muse.claim_repair import _finding_intervals, _overlaps
+    from src.linger.agents.muse.claim_repair import _finding_intervals, _overlaps, _sentence_mappings
     from src.linger.agents.muse.models import DraftSentence
 
     draft = _candidate(case.draft)
-    flagged: list[tuple[int, int]] = []
+    placed: list[list[tuple[int, int]]] = []
     for finding in findings(case):
         intervals = _finding_intervals(finding.location, draft)
         if intervals is None:
             raise ValueError(f"{case.case_id}: a finding cannot be placed; production would send no sentences")
-        flagged.extend(intervals)
-    return tuple(
-        DraftSentence(
-            text=draft.reply[start:end], flagged=_overlaps(start, end, flagged),
+        placed.append(intervals)
+    sentences = []
+    for index, (start, end) in enumerate(_sentence_spans(draft.reply)):
+        named = tuple(i for i, intervals in enumerate(placed) if _overlaps(start, end, intervals))
+        sentences.append(DraftSentence(
+            text=draft.reply[start:end], flagged=bool(named),
             needs_source=index in case.review.needs_source_sentences,
-        )
-        for index, (start, end) in enumerate(_sentence_spans(draft.reply))
-    )
+            finding_indexes=named,
+            source_mappings=_sentence_mappings(draft, start, end) if named else (),
+        ))
+    return tuple(sentences)
 
 
 def findings(case: RevisionCase):
@@ -545,6 +548,7 @@ def _declaration_matches(use, wanted: DeclarationExpectation) -> bool:
 # Output-validation feedback, by the rule each error enforces.
 _RETRY_CATEGORIES = (
     ("rewrites a draft sentence that no finding names", "unflagged_rewrite"),
+    ("no sentence it names was repaired", "unaddressed_finding"),
     ("new sentence is not beside", "misplaced_new_sentence"),
     ("unmapped content source-dependent", "needs_source_unmapped"),
     ("no longer declares it", "retained_source_dropped"),

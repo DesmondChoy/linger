@@ -180,6 +180,15 @@ class RetainedSource(StrictModel):
     evidence_id: str = Field(min_length=1, max_length=2_000)
 
 
+class SentenceMapping(StrictModel):
+    """One draft declaration whose mapped text falls in a flagged sentence."""
+
+    source_kind: Literal["book_corpus", "memory", "web", "session_line"]
+    # The reader's quoted line identifies a session_line source.
+    evidence_id: str = Field(min_length=1, max_length=2_000)
+    mapped_text: str = Field(min_length=1, max_length=20_000)
+
+
 class DraftSentence(StrictModel):
     """One sentence of the reviewed draft and what the single revision may do with it."""
 
@@ -187,6 +196,14 @@ class DraftSentence(StrictModel):
     flagged: bool = Field(description="A review finding names this sentence, so the revision may rewrite it.")
     needs_source: bool = Field(
         description="The review judged unmapped content here source-dependent: map it or delete it.",
+    )
+    finding_indexes: tuple[int, ...] = Field(
+        default=(),
+        description="The review findings that name this sentence; each must change at least one sentence it names.",
+    )
+    source_mappings: tuple[SentenceMapping, ...] = Field(
+        default=(),
+        description="A flagged sentence's draft mappings; returned word for word with these, it is unchanged.",
     )
 
 

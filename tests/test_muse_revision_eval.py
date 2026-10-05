@@ -193,6 +193,19 @@ def test_retry_categories_mark_schema_errors():
     assert retry_categories([message]) == [["schema"]]
 
 
+def test_retry_categories_name_an_unaddressed_finding(bound):
+    from pydantic_ai import ModelRetry
+    from pydantic_ai.messages import ModelRequest, RetryPromptPart
+
+    case = by_id("muse-revision-unflagged-repeat-v1")
+    bound(case)
+    context = SimpleNamespace(prompt=revision_input(case).model_dump_json())
+    with pytest.raises(ModelRetry) as caught:
+        validate_muse_output(context, MuseCandidate.model_validate(case.draft))
+    message = ModelRequest(parts=[RetryPromptPart(content=str(caught.value))])
+    assert "unaddressed_finding" in retry_categories([message])[0]
+
+
 def test_unknown_case_id_is_rejected():
     with pytest.raises(ValueError, match="unknown case"):
         revision_run.select_cases(CASES, ["muse-revision-missing-v1"])

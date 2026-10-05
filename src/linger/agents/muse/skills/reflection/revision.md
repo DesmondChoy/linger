@@ -4,11 +4,13 @@ and you also receive its messages and tool results. `draft_sentences` lists its
 sentences.
 - Rewrite only sentences marked `flagged`. Keep every other sentence word for
   word, or delete it: the final review has no revision left, so reworded
-  unflagged text can only be declined. Put any new sentence beside the flagged
-  sentence it repairs. Address every finding, apply each repair to every
-  instance of the defect, and delete (do not reword) an unflagged sentence that
-  repeats a flagged problem. When the list is empty, change only what the
-  findings require.
+  unflagged text can only be declined. Each finding must change at least one
+  sentence it names (`finding_indexes`): rewrite that sentence, delete it, or
+  change that sentence's draft `source_mappings`. Put any new sentence beside the flagged sentence it
+  repairs. Address every finding, apply each repair to every instance of the
+  defect, and delete (do not reword) an unflagged sentence that repeats a
+  flagged problem. When the list is empty, change only what the findings
+  require.
 - Map the complete substantive content of a sentence marked `needs_source` to
   its supporting sources, or delete it; rewording alone does not resolve it.
 - Preserve the reader's request and the existing evidence and policy
