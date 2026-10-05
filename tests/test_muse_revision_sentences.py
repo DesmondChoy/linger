@@ -454,3 +454,86 @@ def test_actual_muse_validator_returns_an_added_source_for_repair():
         assert validate_muse_output(context, repaired) is repaired
     finally:
         reset_turn_evidence(token)
+
+
+def kept_errors(draft_size, kept):
+    """The recorded shape: the clause removed, the kept wording also mapped to the other source."""
+    findings = review(quoted(CLAUSE)).response_findings
+    marks = draft_sentences_for_revision(identity_draft(draft_size), review(quoted(CLAUSE)), ())
+    revised = mapped(f"{IDENTITY} {kept} {QUESTION}", (ONE, (IDENTITY, kept)), (TWO, (kept,)))
+    return [(error["value"], error["evidence_id"]) for error in added_source_errors(revised, marks, findings)]
+
+
+WANTS = "Later, she says she dislikes changing so often and wants to be a little taller"
+
+
+@pytest.mark.parametrize("draft_size", [
+    f"{WANTS}—{CLAUSE}",
+    f"{WANTS} — {CLAUSE}",
+    f"Later, she says she “dislikes changing so often and wants to be a little taller” {CLAUSE}",
+    f"Later, she says she (dislikes changing so often and wants to be a little taller) {CLAUSE}",
+    f"Later, she says she dislikes changing so often and wants to be a little _taller_ {CLAUSE}",
+    f"{WANTS}\n{CLAUSE}",
+    f"{WANTS} {CLAUSE}",
+], ids=["em-dash", "spaced-em-dash", "closing-quote", "bracket", "emphasis", "newline", "space"])
+def test_kept_wording_is_recognised_whatever_followed_it_in_the_draft(draft_size):
+    assert kept_errors(draft_size, TALLER) == [(TALLER, ONE)]
+
+
+@pytest.mark.parametrize("kept", [
+    "later, she says she dislikes changing so often and wants to be a little taller.",
+    "Later, she says she dislikes changing so often and wants to be a bit taller.",
+    f"{WANTS} ([the passage](https://example.org/two)).",
+    f"{WANTS} than she is now.",
+], ids=["capitalisation", "one-changed-word", "markdown-link", "added-words"])
+def test_lightly_edited_kept_wording_is_still_kept_wording(kept):
+    assert kept_errors(SIZE, kept) == [(kept, ONE)]
+
+
+def test_mostly_new_claim_reusing_a_short_draft_phrase_is_new_wording():
+    assert kept_errors(SIZE, "Later, she says nothing at all about the mushroom.") == []
+
+
+def test_new_words_around_a_kept_run_below_the_share_threshold_are_new_wording():
+    new = ("Like many children in old stories, she dislikes changing so often and wants to be different, "
+           "and that restlessness drives the whole chapter onward.")
+    assert kept_errors(SIZE, new) == []
+
+
+def added_to(draft, location, revised):
+    marks = draft_sentences_for_revision(draft, review(location), ())
+    return [(error["value"], error["evidence_id"])
+            for error in added_source_errors(revised, marks, review(location).response_findings)]
+
+
+TEARS = "Alice cries a pool of tears and then shrinks to three inches tall in the hall."
+
+
+def test_joint_support_on_a_claim_a_short_quote_touches_passes():
+    draft = mapped(f"{TEARS} {QUESTION}", (ONE, (TEARS,)))
+    location = quoted("shrinks to three inches")
+    assert added_to(draft, location, mapped(f"{TEARS} {QUESTION}", (ONE, (TEARS,)), (TWO, (TEARS,)))) == []
+    tail = "and then shrinks to three inches tall in the hall."
+    assert added_to(draft, location, mapped(f"{TEARS} {QUESTION}", (ONE, (TEARS,)), (TWO, (tail,)))) == []
+
+
+def test_claim_entirely_inside_a_finding_quote_may_take_any_source():
+    inside = "She dislikes changing so often and wants to be a little taller."
+    location = quoted("dislikes changing so often and wants to be a little taller")
+    assert added_to(identity_draft(), location, mapped(f"{IDENTITY} {inside} {QUESTION}", (ONE, (IDENTITY, inside)))) == []
+
+
+def test_kept_wording_repeated_in_the_draft_may_keep_either_draft_source():
+    first = "First, she says she dislikes changing so often in one day."
+    again = "Again, she says she dislikes changing so often in one day, the Pigeon notes."
+    draft = mapped(f"{first} {again} {QUESTION}", (ONE, (first,)), (TWO, (again,)))
+    kept = "she says she dislikes changing so often in one day"
+    revised = mapped(f"{first} Again, {kept}. {QUESTION}", (ONE, (first,)), (TWO, (kept,)))
+    assert added_to(draft, quoted("the Pigeon notes"), revised) == []
+
+
+def test_short_kept_sentence_cannot_gain_a_source():
+    screams = "The Pigeon screams at Alice."
+    draft = mapped(f"{screams} {SIZE} {QUESTION}", (ONE, (screams,)), (TWO, (SIZE,)))
+    revised = mapped(f"{screams} {TALLER} {QUESTION}", (ONE, (screams,)), (TWO, (screams, TALLER)))
+    assert added_to(draft, quoted(CLAUSE), revised) == [(screams, TWO)]

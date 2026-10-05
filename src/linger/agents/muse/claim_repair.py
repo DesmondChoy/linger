@@ -169,6 +169,10 @@ _WORD = re.compile(r"\w+")
 _MAX_UNMAPPED_WORDS = 3
 # Word overlap at which a new sentence reads as a rewrite of a draft sentence.
 _REWRITE_SIMILARITY = 0.5
+# A claim is kept draft wording when one unbroken run of draft words is this long
+# and covers this share of the claim's words.
+_MIN_KEPT_RUN = 5
+_MIN_KEPT_SHARE = 0.7
 
 
 def _sentence_spans(text: str) -> list[tuple[int, int]]:
@@ -307,20 +311,25 @@ def added_source_errors(
             mapped.extend((a, b, (mapping.source_kind, mapping.evidence_id))
                           for a, b in _occurrences(draft, _normalized(mapping.mapped_text)))
         offset += len(text) + 1
+    # Draft words with their character spans; case, punctuation and link targets do not count.
+    spans = [match.span() for match in _WORD.finditer(_MARKDOWN_LINK.sub(lambda m: " " * len(m[0]), draft))]
+    words = [draft[a:b].lower().strip("_") for a, b in spans]
     errors = []
     for use in candidate.evidence_uses:
         source = (use.source_kind, use.quote if use.source_kind == "session_line" else use.evidence_id)
         for claim in use.supported_claims:
-            # A kept claim may end where the draft continued: "taller." for "taller, grounding…",
-            # but "asks." is not "asks who".
-            text = _normalized(claim)
-            stem = text.rstrip(" .,;:!?") or text
-            found = _occurrences(draft, text) or [
-                (a, b) for a, b in _occurrences(draft, stem) if draft[b:b + 1] in ("", *".,;:!?")
-            ]
+            claimed = [word.lower().strip("_") for word in _WORD.findall(_MARKDOWN_LINK.sub(" ", claim))]
+            run = SequenceMatcher(None, words, claimed, autojunk=False).find_longest_match(
+                0, len(words), 0, len(claimed))
+            if run.size < _MIN_KEPT_RUN or run.size < _MIN_KEPT_SHARE * len(claimed):
+                continue
+            # Every draft occurrence of the kept run counts.
+            run_words = words[run.a:run.a + run.size]
+            found = [(spans[i][0], spans[i + run.size - 1][1]) for i in range(len(words) - run.size + 1)
+                     if words[i:i + run.size] == run_words]
             if any(_overlaps(a, b, disputed) for a, b in found):
                 continue
-            # New wording, and draft wording the draft left unmapped, may cite any source.
+            # Draft wording the draft left unmapped may cite any source.
             before = {key for a, b, key in mapped if _overlaps(a, b, found)}
             if before and source not in before:
                 start = candidate.reply.find(claim)
