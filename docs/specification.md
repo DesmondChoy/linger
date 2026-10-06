@@ -69,10 +69,11 @@ The core journey is:
 | **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
-Automatic capture is disabled by default in the interactive POC. Controlled
-evaluation may enable it as server-side workflow state; every capture still
-requires a Muse nomination, no Provenance veto, and deterministic policy
-approval. Content about sensitive traits is never captured.
+Automatic capture is enabled by default for interactive accounts. Controlled
+evaluation sets capture explicitly as server-side workflow state, and a stored
+account policy outranks the default; every capture still requires a Muse
+nomination, no Provenance veto, and deterministic policy approval. Content
+about sensitive traits is never captured.
 
 ## 3. Prototype scope
 
@@ -465,13 +466,22 @@ It exposes the reader message, `MuseTurn` policy contract, context resolution,
 assembled Muse dynamic input, application-recorded agent statuses, direct
 Librarian grounding calls, fixed Serendipity decline metadata, the released
 response, the actual Provenance verdict path, release source, released book
-evidence identifiers, failure stage, capture outcome, and server-generated trace
+evidence identifiers, failure stage, capture outcome, the identifiers of the
+memory a turn saved and the memories its reply cited, and server-generated trace
 ID. For a failed stage, Inspect records whether the failure came from application
 code, a model call, or deterministic validation, and whether the failure is
 retryable. This diagnostic detail exists to debug request-scoped contracts and
 hand-offs; it is not end-user content. It does not expose Serendipity proposals,
 searches, web or private evidence payloads, rejected draft text, Provenance
-critiques, or memory content. Inspect metadata cannot authorize retrieval,
+critiques, or memory content, unless the server runs with the developer setting
+`LINGER_DEV_INSPECT=true`. That setting is for local development and demos only
+and must never be enabled for a deployment real readers use. It attaches the
+turn's full content trace to Inspect: each agent's input prompt, tool calls and
+results, and output; Serendipity's queries, search results, and ranked
+decision; and the text behind each memory identifier. The trace reuses the
+evaluation transcript hooks, which observe without changing agent behaviour, and
+it is not sent to telemetry. Without the setting, developers resolve memory
+identifiers to text on the server with `python -m apps.backend.show_memories`. Inspect metadata cannot authorize retrieval,
 release, capture, or storage, and its trace link follows the metadata-only backend
 telemetry contract in Section 8.1.
 
@@ -863,6 +873,27 @@ evidence. Explicit reader confirmation remains authoritative and skips
 inference for that request, and a routed inferred ceiling never widens or
 replaces a boundary the reader already confirmed this turn.
 
+**Saved reading progress.** When a released turn carries a chapter the reader
+explicitly declared or confirmed, application code saves that chapter for the
+account and work. The newest declaration replaces the saved value, including a
+lower chapter. Inferred ceilings, named-unit permissions, and exact-passage
+permissions are never saved. Saved progress never selects a work: it applies
+only after the current message names the work, the work is the session's
+active selection, or `librarian_route` identifies it. It then acts as a
+reader-confirmed boundary with the `saved_progress` authorization basis and
+skips boundary inference. A declaration in the current message outranks it,
+and a saved chapter that no longer fits the registered, permitted work is
+ignored. Trusted evaluation setup and replay do not read or write saved
+progress.
+
+When turn triage classifies a message as a connection request and the reader
+has confirmed two or more books (saved progress, plus any book confirmed this
+turn, which replaces that book's saved value), the application runs the turn
+as the unfocused source comparison described for `connection_book_scopes`:
+each book is granted at its own confirmed ceiling and no book is primary. A
+book the reader has not declared is never searched. Other turns keep the
+focused single-book path.
+
 Only a memory-supported clarification that explicitly asks about a candidate
 chapter may retain that chapter for a follow-up affirmation. A generic progress
 question clears any previous chapter candidate. Naming the book or saying the
@@ -913,7 +944,7 @@ claims and checks their semantic support.
 
 ### 6.3 Memory and media control
 
-- Automatic capture is disabled by default in the interactive POC and may be enabled only as controlled server-side evaluation state.
+- Automatic capture is enabled by default for interactive accounts. Controlled evaluation sets it explicitly as server-side state, and a stored account policy outranks the default.
 - Every committed capture produces a visible notice without exposing a management action.
 - Before a long capture-enabled evaluation conversation is compacted or closed, Muse may make one final memory nomination through the same Provenance review and deterministic capture path.
 - The interactive application exposes no explicit save, review, correction, or deletion controls.

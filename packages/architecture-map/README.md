@@ -46,8 +46,6 @@ through.
 - `scenarios.ts` — the component registry and every curated Objective route.
 - `catalog.json` — generated snapshot of catalog text and archived evaluation
   metadata, read from `synthetic-journal-evaluation/scenarios`.
-- `evaluations.json` and `evaluations.ts` — exported evaluation transcripts,
-  grades, and playback selection. Available playback depends on this snapshot.
 - `layout.ts` — places existing Scene nodes in labelled regions without changing
   their semantics.
 - `Graph.tsx`, `Icon.tsx`, `Inspector.tsx`, `ScenarioExplorer.tsx`, `map.css`.
@@ -62,10 +60,9 @@ pnpm --dir apps/evaluation-explorer test
 pnpm --dir apps/evaluation-explorer lint
 ```
 
-Refresh both data snapshots and check that they match the available source files:
+Refresh the catalog snapshot and check that it matches the available source files:
 
 ```sh
 pnpm --dir apps/evaluation-explorer refresh-data
 uv run python apps/evaluation-explorer/scripts/export_catalog.py --check
-uv run python apps/evaluation-explorer/scripts/export_evaluations.py --check
 ```

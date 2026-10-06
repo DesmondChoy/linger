@@ -1,4 +1,5 @@
-import type { ChatResult, ReleaseInspection, RiskCode, TurnRecord } from '../types'
+import type { CaptureInspection, ChatResult, ReleaseInspection, RiskCode, TurnRecord } from '../types'
+import { museTurnView } from './architecture/turnDetail'
 import { formatMachineLabel } from './formatMachineLabel'
 import { formatSeconds, toAgentSteps, toAgentTotals } from './progressSummary'
 
@@ -209,6 +210,54 @@ function ReviewFindings({ release }: { release: ReleaseInspection }) {
   )
 }
 
+function captureSummary(capture: CaptureInspection): string {
+  const reason = capture.reason_code ? ` (${formatMachineLabel(capture.reason_code)})` : ''
+  if (capture.storage === 'committed') {
+    return capture.reason_code === 'idempotent_replay'
+      ? 'This memory was already saved by an earlier attempt of the same turn.'
+      : 'Muse proposed a memory, Provenance allowed it, and policy saved it.'
+  }
+  if (capture.nomination === 'no_candidate') return 'Muse did not propose anything to remember.'
+  if (capture.nomination === 'unavailable') return 'No memory proposal was available for this turn.'
+  if (capture.provenance_decision === 'reject_capture') return 'Muse proposed a memory; Provenance vetoed it.'
+  if (capture.storage === 'suppressed') return `Muse proposed a memory; saving was suppressed${reason}.`
+  if (capture.storage === 'refused') return `Muse proposed a memory; policy refused it${reason}.`
+  return `No memory was saved${reason}.`
+}
+
+function MemoryActivity({ turn }: { turn: TurnRecord }) {
+  const memory = turn.inspection.memory
+  const capture = turn.inspection.release?.capture
+  if (!memory && !capture) return null
+  const ids = [
+    ...(memory?.captured_memory_id ? [{ label: 'Saved this turn', id: memory.captured_memory_id }] : []),
+    ...(memory?.cited_memory_ids ?? []).map((id) => ({ label: 'Used in the reply', id })),
+  ]
+  return (
+    <section className="memory-activity">
+      <h4>Memory</h4>
+      {capture && <p>{captureSummary(capture)}</p>}
+      {ids.length > 0 && (
+        <ul className="memory-ids">
+          {ids.map((item) => (
+            <li key={`${item.label}-${item.id}`}>
+              <b>{item.label}</b>
+              {memory?.texts?.[item.id] && <blockquote>{memory.texts[item.id]}</blockquote>}
+              <code>{item.id}</code>
+            </li>
+          ))}
+        </ul>
+      )}
+      {memory && !turn.replayed && (
+        <p className="muted">
+          {memory.active_count === 1 ? '1 saved memory was' : `${memory.active_count} saved memories were`} available to this turn.
+          {ids.length > 0 && !memory.texts && <> Memory text appears here when the server runs with <code>LINGER_DEV_INSPECT=true</code>, or read it with <code>uv run python -m apps.backend.show_memories &lt;username&gt; &lt;id&gt;</code>.</>}
+        </p>
+      )}
+    </section>
+  )
+}
+
 function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
   const decline = turn.inspection.connection_decline
   if (!decline) return null
@@ -222,6 +271,143 @@ function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
   )
 }
 
+const ASSESSMENT_LABELS: Record<string, string> = {
+  credible_pass: 'Credible pass',
+  pass_with_limitations: 'Pass with limitations',
+  potential_false_positive: 'Possible false pass',
+  supported_failure: 'Real failure',
+  potential_false_negative: 'Possible false failure',
+  inconclusive: 'Inconclusive',
+  not_exercised: 'Not exercised',
+}
+
+/** A recorded Scene's adopted answer key beside its result; replayed runs only. */
+function AnswerKey({ grading }: { grading: NonNullable<TurnRecord['grading']> }) {
+  return (
+    <section className={`answer-key is-${grading.status}`}>
+      <h4>Answer key <span className={`answer-status is-${grading.status}`}>{grading.status}</span></h4>
+      <p className="muted">Written and adopted by a person before the run; the system never saw it.</p>
+      {grading.expected.length > 0 && (
+        <ul className="key-list">
+          {grading.expected.map((text) => <li key={text}><b>must</b><span>{text}</span></li>)}
+          {grading.prohibited.map((text) => <li key={text}><b className="prohibited">must not</b><span>{text}</span></li>)}
+        </ul>
+      )}
+      {grading.executionFailures.length > 0 && (
+        <p className="answer-execution">
+          Execution fault, not a behaviour result: {grading.executionFailures.join('; ')}.
+        </p>
+      )}
+      {grading.failures.length > 0 && (
+        <p className="muted">Failed checks: {grading.failures.map(formatMachineLabel).join(', ')}.</p>
+      )}
+      {grading.assessment && (
+        <div className="answer-review">
+          <p className="eyebrow">Reviewer's assessment · {ASSESSMENT_LABELS[grading.assessment] ?? formatMachineLabel(grading.assessment)}</p>
+          {grading.analysis && <p>{grading.analysis}</p>}
+        </div>
+      )}
+    </section>
+  )
+}
+
+/** The plain-language record of one turn: what happened, not the raw contracts. */
+function TurnOutcome({ turn }: { turn: TurnRecord }) {
+  return (
+    <>
+      {turn.grading && <AnswerKey grading={turn.grading} />}
+      <section>
+        <h4>What Linger knew</h4>
+        <p>{turn.inspection.context_resolution.explanation}</p>
+      </section>
+
+      <AgentTiming turn={turn} />
+      <section>
+        <h4>Agents and decisions</h4>
+        <p>{decisionSummary(turn)}</p>
+        {turn.inspection.traces.length > 0 && (
+          <ul className="agent-traces">
+            {turn.inspection.traces.map((trace, traceIndex) => (
+              <li key={`${trace.agent}-${traceIndex}`}>
+                <b>{trace.agent}</b><span className={`trace-status ${trace.status}`}>{formatMachineLabel(trace.status)}</span><span>{trace.detail}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <ConnectionDeclineDecision turn={turn} />
+      {turn.inspection.release && (
+        <section>
+          <h4>Release decision</h4>
+          <p>{releaseDecisionSummary(turn)}</p>
+          {turn.inspection.release.failure_stage && <p className="muted">Failure stage: {formatMachineLabel(turn.inspection.release.failure_stage)}</p>}
+          <ReviewFindings release={turn.inspection.release} />
+        </section>
+      )}
+      <MemoryActivity turn={turn} />
+    </>
+  )
+}
+
+/** Pretty-print a JSON string so it reads as lines, not one long row. */
+function readableJson(text: string): string {
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2)
+  } catch {
+    return text
+  }
+}
+
+/** The exact contracts behind one turn, for the full view. */
+function TurnContracts({ turn }: { turn: TurnRecord }) {
+  return (
+    <>
+      <details className="raw-detail">
+        <summary>View MuseTurn contract</summary>
+        <pre>{JSON.stringify(museTurnView(turn), null, 2)}</pre>
+      </details>
+      <details className="raw-detail">
+        <summary>View context resolution: Router → MuseTurn</summary>
+        <pre>{JSON.stringify(turn.inspection.context_resolution, null, 2)}</pre>
+      </details>
+      <details className="raw-detail">
+        <summary>View assembled Muse dynamic input</summary>
+        <p className="muted">This request-scoped JSON contract is passed to Muse only when the preflight allows reflection to continue.</p>
+        <pre>{readableJson(turn.inspection.prompt)}</pre>
+      </details>
+      {turn.inspection.librarian_grounding.length > 0 && (
+        <details className="raw-detail">
+          <summary>View direct grounding calls: Muse → Librarian</summary>
+          <p className="muted">
+            Routine book grounding Muse requested outside connection discovery.
+          </p>
+          <pre>{JSON.stringify(turn.inspection.librarian_grounding, null, 2)}</pre>
+        </details>
+      )}
+    </>
+  )
+}
+
+/** One turn under the map: its outcome only, so it never reads as the whole history. */
+export function TurnSummary({ turn, position }: { turn: TurnRecord; position: number }) {
+  return (
+    <section className="turn-summary" aria-label="This turn">
+      <p className="eyebrow">Reader message {String(position + 1).padStart(2, '0')}</p>
+      <h3>{turn.inspection.muse_turn.user_message}</h3>
+      <p className="muted">
+        {turn.grading?.offline
+          ? 'Offline curation task · no reader message, nothing released'
+          // A replayed turn states only what its run recorded, not live policy wording.
+          : `${turn.replayed ? turn.inspection.context_resolution.explanation : boundarySummary(turn)} · ${releaseLabel(turn)}`}
+      </p>
+      <div className="event-details">
+        <TurnOutcome turn={turn} />
+      </div>
+    </section>
+  )
+}
+
+/** Every turn with its outcome and exact contracts: the full view. */
 export function Inspector({ timeline, selectedTurnId, onSelectTurn }: Props) {
   return (
     <section className="inspector" aria-label="Agent activity inspector">
@@ -257,59 +443,8 @@ export function Inspector({ timeline, selectedTurnId, onSelectTurn }: Props) {
 
                   <div className="event-details">
                     <TraceLink turn={turn} />
-                    <section>
-                      <h4>What Linger knew</h4>
-                      <p>{turn.inspection.context_resolution.explanation}</p>
-                    </section>
-
-                    <AgentTiming turn={turn} />
-                    <section>
-                      <h4>Agents and decisions</h4>
-                      <p>{decisionSummary(turn)}</p>
-                      {turn.inspection.traces.length > 0 && (
-                        <ul className="agent-traces">
-                          {turn.inspection.traces.map((trace, traceIndex) => (
-                            <li key={`${trace.agent}-${traceIndex}`}>
-                              <b>{trace.agent}</b><span className={`trace-status ${trace.status}`}>{formatMachineLabel(trace.status)}</span><span>{trace.detail}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </section>
-
-                    <details className="raw-detail">
-                      <summary>View MuseTurn contract</summary>
-                      <pre>{JSON.stringify(turn.inspection.muse_turn, null, 2)}</pre>
-                    </details>
-                    <details className="raw-detail">
-                      <summary>View context resolution: Router → MuseTurn</summary>
-                      <pre>{JSON.stringify(turn.inspection.context_resolution, null, 2)}</pre>
-                    </details>
-                    <details className="raw-detail">
-                      <summary>View assembled Muse dynamic input</summary>
-                      <p className="muted">This request-scoped JSON contract is passed to Muse only when the preflight allows reflection to continue.</p>
-                      <pre>{turn.inspection.prompt}</pre>
-                    </details>
-                    {turn.inspection.librarian_grounding.length > 0 && (
-                      <details className="raw-detail">
-                        <summary>View direct grounding calls: Muse → Librarian</summary>
-                        <p className="muted">
-                          Routine book grounding Muse requested outside connection discovery.
-                        </p>
-                        <pre>{JSON.stringify(turn.inspection.librarian_grounding, null, 2)}</pre>
-                      </details>
-                    )}
-                    <ConnectionDeclineDecision turn={turn} />
-                    {turn.inspection.release && (
-                      <section>
-                        <h4>Release decision</h4>
-                        <p>
-                          {releaseDecisionSummary(turn)}
-                        </p>
-                        {turn.inspection.release.failure_stage && <p className="muted">Failure stage: {formatMachineLabel(turn.inspection.release.failure_stage)}</p>}
-                        <ReviewFindings release={turn.inspection.release} />
-                      </section>
-                    )}
+                    <TurnOutcome turn={turn} />
+                    <TurnContracts turn={turn} />
                     <section>
                       <h4>Response released to the reader</h4>
                       <p className="response-text">{turn.reply}</p>

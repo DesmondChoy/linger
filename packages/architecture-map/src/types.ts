@@ -57,6 +57,8 @@ export interface Scene {
   nodes: GraphNode[]
   edges: GraphEdge[]
   steps: [WalkthroughStep, ...WalkthroughStep[]]
+  /** `compact` wraps the conversation onto two rows for a narrow side panel. */
+  layout?: 'compact'
 }
 
 export interface ObjectiveScenes {

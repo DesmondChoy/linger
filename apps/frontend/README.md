@@ -38,19 +38,27 @@ the review path, and whether the candidate was corrected or withheld.
 The local diagnostics can contain request content. Progress events and
 operational telemetry contain metadata only.
 
-## Saved evaluations
+## Synthetic personas
 
-**Open a saved evaluation** displays recorded synthetic runs in the analysis
-panel. Select a scenario, a run, and a Scene to inspect the fixed reader
-message, seeded memories, recorded route, answer-key expectations, objective
-results, and recorded reply. Run choices carry their model and build details.
-**Back to chat** returns to the live map.
+**Replay a persona** (on the start page, or **Replay a synthetic persona** in the
+chat tray) opens recorded synthetic evaluation runs without signing in. Personas
+are grouped by the objective catalog's menu families. Opening one replays its
+latest run in the same chat feed, compact map, turn summary, popups, and
+**All turns and contracts** view as a live conversation. Each Scene's
+person-adopted answer key, its recorded result, and the completed analysis
+review's assessment appear in the turn summary. Offline curation Scenes appear
+as labelled tasks. Anything a run did not record shows as "Not recorded in this
+run" (for example, the MuseTurn policy of an offline curation task, where Muse
+never drafted). The replay is read-only: it neither starts an evaluation nor calls a model.
 
-Playback reads the generated
-[`evaluations.json`](../../packages/architecture-map/src/evaluations.json)
-snapshot. It neither starts an evaluation nor calls a model. The separate
-[evaluation explorer](../evaluation-explorer/README.md) explains expected
-architecture and documents the shared snapshot commands.
+Playback reads [`src/replay/personas/`](src/replay/personas): a small `index.json`
+for the gallery and one file per persona, loaded only when that persona opens. Regenerate it after new runs from the repository root, and check it is
+current:
+
+```sh
+uv run python apps/frontend/scripts/export_personas.py
+uv run python apps/frontend/scripts/export_personas.py --check
+```
 
 ## Library
 
