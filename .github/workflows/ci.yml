@@ -49,7 +49,7 @@ jobs:
       - name: Run pytest
         env:
           FASTEMBED_CACHE_PATH: ${{ runner.temp }}/fastembed
-        run: uv run pytest
+        run: uv run pytest --durations=25 --durations-min=1.0
 
   frontend-tests:
     name: Frontend tests (vitest)
