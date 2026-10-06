@@ -35,7 +35,7 @@ from src.linger.contracts.curation import (
     CurationVerification,
     canonical_digest,
 )
-from src.linger.contracts.privacy import contains_personal_data_or_secret
+from src.linger.contracts.security_validation import validate_storage_text
 
 CaptureType = Literal["automatic"]
 
@@ -171,11 +171,12 @@ class MemoryPolicyService:
                 raise MemoryPolicyError("upstream_review_rejected_capture")
             if candidate.contains_sensitive_content:
                 raise MemoryPolicyError("sensitive_content_not_allowed")
-            if contains_personal_data_or_secret(candidate.text):
-                raise MemoryPolicyError("personal_data_or_secret_not_allowed")
+            validation = validate_storage_text(candidate.text)
+            if validation.blocked:
+                raise MemoryPolicyError("credential_not_allowed")
             return self._save(
                 context,
-                text=candidate.text,
+                text=validation.text,
                 source_event_id=candidate.source_event_id,
                 evidence_ids=candidate.evidence_ids,
             )
@@ -217,10 +218,14 @@ class MemoryPolicyService:
         with self._lock:
             self._validate_approved_sources(context, approved)
             curated = _curated_text(approved.plan.proposal.action)
-            if curated is not None and contains_personal_data_or_secret(curated):
-                raise CurationPolicyError(
-                    "curation_personal_data_or_secret_not_allowed"
-                )
+            if curated is not None:
+                validation = validate_storage_text(curated)
+                if validation.blocked:
+                    raise CurationPolicyError("curation_credential_not_allowed")
+                if validation.text != curated:
+                    # The proposal digest and Provenance review bind the
+                    # pre-redaction text. Require a fresh, redacted review.
+                    raise CurationPolicyError("curation_privacy_review_required")
             curation_dir = self._ensure_curation_dir(context)
             current_events = self._curation_events(context)
             event_id = f"cur_{approved.plan.digest}"

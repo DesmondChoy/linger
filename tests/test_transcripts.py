@@ -1,4 +1,6 @@
+import json
 import threading
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
@@ -26,6 +28,25 @@ def test_round_trip_preserves_turn_order(store: TranscriptStore) -> None:
     assert turns[1].user_message == "question 1"
     assert turns[1].assistant_message == "answer 1"
     assert turns[0].created_at.endswith("+00:00")
+
+
+def test_new_transcript_turn_redacts_personal_data_in_all_text_fields(
+    store: TranscriptStore,
+) -> None:
+    email = "alice.person@example.com"
+    store.append_turn(
+        "alice",
+        "pii-session",
+        "pii-turn",
+        f"Contact {email}",
+        f"I noted {email}",
+        details={"reader_context": [f"Context {email}"]},
+    )
+
+    turn = store.load("alice", "pii-session")[0]
+    payload = json.dumps(asdict(turn), default=str)
+    assert email not in payload
+    assert "[EMAIL_" in payload
 
 
 def test_list_sessions_newest_first_with_preview(store: TranscriptStore) -> None:

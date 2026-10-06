@@ -183,6 +183,27 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertRegex(caught.exception.trace.trace_id, r"^[0-9a-f]{32}$")
 
+    async def test_credential_request_blocks_before_agent_review_and_storage(self) -> None:
+        credential = "sk-proj-1234567890123456789012345678901234567890"
+        gate = AsyncMock()
+        request = ChatRequest(
+            session_id=self.session_id,
+            message=f"Use this token: {credential}",
+        )
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await chat_turn.run_chat_turn(
+                request,
+                self.memory_service,
+                self.memory_context,
+            )
+
+        gate.assert_not_awaited()
+        self.assertNotIn(credential, response.reply)
+        self.assertNotIn(credential, json.dumps(response.model_dump(mode="json")))
+        self.assertEqual([], sessions.history(self.session_id))
+        self.assertEqual("security_validation_blocked", response.inspection.release.capture.reason_code)
+
     async def test_success_stores_only_released_turn(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="Hello")
         gate = AsyncMock(return_value=ReflectionRelease(

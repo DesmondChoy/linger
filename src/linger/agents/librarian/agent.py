@@ -9,6 +9,7 @@ from pydantic_ai.models import Model
 from pydantic_ai.output import OutputContext
 
 from src.linger.agents.build import build_model
+from src.linger.agents.security import ProviderRequestPrivacyGuard
 from src.linger.agents.librarian.models import (
     BookEvidenceAssessment,
     BookRequestPlan,
@@ -205,6 +206,7 @@ def build_librarian_agent(model: Model | None = None) -> Agent[None, str]:
         capabilities=[
             BookRequestSpanValidation(), BoundaryMemoryValidation(),
             EventIdentificationValidation(), EvidenceAssessmentValidation(),
+            ProviderRequestPrivacyGuard(),
         ],
     )
 

@@ -108,30 +108,55 @@ class MemoryPolicyServiceTests(unittest.TestCase):
         self.assertTrue(saved.created)
         self.assertEqual([saved.record], self.service.list_active(self.alice))
 
-    def test_automatic_capture_vetoes_shaped_personal_data_or_secrets(self) -> None:
+    def test_automatic_capture_redacts_pii_and_blocks_credentials(self) -> None:
         self.service.set_capture_enabled(self.alice, True)
-        for index, text in enumerate((
-            "Reach me at jane.doe@example.com if you want to talk.",
-            "My SSN is 123-45-6789 just so you know.",
-            "Here's my key: sk-ant-abcdefghijklmnopqrstuvwx1234",
-            "Ring me on +44 20 7946 0958 once you finish it.",
-            "My number is 415-555-0132 if you want to talk it over.",
-            "She left a card reading (415) 555-0132 inside the cover.",
-            "Text +1-800-273-8255 when the ending lands badly.",
-        )):
+        pii_cases = (
+            (
+                "Reach me at jane.doe@example.com if you want to talk.",
+                "Reach me at [EMAIL_1] if you want to talk.",
+            ),
+            (
+                "My SSN is 123-45-6789 just so you know.",
+                "My SSN is [SSN_1] just so you know.",
+            ),
+            (
+                "Ring me on +44 20 7946 0958 once you finish it.",
+                "Ring me on [PHONE_1] once you finish it.",
+            ),
+        )
+        for index, (text, expected) in enumerate(pii_cases):
             with self.subTest(text=text):
+                saved = self.service.save_automatic(
+                    self.alice,
+                    candidate(text, f"pii-{index}"),
+                )
+                self.assertEqual(expected, saved.record.text)
+
+        for index, text in enumerate((
+            "Here's my key: sk-ant-abcdefghijklmnopqrstuvwx1234",
+            "Here's my key: sk-proj-1234567890123456789012345678901234567890",
+        )):
+            with self.subTest(credential_case=index):
                 with self.assertRaises(MemoryPolicyError) as caught:
                     self.service.save_automatic(
                         self.alice,
-                        candidate(text, f"private-{index}"),
+                        candidate(text, f"credential-{index}"),
                     )
                 self.assertEqual(
-                    "personal_data_or_secret_not_allowed", caught.exception.reason
+                    "credential_not_allowed", caught.exception.reason
                 )
-        self.assertEqual([], self.service.list_active(self.alice))
+        self.assertEqual(3, len(self.service.list_active(self.alice)))
 
-    def test_automatic_capture_allows_ordinary_numeric_reflective_text(self) -> None:
+    def test_automatic_capture_applies_datafog_default_numeric_entities(self) -> None:
         self.service.set_capture_enabled(self.alice, True)
+        expected_redactions = {
+            "I own ISBN 0-306-40615-2, the edition with the blue spine.":
+                "I own ISBN 0-306-[ZIP_CODE_1]-2, the edition with the blue spine.",
+            "The reprint is ISBN 978-0-306-40615-7 and ISBN 9780306406157.":
+                "The reprint is ISBN 978-0-306-[ZIP_CODE_1]-7 and ISBN 9780306406157.",
+            "I finished it on 2024-05-17 after a very long week.":
+                "I finished it on [DATE_1] after a very long week.",
+        }
         for index, text in enumerate((
             "I loved the scene on p. 214 where she finally speaks her mind.",
             "This reminded me of 1984 and how bleak that ending felt.",
@@ -154,7 +179,7 @@ class MemoryPolicyServiceTests(unittest.TestCase):
                     self.alice,
                     candidate(text, f"ordinary-{index}"),
                 )
-                self.assertEqual(text, saved.record.text)
+                self.assertEqual(expected_redactions.get(text, text), saved.record.text)
 
     def test_upstream_refusals_take_precedence_over_the_pattern_screen(self) -> None:
         self.service.set_capture_enabled(self.alice, True)

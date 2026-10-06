@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -536,6 +536,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/64/a2/4615c8f7d81a00b1d6e6afe19f694e1543582349fb5f4076f6cb5dc36485/cryptography-50.0.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:c87f62a3d3b9888ed0fdde100ec06aa61ca9cd44bad9057d1dff9a516b5f5bb9", size = 4878208, upload-time = "2026-07-31T14:24:45.522Z" },
     { url = "https://files.pythonhosted.org/packages/d2/1a/efcfb02f91407149a0dacffffab791f7e19bf6385f63b3666dc8b5e5c9c8/cryptography-50.0.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:65c2c3add92b45fd0709db8594536aea39c2a67af0e27ffcf049c498501140b7", size = 5037050, upload-time = "2026-07-31T14:24:47.697Z" },
     { url = "https://files.pythonhosted.org/packages/57/30/4a22984d4f1bdfb8c054f07a92bc176b97a3134cc1d6c4b3bffb1f3688b4/cryptography-50.0.0-cp39-abi3-win_amd64.whl", hash = "sha256:d24fead1d4d076e1bfb006dcec392074a3cd8d7b4fc8a595aa64073b2b7a96ba", size = 3874135, upload-time = "2026-07-31T14:24:50.085Z" },
+]
+
+[[package]]
+name = "datafog"
+version = "4.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/ef/54c19fcdb732afaa1e089d7e31f37ddbe227af1777e8a5bdc965a8af059b/datafog-4.9.0.tar.gz", hash = "sha256:787157df31b25be5bb6d89d89ade9f310f8f7d8fdf725b80f33e907e758ce0c3", size = 119969, upload-time = "2026-09-29T00:06:40.975Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/7c/517488499a0d35ef8a0189dd82a71cf5af58d6414de617bc086fa2b65a69/datafog-4.9.0-py3-none-any.whl", hash = "sha256:a91b9c02c665f9cfaee073d74e9fd2bdbb3e24ea8d25b8358a6e2e58bd5633b5", size = 82685, upload-time = "2026-09-29T00:06:39.608Z" },
 ]
 
 [[package]]
@@ -1542,6 +1556,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "bm25s" },
+    { name = "datafog" },
     { name = "fast-langdetect" },
     { name = "fastapi" },
     { name = "fastembed" },
@@ -1569,6 +1584,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bm25s", specifier = ">=0.3.10" },
+    { name = "datafog", specifier = "==4.9.0" },
     { name = "fast-langdetect", specifier = ">=1.0.1" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "fastembed", specifier = ">=0.8.0" },

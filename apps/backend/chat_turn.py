@@ -18,6 +18,7 @@ from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.security_validation import validate_provider_request
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.contracts.reading import scope_fields
 from apps.backend.contracts import BookScope
@@ -682,6 +683,44 @@ def _commit_automatic_capture(
     )
 
 
+def _credential_block_response(
+    request: ChatRequest,
+    trace: TraceReference,
+    message: str,
+) -> ChatResponse:
+    """Build a content-free decline without persisting a blocked turn."""
+    turn_id = request.turn_id or str(uuid4())
+    capture = CaptureInspection(
+        nomination="unavailable",
+        provenance_decision=None,
+        binding="not_applicable",
+        storage="not_applicable",
+        reason_code="security_validation_blocked",
+    )
+    inspection = TurnInspection(
+        muse_turn={"turn_id": turn_id, "user_message": ""},
+        context_resolution={
+            "status": "unknown",
+            "explanation": "The request was blocked before agent processing.",
+        },
+        traces=[{
+            "agent": "Application",
+            "status": "declined",
+            "detail": "The request contained a credential.",
+        }],
+        prompt="",
+        release=ReleaseInspection(
+            release_source="application_safe_decline",
+            provenance_verdicts=(),
+            finding_codes=(),
+            revision_count=0,
+            failure_stage=None,
+            capture=capture,
+        ),
+    )
+    return ChatResponse(reply=message, inspection=inspection, trace=trace)
+
+
 def _replace_trace(
     inspection: TurnInspection,
     agent: str,
@@ -1235,17 +1274,20 @@ async def _run_chat_pipeline(
                 update={"curation_status": curation_outcome.status}
             ),
         )
-    sessions.append_turn(
-        request.session_id,
-        request.message,
-        release.reply,
-        turn_id=inspection.muse_turn["turn_id"],
-        release_source=release.release_source,
-        evidence_ids=release.evidence_ids,
-        review_finding_codes=release.review_finding_codes,
-        tool_names=release.tool_names,
-    )
-    reading_progress.commit(request.session_id, pending_progress, release.release_source)
+    if release.security_block_category is None:
+        sessions.append_turn(
+            request.session_id,
+            request.message,
+            release.reply,
+            turn_id=inspection.muse_turn["turn_id"],
+            release_source=release.release_source,
+            evidence_ids=release.evidence_ids,
+            review_finding_codes=release.review_finding_codes,
+            tool_names=release.tool_names,
+        )
+        reading_progress.commit(
+            request.session_id, pending_progress, release.release_source
+        )
     return inspection, release, capture
 
 
@@ -1296,6 +1338,21 @@ async def run_chat_turn(
             trace_id=format_trace_id(span_context.trace_id),
         )
         try:
+            request_privacy = validate_provider_request(request.message)
+            if request_privacy.blocked:
+                set_span_attrs(
+                    span,
+                    {
+                        "security.category": "credential",
+                        "security.boundary": "provider_request",
+                        "security.disposition": "block",
+                    },
+                )
+                return _credential_block_response(
+                    request, trace, request_privacy.user_message or
+                    "This request was blocked because it contains a credential."
+                )
+            request = request.model_copy(update={"message": request_privacy.text})
             inspection, release, capture = await _run_chat_pipeline(
                 request,
                 reading_state,
