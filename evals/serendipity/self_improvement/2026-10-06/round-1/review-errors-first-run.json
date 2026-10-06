@@ -1,0 +1,10 @@
+[
+  {
+    "attempt": 1,
+    "error": "UnexpectedModelBehavior: Exceeded maximum output retries (2)"
+  },
+  {
+    "attempt": 2,
+    "error": "UnexpectedModelBehavior: Exceeded maximum output retries (2)"
+  }
+]

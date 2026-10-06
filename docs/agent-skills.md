@@ -25,6 +25,7 @@ calls or transfer application authority to a model.
 | [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
 | Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
 | Serendipity | [Source gathering](../src/linger/agents/serendipity/skills/source-gathering/SKILL.md) | `ConnectionDiscoveryInput` → `SourceBundle` or `ConnectionDecline` | `connection_exploration` with the `gather_sources` intent; returns every named source it found without ranking, and every Librarian-judged passage and opened public page must stay in the bundle |
+| Serendipity | [Self-review](../src/linger/agents/serendipity/skills/self-review/SKILL.md) | `SelfReviewInput` → `SkillCorrection` | `propose_skill_correction`, offline only; no tools or dependencies; one note per failing practice case, categories covering every failure, and exact, case-independent edits to the connection-discovery instructions are retried in-run. The [self-improvement loop](design/serendipity-self-improvement-loop.md) applies them to a candidate copy only |
 | [Provenance](../src/linger/agents/provenance/README.md) · [assignment](../src/linger/agents/provenance/skills.py) | [Emotional preflight](../src/linger/agents/provenance/skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` → `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse or its tools |
 | Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, on revision, the original candidate and findings to recheck |
 | Provenance | [Curation review](../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` → `CurationProvenanceReview` | `review_curation` binds the verdict to the exact proposal and source snapshot |
@@ -82,15 +83,17 @@ the modules keep result handling and reply composition. `REFLECTION.instructions
 and `muse.prompt.INSTRUCTIONS` remain the complete text with every module, so
 fingerprints cover all of it and prompt-leak checks see all of it.
 
-Muse reflection uses the Agent's default `MuseCandidate` schema. Serendipity keeps
-its registered output validator. Muse's candidate checks run in its
+Muse reflection uses the Agent's default `MuseCandidate` schema. Muse's candidate checks run in its
 `MuseSkillBoundary` capability, which applies `validate_muse_output` to every
 `MuseCandidate` and limits each run to the selected skill's tools, because a
 registered validator would forbid the `TurnNeeds` contract that turn triage
 selects per run. `build_triage_model` selects the triage model from the
 `LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
-and the configured model for Anthropic. Serendipity's fixed schema covers all three of its skills, and its
-validator pairs each result with the task's intent: a `recall_memory` task
+and the configured model for Anthropic. Serendipity's fixed schema covers its three
+reader-facing skills, and its `SerendipityOutputValidation` capability applies
+`validate_serendipity_output` to pair each result with the task's intent, for
+the same reason as Muse: the offline self-review skill selects its own
+`SkillCorrection` contract per run. A `recall_memory` task
 returns `MemoryRecall` or a decline, a `gather_sources` task returns
 `SourceBundle` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output

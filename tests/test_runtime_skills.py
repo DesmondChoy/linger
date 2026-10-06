@@ -159,6 +159,7 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "serendipity.connection-discovery",
         "serendipity.memory-recall",
         "serendipity.source-gathering",
+        "serendipity.self-review",
         "provenance.emotional-preflight",
         "provenance.candidate-review",
         "provenance.curation-review",

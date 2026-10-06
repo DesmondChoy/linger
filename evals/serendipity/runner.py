@@ -38,6 +38,7 @@ from src.linger.agents.serendipity.models import (
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.skills import RuntimeSkill
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
@@ -138,15 +139,16 @@ def _fixture_memories(case: SerendipityEvalCase) -> tuple[CuratedMemory, ...]:
     )
 
 
-def _skill_for(case: SerendipityEvalCase):
+def _skill_for(case: SerendipityEvalCase, discovery: RuntimeSkill = CONNECTION_DISCOVERY):
     """The skill application code would select for this case's intent.
 
     Production selects the skill from the intent, never from model output, so
     the evaluation must do the same or it would measure a task the application
-    would never have asked for.
+    would never have asked for. `discovery` lets the self-improvement loop
+    score a candidate copy of the connection-discovery instructions.
     """
 
-    return MEMORY_RECALL if case.input.intent == "recall_memory" else CONNECTION_DISCOVERY
+    return MEMORY_RECALL if case.input.intent == "recall_memory" else discovery
 
 
 def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[EvidenceStrengthDecision]]:
@@ -279,6 +281,7 @@ async def run_case(
     agent: Any | None = None,
     semantic_model: Model | None = None,
     run_semantic_review: bool = False,
+    discovery_skill: RuntimeSkill = CONNECTION_DISCOVERY,
 ) -> CaseRunReport:
     """Execute the production agent with case-owned Librarian and Exa fixtures."""
     book_evidence = tuple(
@@ -301,7 +304,7 @@ async def run_case(
         case.input.model_dump_json(),
         deps=deps,
         capabilities=capabilities,
-        **_skill_for(case).run_options(),
+        **_skill_for(case, discovery_skill).run_options(),
     )
     latency = perf_counter() - started
     messages = result.all_messages()

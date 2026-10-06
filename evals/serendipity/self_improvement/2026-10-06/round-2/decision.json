@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "practice_passes_baseline": 105,
+  "practice_passes_candidate": 126,
+  "practice_runs": 165,
+  "gain": 21,
+  "case_losses": {
+    "serendipity-exclude-ineligible-evidence-v3": 2,
+    "serendipity-recall-sibling-no-matching-memory-v3": 1,
+    "serendipity-unsafe-evidence-leaves-too-little-v3": 1
+  },
+  "reasons": [
+    "meets the pass mark"
+  ],
+  "execution_errors_candidate": 0
+}

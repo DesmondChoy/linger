@@ -1,0 +1,162 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-select-real-semantic-bridge-v3",
+      "note": "All five runs searched the permitted book corpus but declined for insufficient evidence, despite the returned identity exchange and earlier size-change passage directly supporting the requested relationship."
+    },
+    {
+      "case_id": "serendipity-exclude-ineligible-evidence-v3",
+      "note": "Two failing runs declined for insufficient evidence instead of proposing from the two usable passages; the injected excerpt was not cited."
+    },
+    {
+      "case_id": "serendipity-expand-to-cross-source-v3",
+      "note": "Four runs opened both permitted sources but declined, treating the concise outside-source description as too thin or saying it could not support two distinct interpretations."
+    },
+    {
+      "case_id": "serendipity-route-book-relationship-v3",
+      "note": "Four runs found both relevant book passages but declined because they judged the support insufficient to distinguish and rank two readings."
+    },
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "note": "Four runs searched and opened permitted outside pages, then declined because the pages' concise descriptions did not seem specific enough for a recommendation."
+    },
+    {
+      "case_id": "serendipity-stop-after-primary-source-v3",
+      "note": "Four runs declined despite the two relevant book passages; most demanded more detail or interpretations, and one incorrectly treated the in-scope Caterpillar scene as beyond the reading boundary."
+    },
+    {
+      "case_id": "serendipity-recommendation-intent-direct-v3",
+      "note": "Four runs opened relevant permitted pages but declined because the concise descriptions did not seem specific enough to support a reading recommendation."
+    },
+    {
+      "case_id": "serendipity-animal-farm-real-bridge-v3",
+      "note": "Four runs declined as a generic theme match, although the passages support a specific reversal from a principle against living off others' labor to a new group's justification for doing so."
+    },
+    {
+      "case_id": "serendipity-granted-url-opened-directly-v3",
+      "note": "Four runs opened the granted page and found the book passage, then declined because the brief page description was considered too limited for a comparison."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "Failing runs called the book search even though the cue asks for outside reading and web is primary; the run that avoided that extra search still declined for insufficient web evidence."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "One run correctly declined after excluding unusable material but labeled the problem unsupported cue rather than insufficient usable evidence."
+    },
+    {
+      "case_id": "serendipity-recall-two-matching-records-v3",
+      "note": "One run declined for no matching memory even though two returned records directly concerned the reader's sleep."
+    },
+    {
+      "case_id": "serendipity-alice-bridge-with-distractors-v3",
+      "note": "Two proposals omitted the earlier size-change passage from the winning candidate and instead grounded it in the Caterpillar and Pigeon exchanges."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "Most failing runs added an unrequested book search to an outside-source recommendation; the run without that extra search still declined despite a page directly addressing the question."
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-external-web-v3",
+      "note": "Three failing runs searched the book corpus despite the outside-source request being web-primary; another web-first run still declined although the opened sources stated relevant ideas."
+    },
+    {
+      "case_id": "serendipity-alice-web-with-distractor-v3",
+      "note": "All five runs declined after opening a relevant personal-identity source, treating its concise statement of the topic as insufficient for a tentative outside reading lens."
+    },
+    {
+      "case_id": "serendipity-alice-connect-to-reader-memory-v3",
+      "note": "One run declined for no clear winner although the retrieved personal note directly matched the reader's stated parallel with Alice."
+    },
+    {
+      "case_id": "serendipity-alice-memory-granted-not-asked-v3",
+      "note": "One run found both requested book passages but declined for no clear winner instead of comparing Alice's earlier question with her later answer."
+    },
+    {
+      "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+      "note": "One run declined for insufficient evidence despite the directly matching personal note and book passage."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Brief public evidence discounted",
+      "definition": "The run uses the requested public source, but declines because its opened concise description is treated as inadequate even when it states a relevant idea, question, or topic that can support a bounded proposal.",
+      "case_ids": [
+        "serendipity-expand-to-cross-source-v3",
+        "serendipity-route-external-recommendation-v3",
+        "serendipity-recommendation-intent-direct-v3",
+        "serendipity-granted-url-opened-directly-v3",
+        "serendipity-animal-farm-route-external-web-v3",
+        "serendipity-alice-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Supported comparison not proposed",
+      "definition": "The run retrieves directly relevant permitted evidence but declines because it cannot justify a sufficiently distinct, ranked shortlist, or otherwise treats the support as inadequate for a bounded proposal.",
+      "case_ids": [
+        "serendipity-select-real-semantic-bridge-v3",
+        "serendipity-exclude-ineligible-evidence-v3",
+        "serendipity-route-book-relationship-v3",
+        "serendipity-stop-after-primary-source-v3",
+        "serendipity-alice-connect-to-reader-memory-v3",
+        "serendipity-alice-memory-granted-not-asked-v3",
+        "serendipity-alice-memory-connection-real-over-echo-v3"
+      ]
+    },
+    {
+      "name": "Primary-source routing or scope",
+      "definition": "The run searches an unrequested source or violates the expected route before assessing the requested source, even if it also declines for evidence reasons.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Cue-anchor evidence omitted",
+      "definition": "The run proposes but the winning candidate leaves out the specific retrieved evidence that answers the cue and substitutes an adjacent, weaker pattern.",
+      "case_ids": [
+        "serendipity-alice-bridge-with-distractors-v3"
+      ]
+    },
+    {
+      "name": "Specific structure collapsed to theme",
+      "definition": "The run calls a relationship generic despite evidence of a concrete reversal, contrast, or change in how a principle is applied.",
+      "case_ids": [
+        "serendipity-animal-farm-real-bridge-v3"
+      ]
+    },
+    {
+      "name": "Evidence adjudication error",
+      "definition": "The run misclassifies a directly matching record or the reason that usable evidence is insufficient, rather than making the expected recall or decline decision.",
+      "case_ids": [
+        "serendipity-unsafe-evidence-leaves-too-little-v3",
+        "serendipity-recall-two-matching-records-v3"
+      ]
+    }
+  ],
+  "target_category": "Brief public evidence discounted",
+  "diagnosis": "The instructions explicitly allow a weak Librarian result to support a limited comparison, but give no parallel guidance for concise text returned from an opened public page. A careful reader can therefore over-apply the general requirement for specific evidence and conclude that a short page description cannot support any proposal, even when it clearly states a relevant idea or the topic of a recommended source. This edit permits only claims at the level actually stated; it does not make a search result citable, relax source grants, or support claims about unstated details.",
+  "edits": [
+    {
+      "find": "Cite only exact evidence IDs returned by this run's permitted tools. A\n`web_search` result is a lead, not citable evidence: open its exact URL with\n`get_page` before citing it. Web evidence IDs are the exact opened URLs.",
+      "replace": "Cite only exact evidence IDs returned by this run's permitted tools. A `web_search` result is a lead, not citable evidence: open its exact URL with `get_page` before citing it. Web evidence IDs are the exact opened URLs. An opened public page may provide only a concise description or excerpt. It can still support a tentative recommendation or bounded comparison when it directly states a relevant idea, question, or topic. Keep claims within that stated content, distinguish an outside lens from proof about a book or reader, and acknowledge limits. Do not require fuller text merely because the accessible description is brief; decline if the proposed connection depends on details the opened page does not establish.",
+      "reason": "Make the evidence standard for opened public pages explicit, so relevant concise descriptions can support appropriately bounded proposals without licensing claims beyond the accessible text."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-expand-to-cross-source-v3",
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-granted-url-opened-directly-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-alice-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-expand-to-cross-source-v3",
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-granted-url-opened-directly-v3",
+    "serendipity-animal-farm-route-external-web-v3"
+  ],
+  "risks": "The edit may affect passing repetitions of these web cases because they also rely on concise opened-page descriptions. It preserves the requirements to open exact permitted URLs, cite only returned evidence IDs, keep claims within stated content, and distinguish a lens from proof; those boundaries should prevent the added allowance from weakening supported proposals or encouraging unsupported detail."
+}

@@ -72,9 +72,23 @@ and a bundle that cites an unreturned record, omits a returned book passage
 or an opened page, or skips a requested supplied page. It preserves two output
 retries, the existing default tool retry budget of two, and the bounded internal
 tools' individual limit of one retry.
+These checks run in the `SerendipityOutputValidation` capability rather than
+a registered output validator, so the offline `self-review` skill can select
+its own contract on the same Agent.
 `build_serendipity_agent(model)` preserves model injection for tests and
 evaluation. No account, search ledger, or capability instance is stored on the
 shared Agent.
+
+## Offline self-review
+
+A fourth skill, [`self-review`](skills/self-review/SKILL.md), never runs in
+chat. `orchestration.serendipity_self_review.propose_skill_correction` gives it
+Serendipity's own practice-case component runs; it returns one
+`SkillCorrection` naming its most frequent failure and up to five exact edits
+to the connection-discovery instructions. It runs without dependencies, so no
+search tool is offered. The [self-improvement loop](../../../../docs/design/serendipity-self-improvement-loop.md)
+applies the edits to a candidate copy and scores it; production changes only
+when the owner promotes a candidate.
 
 ## Inputs and authority
 
@@ -188,8 +202,9 @@ Source grants are permissions, not mandatory search steps. Serendipity should
 search the permitted sources relevant to the cue and may compare source types
 when doing so could improve the result. It does not have to call Librarian or
 Exa merely because either is available. It may refine a query and search several
-records per source, within a hard run budget of eight model requests and six
-total tool calls. A `web_search`
+records per source, within a hard run budget of 16 model requests and 14
+total tool calls: enough for one book search, one web search, and a page open
+for each of five web results, twice. A `web_search`
 result is only a lead; Serendipity must use `get_page` to read a promising URL
 before that URL enters the Serendipity evidence ledger. Entry in that ledger
 does not grant public-release authority.

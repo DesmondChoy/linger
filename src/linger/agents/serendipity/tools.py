@@ -243,8 +243,10 @@ def search_memories(
 def prepare_librarian_search(
     ctx: RunContext[SerendipityDependencies],
     definition: ToolDefinition,
-) -> ToolDefinition:
+) -> ToolDefinition | None:
     """Name only the trusted book grants available for this discovery run."""
+    if ctx.deps is None:  # offline self-review has no discovery task and no tools
+        return None
     work_ids = dict.fromkeys(scope.work_id for scope in ctx.deps.task.scope.book_scopes)
     if not work_ids:
         return definition

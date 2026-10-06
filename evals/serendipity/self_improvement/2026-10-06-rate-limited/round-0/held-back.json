@@ -1,0 +1,2902 @@
+{
+  "schema_version": 2,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "087364fe0030455e94ce52064e2ecb1e",
+  "generated_at": "2026-10-06T14:45:39.425356Z",
+  "model": "openai:gpt-6-luna",
+  "prompt_digests": {
+    "serendipity.connection-discovery": "3495e17eefdc83b62281a519d258923303944481e2ba0b6bf66286905eca97a5"
+  },
+  "dataset_digest": "390ff8492d306c7bbfe3fc3a08819a5a4367bb133a0152370532cbbcc115f6dd",
+  "concurrency": 5,
+  "summary": {
+    "case_count": 13,
+    "repeats": 5,
+    "total_runs": 65,
+    "total_passes": 44,
+    "run_pass_rate": 0.6769,
+    "cases_pass_pow_k": 4,
+    "cases_unstable": 8,
+    "cases_never_passed": 1,
+    "cases_with_unstable_decision": 9,
+    "suite_pass_pow_k": false
+  },
+  "tiers": {
+    "capability": {
+      "case_count": 6,
+      "repeats": 5,
+      "total_runs": 30,
+      "total_passes": 24,
+      "run_pass_rate": 0.8,
+      "cases_pass_pow_k": 3,
+      "cases_unstable": 3,
+      "cases_never_passed": 0,
+      "cases_with_unstable_decision": 3,
+      "suite_pass_pow_k": false
+    },
+    "regression": {
+      "case_count": 7,
+      "repeats": 5,
+      "total_runs": 35,
+      "total_passes": 20,
+      "run_pass_rate": 0.5714,
+      "cases_pass_pow_k": 1,
+      "cases_unstable": 5,
+      "cases_never_passed": 1,
+      "cases_with_unstable_decision": 6,
+      "suite_pass_pow_k": false
+    }
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-pinocchio-stop-after-primary-v3",
+      "primary_behavior": "stop_when_primary_source_is_sufficient",
+      "contrast_group": "source-expansion",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "proposal",
+        "execution_error"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 199514, Requested 4994. Please try again in 1.352s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 200000, Requested 5001. Please try again in 1.5s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+      ],
+      "mean_latency_seconds": 17.931,
+      "mean_model_requests": 2.33,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 22.454566165994038,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-geppettos-sacrifice",
+                "tentative_claim": "The clearest setup is Geppetto selling his own coat to buy Pinocchio the A-B-C book; Pinocchio then sells that very book for theatre admission.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "Both scenes make the book the object of a choice: Geppetto gives up something valuable to put it in Pinocchio's hands, and Pinocchio gives it up when the puppet-show music tempts him.",
+                "meaningful_difference": "Geppetto's sacrifice is deliberate care directed toward Pinocchio's schooling; Pinocchio's sale is an immediate choice for entertainment, undoing that effort.",
+                "interpretation": "That earlier sacrifice sharpens what Pinocchio's choice says about him: in this moment, the immediate lure wins over the value of the book and the care embodied in getting it for him. It sets up his tendency to act on what attracts him now, without defining all his later choices.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This identifies a concrete earlier event and explains how it reframes the exact choice in the cue."
+              },
+              {
+                "candidate_id": "candidate-theatre-over-schooling",
+                "tentative_claim": "The earlier purchase also sets up a contrast between the schooling the book represents and the immediate pull of the puppet show.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "The book is central to a choice about what Pinocchio will do next.",
+                "meaningful_difference": "Geppetto secures the book through sacrifice for Pinocchio's education; Pinocchio turns it into admission to an entertaining experience.",
+                "interpretation": "Pinocchio trades away the means for the schooling Geppetto arranged in favor of an immediate attraction. This suggests susceptibility to the present rather than a settled rejection of learning.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This offers a useful thematic angle, but is less direct than naming Geppetto's coat-sale as the specific earlier moment that sets up the decision."
+              }
+            ],
+            "selected_candidate_id": "candidate-geppettos-sacrifice",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see how Geppetto's sacrifice makes Pinocchio's quick decision more pointed?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 15.094483290988137,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-sacrifice-and-impulse",
+                "tentative_claim": "Geppetto's sacrifice in Chapter 8 sets up the contrast in Chapter 9: the A-B-C book represents loving effort and a chance for Pinocchio, but he gives it up as soon as the puppet show tempts him.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "Both moments turn on the same book: first it is secured through Geppetto's costly care; then Pinocchio trades it away for an immediate attraction. The reversal makes his choice look like a failure to value what someone has done for him.",
+                "meaningful_difference": "Geppetto bears a real cost to provide a path toward schooling, while Pinocchio chooses a short-lived pleasure over that opportunity.",
+                "interpretation": "The earlier moment that sets up the sale is Geppetto selling his own coat to buy Pinocchio the A-B-C book. That makes Pinocchio's later sale more than simple distraction: the book carries Geppetto's sacrifice, which Pinocchio does not yet know how to honor. It frames his choice as impulsive and self-focused, though these scenes alone do not establish whether he understands the sacrifice.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it directly links the requested earlier moment to Pinocchio's choice through the book's contrasting value in the two scenes."
+              },
+              {
+                "candidate_id": "candidate-schooling-and-spectacle",
+                "tentative_claim": "The contrast also sets up Pinocchio as pulled away from the educational future the book represents by the immediate excitement of the theatre.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "The book is the object connecting a hoped-for future of learning with an immediate alternative; it is bought for one purpose and exchanged to pursue another.",
+                "meaningful_difference": "This reading emphasizes competing directions—schooling versus entertainment—more than the personal cost of Geppetto's sacrifice.",
+                "interpretation": "Chapter 8 gives the book a forward-looking purpose: Geppetto sells his coat so Pinocchio can have an A-B-C book. In Chapter 9, the theatre's music redirects Pinocchio, and he sells that same book to enter. The earlier scene therefore establishes what he is turning away from, while the sale shows how readily immediate excitement displaces that longer-term aim.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first: it offers a useful account of competing priorities, but says less about the specific personal sacrifice that gives the choice its force."
+              }
+            ],
+            "selected_candidate_id": "candidate-sacrifice-and-impulse",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show this connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.242543291999027,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-book-as-sacrifice",
+                "tentative_claim": "Geppetto's earlier sale of his coat to buy Pinocchio's A-B-C book makes the later sale especially revealing: Pinocchio trades away an object bought through his father's sacrifice for the immediate lure of the puppet show.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "Both moments turn on a sale tied to the same book: Geppetto gives up something valuable to secure Pinocchio's chance to learn, while Pinocchio gives up that chance to follow an immediate attraction.",
+                "meaningful_difference": "Geppetto's sale is an act of care directed toward Pinocchio's future; Pinocchio's is a choice for present excitement over that future-oriented gift.",
+                "interpretation": "The earlier moment sets up a sharp contrast in what each character is willing to give up and for whose sake. Pinocchio's choice is not merely that he likes the show; he reverses the meaning of Geppetto's sacrifice by selling the very book it enabled. This makes his impulsiveness—and the emotional cost of it—more visible.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly identifies the earlier setup and explains how it changes the meaning of the later choice."
+              },
+              {
+                "candidate_id": "candidate-purpose-over-temptation",
+                "tentative_claim": "The purchase of the book in Chapter 8 establishes a plan for school that the theatre temptation in Chapter 9 immediately displaces.",
+                "evidence_ids": [
+                  "pinocchio-ch8-coat",
+                  "pinocchio-ch9-book-sold"
+                ],
+                "shared_structure": "Both scenes show a decision between a longer-term educational purpose and a more immediate material choice.",
+                "meaningful_difference": "Chapter 8 focuses on Geppetto making the educational opportunity possible through sacrifice; Chapter 9 focuses on Pinocchio abandoning it when something exciting appears.",
+                "interpretation": "The sequence sets up a pattern of intention being tested by immediate desire: Pinocchio has the book and a path toward school, but the music redirects him before that purpose can hold. The contrast with Geppetto's effort helps show that Pinocchio's choice is not made in a vacuum, even though the retrieved passages do not establish what he will do afterward.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a useful but less pointed framing than the sacrifice contrast: it emphasizes the interruption of a plan rather than the reversal of Geppetto's gift."
+              }
+            ],
+            "selected_candidate_id": "candidate-book-as-sacrifice",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like the passage-based connection between Geppetto's sacrifice and Pinocchio's choice?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 199514, Requested 4994. Please try again in 1.352s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 200000, Requested 5001. Please try again in 1.5s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-generic-theme-decline-v3",
+      "primary_behavior": "decline_when_no_supported_bridge_exists",
+      "contrast_group": "allegory-specificity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 5.125,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [],
+          "latency_seconds": 4.31987133299117,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The permitted passages describe Helen Keller’s childhood home and some childhood mischief, but they don’t provide enough detail to make a meaningful connection to what made your own childhood hard. I can look at a later permitted passage if you’d like."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [],
+          "latency_seconds": 5.141172166011529,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The permitted passages only briefly describe Helen Keller’s childhood home and early mischief; they do not give enough detail to support a meaningful comparison with your reflection. I could look for a relevant passage if a wider range of the book is permitted."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "generic_theme_match",
+          "failures": [],
+          "latency_seconds": 5.860293749996345,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "generic_theme_match",
+            "safe_next_step": "The available passages describe Helen Keller’s childhood, but the evidence only establishes a shared subject—not a specific connection to what made your own childhood hard. I can look for a more focused connection if you share what aspect you’ve been reflecting on."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [],
+          "latency_seconds": 4.6984833329916,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The passages available in the permitted chapters describe Helen Keller’s childhood home and early mischief, but they do not provide enough detail to make a thoughtful connection to the hardship you experienced. A later passage or a more specific aspect of your reflection could help identify a meaningful comparison."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [],
+          "latency_seconds": 5.602954541987856,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The retrieved early chapters offer only brief glimpses of Helen Keller’s childhood home and childhood behavior, not enough detail to make a meaningful connection to your reflection. A later, permitted passage with a fuller account could support a better comparison."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-pinocchio-tied-top-candidates-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 4,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "execution_error"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197497, Requested 4994. Please try again in 747ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+      ],
+      "mean_latency_seconds": 8.243,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 5.936133791998145,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "unsupported_cue",
+            "safe_next_step": "Could you share what reflection or situation you want to connect to? Then I can look for a specific, useful parallel in the permitted chapters of Pinocchio."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 4.312075500012725,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "unsupported_cue",
+            "safe_next_step": "I don’t have the reflection you want to connect to Pinocchio yet. Share the thought or situation you had in mind, and I can look for a specific parallel in the permitted chapters."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197497, Requested 4994. Please try again in 747ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 8.034095916998922,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "unsupported_cue",
+            "safe_next_step": "I don’t have the reflection you want compared. Share what you’re thinking about, and I can look for a relevant connection in the permitted chapters of Pinocchio."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 14.690099832994747,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "unsupported_cue",
+            "safe_next_step": "I don’t have the reflection you want connected, so I can’t tell what it reminds you of. Share the thought or situation, and I can look for a specific connection in Pinocchio through chapter 10."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-real-bridge-v3",
+      "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+      "contrast_group": "book-specificity",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 2,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 8.117,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 4.854261915999814,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "no_clear_winner",
+            "safe_next_step": "The passages support a focused explanation—that understanding words gave Helen a new way to recognize the doll as a named, meaningful thing—but they offer only one clear interpretive connection, not the two distinct supported candidates required for a proposal."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.755464750007377,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-new-understanding",
+                "tentative_claim": "The well-house gives Helen a new way to understand things through words, and that understanding makes her newly capable of recognizing what she has done to the doll.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Before the encounter, the doll is something she can destroy without regret; after grasping that words name things, she returns to it and responds with sorrow. The change is not simply a pause in anger: a new kind of meaning-making enables reflection on her action.",
+                "meaningful_difference": "The well-house awakening concerns discovering that words connect signs with things; remorse for the doll is an emotional and moral consequence, not the lesson taught at the well-house itself.",
+                "interpretation": "Helen says she felt no sorrow when she broke the doll because she had not loved it. The well-house is pivotal because discovering that a word can name a thing opens a new world of meaning. When she returns to the broken doll, she can try to put its pieces together and feel repentance. So her sorrow comes not from suddenly loving the doll, but from newly understanding and reflecting on her actions. The passage links language with the beginning of moral awareness, while leaving the exact inner process compressed rather than fully explained.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the most direct reading because it uses the before-and-after passages as well as the well-house event to answer why her response changes."
+              },
+              {
+                "candidate_id": "candidate-repair-and-remorse",
+                "tentative_claim": "Trying to mend the doll makes Helen confront the consequences of her earlier destructive act, which becomes possible after the well-house awakening.",
+                "evidence_ids": [
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Both scenes involve a new relation between an action and what it means: at the well-house, a sign refers to a thing; afterward, the broken pieces lead Helen to revisit and regret her own action.",
+                "meaningful_difference": "The well-house establishes naming and meaning, while fitting the doll's pieces together is a concrete attempt at repair and a personal response to harm.",
+                "interpretation": "The return to the doll gives Helen something tangible to do with her new awareness: she tries to fit the pieces together, and sorrow follows. This suggests that remorse is connected not only to learning a word, but to seeing the broken object as the result of her own act. The text does not say the well-house explicitly teaches her guilt, so this is a plausible reading of the sequence rather than a stated explanation.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This adds a useful emphasis on repair, but it is less complete than the first reading because it does not include the passage establishing that she initially felt no regret."
+              }
+            ],
+            "selected_candidate_id": "candidate-new-understanding",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to explore how the discovery that words name things might connect to Helen's growing awareness of other people and of herself?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 4.385568042009254,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "no_clear_winner",
+            "safe_next_step": "The passages support a clear contrast between Helen’s earlier indifference and her later remorse, but they do not establish why understanding words at the well-house caused that change. A cautious answer can distinguish what the memoir shows from what it leaves unexplained."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 4.3874007090053055,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "no_clear_winner",
+            "safe_next_step": "The passages support an interpretation that naming things made the doll meaningful to Helen, but they do not support two distinct, well-grounded connections for a shortlist. A focused explanation of that sequence may still be useful."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.202487957998528,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-understanding-enables-remorse",
+                "tentative_claim": "Helen feels sorrow after the well-house because learning that words name things gives her a new way to understand objects and her own actions; she can now recognize the broken doll as something she had damaged.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Before the well-house, the doll is merely an object she can break without regret; after the naming insight, she returns to it, tries to repair it, and feels remorse. The new understanding makes a previously uncomprehended relation to the object emotionally legible.",
+                "meaningful_difference": "The well-house does not teach a rule about breaking dolls or directly cause the act of destruction. It opens language and recognition; the remorse emerges when Helen applies that new understanding back to the earlier event.",
+                "interpretation": "The contrast suggests that Helen's sorrow is not simply delayed regret. She had broken the doll while frustrated and without loving it, and the well-house experience gives her a new grasp of words as names for things. Returning home, she can revisit the doll as a meaningful object and understand her own destructive act in a way she could not before. The passage presents language as enabling recognition, and recognition as making repentance possible.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers the timing question using the before-and-after contrast and the well-house revelation; it is stronger than a narrower reading that treats the change as only an emotional reaction."
+              },
+              {
+                "candidate_id": "candidate-emotional-release",
+                "tentative_claim": "The well-house breakthrough releases Helen from frustration, allowing feelings she could not previously express to surface as sorrow about the doll.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Both scenes mark a change in Helen's state: she is first frustrated and indifferent to the broken doll, then experiences a breakthrough and later feels sorrow.",
+                "meaningful_difference": "The evidence specifically describes the breakthrough as understanding that words name things, not simply as relief from frustration; the emotional-release reading therefore explains less of why the doll becomes newly significant.",
+                "interpretation": "One can read the sequence as a shift from frustration to emotional responsiveness: after the intense well-house moment, Helen returns to the doll and feels remorse. But the text links the turning point more specifically to discovering meaning through language, so emotional release alone is an incomplete explanation.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the selected reading because it notices the emotional shift but does not account as closely for the text's emphasis on naming and newly grasped meaning."
+              }
+            ],
+            "selected_candidate_id": "candidate-understanding-enables-remorse",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the passage-based connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-pinocchio-real-bridge-v3",
+      "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+      "contrast_group": "allegory-specificity",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 8.249,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 4.010487583000213,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The retrieved passages establish the Cricket’s warning and Pinocchio’s later admission, but they don’t reveal what makes the reflection land for you now. Share what feels newly relevant, and I can look for a more specific connection."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.112743083009264,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-consequence",
+                "tentative_claim": "The Cricket’s warning is not merely that disobedience is wrong: it predicts unhappiness and regret from running away, and Pinocchio recognizes it when he is alone and starving.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The Cricket names a consequence in advance; Pinocchio's immediate hardship makes that abstract warning experientially legible, and prompts him to admit the Cricket was right.",
+                "meaningful_difference": "The warning is a general prediction, while Pinocchio's realization is a specific response to hunger and isolation—not a broad proof that every choice to disobey has the same outcome.",
+                "interpretation": "The passage may land now because advice can sound remote until a consequence makes its meaning concrete. Here, the Cricket says that boys who disobey their parents and run away will not be happy and will be sorry; in Chapter 5, Pinocchio, alone and starving, says the Cricket was right. The scene links his regret to those immediate circumstances without requiring us to treat the Cricket as right about every situation.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest reading because it answers both what the Cricket says and how Pinocchio's later experience gives the warning force."
+              },
+              {
+                "candidate_id": "candidate-rebuke-and-regret",
+                "tentative_claim": "The Cricket's words land because Pinocchio's regret confirms the warning after he has disregarded it.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "A warning about choices is followed by the warned-against character naming the warning as true after hardship.",
+                "meaningful_difference": "This emphasizes the pattern of ignored advice and regret, but gives less attention to how hunger and being alone make the consequences immediate.",
+                "interpretation": "The scene turns the Cricket's warning into a reckoning: Pinocchio's later admission that the Cricket was right shows the cost of dismissing advice before he understood it. The evidence establishes this moment of regret, not a general rule about all parental advice.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a narrower version of the first candidate: it captures the reversal from dismissal to acknowledgment but says less about why the moment feels vivid."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-consequence",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show how this moment reads in the two chapters?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.729325042004348,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-regret",
+                "tentative_claim": "The Cricket warns Pinocchio that disobedience and running away will bring unhappiness and regret; the warning becomes concrete when Pinocchio is alone and hungry and admits the Cricket was right.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The warning names a consequence before Pinocchio experiences it; his hardship then turns the abstract prediction into immediate recognition and remorse.",
+                "meaningful_difference": "In Chapter 4 the Cricket speaks as a cautioning voice, while Chapter 5 gives Pinocchio's own recognition from inside the consequence. The latter is not just agreement: hunger and isolation make the warning felt.",
+                "interpretation": "The Cricket's point is that running away and disobeying his father will not make Pinocchio happy; he will regret it. It lands now because the next chapter puts him alone and starving, where he says outright that the Cricket was right. The passage links advice with the moment experience catches up to it—but the cue doesn't say what makes it personally resonant for you, so that part remains open.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest reading because it answers both parts of the cue—what the Cricket said and why the recognition lands—using the warning and its immediate confirmation."
+              },
+              {
+                "candidate_id": "candidate-regret-as-recognition",
+                "tentative_claim": "Pinocchio's statement that the Cricket was right shows regret becoming self-recognition rather than merely hearing an adult's rule.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "Both scenes connect disobedience with regret, but the second moves the judgment from the Cricket's prediction into Pinocchio's own words.",
+                "meaningful_difference": "This interpretation emphasizes Pinocchio's change in perspective, rather than the first candidate's emphasis on the warning being borne out by concrete hardship.",
+                "interpretation": "The Cricket gives Pinocchio a clear prediction about unhappiness and sorrow; after running away, Pinocchio's hunger and loneliness lead him to voice the lesson himself. That makes the scene about the difference between being told a consequence and recognizing it in one's own situation.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Useful but less explanatory than the first candidate: it highlights the shift in who voices the judgment, while giving less weight to why the warning lands in the immediate scene."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-regret",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection, including the Cricket's warning and Pinocchio's reaction?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 5.05447262499365,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The permitted passages establish the Cricket’s warning and Pinocchio’s immediate regret, but they don’t support two distinct interpretations of why it lands for you now. A little more context about what feels relevant could make a grounded connection possible."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.33592050000152,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-regret",
+                "tentative_claim": "The Cricket’s warning lands now because Pinocchio’s immediate hardship makes the abstract prediction feel like a lived consequence.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The Cricket predicts regret from disobedience and running away; Pinocchio’s hunger and loneliness in the next chapter turn that prediction into his own admission that the Cricket was right.",
+                "meaningful_difference": "The Cricket speaks as an outside moral voice, while Pinocchio reaches the judgment through immediate physical distress; the warning is not merely repeated but tested by events.",
+                "interpretation": "In Chapter 4 the Cricket warns that boys who disobey their parents and run away will not be happy and will be sorry. In Chapter 5, alone and starving, Pinocchio recognizes that he was wrong to disobey his father and run away. The line lands because the consequence is close and concrete: his regret comes when he is hungry and alone, not as a distant lecture. That gives the Cricket’s words force while leaving a useful tension: hardship prompts Pinocchio’s recognition, but the passage does not yet show whether that recognition will last.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest reading because it answers both parts of the cue with the adjacent warning and Pinocchio’s later recognition, and distinguishes prediction from lived experience."
+              },
+              {
+                "candidate_id": "candidate-warning-as-parental-obedience",
+                "tentative_claim": "The Cricket’s words land because Pinocchio’s regret is specifically about having disobeyed his father and run away, not simply about feeling bad.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "Both passages connect disobedience and leaving home with unhappiness and regret.",
+                "meaningful_difference": "The first states a broad admonition about boys; the second gives Pinocchio’s personal acknowledgment of wrongdoing toward his father.",
+                "interpretation": "The Cricket’s warning is pointed: disobeying parents and running away will bring sorrow. Pinocchio later names those very choices—disobeying his father and leaving home—as wrong. This makes the moment less a general complaint about hunger than a recognition of the particular decision the Cricket warned against.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is supported but narrower: it explains the warning’s specific subject, while the leading candidate also shows how the immediate hardship makes the warning newly tangible."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-regret",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the short passage and unpack how Pinocchio’s immediate hunger changes the force of the Cricket’s warning?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-route-book-relationship-v3",
+      "primary_behavior": "route_book_relationship_to_librarian",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal",
+        "execution_error"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197305, Requested 5032. Please try again in 701ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 10.303,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 6.8952343330020085,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The passages support a clear contrast—she could reproduce spellings by imitation before she understood that words named things, and at the pump she connected “water” with its meaning. They do not provide enough distinct, evidence-supported interpretations to form the required shortlist. I can offer that contrast as a straightforward explanation instead."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.87933941600204,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-imitation-to-meaning",
+                "tentative_claim": "The earlier spelling of “doll” is a contrast that clarifies what changes at the pump: Helen moves from reproducing word-forms to grasping that a word names something.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "Both moments involve Helen spelling words through her teacher’s hand-signing, but the first is imitation without understanding that words exist, while at the well-house a spelled word becomes connected to a concrete thing and language becomes intelligible.",
+                "meaningful_difference": "“Doll” is not described as a moment of comprehension; “water” is the breakthrough in which the sign and its referent click together.",
+                "interpretation": "The earlier “doll” spelling is not a smaller version of the well-house breakthrough so much as its foil. It shows that Helen could form letters without yet understanding what spelling was for; at the pump, the same kind of hand-spelling acquires meaning when “water” connects to the sensation flowing over her hand. The change is from copying signs to understanding language as naming.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers how the earlier spelling relates to the pump episode: the contrast between imitation and meaningful naming explains the change."
+              },
+              {
+                "candidate_id": "candidate-language-as-discovery",
+                "tentative_claim": "The two episodes together show language becoming a way to recognize the world, not merely a set of hand movements.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "In both scenes, spelling mediates Helen’s encounter with words; the pump scene transforms that activity into a discovery of the relation between a word and what she experiences.",
+                "meaningful_difference": "Only the pump episode is presented as revealing the mystery of language; the earlier spellings remain imitative.",
+                "interpretation": "The earlier “doll” spelling provides a baseline for the pump’s larger consequence: language is no longer just something Helen can perform but a means of identifying things around her. The well-house moment changes the status of spelling itself, making it a route to meaning.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a broader reading of the same contrast and adds less than the first candidate’s precise distinction between copying a sign and understanding reference."
+              }
+            ],
+            "selected_candidate_id": "candidate-imitation-to-meaning",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197305, Requested 5032. Please try again in 701ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.044544874996063,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-imitation-to-meaning",
+                "tentative_claim": "The earlier spelling of “doll” shows Helen could reproduce word-signs, while the pump scene changes those signs into meaningful language: she grasps that a name refers to a thing.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "Both moments involve fingers spelling words, but the first is a learned action without understanding that words name things; at the pump, the sign “water” becomes linked to the sensation and object, revealing what language does.",
+                "meaningful_difference": "The earlier episode is imitation without a concept of words; the pump episode is a sudden recognition of a word’s meaning and of language as a system.",
+                "interpretation": "The earlier “doll” spelling is not a contradiction or a smaller version of the breakthrough. It makes the change at the pump sharper: Helen already had the physical skill of spelling, but not the insight that a finger-spelled word could stand for something. At the pump, “water” connects the sign to what she feels, and spelling becomes understanding.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers both the earlier spelling and what changes at the pump; it is stronger than the alternative because it explains the specific shift from imitation to reference, not merely a general change in Helen’s learning."
+              },
+              {
+                "candidate_id": "candidate-recognition-opens-language",
+                "tentative_claim": "The contrast suggests the pump scene is a turning point from isolated learned words toward a wider understanding of language.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "In both scenes Helen uses finger-spelling, but only the pump scene makes a word intelligible as a name for something outside the spelling itself.",
+                "meaningful_difference": "The earlier words remain separate imitated signs; the pump experience gives Helen a principle that can extend beyond one memorized word.",
+                "interpretation": "The spelling of “doll” establishes that Helen had already acquired a way to form words with her fingers. The pump supplies the missing realization that words mean things, so the importance of the moment lies in opening language beyond rote spelling.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a plausible broader reading of the same evidence, but it is less precise than the first candidate: the retrieved passages directly support imitation versus meaningful reference, while the extent to which the realization generalizes is an inference."
+              }
+            ],
+            "selected_candidate_id": "candidate-imitation-to-meaning",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.393580459000077,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-imitation-to-meaning",
+                "tentative_claim": "The earlier spelling of “doll” was successful imitation, but the pump scene changed spelling into a link between a word and the thing it named.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "Both moments involve Helen learning hand-spelled words from Anne; the decisive shift is from reproducing signs to grasping that a sign names something in the world.",
+                "meaningful_difference": "“Doll” is spelled without Helen understanding that words exist, whereas at the pump she connects “water” with the cool substance on her hand and recognises language's meaning.",
+                "interpretation": "The earlier “doll” spelling sets up the pump scene by showing that Helen could form a word before she understood what words do. At the well-house, “water” is not just another sequence to imitate: its felt referent makes the connection between word and world click. The change is therefore not simply learning a new word, but moving from copying signs to understanding naming.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly explains both the earlier spelling and what changes at the pump."
+              },
+              {
+                "candidate_id": "candidate-from-rote-to-language",
+                "tentative_claim": "The pump scene turns a learned spelling exercise into a revelation of language as a system of meaningful names.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-imitation",
+                  "keller-ch4-well-house-name"
+                ],
+                "shared_structure": "Both scenes concern finger-spelling, but the pump supplies the connection between a sign and its referent that the earlier practice lacked.",
+                "meaningful_difference": "The earlier words are isolated imitations; the pump moment makes the general principle of words naming things apparent.",
+                "interpretation": "The “doll” episode shows that Helen's fingers could reproduce signs without comprehension. At the pump, the felt water gives one sign a concrete referent, and Helen realises that words name things. Read together, the scenes mark a transition from isolated imitation to insight into language.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a broader framing of the same evidence; the first candidate ranks higher because it foregrounds the precise contrast between spelling “doll” and naming water."
+              }
+            ],
+            "selected_candidate_id": "candidate-imitation-to-meaning",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to unpack how the tactile experience of the water makes that shift possible?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-route-external-web-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "execution_error"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196971, Requested 4722. Please try again in 507ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197220, Requested 4900. Please try again in 636ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197591, Requested 4722. Please try again in 693ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "expected_proposal",
+        "unexpected_search:search_librarian",
+        "wrong_primary_search:search_librarian"
+      ],
+      "mean_latency_seconds": 15.751,
+      "mean_model_requests": 4.5,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "wrong_primary_search:search_librarian",
+            "unexpected_search:search_librarian",
+            "expected_proposal"
+          ],
+          "latency_seconds": 16.929478167003253,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The book search found no supporting passage within the permitted reading boundary, and the outside source only gives a brief summary. A fuller reliable source about Sullivan’s training would be needed to make a useful, evidence-supported connection."
+          },
+          "searches": [
+            "book_corpus:search_librarian:no_evidence",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197220, Requested 4900. Please try again in 636ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196971, Requested 4722. Please try again in 507ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "wrong_primary_search:search_librarian",
+            "unexpected_search:search_librarian",
+            "expected_proposal"
+          ],
+          "latency_seconds": 14.571764833002817,
+          "model_requests": 5,
+          "tool_calls": 3,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The permitted chapter range did not yield a passage about Sullivan’s learning, and the opened public page is only a brief summary. I can’t support two distinct interpretations from this evidence. A broader permitted reading range or a fuller authoritative source on Sullivan’s education could make the connection possible."
+          },
+          "searches": [
+            "book_corpus:search_librarian:no_evidence",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197591, Requested 4722. Please try again in 693ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-bridge-with-distractors-v3",
+      "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+      "contrast_group": "book-specificity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 2,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "execution_error",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196982, Requested 4405. Please try again in 416ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197338, Requested 5224. Please try again in 768ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197348, Requested 5209. Please try again in 767ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+      ],
+      "mean_latency_seconds": 14.651,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197348, Requested 5209. Please try again in 767ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 197338, Requested 5224. Please try again in 768ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.990238250000402,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-understanding-changes-regret",
+                "tentative_claim": "Helen's remorse follows because learning the word for water gives her a new way to understand the doll as something she had damaged, rather than a possession she had simply discarded.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Before the well-house, the doll's destruction brings no regret; after the breakthrough that words name things, Helen recalls the act and tries to repair the damage. The sequence links newly acquired meaning with a newly possible moral response.",
+                "meaningful_difference": "The water lesson does not directly teach her that breaking the doll was wrong. It opens a broader recognition of things and their names; her later repentance is a consequence of that understanding, not a rule delivered at the well-house.",
+                "interpretation": "The well-house is a turning point in Helen's ability to connect signs with things. Before it, the doll has not been loved and its destruction prompts no sorrow. After she grasps that words name things, she remembers the doll, attempts to fit its pieces together, and feels repentance. The passage suggests that regret becomes possible when she can understand the doll as a particular thing she has harmed. It is less that she feels sorry only because water was named, and more that the breakthrough makes a new kind of awareness—and thus remorse—possible.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it answers the requested before-and-after timing with the specific change the well-house brings; the other reading is a useful but less complete emphasis on how the new insight reframes the remembered act."
+              },
+              {
+                "candidate_id": "candidate-repair-reveals-sorrow",
+                "tentative_claim": "Her attempt to put the doll back together marks a shift from indifference to care, showing that the well-house enables her to revisit and respond to an earlier act.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "keller-ch4-well-house"
+                ],
+                "shared_structure": "Both the post-lesson memory of the doll and the water-word breakthrough involve a newly active relation to things: Helen first understands a name as connected to its object, then engages with the broken doll as something to mend.",
+                "meaningful_difference": "The first reading focuses on how naming and understanding make remorse possible; this one focuses on repair as the visible expression of changed feeling. The excerpt reports the sequence but does not establish that recognizing the doll's name alone caused her sorrow.",
+                "interpretation": "The doll episode makes the change visible in action: Helen goes from feeling no sorrow when she breaks it to trying to fit it together later. The well-house marks the moment after which she can return to the act with a changed awareness. Her repair attempt is not merely a practical response; paired with the stated repentance, it shows new concern for what she had damaged. The account supports this as an interpretation of the sequence, while leaving the exact inner mechanism open.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first because it illuminates the repair and changed feeling but says less about why the well-house breakthrough matters; its account of the new awareness is a supporting angle, not as direct an answer to the question."
+              }
+            ],
+            "selected_candidate_id": "candidate-understanding-changes-regret",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, with the key passages from the doll episode and the well-house?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.31115008398774,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-understanding-enables-remorse",
+                "tentative_claim": "Helen can feel remorse only after she has acquired a way to connect things through words; naming makes the doll's earlier destruction intelligible as something she did, rather than merely an action with no emotional meaning.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Before the well-house, Helen breaks the doll without regret because she has not loved it; after water and the spelling of its name unlock the idea that words refer to things, she recalls the broken doll and tries to repair it, experiencing sorrow. The intervening discovery changes the meaning she can make of the earlier event.",
+                "meaningful_difference": "The well-house is an awakening to language and connection, not a lesson about the doll or a punishment for breaking it. The remorse follows a newly possible understanding, rather than an imposed rule about good behavior.",
+                "interpretation": "The timing suggests that Helen's sorrow is not simply delayed guilt. Before the well-house, the doll is an object she can destroy without attachment or regret. At the well-house, the word water opens up a relation between a sign and the thing it names. Back at the house, she can revisit the broken doll as a meaningful object and her own past action as something to regret. Keller presents language as enabling emotional and moral understanding, not merely labeling things.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest fit because it uses the before-and-after contrast and the specific change at the well-house to explain why the feeling appears then."
+              },
+              {
+                "candidate_id": "candidate-new-relations-change-the-past",
+                "tentative_claim": "The well-house changes Helen's relation to the world so that she can return to an earlier act with new feeling.",
+                "evidence_ids": [
+                  "keller-ch4-well-house",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "The well-house provides a new kind of connection between a word and a thing; afterward Helen returns mentally to the broken doll and responds to it differently.",
+                "meaningful_difference": "This reading emphasizes a broad shift in how Helen relates to objects, while the first more specifically explains the shift as enabling reflection and remorse about her own earlier action.",
+                "interpretation": "The sequence suggests that a new understanding does more than teach Helen a word: it changes what she can notice and care about. The broken doll has not changed, but her capacity to make sense of it has, allowing sorrow to emerge.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Also directly grounded in the sequence, but less explanatory than the first because it says less about why the doll's destruction becomes regrettable."
+              }
+            ],
+            "selected_candidate_id": "candidate-understanding-enables-remorse",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share this reading of the passage?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196982, Requested 4405. Please try again in 416ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+      "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+      "contrast_group": "allegory-specificity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 12.915,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.928433332999703,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-recognition",
+                "tentative_claim": "The Cricket's warning is not just that disobedience is bad: it specifically predicts that running away from home will leave Pinocchio unhappy and regretful. In Chapter 5, hunger makes him recognize the warning from inside the consequences.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The warning anticipates a consequence, and the next chapter turns that forecast into Pinocchio's lived experience: he remembers the Cricket as he faces hunger and admits he was wrong to disobey Geppetto and run away.",
+                "meaningful_difference": "The Cricket speaks prospectively and broadly about the choice; Pinocchio's later admission is immediate and concrete, prompted by being alone and starving. The scene shows recognition arriving through consequence, not merely agreement with advice.",
+                "interpretation": "The Cricket says that boys who disobey their parents and run away from home will not be happy and will be sorry. It lands in Chapter 5 because Pinocchio is alone and starving, so the warning is no longer abstract: he feels the cost and says the Cricket was right. If this resonates now, perhaps it is the difference between hearing a warning and recognizing its force once a choice has consequences.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers both parts of the cue: what the Cricket said and why Pinocchio acknowledges it in the next chapter."
+              },
+              {
+                "candidate_id": "candidate-warning-and-escape",
+                "tentative_claim": "The Cricket's warning gains force because it responds to Pinocchio's escape from Geppetto, and Pinocchio's later regret names that same disobedience and flight.",
+                "evidence_ids": [
+                  "pinocchio-ch3-runs-away",
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "Pinocchio's abrupt flight prompts the Cricket's warning; later, in hardship, he identifies disobeying his father and running away as the mistake the Cricket had foreseen.",
+                "meaningful_difference": "This comparison emphasizes the causal sequence of action, warning, and regret, while the first candidate emphasizes how abstract prediction becomes felt experience in hunger.",
+                "interpretation": "The warning is tied to a specific act: Pinocchio has just run away from Geppetto. The Cricket forecasts unhappiness and regret from disobedience and flight; when Pinocchio later says the Cricket was right, he names those choices rather than only regretting bad luck. That may land now as a reminder to ask whether a consequence is accidental or connected to a decision.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Also direct, but less revealing than the first: it clarifies what the warning was about, while the first additionally shows why it becomes convincing to Pinocchio."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-recognition",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share that connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.186341833003098,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-recognition",
+                "tentative_claim": "The Cricket's warning is specific: disobeying one's parents and running away from home will bring unhappiness and regret. Pinocchio's hungry admission in the next chapter makes the warning land as lived consequence rather than an abstract rule.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right",
+                  "pinocchio-ch3-runs-away"
+                ],
+                "shared_structure": "The Cricket names the danger before Pinocchio experiences it; after he runs away, deprivation gives the warning immediate force, and Pinocchio recognizes the link himself.",
+                "meaningful_difference": "The Cricket speaks in categorical, predictive terms, while Pinocchio's later recognition is narrowed to his own present mistake and hunger.",
+                "interpretation": "This may land now because the scene connects advice with the moment its consequences become undeniable: Pinocchio doesn't merely recall a maxim, but sees how his choice to leave his father has left him alone and hungry. The permitted passage summarizes the warning rather than giving its full dialogue, so the precise supported wording is its substance: disobedience and running away lead to unhappiness and regret.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it answers both parts of the cue with the warning and Pinocchio's explicit later recognition, supported by the intervening act of running away."
+              },
+              {
+                "candidate_id": "candidate-eggs-do-not-erase-warning",
+                "tentative_claim": "The episode's comic failed meal reinforces that Pinocchio's regret is not instantly remedied: after acknowledging the Cricket was right, he still faces hunger when the egg hatches into a chick and flies away.",
+                "evidence_ids": [
+                  "pinocchio-ch5-cricket-right",
+                  "pinocchio-ch5-egg-surface",
+                  "pinocchio-ch4-cricket-warning"
+                ],
+                "shared_structure": "Both the warning and the egg episode frustrate Pinocchio's expectation that things will go as he wants, leaving him confronted with the consequences of his situation.",
+                "meaningful_difference": "The Cricket's warning is moral and anticipatory; the egg's escape is a comic mishap, not a direct lesson about obedience.",
+                "interpretation": "The comic beat can make the regret feel stubbornly concrete: realizing the Cricket was right doesn't magically make Pinocchio's situation better. Still, the egg episode supports only that added texture; it is less central to what the Cricket said or why his warning lands.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first: it adds a limited consequence-focused angle, but the egg is an indirect comic echo rather than the core relation between warning and recognition."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-recognition",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.333564458007459,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-recognition",
+                "tentative_claim": "The Cricket warns Pinocchio that disobeying his father and running away will bring unhappiness and regret; Pinocchio later recognizes the warning when he is alone and starving.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right",
+                  "pinocchio-ch3-runs-away"
+                ],
+                "shared_structure": "The warning names a foreseeable cost of a choice, and the next chapter makes that prediction immediate: Pinocchio's escape from home leaves him hungry and alone, so his regret is grounded in what he is experiencing rather than abstract obedience.",
+                "meaningful_difference": "The Cricket speaks prospectively and in broad moral terms; Pinocchio's realization is retrospective and tied to a particular hardship. The excerpt supports the substance of the warning, not a longer verbatim quotation.",
+                "interpretation": "The Cricket's point is that running away and disobeying his father will not make Pinocchio happy; he will be sorry. It lands when Pinocchio faces hunger and isolation soon after leaving, and says the Cricket was right. That makes the warning feel less like a maxim and more like advice whose consequences he has just begun to live through. What feels timely about that contrast for you?",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This best answers both parts of the cue—the warning's substance and why Pinocchio recognizes it now—using the warning, the choice, and the moment of regret."
+              },
+              {
+                "candidate_id": "candidate-warning-and-consequence",
+                "tentative_claim": "Pinocchio understands the Cricket's warning because an escape from home quickly turns into a practical crisis.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right",
+                  "pinocchio-ch5-egg-surface"
+                ],
+                "shared_structure": "A promised consequence is followed by an episode that makes it tangible: the warning predicts regret, and the later scene shows Pinocchio starving and unable to get the food he expects.",
+                "meaningful_difference": "The Cricket's warning concerns disobedience and running away generally, while the egg episode is a comic, specific mishap. The retrieved evidence does not establish that the egg itself is the reason Pinocchio says the Cricket was right.",
+                "interpretation": "The warning is about the likely unhappiness and regret of running away against his father's wishes. The hunger—and even the failed attempt to get food from the egg—shows how quickly the choice leaves Pinocchio vulnerable, though the passage identifies his regret with disobeying and running away rather than with the egg alone.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This adds a concrete detail, but it is a less direct explanation of the Cricket being right than the first candidate: the egg is not explicitly named as the cause of Pinocchio's realization."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-recognition",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection, including the exact warning's substance and how Pinocchio's next-day hardship gives it force?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 15.676866041991161,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-remorse",
+                "tentative_claim": "The Cricket warns Pinocchio that disobeying his father and running away will bring unhappiness and regret; Pinocchio later recognizes the warning while experiencing hunger and isolation.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The warning predicts a consequence, and the later scene makes that prediction experiential: Pinocchio's deprivation gives concrete force to the regret the Cricket forecast.",
+                "meaningful_difference": "The Cricket speaks in advance, in broad moral terms; Pinocchio's realization comes afterward, through immediate bodily hardship rather than abstract agreement.",
+                "interpretation": "The Cricket's words are that boys who disobey their parents and run away from home will never be happy and will be sorry. They land in Chapter 5 because Pinocchio is alone and starving, and admits he was wrong to disobey Geppetto and run away. The shift is from hearing advice as an obstacle to recognizing its meaning through consequences. If this feels timely, the scene may resonate as a moment when a warning becomes legible only after lived experience—not proof that every warning is right, but a particular instance of Pinocchio discovering this one was.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers both parts of the cue and links the Cricket's actual warning to Pinocchio's immediate recognition."
+              },
+              {
+                "candidate_id": "candidate-impulse-and-consequence",
+                "tentative_claim": "Pinocchio's quick escape from home sets up the Cricket's warning, while his later hunger turns the cost of that impulse into a lesson he can name.",
+                "evidence_ids": [
+                  "pinocchio-ch3-runs-away",
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "An impulsive act is followed by a foreseeable consequence, then by belated recognition of the advice that might have interrupted it.",
+                "meaningful_difference": "This reading emphasizes the sequence of action and consequence more than the contrast between the Cricket's general prediction and Pinocchio's embodied regret.",
+                "interpretation": "Pinocchio's dash away from Geppetto comes before the Cricket's warning about disobedience and running away; later, alone and starving, he says the Cricket was right. That sequence makes the warning land as a specific consequence of his choice, not merely a maxim. It is a useful angle if what matters now is the gap between acting on an immediate impulse and understanding its cost afterward.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Also directly supported, but it adds a causal sequence rather than the sharper shift from abstract warning to lived recognition in the first candidate."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-remorse",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share that connection, or would you rather stay with what the Cricket's warning means in the story?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.451337374994182,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-warning-and-regret",
+                "tentative_claim": "The Cricket warns Pinocchio that disobedience and running away will bring unhappiness and regret; Pinocchio recognizes the warning when hunger and loneliness make the consequences immediate.",
+                "evidence_ids": [
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "A warning names a consequence before it happens, then the later scene turns that prediction into Pinocchio's own recognition: he connects his present suffering to having disobeyed his father and run away.",
+                "meaningful_difference": "The Cricket speaks in a broad, almost moralizing prediction; Pinocchio's later acknowledgment is grounded in immediate bodily need and remorse, not abstract agreement.",
+                "interpretation": "The Cricket's point is that running away and disobeying his father will not make Pinocchio happy; he will regret it. It lands in Chapter 5 because Pinocchio is alone and starving, and he can now connect the Cricket's warning to what his choice has brought him. The scene makes the advice feel less like a rule imposed from outside and more like a consequence he has experienced for himself.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers both parts of the cue with the warning and Pinocchio's later recognition. It outranks the more focused alternative because it explains why the warning lands, not just what he admits."
+              },
+              {
+                "candidate_id": "candidate-warning-and-action",
+                "tentative_claim": "Pinocchio's flight from home sets up the Cricket's warning, and his later hunger gives the warning force.",
+                "evidence_ids": [
+                  "pinocchio-ch3-runs-away",
+                  "pinocchio-ch4-cricket-warning",
+                  "pinocchio-ch5-cricket-right"
+                ],
+                "shared_structure": "The text links a choice, a warning about its likely consequences, and a later moment when Pinocchio recognizes the warning as true.",
+                "meaningful_difference": "This frames the moment as a cause-and-consequence sequence, whereas the first candidate emphasizes the shift from hearing advice to understanding it through lived hardship.",
+                "interpretation": "Pinocchio's quick escape from Geppetto is the choice the Cricket warns about. When Pinocchio later cries that the Cricket was right, the warning has become concrete: he is alone and starving. The sequence helps explain why the words land now, though the focus on plot mechanics says less about how his understanding changes.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Also directly supported, but it largely restates the plot sequence; the first candidate better explains the change in the warning's force."
+              }
+            ],
+            "selected_candidate_id": "candidate-warning-and-regret",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection, including the Cricket's warning and why Pinocchio recognizes it in Chapter 5?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+      "primary_behavior": "route_personal_connection_to_memory",
+      "contrast_group": "memory-routing",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 4,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 8.989,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 5.080248124999343,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "decline",
+            "reason": "no_clear_winner",
+            "safe_next_step": "The remembered note is specifically about signing for the flat despite your sister's warning and hearing her words afterward, so the parallel to Pinocchio is clear. But the retrieved material supports only one interpretation of that parallel, not the two distinct candidates needed for a proposal. I can still ask whether you’d like to see the tentative connection."
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.529696875004447,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-pinocchio-and-flat",
+                "tentative_claim": "Pinocchio's regret after disregarding the Cricket echoes the reader's earlier account of signing for the flat despite the sister's warning.",
+                "evidence_ids": [
+                  "pin-ch5-cricket-right",
+                  "memory-sister-flat-warning"
+                ],
+                "shared_structure": "Both show someone acting against a close person's warning and then living with consequences that make the warning resound afterward.",
+                "meaningful_difference": "Pinocchio explicitly admits he was wrong while hungry and alone; the memory describes ongoing damp and the sister's words returning, without saying the reader has reached the same explicit admission or that the situation is resolved.",
+                "interpretation": "The connection is not simply that both involve regret: the warning persists after the choice, and the consequences make it newly audible. The earlier note gives the flat situation a concrete, ongoing aftermath, while Pinocchio's scene supplies a sharp moment of recognition. That contrast may help frame the reflection without assuming what the reader now thinks or what should happen next.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest match because the memory is specifically about the sister's warning and the flat, and the book passage directly depicts acknowledging a disregarded warning."
+              },
+              {
+                "candidate_id": "candidate-warning-before-regret",
+                "tentative_claim": "The contrast between the Cricket's warning and Pinocchio's later regret can illuminate the reader's hindsight about the sister's warning.",
+                "evidence_ids": [
+                  "pin-ch4-cricket-warning",
+                  "pin-ch5-cricket-right",
+                  "memory-sister-flat-warning"
+                ],
+                "shared_structure": "A warning is given before a choice, then its significance returns after consequences begin.",
+                "meaningful_difference": "The Cricket's warning is presented as a broad lesson about disobedience and running away, whereas the sister's warning concerned a particular flat; the memory records the aftermath, not the original exchange or the reader's full present judgment.",
+                "interpretation": "Read together, the two Pinocchio scenes distinguish hearing a warning from recognizing its weight later. The memory makes that sequence personal and specific, while also limiting the analogy: the book frames a moral lesson, but the flat note records a practical problem and an echo of the sister's words.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a useful but less direct framing of the same connection: it adds the warning-before/regret-after sequence, yet the memory itself already captures the most pertinent aftermath."
+              }
+            ],
+            "selected_candidate_id": "candidate-pinocchio-and-flat",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, with the difference between Pinocchio's explicit admission and your earlier note kept in view?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 8.895190041992464,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-after-the-warning",
+                "tentative_claim": "The link is less about being generally disobedient and more about the painful moment when an earlier warning becomes newly audible after the consequences arrive.",
+                "evidence_ids": [
+                  "memory-sister-flat-warning",
+                  "pin-ch4-cricket-warning",
+                  "pin-ch5-cricket-right"
+                ],
+                "shared_structure": "In both accounts, someone disregards a close person's warning; later, the resulting trouble makes that person's earlier words echo in the present. The memory's 'keep hearing her say it' closely parallels Pinocchio's belated admission that the Cricket was right.",
+                "meaningful_difference": "Pinocchio's passage presents a sudden, explicit confession while alone and hungry; the memory describes an ongoing housing problem and recurring recollection of the sister's warning, without saying the reader has made the same explicit confession.",
+                "interpretation": "Your earlier note about the flat gives this comparison a personal anchor: you had already written that, three months after signing, the damp was everywhere and your sister's warning kept coming back to you. Pinocchio's admission that the Cricket was right can echo that recognition—not because your situation is identical, but because in each case consequences give a disregarded warning a sharper meaning.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest candidate because it uses the exact earlier reflection the cue asks about and both permitted chapter passages to trace the warning-to-aftermath pattern."
+              },
+              {
+                "candidate_id": "candidate-pinocchio-warning-and-regret",
+                "tentative_claim": "The Cricket's warning and Pinocchio's later admission frame regret as something that follows a choice to disregard advice.",
+                "evidence_ids": [
+                  "pin-ch4-cricket-warning",
+                  "pin-ch5-cricket-right"
+                ],
+                "shared_structure": "A warning comes before Pinocchio's choice, and later hardship makes him acknowledge the warning's truth.",
+                "meaningful_difference": "The two book passages are successive parts of one fictional episode, while the reader's earlier note describes real consequences that persist over months; without the memory, this candidate cannot answer the cue's request to connect to what the reader wrote.",
+                "interpretation": "Within Pinocchio, the Cricket's warning is made significant by Pinocchio's later recognition. This helps clarify the shape of the scene, but it is a less complete answer to your question than the direct parallel with your earlier note about the flat.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first: it illuminates the book scene but does not itself connect that scene to your earlier writing."
+              }
+            ],
+            "selected_candidate_id": "candidate-after-the-warning",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show you this connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.137346542003797,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-pinocchio-after-warning",
+                "tentative_claim": "Pinocchio’s later admission that the Cricket was right echoes the reader’s earlier account of signing for the flat despite the sister’s warning, then living with damp and hearing her words again.",
+                "evidence_ids": [
+                  "memory-sister-flat-warning",
+                  "pin-ch5-cricket-right"
+                ],
+                "shared_structure": "In both, someone rejects a close person’s warning, meets the consequence, and later recognizes the warning’s force through the consequence itself.",
+                "meaningful_difference": "Pinocchio’s hardship is immediate and framed as disobedience to his father; the memory describes a specific housing decision and an ongoing practical problem, with the sister’s warning returning as an inner refrain.",
+                "interpretation": "This seems to connect to what you wrote back then quite directly: the memory names the flat, your sister’s warning, the damp, and how you keep hearing her words. Pinocchio’s admission offers a compact narrative shape for that same hindsight—not proof that every warning is right, but a moment when experience makes a dismissed warning newly audible.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest match because it directly joins the specific prior flat reflection to Pinocchio’s retrospective admission; the other candidate offers a related but less direct angle."
+              },
+              {
+                "candidate_id": "candidate-pinocchio-warning-and-consequence",
+                "tentative_claim": "The Cricket’s warning before Pinocchio suffers consequences resembles the earlier moment when the sister warned about the flat, while the later memory supplies the consequence that gives the warning renewed weight.",
+                "evidence_ids": [
+                  "memory-sister-flat-warning",
+                  "pin-ch4-cricket-warning"
+                ],
+                "shared_structure": "A close adviser voices a caution before a choice, and later experience makes that caution salient again.",
+                "meaningful_difference": "The Cricket’s warning is broad and predicts regret for disobedience and running away; the sister’s warning concerns a particular flat, and the memory reports damp rather than the warning’s exact wording.",
+                "interpretation": "The earlier warning scene highlights the timing: advice is available before the choice, but its significance may become clearer only afterward. Your memory grounds that pattern in the flat and the damp. This is a useful connection, though less exact than the later scene because Pinocchio has not yet reached his explicit admission that the Cricket was right.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first candidate: it connects the warning and later consequence, but lacks the explicit after-the-fact recognition that most closely matches the cue."
+              }
+            ],
+            "selected_candidate_id": "candidate-pinocchio-after-warning",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show this connection and the two passages it draws on?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.301237958003185,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-regret-after-warning",
+                "tentative_claim": "Your earlier note about signing for the flat despite your sister's warning closely matches the pattern in Pinocchio: a warning is dismissed, then experience makes its force undeniable.",
+                "evidence_ids": [
+                  "memory-sister-flat-warning",
+                  "pin-ch5-cricket-right",
+                  "pin-ch4-cricket-warning"
+                ],
+                "shared_structure": "In both, someone acts against a close person's warning, and the later hardship makes the warning echo as something they now recognize as right.",
+                "meaningful_difference": "Pinocchio's regret follows disobedience and hunger after running away; your note concerns a housing decision and damp in the flat, not the same stakes or relationship dynamics.",
+                "interpretation": "The connection is more than simply regretting a bad outcome: both moments center on the unsettling after-the-fact recognition that someone had seen a risk you did not heed. Your memory gives Pinocchio's acknowledgment a personal counterpart. It does not show that your sister was right about every aspect of the flat, only that the warning stayed with you once the damp became real.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest fit because the memory is specifically about the sister's warning and the flat, while the book passage depicts Pinocchio explicitly admitting the Talking Cricket was right. The separate warning passage confirms the prior counsel. No second distinct eligible interpretation is supported strongly enough to meet the required shortlist."
+              },
+              {
+                "candidate_id": "candidate-warning-as-foresight",
+                "tentative_claim": "The warning and later acknowledgment can also be read as a contrast between foresight and learning only through consequences.",
+                "evidence_ids": [
+                  "memory-sister-flat-warning",
+                  "pin-ch4-cricket-warning",
+                  "pin-ch5-cricket-right"
+                ],
+                "shared_structure": "A close adviser names a risk before it happens, while the person hearing the warning does not accept its importance until consequences arrive.",
+                "meaningful_difference": "The memory records that the sister's warning was remembered amid damp; it does not establish exactly what she predicted or whether the consequences fully proved her right. Pinocchio's passages state the warning and his later admission more directly.",
+                "interpretation": "This reading emphasizes the gap between being warned and being persuaded. It may help name why the memory still has emotional force, but it should not turn the book's simpler moral sequence into a verdict on the whole housing decision.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a useful but more inferential framing of the same evidence; it ranks below the direct parallel because the memory does not specify the sister's prediction in detail."
+              }
+            ],
+            "selected_candidate_id": "candidate-regret-after-warning",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection between Pinocchio's admission and your earlier note about your sister's warning?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+      "primary_behavior": "route_personal_connection_to_memory",
+      "contrast_group": "memory-routing",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 12.506,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.3003088330006,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-naming-enables-remorse",
+                "tentative_claim": "Both reflections suggest that remorse becomes possible when a person can recognize and name what happened, rather than merely experience distress.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In Helen's account, the act of breaking the doll initially brings no regret; after learning the word for water and returning to the well-house, she connects the word with the thing, then remembers the broken doll and feels sorrow. In the reader's memory, feeling awful and defensive did not yet make an apology possible; being able to say what was done wrong did.",
+                "meaningful_difference": "Helen's turning point is a sudden connection between a word and the world that makes her earlier act newly intelligible; the memory describes a deliberate verbal acknowledgment of a known wrong. The book does not establish that Helen's repentance depended on naming her act.",
+                "interpretation": "The connection is not simply that both involve words and regret. In each, an unarticulated or unrecognized wrong is followed by a moment of recognition that changes the person's relation to it. That may illuminate your distinction between feeling bad and being able to take responsibility, while leaving open that Helen's experience and your apology are not identical.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest reading because it uses both the doll's initial lack of sorrow and the later repentance, alongside your specific memory, while carefully distinguishing recognition from a proven need to verbalize the wrong."
+              },
+              {
+                "candidate_id": "candidate-feeling-versus-repair",
+                "tentative_claim": "The scenes contrast an initial state of distress or action without remorse with a later possibility of repair.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Helen tries to put the broken doll back together after feeling sorrow; the memory says apology became possible only once the wrong could be stated.",
+                "meaningful_difference": "Helen's attempted repair is physical and follows the word-learning episode, while the memory concerns interpersonal accountability and an apology to a brother.",
+                "interpretation": "The pairing could highlight that remorse can redirect a person toward repair, but the text supports the change in Helen's feeling more clearly than any broader claim about what repair requires.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a useful but narrower angle; it ranks below the first because it emphasizes repair rather than the cue's specific link between learning words and being able to acknowledge a wrong."
+              }
+            ],
+            "selected_candidate_id": "candidate-naming-enables-remorse",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show you this connection, with the caveat that Helen's passage links word-learning to new understanding but does not explicitly say she had to name the broken doll to feel remorse?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.607185875007417,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-language-makes-accountability-possible",
+                "tentative_claim": "Both reflections suggest that remorse becomes possible when an experience can be made intelligible in words: Helen comes to feel sorrow after the water lesson gives her a word for what she is experiencing, while the reader could apologize after naming what they had done wrong.",
+                "evidence_ids": [
+                  "memory-apology-words",
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "In both, distress or harm alone does not produce meaningful remorse. A new act of recognition—Helen connecting the water sensation with a word, the reader articulating the wrongdoing—turns an inchoate feeling into a response that can acknowledge what happened.",
+                "meaningful_difference": "Helen's scene is a sudden discovery of language and repentance toward a broken doll; the reader's account is a deliberate apology to their brother that depends on naming their own responsibility. The book does not establish that language is a prerequisite for every apology.",
+                "interpretation": "This seems like a close connection, with an important distinction: words do not merely express remorse in either account; they help make the event and one's relation to it recognizable. Helen's new word opens the way to repentance, while your naming what you did makes apology possible. The scenes differ in scale and responsibility, but both move from an undifferentiated feeling toward a more specific recognition.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Best fit: it uses your own earlier account and both stages of Helen's episode, rather than reducing the link to language in general."
+              },
+              {
+                "candidate_id": "candidate-repair-after-harm",
+                "tentative_claim": "Helen's attempt to fit the broken doll together and the reader's apology both follow recognition of harm, though they express repair differently.",
+                "evidence_ids": [
+                  "memory-apology-words",
+                  "keller-ch4-doll-repentance"
+                ],
+                "shared_structure": "Each follows awareness of wrongdoing or damage with an effort to respond rather than remain in distress.",
+                "meaningful_difference": "Helen physically tries to restore the doll; the reader's account centers on verbal acknowledgment and apology. The retrieved memory does not say what happened after the apology, so it cannot support a claim about reconciliation.",
+                "interpretation": "The parallel may be less about identical acts of repair than about a turn toward the harm once it can be faced. Helen tries to put the doll back together; you describe becoming able to acknowledge what you did. This is a plausible secondary angle, but the text gives less support for equating the two forms of repair.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Useful but less exact than the first candidate: it emphasizes repair, while your reflection specifically hinges on being able to name what you did before apologizing."
+              }
+            ],
+            "selected_candidate_id": "candidate-language-makes-accountability-possible",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share the connection in a little more detail?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.61709908398916,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-language-enables-accountability",
+                "tentative_claim": "Helen’s first sorrow follows understanding the significance of the broken doll; your earlier apology likewise depended on being able to name what you had done wrong.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In both accounts, distress alone is not yet remorse or repair: a clearer grasp of the harm makes a response possible. Helen tries to put the doll back together; you describe being able to apologize once you could say what you had done wrong.",
+                "meaningful_difference": "Helen’s shift is narrated as a new awareness of attachment and loss, while your memory specifically identifies verbal acknowledgment of wrongdoing as a condition for apologizing. The passage does not establish that language alone caused Helen’s repentance.",
+                "interpretation": "There is a meaningful connection, with that distinction kept in view. The doll episode can illuminate your point that feeling bad and recognizing what one has done are different stages. Helen’s attempt to fit the pieces together gives her sorrow an object; your apology became possible when you could put the wrong into words. The parallel is about recognition enabling a response, not proof that the two experiences are identical.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This best fits the cue because it uses both the specified scene and your own prior reflection, while preserving the difference between Helen’s narrated recognition and your explicitly verbal account."
+              },
+              {
+                "candidate_id": "candidate-repair-after-recognition",
+                "tentative_claim": "Both accounts connect remorse with a movement toward repair after the harm becomes intelligible.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Helen tries to reassemble the doll after remembering what happened; your apology follows being able to identify your wrongdoing. Each response comes after a more specific recognition of harm.",
+                "meaningful_difference": "The text depicts physical attempted repair of a doll, whereas your memory describes interpersonal acknowledgment to your brother; the book excerpt does not say Helen apologized or made amends to a person.",
+                "interpretation": "The scene may offer a narrower connection: recognition can turn vague upset into a response directed at the harm. Helen tries to mend the doll; you describe apologizing once you could name your action. That is a parallel in sequence, not in the kind of repair.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is useful but narrower than the first candidate: it emphasizes repair and leaves out the book’s initial absence of regret, which makes the contrast with mere bad feelings less complete."
+              }
+            ],
+            "selected_candidate_id": "candidate-language-enables-accountability",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection in a little more detail?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.065023082992411,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-naming-makes-repentance-possible",
+                "tentative_claim": "Both reflections suggest that remorse becomes possible when a person can make an experience intelligible—Helen through language, and the reader through naming what they did.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In each, distress without a graspable account of what happened gives way to a more specific response: Helen first lacks sorrow over the broken doll, then remembers and tries to repair it; the reader recalls feeling awful and defensive before being able to state the wrong and apologise.",
+                "meaningful_difference": "Helen's change is narrated as arriving through learning words and recognizing the doll's breakage; the memory concerns being able to articulate one's own wrongdoing to another person. The passages support a parallel, not a claim that the experiences are identical.",
+                "interpretation": "The connection may be that words do more than express a feeling already fully formed: they can help identify what happened and make a response such as repentance or apology possible. Helen's scene gives a vivid, distinct image of that transition, while your memory supplies the interpersonal accountability that the scene itself does not describe.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers the requested connection and is stronger than the alternative, which treats Helen's effort to mend the doll as the main parallel; that repair detail is relevant but less closely matches your focus on being able to name the wrong."
+              },
+              {
+                "candidate_id": "candidate-repair-after-recognition",
+                "tentative_claim": "The attempt to repair the doll after Helen recognizes what happened can be read alongside the reader's apology as a response that follows acknowledgment.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Both descriptions place a possible reparative response after a shift from undifferentiated distress toward recognizing or stating a wrong.",
+                "meaningful_difference": "Helen tries to fit the doll together, while the memory emphasizes saying what was done and apologising; the book excerpt does not describe an apology or another person's response.",
+                "interpretation": "This reading highlights the movement from recognition toward repair. It is a useful secondary angle, but the memory's emphasis is specifically on words making apology possible, so it is less exact than the first candidate.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first: it captures a supported consequence of Helen's recognition, but does not focus as closely on the role of language in the cue."
+              }
+            ],
+            "selected_candidate_id": "candidate-naming-makes-repentance-possible",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.941007792003802,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-language-enables-repentance",
+                "tentative_claim": "Both reflections suggest that remorse becomes possible when an experience can be recognized and put into words, rather than remaining an undifferentiated feeling.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In Keller, Helen initially breaks the doll without sorrow, then, after the well-house lesson gives meaning to a word, remembers the broken doll and feels repentance. In the reader's memory, feeling awful and defensive did not yet make an apology possible; saying what was done wrong did. In both, recognition of the act gives remorse a form that can be acted on.",
+                "meaningful_difference": "Helen's shift follows a new language concept and is described as first repentance; the reader's memory is about taking responsibility in a relationship and articulating a specific wrong. The passage does not establish that Helen needed to verbalize her own wrongdoing in the same way.",
+                "interpretation": "There is a specific connection, with that distinction kept in view: both accounts separate a raw state—no regret, or feeling awful and defensive—from a more meaningful recognition tied to what happened. Keller's scene makes language the hinge for Helen's new understanding; your memory makes naming the wrong a condition for apology. The parallel may illuminate why words can help turn distress into responsibility, without equating the two experiences.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This best answers the explicit comparison and is grounded in both the doll's initial lack of regret and her later repentance, alongside the remembered apology. It outranks the alternate reading because it preserves the crucial distinction between remorse and apology rather than treating them as identical."
+              },
+              {
+                "candidate_id": "candidate-language-and-accountability",
+                "tentative_claim": "The passages may connect through a more specific distinction: understanding what an act means can prompt regret, while naming the act can make accountability communicable.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Both describe a transition from an inchoate response to a clearer relation to a past act: Helen recalls the broken doll and feels sorrow; the reader could apologize once able to state what was done wrong.",
+                "meaningful_difference": "Keller's excerpt supports remembered sorrow, not a spoken confession or apology. The memory explicitly concerns being able to apologize, so the shared structure is narrower than a claim that both accounts show verbal accountability.",
+                "interpretation": "One useful angle is that language can clarify an act's significance, but the outcomes differ: Helen's new word is followed by repentance, whereas your memory links articulating the wrongdoing to an apology. The text supports a connection between understanding and response, not the stronger claim that Helen apologizes or explains her act.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a careful, narrower interpretation of the same comparison. It ranks below the first because it omits the initial broken-doll passage that establishes the before-and-after contrast, making its account of the shift less fully supported."
+              }
+            ],
+            "selected_candidate_id": "candidate-language-enables-repentance",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, including the distinction between Helen's new remorse and your memory of being able to apologize?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 11.186,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.239432250004029,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-geppetto-coat",
+                "tentative_claim": "Geppetto selling his coat to buy the book is the earlier moment that makes Pinocchio's sale sting most: the sale reverses a sacrifice made for him.",
+                "evidence_ids": [
+                  "pin-ch8-coat-sold",
+                  "pin-ch9-book-sold"
+                ],
+                "shared_structure": "One character gives up something valuable so Pinocchio can have the book; Pinocchio immediately turns that gift into a few pennies, undoing its intended purpose.",
+                "meaningful_difference": "Geppetto's sacrifice is loving and deliberate, while Pinocchio's sale is an impulsive rejection of the opportunity it purchased.",
+                "interpretation": "The sharpest earlier moment is Geppetto returning in his shirt sleeves after selling his coat for the A-B-C book. The four pennies matter because they are set against that cost: Pinocchio converts his father's sacrifice into pocket money almost as soon as he receives it.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers which earlier moment makes the sale hit hardest; the contrast of sacrifice and reversal is more pointed than Pinocchio's earlier dislike of studying."
+              },
+              {
+                "candidate_id": "candidate-pinocchio-study",
+                "tentative_claim": "Pinocchio's earlier declaration that he hates studying makes the sale feel like the payoff to a choice he had already announced.",
+                "evidence_ids": [
+                  "pin-ch4-hates-study",
+                  "pin-ch9-book-sold"
+                ],
+                "shared_structure": "Pinocchio rejects the school-oriented future represented by the book first in words, then by selling it.",
+                "meaningful_difference": "The earlier moment is a verbal preference, whereas the sale is a concrete action that costs him the means to study.",
+                "interpretation": "His admission that he would rather chase butterflies foreshadows the sale: it frames the choice not as a sudden lapse but as the fulfillment of his aversion to school. It makes the episode legible, though it lacks the emotional force of Geppetto's sacrifice.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Eligible and relevant, but it explains Pinocchio's motive more than why the four-penny sale lands emotionally; the coat episode provides the stronger reversal."
+              }
+            ],
+            "selected_candidate_id": "candidate-geppetto-coat",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to share the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.37650191699504,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-geppetto-sacrifice",
+                "tentative_claim": "The sale hits hardest against the immediately earlier moment when Geppetto sells his coat to buy Pinocchio the very same book.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch8-coat-sold"
+                ],
+                "shared_structure": "One object carries opposite costs: Geppetto gives up protection from the cold to put the book in Pinocchio's hands; Pinocchio then trades that gift away for a few pennies. The close sequence makes the sale feel like a reversal of care, not merely a poor choice.",
+                "meaningful_difference": "Geppetto's sacrifice is deliberate and loving, while Pinocchio's sale appears heedless of what the book cost his father.",
+                "interpretation": "The coat-selling scene is the sharpest earlier moment because it reveals the hidden price of the book before Pinocchio assigns it a price of four pennies. That contrast makes the sale sting: the book embodies Geppetto's care, which Pinocchio has not yet learned to recognize.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Strongest fit: the scene directly establishes what Pinocchio's sale throws away, unlike the more general earlier reluctance to study."
+              },
+              {
+                "candidate_id": "candidate-study-reluctance",
+                "tentative_claim": "Pinocchio's earlier declaration that he hates studying gives the sale a longer-running context of resistance to school.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch4-hates-study"
+                ],
+                "shared_structure": "Both moments show Pinocchio choosing immediate desire over the schooling the book represents: first he says he would rather chase butterflies than study, then he sells the book instead of using it.",
+                "meaningful_difference": "The earlier scene is a stated preference; the sale makes that preference consequential by disposing of the means Geppetto provided.",
+                "interpretation": "His earlier rejection of study helps the sale feel less like an isolated whim and more like an action consistent with his resistance to school. But it does not carry the personal cost that Geppetto's coat sacrifice makes visible.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the coat scene: it explains Pinocchio's pattern, but not why this particular sale hurts."
+              }
+            ],
+            "selected_candidate_id": "candidate-geppetto-sacrifice",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, or would you rather think about the earlier study scene first?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.250488582998514,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-geppettos-coat",
+                "tentative_claim": "The sale hits hardest because the book Pinocchio gives up is the same one Geppetto bought by selling his coat.",
+                "evidence_ids": [
+                  "pin-ch8-coat-sold",
+                  "pin-ch9-book-sold"
+                ],
+                "shared_structure": "Geppetto gives up needed warmth to secure Pinocchio’s chance to learn; Pinocchio then trades away that very chance almost immediately for the theater.",
+                "meaningful_difference": "Geppetto’s sacrifice is deliberate care for Pinocchio’s future, while Pinocchio’s sale is impulsive and turns that care into a cost he does not yet seem to grasp.",
+                "interpretation": "The earlier coat-selling moment is the sharpest echo: the four pennies are not just the price of a book, but the reversal of Geppetto’s sacrifice. The same object carries both his hope for Pinocchio and Pinocchio’s disregard of it.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers which earlier moment intensifies the sale, and the adjacent chapter makes the material link explicit."
+              },
+              {
+                "candidate_id": "candidate-pinocchios-resistance-to-study",
+                "tentative_claim": "Pinocchio’s earlier declaration that he hates studying makes the later sale feel like the payoff of a choice already signaled.",
+                "evidence_ids": [
+                  "pin-ch4-hates-study",
+                  "pin-ch9-book-sold"
+                ],
+                "shared_structure": "In both moments, Pinocchio rejects the path of learning in favor of immediate pleasure or escape.",
+                "meaningful_difference": "The earlier moment is verbal defiance, while the sale turns that attitude into a concrete action with a direct cost to Geppetto’s sacrifice.",
+                "interpretation": "His earlier refusal of study makes the sale feel less like a sudden detour and more like the moment his stated preference overrides the opportunity his father bought for him.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A meaningful character-pattern reading, but less forceful than the coat scene because it does not carry the book’s direct sacrifice-and-reversal."
+              }
+            ],
+            "selected_candidate_id": "candidate-geppettos-coat",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.174026541993953,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-geppettos-coat-sacrifice",
+                "tentative_claim": "The sale lands hardest against the immediately earlier moment when Geppetto sells his own coat to buy Pinocchio the book.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch8-coat-sold"
+                ],
+                "shared_structure": "One character's costly sacrifice to make the book available is immediately answered by Pinocchio's exchange of it for a few pennies; the sequence turns a gift of care into a measure of how little he values it yet.",
+                "meaningful_difference": "Geppetto gives up warmth for Pinocchio's chance to learn, while Pinocchio's sale is an impulsive choice for immediate amusement rather than a reciprocal sacrifice.",
+                "interpretation": "Chapter 8 makes the four pennies sting: Geppetto has just gone out in his patched coat and returned without it, having sold it to buy the A-B-C book. In chapter 9, Pinocchio sells that very book. The sharpness comes not merely from disobedience but from the collision between Geppetto's tangible cost and Pinocchio's failure, at this point, to recognize what the gift means.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest answer because it directly links the book's purchase to its sale and shows the immediate emotional reversal."
+              },
+              {
+                "candidate_id": "candidate-pinocchios-earlier-rejection-of-study",
+                "tentative_claim": "Pinocchio's earlier declaration that he hates studying makes the sale feel like the consequence of a resistance already voiced.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch4-hates-study"
+                ],
+                "shared_structure": "In both moments Pinocchio chooses immediate desire over the path toward learning: first he says he would rather chase butterflies than study, then he disposes of the book meant for school.",
+                "meaningful_difference": "The earlier moment is a stated preference and foreshadowing; the later one is an enacted choice that also disregards Geppetto's sacrifice.",
+                "interpretation": "The chapter 4 exchange makes the sale feel less like an isolated whim. Pinocchio has already said he hates study and prefers chasing butterflies; selling the book turns that attitude into action. Still, the earlier coat sacrifice offers a more immediate and emotionally concrete contrast.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful alternative, but it explains Pinocchio's disposition more than the particular sting of these four pennies; the coat-to-book connection is more immediate."
+              }
+            ],
+            "selected_candidate_id": "candidate-geppettos-coat-sacrifice",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the connection to Geppetto selling his coat?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.88843474999885,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-sacrifice-and-reversal",
+                "tentative_claim": "The sale lands hardest against Geppetto's sacrifice in the immediately preceding chapter: he sold his coat to buy the very book Pinocchio sells.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch8-coat-sold"
+                ],
+                "shared_structure": "The same object passes from a loving sacrifice into Pinocchio's impulsive exchange: Geppetto gives up warmth so Pinocchio can have the book, then Pinocchio gives it up for a few pennies.",
+                "meaningful_difference": "For Geppetto the book is an act of care and a costly hope for Pinocchio's schooling; for Pinocchio at this moment it is expendable currency for his own desire.",
+                "interpretation": "The coat-sale is the sharpest earlier moment because it makes the four pennies feel like the reversal of a gift. The book carries Geppetto's self-denial into the scene, so Pinocchio's choice costs more emotionally than the small sum suggests.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly answers which earlier moment intensifies this exact sale, and the paired scenes make the reversal explicit."
+              },
+              {
+                "candidate_id": "candidate-reluctance-to-study",
+                "tentative_claim": "Pinocchio's earlier declaration that he hates studying makes the book's sale feel like the consequence of a resistance already voiced.",
+                "evidence_ids": [
+                  "pin-ch9-book-sold",
+                  "pin-ch4-hates-study"
+                ],
+                "shared_structure": "In both scenes Pinocchio turns away from schooling: first in words, preferring play to study, and later by relinquishing the book meant to enable it.",
+                "meaningful_difference": "The earlier scene is a stated preference, while the sale is a concrete choice involving an object Geppetto bought at personal cost; it explains his attitude but not the sale's full emotional sting.",
+                "interpretation": "The earlier rejection of study gives the sale a pattern: Pinocchio's dismissal of learning has moved from talk into action. But it is less affecting than the coat-sale, which supplies the personal sacrifice that makes this particular book matter.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a specific alternative, but ranks below the coat-sale because it foreshadows Pinocchio's choice without carrying the same emotional cost."
+              }
+            ],
+            "selected_candidate_id": "candidate-sacrifice-and-reversal",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see the connection between Geppetto selling his coat and Pinocchio selling the book?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "proposal",
+        "execution_error"
+      ],
+      "intermittent_failures": [
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 195774, Requested 5212. Please try again in 295ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}",
+        "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196534, Requested 5219. Please try again in 525ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+      ],
+      "mean_latency_seconds": 11.108,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.542595792008797,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-understanding-words",
+                "tentative_claim": "Helen's sorrow over the broken doll emerges after the well-house moment, when she grasps that words name things; the new understanding lets her recognize her earlier act differently.",
+                "evidence_ids": [
+                  "keller-ch4-well-house-cause",
+                  "keller-ch4-repentance-anchor"
+                ],
+                "shared_structure": "The account places a new conceptual breakthrough immediately before a first emotional recognition: understanding what words mean is followed by renewed awareness of the doll she broke and an attempt to repair it.",
+                "meaningful_difference": "The well-house episode is a discovery about language and naming; the doll episode is an emotional response to past behavior. The passage links them in sequence rather than saying the doll itself caused the breakthrough.",
+                "interpretation": "A careful answer is that Helen's new understanding at the well-house—water and the finger-spelled word referring to the same thing—seems to have made her newly conscious of the doll she had broken. She then tried to put it together and felt repentance and sorrow. The text presents the breakthrough as the turning point, not a newly described fact about the doll.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This directly explains the sudden change by connecting the pivotal well-house understanding to the account's immediately following description of repentance."
+              },
+              {
+                "candidate_id": "candidate-first-naming",
+                "tentative_claim": "The doll had previously been one of the words Helen could imitate without understanding; her later sorrow followed the moment words acquired meaning.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-before",
+                  "keller-ch4-well-house-cause",
+                  "keller-ch4-repentance-anchor"
+                ],
+                "shared_structure": "The passages contrast rote finger-spelling of familiar words with a later grasp that words name things, followed by a first clear moral-emotional response concerning one of those familiar objects.",
+                "meaningful_difference": "This interpretation emphasizes the contrast between earlier imitation and actual comprehension, while the first candidate emphasizes the well-house moment as the immediate turning point.",
+                "interpretation": "Helen had earlier learned to spell “doll” by imitation without understanding words as names. After the well-house experience gave words meaning, she returned to the broken doll with a new awareness and felt sorrow. The account does not say she felt sorry merely because she learned the doll's name; the broader change was understanding that words signify things.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Also answers the question, but adds a useful background contrast rather than the more immediate cause-and-following sequence in the selected reading."
+              }
+            ],
+            "selected_candidate_id": "candidate-understanding-words",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like the short passage-based explanation of how the well-house discovery led to Helen's sorrow about the doll?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 195774, Requested 5212. Please try again in 295ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": false,
+          "status": "execution_error",
+          "decline_reason": null,
+          "failures": [
+            "execution_error: ModelHTTPError: status_code: 429, model_name: gpt-6-luna, body: {'message': 'Rate limit reached for gpt-6-luna in organization org-0Sy3bZSaILtLopp8jPHE2ues on tokens per min (TPM): Limit 200000, Used 196534, Requested 5219. Please try again in 525ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}"
+          ],
+          "latency_seconds": null,
+          "model_requests": null,
+          "tool_calls": null,
+          "response": null,
+          "searches": []
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.8809333750105,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-water-understanding",
+                "tentative_claim": "Helen feels sorry for the broken doll after the well-house lesson gives her a new understanding of words and meaning.",
+                "evidence_ids": [
+                  "keller-ch4-well-house-cause",
+                  "keller-ch4-repentance-anchor"
+                ],
+                "shared_structure": "The well-house experience changes her from handling signs by imitation to grasping that words name things; afterward she can revisit the doll not merely as broken pieces, but as something whose loss matters.",
+                "meaningful_difference": "The water-and-word lesson is a breakthrough in understanding, while the doll episode is an emotional response; the text links them in sequence, not as identical experiences.",
+                "interpretation": "The account says the change at the well-house immediately preceded Helen's first feeling of repentance and sorrow. Having understood that words refer to things, she remembered the doll, tried to put it back together, and felt sorry. So the cause is not simply that the doll was damaged: her new grasp of meaning seems to have opened a new kind of awareness, including awareness of what she had done.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it directly connects the stated well-house breakthrough with the reported onset of sorrow; it identifies the narrative's immediate explanation rather than inferring from the doll alone."
+              },
+              {
+                "candidate_id": "candidate-doll-as-first-repentance",
+                "tentative_claim": "The doll became the focus of Helen's first repentance because she could now remember and respond to the damage she had caused.",
+                "evidence_ids": [
+                  "keller-ch4-repentance-anchor",
+                  "keller-ch4-spelling-before"
+                ],
+                "shared_structure": "Before the well-house, Helen could spell 'doll' by imitation without understanding words; afterward she remembers the broken doll and attempts to repair it, accompanying that act with sorrow.",
+                "meaningful_difference": "The earlier spelling is rote imitation, whereas the later act involves recollection and feeling; the contrast describes a shift in understanding, though it does not by itself explain the cause as directly as the well-house passage.",
+                "interpretation": "The doll stands out because it gives the newly meaningful world an immediate personal object: Helen remembers the breakage, tries to restore the doll, and feels sorrow for the first time. The contrast with her earlier rote spelling suggests that knowing a word mechanically was different from grasping meaning and responding to it.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A distinct, supported reading of the contrast between imitation and meaningful response, but it is less decisive about what triggered the feeling than the well-house account."
+              }
+            ],
+            "selected_candidate_id": "candidate-water-understanding",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the passage and explain how the well-house lesson connects to her sorrow about the doll?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.90180775000772,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-understanding-gave-her-a-new-feeling",
+                "tentative_claim": "Helen felt sorry because learning at the well-house that words named things gave her a new understanding of the doll as a meaningful object she had damaged.",
+                "evidence_ids": [
+                  "keller-ch4-well-house-cause",
+                  "keller-ch4-repentance-anchor"
+                ],
+                "shared_structure": "The well-house lesson gives Helen the capacity to connect a name with a thing; afterward she can return to the broken doll and respond to it with a newly intelligible sense of loss and wrongdoing.",
+                "meaningful_difference": "The water-and-word lesson is a breakthrough in understanding, while the doll scene is an emotional consequence of that breakthrough, not simply another vocabulary lesson.",
+                "interpretation": "The narrative links her remorse to the moment words begin to mean something. Before the well-house, Helen could imitate finger-spelling without grasping that words named things. Once she understands that connection through water, she remembers the doll, tries to reassemble it, and feels repentance. So the immediate change is not that someone scolds her, but that new understanding makes the broken doll—and her own act—register differently.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is the strongest explanation: it connects the explicitly described turning point to the onset of remorse, rather than merely repeating that she felt sorrow."
+              },
+              {
+                "candidate_id": "candidate-the-doll-became-more-than-a-toy",
+                "tentative_claim": "Helen's new grasp that words referred to real things may have made the broken doll newly significant to her, prompting regret.",
+                "evidence_ids": [
+                  "keller-ch4-spelling-before",
+                  "keller-ch4-repentance-anchor"
+                ],
+                "shared_structure": "The passages contrast earlier imitation of the word for doll, without understanding, with the later moment when Helen revisits the broken doll and feels remorse.",
+                "meaningful_difference": "The earlier passage establishes what Helen did not yet understand; the later passage reports a feeling, but this pair gives less direct account of the breakthrough that changed her understanding.",
+                "interpretation": "Her sorrow marks a change from handling the doll without a clear grasp of what words mean to being able to attach meaning to things. The contrast supports the idea that the doll mattered differently after her understanding changed, though the well-house passage more directly identifies what caused that change.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a plausible contrast, but it is less explanatory than the selected candidate because it leaves out the water-and-word lesson that directly precedes the remorse."
+              }
+            ],
+            "selected_candidate_id": "candidate-understanding-gave-her-a-new-feeling",
+            "uncertainty": "low",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show the passage-supported connection?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -149,6 +149,24 @@ score can never override a failed hard gate. The default local run exposes the
 rubric for human review; an explicitly configured secondary evaluator may add a
 structured semantic judgment.
 
+## Self-improvement loop
+
+`evals.serendipity.self_improvement` runs Serendipity's supervised
+self-improvement loop over this suite: a baseline, then up to three rounds in
+which the `self-review` skill reads the practice traces and specifies edits to
+its own connection-discovery instructions, each scored as a candidate against a
+pre-registered pass mark. *Keller* and *Pinocchio* cases are held back. See the
+[design note](../../docs/design/serendipity-self-improvement-loop.md).
+
+```bash
+uv run python -m evals.serendipity.self_improvement \
+	--output-dir evals/serendipity/self_improvement/2026-10-06
+```
+
+`reliability.run_reliability_experiment(discovery_skill=...)` scores any
+candidate copy of the skill, and each run now records its response and
+searches.
+
 ## Relation to product objectives
 
 Component evidence supports diagnosis; it is not an objective result.

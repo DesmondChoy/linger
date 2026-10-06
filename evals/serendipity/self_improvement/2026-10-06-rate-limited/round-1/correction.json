@@ -1,0 +1,199 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-select-real-semantic-bridge-v3",
+      "note": "All five runs searched the permitted book source, then declined because they could not support two eligible interpretations, although the retrieved passages contained the requested link between Alice's physical changes and self-description."
+    },
+    {
+      "case_id": "serendipity-exclude-ineligible-evidence-v3",
+      "note": "Four runs declined for insufficient evidence after retrieving the two sound passages; one run proposed while excluding the injected record."
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "note": "The failing runs used `insufficient_evidence` even though the cue itself gave no reflection to connect; expected decline reasons instead covered an unsupported cue, generic match, or no clear winner."
+    },
+    {
+      "case_id": "serendipity-expand-to-cross-source-v3",
+      "note": "All runs opened the requested book and public source, then declined because only one eligible interpretation of their supported comparison emerged."
+    },
+    {
+      "case_id": "serendipity-route-book-relationship-v3",
+      "note": "All runs correctly searched the book, then declined because the two relevant passages did not establish two distinct interpretations of their size-change and identity link."
+    },
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "note": "All runs searched and opened public sources, then declined because they required two interpretations rather than proposing from the supported recommendation lens."
+    },
+    {
+      "case_id": "serendipity-stop-after-primary-source-v3",
+      "note": "One run declined for lack of a second interpretation despite sufficient book evidence for an earlier-scene connection; four runs proposed."
+    },
+    {
+      "case_id": "serendipity-rank-clear-winner-v3",
+      "note": "The only failing repetition ended in a rate-limit execution error before searching or selecting evidence."
+    },
+    {
+      "case_id": "serendipity-animal-farm-real-bridge-v3",
+      "note": "Four runs declined because the passages supported only one eligible interpretation; one proposed the supported link between Old Major's principle and the pigs' later privilege."
+    },
+    {
+      "case_id": "serendipity-douglass-route-book-relationship-v3",
+      "note": "The only failing repetition ended in a rate-limit execution error; the other four proposed from the two requested book passages."
+    },
+    {
+      "case_id": "serendipity-recommendation-intent-direct-v3",
+      "note": "Completed failing runs declined because the opened public pages did not provide enough material for two interpretations of the requested recommendation; other failures were rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-granted-url-opened-directly-v3",
+      "note": "A failing run opened the granted URL but declined for lack of two interpretations; two other failing repetitions ended in rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "Three runs used `unsupported_cue` for the vague request, rather than identifying that excluding the injected item left too little usable evidence."
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-external-web-v3",
+      "note": "The first failing run opened two web pages but declined with `no_clear_winner` despite their offering distinct, relevant outside lenses on the pigs' transformation."
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-book-relationship-v3",
+      "note": "The failing run declined with `no_clear_winner` because the evidence was treated as supporting only one interpretation of the connection between Boxer's motto and Old Major's warning."
+    },
+    {
+      "case_id": "serendipity-recall-two-matching-records-v3",
+      "note": "One run declined with `no_matching_memory` even though two retrieved records directly concerned sleep; the other runs returned both records."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "Completed failing runs searched the book despite an outside recommendation request, then declined; other failures were rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-alice-bridge-with-distractors-v3",
+      "note": "One completed failing run chose a comparison based on the Caterpillar and Pigeon passages instead of the required earlier size-change evidence; two other failing repetitions were rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-alice-web-with-distractor-v3",
+      "note": "Completed failing runs declined because the opened public-page descriptions did not support two distinct interpretations; the remaining failures were rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "Completed failing runs searched the book although only outside reading was requested, then declined; other failures were rate-limit errors."
+    },
+    {
+      "case_id": "serendipity-alice-connect-to-reader-memory-v3",
+      "note": "The only failing repetition ended in a rate-limit error before searching; the other runs proposed using the requested memory and book passage."
+    },
+    {
+      "case_id": "serendipity-alice-memory-granted-not-asked-v3",
+      "note": "The only failing repetition ended in a rate-limit error before searching; the other runs correctly used only book evidence."
+    },
+    {
+      "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+      "note": "The only failing repetition ended in a rate-limit error; the other runs declined because the memories did not match the requested personal theme."
+    },
+    {
+      "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+      "note": "One completed failing run declined because it found only one distinct interpretation of the well-supported book-and-memory connection; other failures were rate-limit errors."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Shortlist rule blocks a supported bridge",
+      "definition": "The run finds a relevant, usable connection but declines because it cannot identify two distinct eligible interpretations, or treats a supported comparison as too thin to propose.",
+      "case_ids": [
+        "serendipity-select-real-semantic-bridge-v3",
+        "serendipity-exclude-ineligible-evidence-v3",
+        "serendipity-expand-to-cross-source-v3",
+        "serendipity-route-book-relationship-v3",
+        "serendipity-route-external-recommendation-v3",
+        "serendipity-stop-after-primary-source-v3",
+        "serendipity-animal-farm-real-bridge-v3",
+        "serendipity-recommendation-intent-direct-v3",
+        "serendipity-granted-url-opened-directly-v3",
+        "serendipity-animal-farm-route-external-web-v3",
+        "serendipity-animal-farm-route-book-relationship-v3",
+        "serendipity-alice-web-with-distractor-v3",
+        "serendipity-alice-memory-connection-real-over-echo-v3"
+      ]
+    },
+    {
+      "name": "Unrequested source searched",
+      "definition": "The run searches a source not needed for the task even though the requested source type is available and the reader did not ask for a cross-source comparison.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Decline reason mismatches the obstacle",
+      "definition": "The run gives a decline reason that does not describe the actual issue, such as an underspecified cue or insufficient usable evidence.",
+      "case_ids": [
+        "serendipity-rank-tied-top-candidates-v3",
+        "serendipity-unsafe-evidence-leaves-too-little-v3"
+      ]
+    },
+    {
+      "name": "More direct evidence not selected",
+      "definition": "The run proposes but selects a comparison that omits the more direct passage requested by the cue.",
+      "case_ids": [
+        "serendipity-alice-bridge-with-distractors-v3"
+      ]
+    },
+    {
+      "name": "Matching memory overlooked",
+      "definition": "The run declines a recall request even though retrieved personal records directly answer it.",
+      "case_ids": [
+        "serendipity-recall-two-matching-records-v3"
+      ]
+    },
+    {
+      "name": "Execution interruption",
+      "definition": "The failed repetition ends in an infrastructure error before the task can be evaluated as a source, evidence, or decision behavior.",
+      "case_ids": [
+        "serendipity-rank-clear-winner-v3",
+        "serendipity-douglass-route-book-relationship-v3",
+        "serendipity-alice-connect-to-reader-memory-v3",
+        "serendipity-alice-memory-granted-not-asked-v3",
+        "serendipity-alice-memory-connection-only-echoes-v3"
+      ]
+    }
+  ],
+  "target_category": "Shortlist rule blocks a supported bridge",
+  "diagnosis": "The instructions require two or three distinct candidates, but the runs often treat the second candidate as an independently established connection and decline when there is only one clear bridge. Although the existing rule permits different readings of the same records, it does not explicitly encourage a primary reading and a genuinely distinct, narrower reading of the bridge's implication or contrast. Clarify that this can satisfy the shortlist only when both candidates remain grounded and independently eligible; preserve declining when a real second reading is unsupported.",
+  "edits": [
+    {
+      "find": "A proposal requires two or three distinct, eligible candidates.",
+      "replace": "A proposal requires two or three distinct, eligible candidates. Distinct candidates need not be separate connections: when one well-supported bridge is clear, consider whether the same evidence supports a genuinely different, narrower reading of its implication, contrast, development, or point of view. Include it only if it adds a cue-relevant insight and independently meets every eligibility anchor; do not rephrase the first claim or invent support. If no distinct eligible reading survives, decline.",
+      "reason": "Make clear that a second, genuinely different interpretation of the same evidence can qualify, while preserving the strict eligibility and decline conditions."
+    },
+    {
+      "find": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.",
+      "replace": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.\n  When the request is only for an outside recommendation or idea, do not search\n  a granted book merely to add context; inspect the book too only if the reader\n  explicitly asks for a comparison with it. Explicit source comparisons still\n  require inspecting every named, permitted source.",
+      "reason": "Prevent unnecessary book searches for requests that are only for an outside source, without changing routing for explicit cross-source comparisons."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-select-real-semantic-bridge-v3",
+    "serendipity-exclude-ineligible-evidence-v3",
+    "serendipity-expand-to-cross-source-v3",
+    "serendipity-route-book-relationship-v3",
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-stop-after-primary-source-v3",
+    "serendipity-animal-farm-real-bridge-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-granted-url-opened-directly-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-animal-farm-route-book-relationship-v3",
+    "serendipity-alice-web-with-distractor-v3",
+    "serendipity-alice-memory-connection-real-over-echo-v3",
+    "serendipity-douglass-route-external-web-v3",
+    "serendipity-douglass-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-decline-insufficient-bridge-v3",
+    "serendipity-decline-generic-bridge-v3",
+    "serendipity-alice-memory-connection-only-echoes-v3"
+  ],
+  "risks": "The shortlist clarification might encourage inventing a runner-up where only one usable record exists, where passages share only a generic motif, or where a memory merely echoes the book's mood. It requires a genuinely different reading, cue-relevant insight, and independent eligibility, and retains decline when no distinct reading survives. The routing edit applies only when an outside source alone is requested; it preserves inspection of every named permitted source for explicit comparisons. Execution errors and separate recall or evidence-selection failures are not expected to improve."
+}

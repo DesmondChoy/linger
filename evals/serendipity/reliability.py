@@ -34,9 +34,11 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import fmean
+from typing import Any
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic_ai.exceptions import ModelHTTPError
 
 from apps.backend.config import get_settings
 from apps.backend.telemetry import configure_component_evaluation_telemetry
@@ -47,6 +49,7 @@ from src.linger.agents.serendipity.prompt import (
     PROMPT_FINGERPRINT,
 )
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.skills import RuntimeSkill
 
 from .harness import SerendipityEvalCase, dataset_digest, load_serendipity_eval_cases
 from .runner import _skill_for, run_case
@@ -64,6 +67,11 @@ class RunOutcome(StrictModel):
     latency_seconds: float | None = None
     model_requests: int | None = None
     tool_calls: int | None = None
+    # What the agent returned and searched, kept so a reviewer, human or
+    # Serendipity's self-review, can read why a run failed.
+    response: dict[str, Any] | None = None
+    searches: tuple[str, ...] = ()
+    rate_limit_retries: int = 0
 
 
 class CaseReliability(StrictModel):
@@ -136,7 +144,17 @@ def _outcome_from_report(report: object) -> RunOutcome:
         latency_seconds=observation.latency_seconds,
         model_requests=observation.model_requests,
         tool_calls=observation.tool_calls,
+        response=response,
+        searches=tuple(f"{search.source}:{search.operation}:{search.outcome}" for search in observation.searches),
     )
+
+
+RATE_LIMIT_ATTEMPTS = 6
+RATE_LIMIT_BACKOFF_SECONDS = 15.0
+
+
+def _rate_limited(error: Exception) -> bool:
+    return isinstance(error, ModelHTTPError) and error.status_code == 429
 
 
 PROMPT_DIGESTS = {
@@ -206,6 +224,7 @@ async def run_reliability_experiment(
     tier: str | None = None,
     concurrency: int = 1,
     configure_logfire: bool = True,
+    discovery_skill: RuntimeSkill = CONNECTION_DISCOVERY,
 ) -> ReliabilityReport:
     """Execute every selected case `repeats` times through one shared agent."""
     if repeats < 1:
@@ -231,15 +250,23 @@ async def run_reliability_experiment(
 
     async def one_run(case: SerendipityEvalCase) -> RunOutcome:
         async with limiter:
-            try:
-                report = await run_case(case, agent=agent)
-            except Exception as error:  # an error is a failure, never a gap
-                return RunOutcome(
-                    hard_pass=False,
-                    status=EXECUTION_ERROR,
-                    failures=(f"{EXECUTION_ERROR}: {type(error).__name__}: {error}",),
-                )
-            return _outcome_from_report(report)
+            for attempt in range(RATE_LIMIT_ATTEMPTS):
+                try:
+                    report = await run_case(case, agent=agent, discovery_skill=discovery_skill)
+                except Exception as error:  # an error is a failure, never a gap
+                    if _rate_limited(error) and attempt + 1 < RATE_LIMIT_ATTEMPTS:
+                        # A rate-limited request never reached the model, so
+                        # waiting and running again is not a second sample.
+                        await asyncio.sleep(RATE_LIMIT_BACKOFF_SECONDS * 2**attempt)
+                        continue
+                    return RunOutcome(
+                        hard_pass=False,
+                        status=EXECUTION_ERROR,
+                        failures=(f"{EXECUTION_ERROR}: {type(error).__name__}: {error}",),
+                        rate_limit_retries=attempt,
+                    )
+                return _outcome_from_report(report).model_copy(update={"rate_limit_retries": attempt})
+        raise AssertionError("unreachable")
 
     results: list[CaseReliability] = []
     for case in active:
@@ -248,12 +275,19 @@ async def run_reliability_experiment(
         results.append(summary)
         print(_case_line(summary), flush=True)
 
+    digests = {
+        **PROMPT_DIGESTS,
+        CONNECTION_DISCOVERY.skill_id: (
+            PROMPT_FINGERPRINT.digest if discovery_skill is CONNECTION_DISCOVERY
+            else discovery_skill.fingerprint(template_id=PROMPT_FINGERPRINT.template_id).digest
+        ),
+    }
     used = sorted({_skill_for(case).skill_id for case in active})
     return ReliabilityReport(
         run_id=uuid4().hex,
         generated_at=datetime.now(UTC),
         model=get_settings().linger_model,
-        prompt_digests={skill_id: PROMPT_DIGESTS[skill_id] for skill_id in used},
+        prompt_digests={skill_id: digests[skill_id] for skill_id in used},
         dataset_digest=dataset_digest(active),
         concurrency=concurrency,
         summary=_summarise(tuple(results), repeats),
