@@ -11,7 +11,7 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
 1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the six CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
+2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
 3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 4. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
 5. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
