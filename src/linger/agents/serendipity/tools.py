@@ -25,7 +25,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.privacy import contains_personal_data_or_secret
+from src.linger.contracts.security_validation import validate_credentials
 from src.linger.contracts.session import ReaderStatement
 from src.linger.corpus import registry
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
@@ -335,7 +335,7 @@ def _private_web_input(
 ) -> bool:
     reader_texts = (deps.task.cue, *(statement.text for statement in deps.prior_reader_statements))
     return (
-        contains_personal_data_or_secret(text)
+        validate_credentials(text).blocked
         or any(_query_copies_reader_terms(text, source, page_url=page_url) for source in reader_texts)
         or any(_query_copies_reader_terms(text, record.text) for record in deps.memories)
     )

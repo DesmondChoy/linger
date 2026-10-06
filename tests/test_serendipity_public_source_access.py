@@ -50,8 +50,6 @@ def test_model_url_without_a_grant_or_search_lead_never_reaches_client(urls):
 
 
 @pytest.mark.parametrize(("url", "cue"), [
-    ("https://example.org/profile?email=reader@example.com", "."),
-    ("https://example.org/profile?email=reader%40example.com", "."),
     ("https://example.org/my/private/divorce", "My private divorce"),
     ("https://example.org/my%20private%20divorce", "My private divorce"),
 ])
@@ -234,12 +232,8 @@ def test_reader_supplied_url_does_not_relax_web_search_privacy():
     assert not client.calls
 
 
-@pytest.mark.parametrize("url", [
-    "https://example.org/profile?email=reader@example.com",
-    "https://example.org/profile?email=reader%40example.com",
-    "https://reader:password@example.org/literature",
-])
-def test_reader_supplied_url_still_rejects_private_data(url):
+def test_reader_supplied_url_with_credentials_is_still_rejected():
+    url = "https://reader:password@example.org/literature"
     client = FakeExaClient(page_url=url)
     ctx = context(urls=(url,), cue=f"Please inspect {url}.")
 

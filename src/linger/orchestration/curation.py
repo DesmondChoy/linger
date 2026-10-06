@@ -26,10 +26,12 @@ from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
     CurationMemory,
     CurationProposal,
+    DerivedSummary,
     ExistingCuration,
     NoCurationProposal,
     SCULPTOR_RESPONSE_ADAPTER,
     SculptorResponse,
+    TopicGroup,
 )
 from src.linger.agents.sculptor.prompt import PROMPT_FINGERPRINT
 from src.linger.contracts.curation import (
@@ -43,6 +45,11 @@ from src.linger.services.memory import (
     MemoryPolicyService,
     MemoryRecord,
     memory_record_sha256,
+)
+from src.linger.contracts.security_validation import (
+    SecurityValidationBlocked,
+    ValidationCategory,
+    validate_generated_credentials,
 )
 
 
@@ -142,6 +149,19 @@ async def propose_curation(
             raise InvalidCurationProposal(
                 f"Sculptor referenced unknown memories: {sorted(unknown_ids)}"
             )
+        action = response.action
+        field_name = (
+            "summary" if isinstance(action, DerivedSummary)
+            else "topic_label" if isinstance(action, TopicGroup)
+            else None
+        )
+        if field_name is not None:
+            validation = validate_generated_credentials(getattr(action, field_name))
+            if validation.blocked:
+                raise SecurityValidationBlocked(
+                    ValidationCategory.CREDENTIAL,
+                    validation.user_message or "This request was blocked because it contains a credential.",
+                )
     return response
 
 

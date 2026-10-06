@@ -20,6 +20,7 @@ from pydantic_ai.tools import ToolDefinition
 
 from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import (
+    MemoryCandidate,
     MuseCandidate,
     memory_attribution_errors,
     source_application_errors,
@@ -41,6 +42,12 @@ from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import tool_exposure, turn_evidence
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.agents.provenance.quotation_audit import quote_is_bound
+from src.linger.agents.security import ProviderCredentialGuard
+from src.linger.contracts.security_validation import (
+    SecurityValidationBlocked,
+    ValidationCategory,
+    validate_generated_credentials,
+)
 
 
 def _available_evidence() -> dict[str, EvidenceRecord]:
@@ -282,7 +289,22 @@ class MuseSkillBoundary(AbstractCapability[None]):
         self, ctx: RunContext[None], *, output_context: OutputContext, output: Any,
     ) -> Any:
         if isinstance(output, MuseCandidate):
-            return validate_muse_output(ctx, output)
+            validated = validate_muse_output(ctx, output)
+            reply = validate_generated_credentials(validated.reply)
+            if reply.blocked:
+                raise SecurityValidationBlocked(
+                    ValidationCategory.CREDENTIAL,
+                    reply.user_message or "This request was blocked because it contains a credential.",
+                )
+            memory = validated.memory
+            if isinstance(memory, MemoryCandidate):
+                nomination = validate_generated_credentials(memory.text)
+                if nomination.blocked:
+                    raise SecurityValidationBlocked(
+                        ValidationCategory.CREDENTIAL,
+                        nomination.user_message or "This request was blocked because it contains a credential.",
+                    )
+            return validated
         return output
 
 
@@ -301,7 +323,7 @@ def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
             Tool(serendipity_explore, sequential=True),
         ],
         retries={"tools": 1, "output": 3},
-        capabilities=[MuseSkillBoundary()],
+        capabilities=[MuseSkillBoundary(), ProviderCredentialGuard()],
     )
 
 

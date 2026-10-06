@@ -5,6 +5,7 @@ from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.models import Model
 
 from src.linger.agents.build import build_model
+from src.linger.agents.security import ProviderCredentialGuard
 from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionProposal,
@@ -179,6 +180,7 @@ def build_serendipity_agent(
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall, SourceBundle],
         instructions=SHARED_INSTRUCTIONS,
+        capabilities=[ProviderCredentialGuard()],
         tools=[
             Tool(search_librarian, max_retries=1, prepare=prepare_librarian_search),
             Tool(search_memories, max_retries=1, prepare=_prepare_memory_search),

@@ -108,29 +108,46 @@ class MemoryPolicyServiceTests(unittest.TestCase):
         self.assertTrue(saved.created)
         self.assertEqual([saved.record], self.service.list_active(self.alice))
 
-    def test_automatic_capture_vetoes_shaped_personal_data_or_secrets(self) -> None:
+    def test_automatic_capture_preserves_pii_and_blocks_credentials(self) -> None:
         self.service.set_capture_enabled(self.alice, True)
-        for index, text in enumerate((
-            "Reach me at jane.doe@example.com if you want to talk.",
-            "My SSN is 123-45-6789 just so you know.",
-            "Here's my key: sk-ant-abcdefghijklmnopqrstuvwx1234",
-            "Ring me on +44 20 7946 0958 once you finish it.",
-            "My number is 415-555-0132 if you want to talk it over.",
-            "She left a card reading (415) 555-0132 inside the cover.",
-            "Text +1-800-273-8255 when the ending lands badly.",
-        )):
+        pii_cases = (
+            (
+                "Reach me at jane.doe@example.com if you want to talk.",
+                "Reach me at jane.doe@example.com if you want to talk.",
+            ),
+            (
+                "My SSN is 123-45-6789 just so you know.",
+                "My SSN is 123-45-6789 just so you know.",
+            ),
+            (
+                "Ring me on +44 20 7946 0958 once you finish it.",
+                "Ring me on +44 20 7946 0958 once you finish it.",
+            ),
+        )
+        for index, (text, expected) in enumerate(pii_cases):
             with self.subTest(text=text):
+                saved = self.service.save_automatic(
+                    self.alice,
+                    candidate(text, f"pii-{index}"),
+                )
+                self.assertEqual(expected, saved.record.text)
+
+        for index, text in enumerate((
+            "Here's my key: sk-ant-abcdefghijklmnopqrstuvwx1234",
+            "Here's my key: sk-proj-1234567890123456789012345678901234567890",
+        )):
+            with self.subTest(credential_case=index):
                 with self.assertRaises(MemoryPolicyError) as caught:
                     self.service.save_automatic(
                         self.alice,
-                        candidate(text, f"private-{index}"),
+                        candidate(text, f"credential-{index}"),
                     )
                 self.assertEqual(
-                    "personal_data_or_secret_not_allowed", caught.exception.reason
+                    "credential_not_allowed", caught.exception.reason
                 )
-        self.assertEqual([], self.service.list_active(self.alice))
+        self.assertEqual(3, len(self.service.list_active(self.alice)))
 
-    def test_automatic_capture_allows_ordinary_numeric_reflective_text(self) -> None:
+    def test_automatic_capture_does_not_scan_pii_after_upstream_review(self) -> None:
         self.service.set_capture_enabled(self.alice, True)
         for index, text in enumerate((
             "I loved the scene on p. 214 where she finally speaks her mind.",

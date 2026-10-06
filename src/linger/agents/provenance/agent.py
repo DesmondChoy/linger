@@ -12,6 +12,7 @@ from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.provenance.review_context import review_input
 from src.linger.agents.provenance.review_validation import validate_provenance_review
 from src.linger.agents.provenance.skills import SHARED_INSTRUCTIONS
+from src.linger.agents.security import ProviderCredentialGuard
 
 
 class CandidateReviewValidation(AbstractCapability[None]):
@@ -33,7 +34,7 @@ def build_provenance_agent(model: Model | None = None) -> Agent[None, Any]:
         model if model is not None else build_model(),
         name="Provenance",
         instructions=SHARED_INSTRUCTIONS,
-        capabilities=[CandidateReviewValidation()],
+        capabilities=[CandidateReviewValidation(), ProviderCredentialGuard()],
     )
 
 

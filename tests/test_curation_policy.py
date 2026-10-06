@@ -136,7 +136,7 @@ class CurationPolicyTests(unittest.TestCase):
         self.assertEqual("Restorative home routines", topics[0].text)
         self.assertEqual(2, len(self.service.list_curation_audit(self.alice)))
 
-    def test_curated_text_with_shaped_personal_data_is_never_appended(self) -> None:
+    def test_curated_text_is_not_rescanned_for_pii_after_review(self) -> None:
         first, second = self.seed(
             "I am planning a balcony herb garden.",
             "I decided to start with rosemary and thyme.",
@@ -149,18 +149,13 @@ class CurationPolicyTests(unittest.TestCase):
                 summary="The garden plan, confirmed with jane.doe@example.com.",
             ),
         )
-        with self.assertRaises(CurationPolicyError) as caught:
-            self.service.apply_curation(self.alice, summary)
-
-        self.assertEqual(
-            "curation_personal_data_or_secret_not_allowed",
-            caught.exception.reason,
-        )
-        self.assertEqual((), self.service.list_curation_audit(self.alice))
-        self.assertEqual(
-            ["original", "original"],
-            [item.kind for item in self.service.list_for_retrieval(self.alice)],
-        )
+        self.assertTrue(self.service.apply_curation(self.alice, summary).created)
+        self.assertEqual(1, len(self.service.list_curation_audit(self.alice)))
+        summaries = [
+            item for item in self.service.list_for_retrieval(self.alice)
+            if item.kind == "derived_summary"
+        ]
+        self.assertEqual([summary.plan.proposal.action.summary], [item.text for item in summaries])
 
     def test_curated_topic_label_passes_when_it_carries_no_shaped_data(self) -> None:
         first, second = self.seed(

@@ -1,163 +1,202 @@
-# Security validation guardrails implementation plan
+# Runtime security validation guardrails
 
-## Goal
+## Focus
 
-Move deterministic, pattern-shaped security and privacy checks into reusable
-application validators at trust boundaries. Keep Provenance responsible for
-semantic judgments that regular expressions cannot establish. Validators must
-run in application code and make release/forwarding decisions; prompt wording
-alone is not a security control.
+Apply DataFog's default regex PII redaction once to the incoming chat message,
+before Muse receives it. Block credentials in that message and at model and
+storage boundaries. Check the current user message for adopted injection
+patterns before Provenance's emotional-boundary preflight. An injection match
+blocks the turn with a standard message and a value-free reason.
 
-## Current behavior
+Provenance still reviews generated candidates and retrieved content in context.
+The synthetic evaluation UI displays expectations; it is not a runtime check.
 
-- `src/linger/contracts/privacy.py` wraps the maintained
-  `pydantic_ai_harness.guardrails.detectors.personal_data` and
-  `redact_secrets` detectors. It also checks a detector-only folded copy using
-  `fold_for_detection` from `contracts/text_folding.py`.
-- `services/memory.py` vetoes personal data or secrets in captured and curated
-  memory. `agents/serendipity/tools.py` also screens returned text. Existing
-  callers use a Boolean policy helper; they do not redact text in place.
-- Candidate prompt-injection review is currently semantic: Provenance uses the
-  `prompt_injection` risk code during the candidate review in
-  `orchestration/reflection.py`. The candidate-review skill distinguishes
-  reader instructions from malicious instructions embedded in retrieved text.
-- `orchestration/instruction_leak_detection.py` is a separate deterministic
-  release backstop. It detects long verbatim runs of Muse's own instructions,
-  including punctuation/case changes, ROT13, and long base64-encoded runs. It
-  does not detect generic injection phrases.
-- `reflection.py` calls Provenance after the draft and then performs release
-  validation. The exact instruction-leak check is in `_validate_release`.
-  Memory and curation privacy checks protect storage; the existing privacy
-  helper is not currently a general pre-provider request gate.
+## In scope
 
-## Proposed boundary model
+- A typed, value-free validation result with stable category/reason codes,
+  detector identity, boundary, and disposition.
+- PII redaction of the incoming chat message before Muse or another agent runs.
+- Credential blocking for incoming messages, each model request, generated
+  output, and new storage writes.
+- Deterministic injection checks on the current user message before the
+  emotional-boundary preflight. Retrieved passages and tool results do not
+  trigger this block.
+- Safe telemetry, focused detector tests, and representative false-positive
+  evaluation for enabled rules and before expanding them.
 
-Implement one typed, deterministic validation result with category, matched
-pattern identifier, action, and safe diagnostic metadata. Do not include the
-matched value in logs, traces, exception strings, or user-visible messages.
-Actions should be policy-specific: `block` for secrets before a third-party
-model call, `redact` only where preserving the request is explicitly allowed,
-and `flag` for content that requires a semantic or application policy decision.
-Keep category-level reason codes stable for telemetry.
+## Out of scope for the first implementation
 
-Apply the validators at these boundaries:
+- Replacing Provenance's semantic review of prompt injection, harmful content,
+  or whether an agent followed malicious text.
+- Treating a phrase match as proof of malicious intent or as a semantic
+  verdict. Blocking on an adopted rule is an application policy decision.
+- Building a general harmful-content classifier from keyword patterns. Linger
+  already has targeted first-person self-harm and non-English reader-message
+  boundaries; broader harmful-content policy needs a separate decision.
+- Treating the synthetic ground-truth review interface as runtime protection.
+- DataFog scans of assembled agent prompts, retrieved passages, tool results,
+  generated replies, or stored memories. These sources are not rescanned for
+  PII after the incoming chat message is redacted.
 
-1. **Before external model forwarding:** inspect all assembled untrusted text
-   that will be sent to a third-party provider (reader message, retrieved
-   memory, web/tool excerpts, and other injected evidence) for credentials.
-   Fail closed on a secret match. Do not silently send a redacted variant to a
-   model unless the caller explicitly opts into redaction and can preserve
-   evidence/source bindings.
-2. **Before untrusted text enters an agent context:** run injection phrase
-   patterns on reader content and retrieved/tool content as an application
-   signal. Preserve the original text and source identity. The signal may
-   guide isolation or review, but must not alone reject a reader's ordinary
-   request or establish that the generated answer followed the attack.
-3. **Before release/storage:** screen generated replies, memory nominations,
-   curation proposals, and stored derived text for credentials and PII. Apply
-   the existing veto behavior where the destination is persistent storage;
-   define a separate reply policy (block or redact) before implementation.
-   Retain Provenance review and exact instruction-leak release validation.
-4. **Harmful requests:** use patterns as a deterministic signal on the reader
-   request and generated response, with policy disposition decided by the
-   application. Do not equate a literal keyword match with harmful intent; a
-   refusal, safety discussion, or quoted example can contain these phrases.
+## Existing controls
 
-## Work sequence
+- [`contracts/privacy.py`](../../src/linger/contracts/privacy.py) retains the
+  existing Boolean personal-data check for synthetic outbound-query evaluation.
+  It is not part of the chat PII redaction path.
+- [`services/memory.py`](../../src/linger/services/memory.py) blocks
+  credentials in capture and curation writes. Serendipity's Exa boundary
+  blocks credentials and queries that copy private reader or memory wording.
+- Provenance reviews candidate replies semantically, including
+  `prompt_injection` findings. The application retains release authority.
+- [`instruction_leak_detection.py`](../../src/linger/orchestration/instruction_leak_detection.py)
+  blocks replies that reproduce long runs of Muse's own instructions. It does
+  not detect generic injection phrases.
+- [`chat_turn.py`](../../apps/backend/chat_turn.py) applies a targeted
+  first-person self-harm check and non-English language guard to the reader's
+  current message. These do not scan assembled context or generated replies.
+- `.agents/skills/review-synthetic-ground-truth/ui/src/InjectionExpectation.jsx`
+  displays synthetic attack expectations and review criteria. It is not
+  imported by the production reader UI and does not inspect or block runtime
+  attacks. `chat_turn.py` now has a separate, narrow check on current user
+  input before Provenance's emotional-boundary preflight. `evals/synthetic_journals/` and
+  `tests/test_memory_injection_replay.py` provide evaluation coverage, not a
+  runtime security boundary.
 
-1. **Define and review the policy contract.** Specify which exact fields cross
-   provider, release, and storage boundaries; the action per category and
-   boundary; whether PII is blocked or redacted; and the handling of quoted,
-   negated, or educational text. Keep results value-free and typed. Record
-   validator identities in the selected `RuntimeSkill` fingerprints when a
-   skill run uses them; keep provider dispatch and storage policy in the
-   application.
-2. **Add a shared detector module.** Place compiled expressions and category
-   definitions under `src/linger/contracts/` (or extend `privacy.py` if the
-   API remains cohesive). Provide separate functions for input screening,
-   generated-output validation, secret blocking, and PII detection/redaction;
-   do not expose one ambiguous `is_safe` Boolean. Keep maintained detectors
-   for PII/secrets where they provide broader coverage, and use custom patterns
-   only for gaps demonstrated by tests.
-3. **Validate before provider calls.** Identify the common provider dispatch
-   and every model path, then guard at the narrowest shared application
-   boundary before serialization/network dispatch. Ensure secrets in assembled
-   context are caught, not just secrets in the reader's current message.
-   Return a typed safe decline/error and record category-level telemetry only.
-4. **Add deterministic attack signals.** Apply injection and harmful-content
-   detectors to untrusted spans before agent context construction and to
-   candidate output before Provenance/release as appropriate. Pass only a
-   bounded, application-created signal into the typed Provenance input when
-   useful. Do not add raw regex matches as model instructions or treat them as
-   Provenance verdicts.
-5. **Preserve and adapt existing controls.** Keep the instruction-leak check
-   because it detects actual instruction reproduction, not merely an attack
-   phrase. Consolidate privacy callers on the shared contract without
-   weakening current memory, curation, or Serendipity vetoes. Review whether
-   the current helper's doubled scan of raw and folded text remains needed
-   once all detectors share normalization.
-6. **Instrument safely.** Add reason codes and counts for detector category,
-   boundary, and disposition. Never emit matched substrings, credential
-   fragments, PII, or untrusted excerpts in telemetry. Ensure error reporting
-   does not serialize validator inputs.
-7. **Migrate and remove obsolete internal paths.** Update every controlled
-   caller together, then remove superseded bespoke detection only if the new
-   validator demonstrably preserves its behavior. Preserve public APIs and
-   stored data contracts unless a migration is explicitly designed.
+## Runtime behavior
 
-## Pattern set review before adoption
+| Boundary | Check | Disposition |
+| --- | --- | --- |
+| Incoming chat message, before Muse | DataFog regex PII scan and credential scan | Redact detected PII in the message passed to the pipeline. Block credentials before any agent runs |
+| Before each external model request | Credentials in assembled messages and parameters | Block credentials. Keep PII from internal prompts and retrieved content unchanged |
+| Before Provenance's emotional-boundary preflight | Injection patterns in the current user message only | Block the turn with a standard explanation. Record category, boundary, detector, and pattern IDs. Skip the preflight and all later agents for this turn |
+| Before release and storage | Credentials in generated replies, nominations, curation text, session history, and transcripts | Block credentials. Do not run DataFog on these fields |
+| Before Exa requests | Credentials and copied private reader or memory wording | Block the external request. Do not run DataFog on Exa parameters |
 
-The supplied snippet needs correction and policy review before it can be
-compiled as Python:
+## Policy contract for step 1
 
-- Several expressions appear to have formatting/escaping corruption (for
-  example `\s\*`, `[*-]?`, `[INST]`, and `+?1`); `[INST]` is a character class,
-  not a literal token. The email dot should be escaped, and phone grouping
-  syntax needs valid parentheses/quantifiers.
-- The phone pattern is US-specific; the separate eight-digit telephone rule
-  can match dates, IDs, and other non-telephone values. Credit-card matching
-  needs digit-boundary and optional-separator review, and none of the PII
-  patterns validate actual number checksums.
-- Injection strings such as “you are now” or “jailbreak” are high-noise signals
-  without context. Literal `[INST]` and `<system>` markup should be matched as
-  literals. The patterns cannot identify indirect injection expressed without
-  these phrases or establish that an agent obeyed it.
-- Harmful-content patterns are narrow and can match benign discussion. They
-  do not provide a complete safety classifier.
-- Secret patterns are intentionally shaped and will miss many provider formats
-  and custom credentials. Use the maintained secret detector as the baseline,
-  with reviewed additions and secret-safe fixtures.
+The chat entry point calls `validate_user_input` on `ChatRequest.message` once.
+It passes the redacted value to Muse and to later agents. It persists that
+redacted user message in released session history. Other text fields are not
+PII-redacted by this guardrail.
 
-Create fixtures with positive, negative, near-miss, quoted/educational, Unicode
-folded, and multiline examples for each detector. Store only synthetic
-credentials. Measure false positives against representative Linger reader,
-book, memory, and web text before enabling blocking behavior.
+| Data | PII action | Credential action |
+| --- | --- | --- |
+| Current user message | Redact with DataFog's default regex engine before Muse | Block before the pipeline |
+| Assembled model requests and generated output | No additional PII scan | Block before dispatch or release |
+| Session, transcript, and derived-memory writes | Persist the already-redacted incoming message; do not rescan other fields | Block the write |
+
+Use DataFog's regex engine with `EMAIL` and `PHONE` entities for this minimal
+PII check. Use the existing maintained secret detector for credentials.
+Replace each PII match with DataFog's entity-labelled redaction token. Do not
+rewrite canonical book corpora, retrieved records, or historical memories.
+
+Each validation decision has a stable category (`pii`, `credential`, or
+`prompt_injection`), detector identity and version, pattern ID when applicable,
+boundary, and disposition (`redact` or `block`). Results never contain matched
+text. Findings may contain transient source offsets but no matched values.
+Do not log or persist the unredacted incoming message or offsets.
+When a credential blocks a request, return a standard safe decline that names
+the credential category but never the value or provider-specific token shape.
+
+An enabled injection rule checks only the current reader message, immediately
+before Provenance's emotional-boundary preflight. A match blocks the turn
+before any agent call. Retrieved book or memory excerpts, web excerpts, and tool
+results are outside this injection check. Do not call Provenance because of a
+user-message match. Return this standard message without naming or quoting the
+matched content:
+
+> This turn was blocked because instruction-like content was detected in the
+> request or its source material. Rephrase the request or remove the affected
+> source and try again.
+
+Record the stable category, detector and pattern IDs, boundary, and disposition
+for each block. Keep the source identity only in the in-memory decision context
+unless a later telemetry policy approves a non-sensitive identifier. Never
+record matched text, a secret, PII, or an excerpt.
+Quoted, negated, and educational user text follows the same block rule when it
+matches an enabled injection rule. Evaluate paired benign examples and measure
+false positives for every rule.
+
+Provenance continues its normal semantic review of generated candidates,
+including malicious influence from retrieved content and the behavior of the
+response. An injection detector match does not add or trigger a Provenance
+review. When a match blocks a turn before generation, no candidate reaches
+Provenance. Keep the instruction-leak release check active.
+
+## Implementation sequence
+
+1. **Set the policy contract.** Use typed, value-free validation results for
+   PII, credentials, and adopted injection rules. DataFog applies only to the
+   incoming user message. Keep credential checks at model, release, and storage
+   boundaries.
+2. **Redact incoming PII.** `run_chat_turn` calls `validate_user_input` before
+   the chat pipeline. The validator uses DataFog's `regex` engine for `EMAIL`
+   and `PHONE`. It returns a redacted message for Muse and blocks detected
+   credentials. The pinned package is `datafog==4.9.0`; Linger disables its
+   optional telemetry with `DATAFOG_NO_TELEMETRY=1` before import.
+3. **Block user-input injection patterns.** After the existing language guard,
+   the backend checks the current, PII-redacted user message immediately
+   before Provenance's emotional-boundary preflight. The adopted rules cover
+   explicit instruction overrides, hidden-instruction requests, and requests
+   to follow replacement instructions. A match returns the standard message,
+   records pattern IDs without matched text, and skips all agents for the turn.
+4. **Keep credentials separate.** `ProviderCredentialGuard` runs before every
+   model request for Muse, Librarian, Serendipity, Provenance, and Sculptor.
+   Generated text and new storage writes also block credentials. These checks
+   do not call DataFog or rewrite ordinary prompt, evidence, or output text.
+   Serendipity's Exa boundary keeps its credential and copied-wording checks.
+5. **Verify each boundary.** `test_chat_endpoint.py` checks redaction before
+   Muse and the no-agent injection block. `test_security_validation.py` checks
+   the DataFog result, credential guard, and injection rules. The Librarian,
+   Provenance mapping, Muse skill, capture, curation, Serendipity, and synthetic
+   replay suites check that internal JSON and evidence remain usable.
+
+The role impact is limited: Muse receives the redacted incoming message.
+Librarian, Serendipity, Provenance, and Sculptor receive that value through
+normal handoffs, while their own assembled prompts retain original book,
+memory, and tool text. All five roles keep the credential request guard.
+
+## Detector review notes
+
+The original candidate regex snippet is not included here. The runtime uses a
+small explicit-rule baseline derived from Muse's current override examples;
+the broader patterns below remain proposals and are not enabled. They are
+reported concerns, not verified defects in an adopted pattern set:
+
+- Possible formatting/escaping corruption (`\\s\\*`, `[*-]?`, `[INST]`,
+  `+?1`); `[INST]` is a character class unless escaped as a literal token.
+- Email dots, phone grouping, digit boundaries, optional separators, and
+  checksum validation need review. Broad eight-digit or US-only phone rules
+  can miss valid numbers or match dates and identifiers.
+- Phrases such as “you are now” and “jailbreak” are noisy without context.
+  Literal `[INST]` and `<system>` markup need literal matching. Phrase patterns
+  cannot detect every indirect attack or establish that an agent obeyed it.
+- Shaped secret patterns will miss provider formats and custom credentials;
+  use the maintained detector as the baseline.
 
 ## Acceptance criteria
 
-- A synthetic credential in any text destined for an external model is
-  rejected before provider invocation, with no secret in logs or traces.
-- PII and credentials remain vetoed from memory capture and curation, and all
-  existing retrieval screening behavior is preserved.
-- Injection and harmful-content matches create deterministic signals with
-  stable reason codes; ordinary quoted or educational mentions do not cause
-  an unconditional user-facing refusal.
-- Provenance continues to review semantic policy, malicious retrieved-content
-  influence, and response behavior; the exact instruction-leak release check
-  remains active.
-- Regex corrections and detector behavior are covered by focused tests and
-  representative false-positive evaluation before rollout.
-- Agent skill fingerprints and inspection telemetry identify validator
-  versions/categories without exposing match contents.
+- A synthetic credential in any text sent to an external model is blocked
+  before that provider request, with no value in logs, traces, or errors.
+- DataFog redacts detected PII in the incoming chat message before Muse sees
+  it. Internal model prompts, generated replies, and storage writes do not
+  apply a second PII scan. Credentials remain blocked at provider, release,
+  and storage boundaries.
+- Injection matches in the current user message produce stable, value-free
+  block reasons and the standard explanation before Provenance's
+  emotional-boundary preflight. Retrieved text and tool results do not trigger
+  this check. Paired benign and attack cases measure false positives before
+  adding or broadening rules.
+- Provenance semantic review and the exact instruction-leak release check
+  remain active.
+- Detector tests and representative false-positive evaluation pass before
+  adding or broadening blocking rules.
+- Skill fingerprints and telemetry identify validator versions/categories
+  without exposing match contents.
 
-## Open implementation decisions
+## Remaining checks
 
-- Should reply PII be redacted, blocked, or handled by existing product policy?
-- Which provider dispatch function is the universal pre-forwarding boundary,
-  and do any direct model calls bypass it?
-- Which PII/secret patterns are intentionally project-specific versus already
-  covered by the maintained detector dependency?
-- Should high-confidence injection signals alter tool exposure, trigger
-  Provenance review, or only be recorded for evaluation? Choose using paired
-  false-positive/attack evaluations; do not widen or suppress tools based on
-  the phrase list alone.
+- Measure DataFog's false positives and missed PII in representative incoming
+  chat messages before changing the email and phone regex policy.
+- Resolve the DataFog wheel's MIT license file and Apache package metadata
+  mismatch before release.

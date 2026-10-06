@@ -58,6 +58,19 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
         self.assertNotIn(private_passage, json.dumps(asdict(record)))
         self.assertEqual([], sessions.history(self.session_id))
 
+    def test_new_released_history_preserves_pii_outside_the_chat_input_boundary(self) -> None:
+        email = "alice.person@example.com"
+        sessions.append_turn(
+            self.session_id,
+            f"Contact {email}",
+            f"I noted {email}",
+            turn_id="turn-pii",
+            release_source="muse_candidate",
+        )
+
+        content = json.dumps(sessions.history(self.session_id), default=str)
+        self.assertIn(email, content)
+
     def test_emotional_boundary_is_audited_but_grants_no_evidence(self) -> None:
         sessions.append_turn(
             self.session_id,

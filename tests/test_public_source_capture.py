@@ -118,10 +118,10 @@ def test_capture_rejects_a_different_opened_source():
         capture(client)
 
 
-def test_capture_keeps_the_production_private_query_gate():
+def test_capture_keeps_the_production_credential_query_gate():
     client = FakeExaClient()
     with pytest.raises(ModelRetry, match="privacy checks"):
-        capture(client, query="reader@example.com literary imagery")
+        capture(client, query="sk-proj-1234567890123456789012345678901234567890 literary imagery")
     assert client.calls == []
 
 
