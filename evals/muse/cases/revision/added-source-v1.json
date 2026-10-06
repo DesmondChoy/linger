@@ -1,0 +1,102 @@
+{
+  "case_id": "muse-revision-added-source-v1",
+  "rules": [
+    "R17: wording kept from the draft keeps its draft sources; do not add a source to wording no finding names",
+    "R12: when rephrasing a flagged claim reassess support for the new wording; remove an interpretation the source does not establish"
+  ],
+  "description": "Reduced from a live identity-theme run. The finding names only the interpretive clause of a sentence mapped to one passage. Removing the clause is the repair; the kept wording must stay mapped to that passage alone, not also to the other passage.",
+  "reader_message": "How are Alice's size changes connected to her sense of who she is?",
+  "reading": {"work_title": "Alice's Adventures in Wonderland", "chapter_max": 5},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "wonderland-c5-identity",
+      "chapter": 5,
+      "location": "Chapter 5, passage 1",
+      "text": "“Who are _you?_” said the Caterpillar. This was not an encouraging opening for a conversation. Alice replied, rather shyly, “I—I hardly know, sir, just at present—at least I know who I _was_ when I got up this morning, but I think I must have been changed several times since then.”"
+    },
+    {
+      "evidence_id": "wonderland-c5-size",
+      "chapter": 5,
+      "location": "Chapter 5, passage 2",
+      "text": "“Oh, I’m not particular as to size,” Alice hastily replied; “only one doesn’t like changing so often, you know.” … “Well, I should like to be a _little_ larger, sir, if you wouldn’t mind,” said Alice: “three inches is such a wretched height to be.”"
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 5, Alice tells the Caterpillar she hardly knows who she is, because she has changed several times since she got up. Later, she says she dislikes changing so often and wants to be a little taller, grounding the identity question in her immediate experience of her body. What part of that connection stands out to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-identity",
+        "source_location": "Chapter 5, passage 1",
+        "supported_claims": ["In Chapter 5, Alice tells the Caterpillar she hardly knows who she is, because she has changed several times since she got up."],
+        "exact_quote": null
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-size",
+        "source_location": "Chapter 5, passage 2",
+        "supported_claims": ["Later, she says she dislikes changing so often and wants to be a little taller, grounding the identity question in her immediate experience of her body."],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "grounding the identity question in her immediate experience of her body."
+        },
+        "explanation": "The declared passage supports Alice's dislike of changing often and wish to be larger, but does not establish the asserted connection to the identity question. Remove that interpretation or revise it to a reflection not attributed to the passage, and map any remaining source claim accurately."
+      }
+    ],
+    "needs_source_sentences": [],
+    "previously_accepted_claims": ["In Chapter 5, Alice tells the Caterpillar she hardly knows who she is, because she has changed several times since she got up."],
+    "retained_sources": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-identity"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-size"}
+    ],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [1],
+    "repaired_sentences": [1],
+    "forbidden_patterns": ["\\bgrounding the identity question\\b"],
+    "required_patterns": ["\\btaller\\b"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-identity", "claim_pattern": "hardly knows"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-size", "claim_pattern": "taller"}
+    ],
+    "forbidden_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-identity", "claim_pattern": "taller"}
+    ],
+    "source_terms": ["Caterpillar", "taller", "larger", "size", "sizes", "changing", "changed", "height"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 5, Alice tells the Caterpillar she hardly knows who she is, because she has changed several times since she got up. Later, she says she dislikes changing so often and wants to be a little taller. What part of that connection stands out to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-identity",
+        "source_location": "Chapter 5, passage 1",
+        "supported_claims": ["In Chapter 5, Alice tells the Caterpillar she hardly knows who she is, because she has changed several times since she got up."],
+        "exact_quote": null
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-size",
+        "source_location": "Chapter 5, passage 2",
+        "supported_claims": ["Later, she says she dislikes changing so often and wants to be a little taller."],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}
