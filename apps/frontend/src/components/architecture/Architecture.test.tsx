@@ -123,7 +123,7 @@ describe('Architecture panel', () => {
     expect(html).not.toContain('role="tab"')
   })
 
-  it('keeps every turn listed while the map draws one of them', () => {
+  it('shows only the mapped turn under the map, with every turn one click away', () => {
     const first = turn()
     const second = turn()
     second.inspection.muse_turn.turn_id = 'turn-2'
@@ -131,11 +131,13 @@ describe('Architecture panel', () => {
     const html = renderToStaticMarkup(
       <Architecture timeline={[first, second]} progress={[]} pendingMessage={null} />,
     )
+    const underMap = html.slice(html.indexOf('analysis-detail'))
 
-    expect(html).toContain('I finished chapter four last night.')
-    expect(html).toContain('A second thing I noticed.')
-    // The mapped turn is the one opened and marked.
-    expect(html).toContain('is-mapped')
+    // The latest turn is mapped and summarised; the earlier one is not repeated below.
+    expect(underMap).toContain('A second thing I noticed.')
+    expect(underMap).not.toContain('I finished chapter four last night.')
+    expect(underMap).not.toContain('Processing timeline')
+    expect(html).toContain('All turns and contracts')
   })
 
   it('renders every component a completed turn reached', () => {

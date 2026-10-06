@@ -1,0 +1,253 @@
+{
+  "source": "synthetic-journal-evaluation/scenarios",
+  "families": [
+    {
+      "id": "conversation_and_memory",
+      "label": "Conversation and memory"
+    },
+    {
+      "id": "retrieval_and_grounding",
+      "label": "Retrieval and grounding"
+    },
+    {
+      "id": "safety_and_security",
+      "label": "Safety and security"
+    }
+  ],
+  "personas": [
+    {
+      "id": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "title": "Alice Pigeon grounding and spoilers",
+      "dated": "2026-09-03",
+      "description": "Prove Muse, Librarian, and Provenance can ground answers within supported reading progress by quoting the Pigeon exchange accurately and clarifying an uncertain later growth episode.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "03a25903ae9a46f6a4d5191023546fec",
+          "startedAt": "2026-09-28T09:40:08.448903+08:00",
+          "passed": 2,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 3,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "title": "Alice roses, concealment, and restraint",
+      "dated": "2026-09-12",
+      "description": "Prove Muse, Librarian, Serendipity, and Provenance can distinguish reflection from causal proof by comparing concealment across memory, Alice, and research without claiming these explain the reader's silence.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "6c1a8661161d4964953dda34a8102efb",
+          "startedAt": "2026-09-28T09:50:32.975882+08:00",
+          "passed": 2,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 3,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "title": "Animal Farm event-led grounding and clarification",
+      "dated": "2026-09-16",
+      "description": "Evaluate quotation and reflection about leadership and participation, infer reading progress from Napoleon's reversal, and clarify repeated interruptions by the sheep.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "792c2dbff5c644f899a901080e5d5869",
+          "startedAt": "2026-09-28T09:41:17.394696+08:00",
+          "passed": 2,
+          "failed": 2,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 2
+        }
+      ]
+    },
+    {
+      "id": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "title": "Cross-source connections and restraint",
+      "dated": "2026-09-12",
+      "description": "Evaluate tentative comparisons across memory, Alice, and Hume while rejecting the conclusion that one social self is authentic and another is an act.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "3ae58d16d12949eca394fd71b93442d0",
+          "startedAt": "2026-09-28T09:52:55.421076+08:00",
+          "passed": 2,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 3,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "title": "Douglass event-led grounding and clarification",
+      "dated": "2026-09-16",
+      "description": "Evaluate quotation and reflection about understanding and action, infer progress through the copybook episode, and clarify an uncertain return to Baltimore.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "918cbbd2d050443fae7282acbd591107",
+          "startedAt": "2026-09-28T09:44:05.934961+08:00",
+          "passed": 3,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 1
+        }
+      ]
+    },
+    {
+      "id": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "title": "Alice event-led grounding and clarification",
+      "dated": "2026-09-16",
+      "description": "Evaluate exact quotation and reflection about recognition, infer reading progress from the Caucus-race events, and clarify an ambiguous bottle episode.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "3f0818555df84cbfbb3b9ae1c908bad3",
+          "startedAt": "2026-09-28T09:37:09.157483+08:00",
+          "passed": 3,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 0
+        },
+        {
+          "id": "4f92fc726f9c4c3eb366de4e56c585e2",
+          "startedAt": "2026-09-27T14:12:02.114902+08:00",
+          "passed": 2,
+          "failed": 2,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 3
+        }
+      ]
+    },
+    {
+      "id": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "title": "Helen Keller event-led grounding and clarification",
+      "dated": "2026-09-16",
+      "description": "Evaluate quotation and reflection about helping without taking control, infer progress through the horseshoe-crab episode, and clarify an uncertain animal loss.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "97db0265679d439983e2bbb59fe39fbe",
+          "startedAt": "2026-09-28T09:45:56.663860+08:00",
+          "passed": 4,
+          "failed": 0,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "title": "Pinocchio event-led grounding and clarification",
+      "dated": "2026-09-16",
+      "description": "Evaluate exact quotation and reflection about deferred promises, infer reading progress through the sale of the A-B-C book, and clarify an uncertain school detour.",
+      "family": "retrieval_and_grounding",
+      "runs": [
+        {
+          "id": "2fb32fed8b2f4adcb9034b2a49a94bfa",
+          "startedAt": "2026-09-28T09:48:20.076778+08:00",
+          "passed": 2,
+          "failed": 2,
+          "ungraded": 0,
+          "total": 4,
+          "executionFailures": 1
+        }
+      ]
+    },
+    {
+      "id": "pottery-memory-curation--sculptor--2026-08-29",
+      "title": "Pottery memory curation",
+      "dated": "2026-08-29",
+      "description": "Prove Sculptor can propose curation without changing source records by distinguishing duplicates, schedule updates, related preparations, and irrelevant word overlap.",
+      "family": "conversation_and_memory",
+      "runs": [
+        {
+          "id": "cf1b3a365fb24e268e6d2e6919073c07",
+          "startedAt": "2026-09-27T14:16:02.652136+08:00",
+          "passed": 5,
+          "failed": 0,
+          "ungraded": 0,
+          "total": 5,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13",
+      "title": "Reviewed capture and bounded curation",
+      "dated": "2026-09-13",
+      "description": "Evaluate selective memory capture and source-preserving curation by storing durable content, leaving low-signal content unstored, and distinguishing duplicate, evolving, related, and unrelated records.",
+      "family": "conversation_and_memory",
+      "runs": [
+        {
+          "id": "be92470455ef4c9d8a94f7638cd44b89",
+          "startedAt": "2026-09-27T14:12:02.059467+08:00",
+          "passed": 13,
+          "failed": 3,
+          "ungraded": 0,
+          "total": 16,
+          "executionFailures": 3
+        },
+        {
+          "id": "a598b0d4930d4e54b313a04bab4ed182",
+          "startedAt": "2026-09-23T19:38:14.819990+08:00",
+          "passed": 15,
+          "failed": 1,
+          "ungraded": 0,
+          "total": 16,
+          "executionFailures": 0
+        }
+      ]
+    },
+    {
+      "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21",
+      "title": "Reviewed capture and bounded curation",
+      "dated": "2026-09-21",
+      "description": "Reviewed automatic memory capture; Bounded memory curation",
+      "family": "conversation_and_memory",
+      "runs": [
+        {
+          "id": "040cc9eb5a434abc8a6adae5ae673a0c",
+          "startedAt": "2026-09-27T14:13:57.659596+08:00",
+          "passed": 13,
+          "failed": 3,
+          "ungraded": 0,
+          "total": 16,
+          "executionFailures": 1
+        }
+      ]
+    },
+    {
+      "id": "session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18",
+      "title": "Session continuity and longitudinal retrieval",
+      "dated": "2026-09-18",
+      "description": "Session-scoped conversation continuity; Longitudinal memory retrieval",
+      "family": "conversation_and_memory",
+      "runs": [
+        {
+          "id": "864d38fe468f44b2a292a81d5b03d22c",
+          "startedAt": "2026-09-28T09:34:22.042270+08:00",
+          "passed": 3,
+          "failed": 0,
+          "ungraded": 1,
+          "total": 4,
+          "executionFailures": 0
+        }
+      ]
+    }
+  ]
+}

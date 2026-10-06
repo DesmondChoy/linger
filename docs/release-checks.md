@@ -9,6 +9,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Required check | Evidence |
 | --- | --- |
 | Backend tests (pytest) | Python regressions, including API authorization, privacy boundaries, source preservation, eval contracts, and release rejection cases |
+| Backend tests (embeddings) | Retrieval regressions marked `embeddings`, run against the real local embedding and reranker models |
 | Frontend tests (vitest) | Frontend and Ground truth reviewer tests, frontend lint, production TypeScript and Vite build |
 | CodeQL (python) | Python source analysis with security-extended queries and a local SARIF severity gate |
 | CodeQL (javascript-typescript) | JavaScript and TypeScript source analysis with the same severity gate |

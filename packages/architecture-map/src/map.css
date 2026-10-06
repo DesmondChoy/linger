@@ -73,6 +73,18 @@
 .architecture-map .graph-scroll { width: 100%; overflow: auto; overscroll-behavior-x: contain; scroll-padding: 14px; border-radius: 18px; }
 .architecture-map .graph-canvas { width: 100%; min-width: 1320px; max-width: 1540px; margin: 0 auto; position: relative; }
 .architecture-map .collaboration-graph { width: 100%; display: block; height: auto; }
+/* Compact: the whole map scales to a narrow panel, so type is larger and cards tighter in map units. */
+.architecture-map .graph-canvas.is-compact { min-width: 520px; max-width: 900px; }
+.architecture-map .is-compact .graph-groups text { font-size: 21px; }
+.architecture-map .is-compact .node-agent { padding: 15px 7px 13px; }
+.architecture-map .is-compact .node-agent .node-tile { height: 36px; width: 40px; margin-bottom: 9px; }
+.architecture-map .is-compact .node-name { font-size: 25px; }
+.architecture-map .is-compact .node-role { font-size: 18px; }
+.architecture-map .is-compact .node-service .node-tile span { font-size: 18px; }
+.architecture-map .is-compact .node-source .node-name, .architecture-map .is-compact .node-output .node-name { font-size: 19px; }
+.architecture-map .is-compact .node-footer { font-size: 15px; }
+.architecture-map .is-compact .node-footer b { font-size: 14px; }
+.architecture-map .is-compact .edge-label text { font-size: 17px; }
 .architecture-map .graph-groups rect { fill: #f2f6f8; stroke: #d1dce4; stroke-width: 1; }
 .architecture-map .graph-groups g:nth-child(even) rect { fill: #f8f9fc; stroke: #d8dfe9; }
 .architecture-map .graph-groups text { fill: var(--ink); font-size: 18px; font-weight: 620; letter-spacing: -.35px; }

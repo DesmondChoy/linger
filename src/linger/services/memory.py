@@ -119,8 +119,15 @@ class SaveResult:
 class MemoryPolicyService:
     """Sole authority for local memory policy, reads, and writes."""
 
-    def __init__(self, root: Path | str = Path("memories")) -> None:
+    def __init__(
+        self,
+        root: Path | str = Path("memories"),
+        *,
+        capture_enabled_by_default: bool = False,
+    ) -> None:
         self.root = Path(root)
+        # Applies only to accounts with no stored policy; a stored policy wins.
+        self._capture_enabled_by_default = capture_enabled_by_default
         self._lock = threading.RLock()
 
     def capture_enabled(self, context: AccountContext) -> bool:
@@ -128,7 +135,7 @@ class MemoryPolicyService:
         with self._lock:
             policy_path = self._account_dir(context) / "policy.json"
             if not policy_path.exists():
-                return False
+                return self._capture_enabled_by_default
             try:
                 policy = json.loads(policy_path.read_text(encoding="utf-8"))
                 if policy.get("schema_version") != 1 or not isinstance(

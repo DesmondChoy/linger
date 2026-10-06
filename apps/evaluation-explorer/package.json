@@ -9,7 +9,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4184 --strictPort",
     "test": "vitest run",
     "lint": "oxlint src && cd ../../packages/architecture-map && oxlint src",
-    "refresh-data": "../../.venv/bin/python scripts/export_catalog.py && ../../.venv/bin/python scripts/export_evaluations.py"
+    "refresh-data": "../../.venv/bin/python scripts/export_catalog.py"
   },
   "dependencies": {
     "react": "^19.2.8",

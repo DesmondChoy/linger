@@ -11,7 +11,7 @@ export type ComponentActivity = {
 }
 
 export type LiveTurn = {
-  scene: Pick<Scene, 'id' | 'title' | 'summary' | 'nodes' | 'edges'>
+  scene: Pick<Scene, 'id' | 'title' | 'summary' | 'nodes' | 'edges' | 'layout'>
   /** Components that have done something, keyed by component id. */
   activity: ComponentActivity[]
   /** Components still running, shaped for the map's highlight mechanism. */
@@ -169,7 +169,9 @@ export function buildLiveTurn(options: {
     .map((id) => SOURCE_POSITIONS[id])
     .filter((node): node is GraphNode => node !== undefined)
 
-  const nodes = [...SPINE, ...extras].map((node) => {
+  // An offline task (curation) never passed through the conversation spine.
+  const spine = turn?.grading?.offline ? [] : SPINE
+  const nodes = [...spine, ...extras].map((node) => {
     const seen = activity.get(node.id)
     if (!seen) return node
     const last = seen.stages[seen.stages.length - 1]
@@ -185,8 +187,26 @@ export function buildLiveTurn(options: {
       },
     }
   })
+  // Capture is deterministic and emits no progress stage, so draw it from the
+  // release record whenever Muse proposed a memory or one was saved.
+  const capture = turn?.inspection.release?.capture
+  const captureEdges: GraphEdge[] = []
+  if (capture && (capture.nomination === 'candidate' || capture.storage === 'committed')) {
+    const saved = capture.storage === 'committed'
+    nodes.push({
+      id: 'memory_policy',
+      x: 740,
+      y: 560,
+      footer: {
+        left: saved ? 'memory' : undefined,
+        right: saved ? 'saved' : capture.storage.replaceAll('_', ' '),
+        tone: saved ? 'good' : 'neutral',
+      },
+    })
+    captureEdges.push(edge('provenance', 'memory_policy', 'Capture', 'After review, deterministic policy decided whether the proposed memory was saved.', ['Exactly bound memory candidate', 'Provenance capture decision', 'Saved, refused, or suppressed outcome'], false))
+  }
   const nodeIds = new Set(nodes.map((node) => node.id))
-  const edges = [...SPINE_EDGES, ...optionalEdges(present)]
+  const edges = [...SPINE_EDGES, ...optionalEdges(present), ...captureEdges]
     .filter((item) => nodeIds.has(item.source) && nodeIds.has(item.target))
 
   const running = [...activity.values()].filter((item) => item.status === 'running')
@@ -201,6 +221,7 @@ export function buildLiveTurn(options: {
         : 'Waiting for the first stage of this turn.',
     nodes,
     edges,
+    layout: 'compact',
   }
 
   return {
@@ -214,7 +235,14 @@ export function buildLiveTurn(options: {
 }
 
 function describeRelease(turn: TurnRecord): string {
+  if (turn.grading?.offline) {
+    return 'Offline curation: Sculptor proposed an action and a separate review checked it. No reader message, nothing released.'
+  }
   switch (turn.inspection.release?.release_source) {
+    case undefined:
+      return 'No release decision was recorded for this turn.'
+    case 'muse_candidate':
+      return 'Provenance approved the Muse candidate and deterministic checks released it.'
     case 'application_clarification':
       return 'The application released a validated clarification question.'
     case 'application_safe_decline':

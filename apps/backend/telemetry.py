@@ -74,7 +74,7 @@ class _TranscriptSafeResult:
         self.output = redact_storage_value(
             to_jsonable_python(result.output, serialize_unknown=True)
         )
-        self.usage = result.usage
+        self.usage = getattr(result, "usage", None)
         self._messages = sanitize_model_messages(list(result.new_messages()))
 
     def new_messages(self) -> list[Any]:

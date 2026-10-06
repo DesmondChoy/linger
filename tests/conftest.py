@@ -1,5 +1,6 @@
 """Offline regressions must not make accidental provider or model requests."""
 
+import os
 import re
 import zlib
 
@@ -7,7 +8,10 @@ import numpy as np
 import pytest
 from pydantic_ai.models import override_allow_model_requests
 
-from apps.backend.hybrid_librarian import HybridLibrarian
+# Tests pin content-free Inspect regardless of a developer's local .env.
+os.environ["LINGER_DEV_INSPECT"] = "false"
+
+from apps.backend.hybrid_librarian import HybridLibrarian  # noqa: E402
 
 
 WORDS = re.compile(r"[a-z]+")
@@ -95,10 +99,12 @@ def isolated_accounts_and_transcripts(tmp_path_factory, monkeypatch):
         return
     from apps.backend import auth
     from apps.backend.accounts import AccountStore
+    from apps.backend.progress_store import ReadingProgressStore
     from apps.backend.transcripts import TranscriptStore
 
     directory = tmp_path_factory.mktemp("stores")
     monkeypatch.setattr(main, "transcript_store", TranscriptStore(directory / "t.sqlite3"))
+    monkeypatch.setattr(main, "reading_progress_store", ReadingProgressStore(directory / "r.sqlite3"))
     monkeypatch.setattr(auth, "account_store", AccountStore(directory / "a.sqlite3"))
     main.app.dependency_overrides[auth.current_username] = lambda: "test-reader"
     yield
