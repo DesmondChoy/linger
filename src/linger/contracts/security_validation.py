@@ -15,6 +15,7 @@ os.environ["DATAFOG_NO_TELEMETRY"] = "1"
 # The opt-out must be set before DataFog loads its telemetry code.
 import datafog  # noqa: E402
 from pydantic_ai_harness.guardrails.detectors import redact_secrets
+from src.linger.contracts.text_folding import fold_for_detection
 
 DATAFOG_VERSION = version("datafog")
 SECRET_DETECTOR_VERSION = version("pydantic-ai-harness")
@@ -121,9 +122,9 @@ USER_INPUT_INJECTION_RULES = (
 )
 
 
-def validate_provider_request(text: str) -> ValidationResult:
-    """Redact PII and block credentials before sending text to a provider."""
-    return _validate_text(text, ValidationBoundary.PROVIDER_REQUEST)
+def validate_user_input(text: str) -> ValidationResult:
+    """Redact PII and block credentials in the incoming chat message."""
+    return _validate_text(text, ValidationBoundary.USER_INPUT)
 
 
 def validate_untrusted_span(
@@ -132,8 +133,10 @@ def validate_untrusted_span(
     injection_rules: tuple[InjectionRule, ...],
     boundary: ValidationBoundary = ValidationBoundary.UNTRUSTED_CONTEXT,
 ) -> ValidationResult:
-    """Apply privacy checks and adopted injection rules before context entry."""
-    result = _validate_text(text, boundary)
+    """Check credentials and adopted injection rules before context entry."""
+    # The chat entry point already redacts PII before this check. Keep this
+    # boundary focused on credentials and the configured injection rules.
+    result = validate_credentials(text, boundary=boundary)
     findings = list(result.findings)
     for rule in injection_rules:
         match = rule.expression.search(text)
@@ -162,20 +165,45 @@ def validate_untrusted_span(
     return ValidationResult("" if blocked else result.text, tuple(findings), message)
 
 
-def validate_generated_output(text: str) -> ValidationResult:
-    """Redact PII and block credentials in a generated response."""
-    return _validate_text(text, ValidationBoundary.GENERATED_OUTPUT)
+def validate_generated_credentials(text: str) -> ValidationResult:
+    """Block credentials in generated text without applying PII detection."""
+    return validate_credentials(text, boundary=ValidationBoundary.GENERATED_OUTPUT)
 
 
-def validate_storage_text(text: str) -> ValidationResult:
-    """Redact PII and block credentials before persisting derived text."""
-    return _validate_text(text, ValidationBoundary.PERSISTENT_STORAGE)
+def validate_credentials(
+    text: str,
+    *,
+    boundary: ValidationBoundary = ValidationBoundary.PERSISTENT_STORAGE,
+) -> ValidationResult:
+    """Block credentials without applying PII detection."""
+    if not isinstance(text, str):
+        raise TypeError("security validation accepts text only")
+    try:
+        secret_detected = any(
+            redact_secrets(candidate).action != "allow"
+            for candidate in dict.fromkeys((text, fold_for_detection(text)))
+        )
+    except Exception:
+        raise RuntimeError("security validator failed") from None
+    if not secret_detected:
+        return ValidationResult(text, ())
+    return ValidationResult(
+        "",
+        (ValidationFinding(
+            category=ValidationCategory.CREDENTIAL,
+            detector_id="pydantic_ai_harness.redact_secrets",
+            detector_version=SECRET_DETECTOR_VERSION,
+            boundary=boundary,
+            disposition=ValidationDisposition.BLOCK,
+        ),),
+        _CREDENTIAL_BLOCK_MESSAGE,
+    )
 
 
-def redact_storage_value(value: object) -> object:
-    """Redact string leaves in JSON-like storage payloads; preserve structure."""
+def check_storage_credentials(value: object) -> object:
+    """Reject credential-bearing string leaves in JSON-like values."""
     if isinstance(value, str):
-        result = validate_storage_text(value)
+        result = validate_credentials(value)
         if result.blocked:
             raise SecurityValidationBlocked(
                 ValidationCategory.CREDENTIAL,
@@ -183,11 +211,11 @@ def redact_storage_value(value: object) -> object:
             )
         return result.text
     if isinstance(value, dict):
-        return {key: redact_storage_value(item) for key, item in value.items()}
+        return {key: check_storage_credentials(item) for key, item in value.items()}
     if isinstance(value, list):
-        return [redact_storage_value(item) for item in value]
+        return [check_storage_credentials(item) for item in value]
     if isinstance(value, tuple):
-        return tuple(redact_storage_value(item) for item in value)
+        return tuple(check_storage_credentials(item) for item in value)
     return value
 
 
@@ -196,7 +224,11 @@ def _validate_text(text: str, boundary: ValidationBoundary) -> ValidationResult:
         raise TypeError("security validation accepts text only")
 
     try:
-        scan = datafog.scan(text, engine="regex")
+        scan = datafog.scan(
+            text,
+            engine="regex",
+            entity_types=["EMAIL", "PHONE"],
+        )
         entities = tuple(scan.entities)
         redaction = datafog.redact(
             text,
@@ -205,7 +237,10 @@ def _validate_text(text: str, boundary: ValidationBoundary) -> ValidationResult:
         )
         redacted_text = redaction.redacted_text
         del redaction
-        secret_detected = redact_secrets(text).action != "allow"
+        secret_detected = any(
+            redact_secrets(candidate).action != "allow"
+            for candidate in dict.fromkeys((text, fold_for_detection(text)))
+        )
     except Exception:
         # Detector exceptions may include input data. Replace them with a
         # fixed message so callers cannot leak text through error reporting.

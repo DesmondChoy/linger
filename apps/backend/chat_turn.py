@@ -25,7 +25,7 @@ from src.linger.contracts.security_validation import (
     ValidationBoundary,
     ValidationCategory,
     ValidationDisposition,
-    validate_provider_request,
+    validate_user_input,
     validate_untrusted_span,
 )
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -1551,13 +1551,13 @@ async def run_chat_turn(
             else None
         )
         try:
-            request_privacy = validate_provider_request(request.message)
+            request_privacy = validate_user_input(request.message)
             if request_privacy.blocked:
                 set_span_attrs(
                     span,
                     {
                         "security.category": "credential",
-                        "security.boundary": "provider_request",
+                        "security.boundary": "user_input",
                         "security.disposition": "block",
                     },
                 )

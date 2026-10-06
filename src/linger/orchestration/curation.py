@@ -49,7 +49,7 @@ from src.linger.services.memory import (
 from src.linger.contracts.security_validation import (
     SecurityValidationBlocked,
     ValidationCategory,
-    validate_generated_output,
+    validate_generated_credentials,
 )
 
 
@@ -156,15 +156,12 @@ async def propose_curation(
             else None
         )
         if field_name is not None:
-            validation = validate_generated_output(getattr(action, field_name))
+            validation = validate_generated_credentials(getattr(action, field_name))
             if validation.blocked:
                 raise SecurityValidationBlocked(
                     ValidationCategory.CREDENTIAL,
                     validation.user_message or "This request was blocked because it contains a credential.",
                 )
-            if validation.text != getattr(action, field_name):
-                action = action.model_copy(update={field_name: validation.text})
-                response = response.model_copy(update={"action": action})
     return response
 
 

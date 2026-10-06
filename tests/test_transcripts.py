@@ -30,7 +30,7 @@ def test_round_trip_preserves_turn_order(store: TranscriptStore) -> None:
     assert turns[0].created_at.endswith("+00:00")
 
 
-def test_new_transcript_turn_redacts_personal_data_in_all_text_fields(
+def test_transcript_storage_does_not_rescan_pii_after_the_chat_input_boundary(
     store: TranscriptStore,
 ) -> None:
     email = "alice.person@example.com"
@@ -45,8 +45,7 @@ def test_new_transcript_turn_redacts_personal_data_in_all_text_fields(
 
     turn = store.load("alice", "pii-session")[0]
     payload = json.dumps(asdict(turn), default=str)
-    assert email not in payload
-    assert "[EMAIL_" in payload
+    assert email in payload
 
 
 def test_list_sessions_newest_first_with_preview(store: TranscriptStore) -> None:

@@ -20,7 +20,7 @@ from pydantic_ai.messages import (
 )
 
 from src.linger.contracts.session import ReaderStatement
-from src.linger.contracts.security_validation import redact_storage_value
+from src.linger.contracts.security_validation import check_storage_credentials
 from src.linger.contracts.turn import ReleaseSource
 
 _sessions: dict[str, list[ModelMessage]] = {}
@@ -179,8 +179,8 @@ def append_turn(
     tool_names: tuple[str, ...] = (),
 ) -> None:
     """Store content-free evidence and review handles; store chat only if released."""
-    user_message = redact_storage_value(user_message)
-    assistant_message = redact_storage_value(assistant_message)
+    user_message = check_storage_credentials(user_message)
+    assistant_message = check_storage_credentials(assistant_message)
     assert isinstance(user_message, str) and isinstance(assistant_message, str)
     if release_source in {"muse_candidate", "application_clarification"}:
         messages: list[ModelMessage] = [

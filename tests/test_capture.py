@@ -178,7 +178,7 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
             self.service.save_automatic(self.account, candidate)
         self.assertEqual([], self.service.list_active(self.account))
 
-    def test_deterministic_screen_vetoes_shaped_personal_data(self) -> None:
+    def test_storage_does_not_rescan_pii_after_upstream_review(self) -> None:
         text = "Email me at jane.doe@example.com about the ending."
         candidate = candidate_from_review(
             review("allow_capture"),
@@ -189,14 +189,10 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         assert candidate is not None
         self.assertTrue(candidate.review_allows_capture)
 
-        with self.assertRaises(MemoryPolicyError) as caught:
-            self.service.save_automatic(self.account, candidate)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
-        )
-        self.assertEqual([], self.service.list_active(self.account))
+        saved = self.service.save_automatic(self.account, candidate)
+        self.assertEqual(text, saved.record.text)
 
-    def test_deterministic_screen_vetoes_an_email_split_by_a_combining_mark(
+    def test_storage_preserves_pii_outside_the_chat_input_boundary(
         self,
     ) -> None:
         # A combining mark threaded through the address splits the substring
@@ -210,12 +206,8 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         )
         assert candidate is not None
 
-        with self.assertRaises(MemoryPolicyError) as caught:
-            self.service.save_automatic(self.account, candidate)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
-        )
-        self.assertEqual([], self.service.list_active(self.account))
+        saved = self.service.save_automatic(self.account, candidate)
+        self.assertEqual(text, saved.record.text)
 
     def test_deterministic_screen_vetoes_a_secret_key_split_by_a_combining_mark(
         self,
@@ -232,7 +224,7 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         with self.assertRaises(MemoryPolicyError) as caught:
             self.service.save_automatic(self.account, candidate)
         self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
+            "credential_not_allowed", caught.exception.reason
         )
         self.assertEqual([], self.service.list_active(self.account))
 

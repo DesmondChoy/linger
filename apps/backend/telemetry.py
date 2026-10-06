@@ -38,11 +38,11 @@ from src.linger.evaluation_transcript import (
     ProviderErrorKind,
     active_evaluation_transcript_sink,
 )
-from src.linger.agents.security import sanitize_model_messages
+from src.linger.agents.security import credential_checked_messages
 from src.linger.contracts.security_validation import (
     SecurityValidationBlocked,
-    redact_storage_value,
-    validate_provider_request,
+    check_storage_credentials,
+    validate_credentials,
 )
 from src.linger.orchestration.progress_context import emit_progress
 
@@ -68,14 +68,14 @@ _ACTIVE_AGENT_ROLE: ContextVar[AgentRole | None] = ContextVar(
 
 
 class _TranscriptSafeResult:
-    """Content-sanitized view of a successful result for eval transcript sinks."""
+    """Credential-checked view of a result for eval transcript sinks."""
 
     def __init__(self, result: Any) -> None:
-        self.output = redact_storage_value(
+        self.output = check_storage_credentials(
             to_jsonable_python(result.output, serialize_unknown=True)
         )
         self.usage = getattr(result, "usage", None)
-        self._messages = sanitize_model_messages(list(result.new_messages()))
+        self._messages = credential_checked_messages(list(result.new_messages()))
 
     def new_messages(self) -> list[Any]:
         return self._messages
@@ -468,8 +468,8 @@ async def run_agent_traced(
         if transcript_sink is not None:
             history = run_kwargs.get("message_history", ())
             try:
-                safe_prompt = validate_provider_request(prompt).text
-                safe_history = sanitize_model_messages(list(history))
+                safe_prompt = validate_credentials(prompt).text
+                safe_history = credential_checked_messages(list(history))
             except SecurityValidationBlocked:
                 # An attempted credential-bearing request must not enter the
                 # content-bearing evaluation transcript, even if it is blocked
@@ -553,7 +553,7 @@ async def run_agent_traced(
 
     if transcript_sink is not None and transcript_handle is not None:
         try:
-            safe_messages = sanitize_model_messages(list(captured_messages))
+            safe_messages = credential_checked_messages(list(captured_messages))
             safe_result = None
             if result is not None:
                 safe_result = _TranscriptSafeResult(result)

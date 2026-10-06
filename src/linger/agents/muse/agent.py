@@ -22,7 +22,6 @@ from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import (
     MemoryCandidate,
     MuseCandidate,
-    NoMemoryCandidate,
     memory_attribution_errors,
     source_application_errors,
     supported_claim_errors,
@@ -43,11 +42,11 @@ from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import tool_exposure, turn_evidence
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.agents.provenance.quotation_audit import quote_is_bound
-from src.linger.agents.security import ProviderRequestPrivacyGuard
+from src.linger.agents.security import ProviderCredentialGuard
 from src.linger.contracts.security_validation import (
     SecurityValidationBlocked,
     ValidationCategory,
-    validate_generated_output,
+    validate_generated_credentials,
 )
 
 
@@ -291,7 +290,7 @@ class MuseSkillBoundary(AbstractCapability[None]):
     ) -> Any:
         if isinstance(output, MuseCandidate):
             validated = validate_muse_output(ctx, output)
-            reply = validate_generated_output(validated.reply)
+            reply = validate_generated_credentials(validated.reply)
             if reply.blocked:
                 raise SecurityValidationBlocked(
                     ValidationCategory.CREDENTIAL,
@@ -299,19 +298,13 @@ class MuseSkillBoundary(AbstractCapability[None]):
                 )
             memory = validated.memory
             if isinstance(memory, MemoryCandidate):
-                nomination = validate_generated_output(memory.text)
+                nomination = validate_generated_credentials(memory.text)
                 if nomination.blocked:
                     raise SecurityValidationBlocked(
                         ValidationCategory.CREDENTIAL,
                         nomination.user_message or "This request was blocked because it contains a credential.",
                     )
-                if nomination.text != memory.text:
-                    # Redaction breaks the exact source slice. Drop the
-                    # nomination instead of changing its source offsets.
-                    memory = NoMemoryCandidate(reason_code="no_user_words")
-            return validated.model_copy(
-                update={"reply": reply.text, "memory": memory}
-            )
+            return validated
         return output
 
 
@@ -330,7 +323,7 @@ def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
             Tool(serendipity_explore, sequential=True),
         ],
         retries={"tools": 1, "output": 3},
-        capabilities=[MuseSkillBoundary(), ProviderRequestPrivacyGuard()],
+        capabilities=[MuseSkillBoundary(), ProviderCredentialGuard()],
     )
 
 

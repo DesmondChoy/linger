@@ -1,4 +1,4 @@
-"""Provider-boundary privacy checks shared by Linger's reusable Agents."""
+"""Provider-boundary credential checks shared by Linger's reusable Agents."""
 
 from __future__ import annotations
 
@@ -27,26 +27,27 @@ from pydantic_ai.tools import RunContext, ToolDefinition
 
 from src.linger.contracts.security_validation import (
     SecurityValidationBlocked,
+    ValidationBoundary,
     ValidationCategory,
-    validate_provider_request,
+    validate_credentials,
 )
 
 
-def sanitize_model_messages(messages: list[Any]) -> list[Any]:
-    """Return a redacted copy of model history for requests and safe transcripts."""
+def credential_checked_messages(messages: list[Any]) -> list[Any]:
+    """Return a copy of model history after checking for credentials."""
     sanitized = copy.deepcopy(messages)
     return [_sanitize_message(message) for message in sanitized]
 
 
-class ProviderRequestPrivacyGuard(AbstractCapability[Any]):
-    """Redact PII and stop any request that contains a detected credential."""
+class ProviderCredentialGuard(AbstractCapability[Any]):
+    """Stop provider requests that contain a detected credential."""
 
     async def before_model_request(
         self,
         _ctx: RunContext[Any],
         request_context: ModelRequestContext,
     ) -> ModelRequestContext:
-        request_context.messages = sanitize_model_messages(request_context.messages)
+        request_context.messages = credential_checked_messages(request_context.messages)
         request_context.model_request_parameters = _sanitize_request_parameters(
             copy.deepcopy(request_context.model_request_parameters)
         )
@@ -55,15 +56,17 @@ class ProviderRequestPrivacyGuard(AbstractCapability[Any]):
 
 def _sanitize_message(message: Any) -> Any:
     if isinstance(message, ModelRequest):
+        parts = [_sanitize_part(part) for part in message.parts]
         return replace(
             message,
             instructions=_sanitize_optional_text(message.instructions),
-            parts=tuple(_sanitize_part(part) for part in message.parts),
+            parts=tuple(parts) if isinstance(message.parts, tuple) else parts,
         )
     if isinstance(message, ModelResponse):
+        parts = [_sanitize_part(part) for part in message.parts]
         return replace(
             message,
-            parts=tuple(_sanitize_part(part) for part in message.parts),
+            parts=tuple(parts) if isinstance(message.parts, tuple) else parts,
         )
     return message
 
@@ -179,7 +182,7 @@ def _sanitize_optional_text(value: str | None) -> str | None:
 
 
 def _sanitize_text(value: str) -> str:
-    result = validate_provider_request(value)
+    result = validate_credentials(value, boundary=ValidationBoundary.PROVIDER_REQUEST)
     if result.blocked:
         raise SecurityValidationBlocked(
             ValidationCategory.CREDENTIAL,
