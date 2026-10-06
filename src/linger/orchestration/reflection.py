@@ -219,6 +219,7 @@ class ReflectionRelease:
     # Muse tools that actually ran in a released turn; a declined turn records none.
     tool_names: tuple[str, ...] = ()
     security_block_category: str | None = None
+    security_pattern_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:

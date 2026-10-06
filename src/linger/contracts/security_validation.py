@@ -41,6 +41,7 @@ class ValidationDisposition(StrEnum):
 
 class ValidationBoundary(StrEnum):
     PROVIDER_REQUEST = "provider_request"
+    USER_INPUT = "user_input"
     UNTRUSTED_CONTEXT = "untrusted_context"
     GENERATED_OUTPUT = "generated_output"
     PERSISTENT_STORAGE = "persistent_storage"
@@ -93,6 +94,33 @@ class InjectionRule:
     expression: re.Pattern[str]
 
 
+USER_INPUT_INJECTION_RULES = (
+    InjectionRule(
+        pattern_id="override_companion_instructions",
+        expression=re.compile(
+            r"\bignore\b.{0,50}\b(?:previous|prior|your|app|application|system)\b"
+            r".{0,30}\binstructions?\b",
+            re.IGNORECASE,
+        ),
+    ),
+    InjectionRule(
+        pattern_id="request_hidden_instructions",
+        expression=re.compile(
+            r"\b(?:reveal|show|print|repeat|disclose)\b.{0,50}\b"
+            r"(?:hidden\s+)?(?:system\s+)?(?:prompt|instructions?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    InjectionRule(
+        pattern_id="follow_replacement_instructions",
+        expression=re.compile(
+            r"\bfollow\s+only\b.{0,50}\binstructions?\b",
+            re.IGNORECASE,
+        ),
+    ),
+)
+
+
 def validate_provider_request(text: str) -> ValidationResult:
     """Redact PII and block credentials before sending text to a provider."""
     return _validate_text(text, ValidationBoundary.PROVIDER_REQUEST)
@@ -102,9 +130,10 @@ def validate_untrusted_span(
     text: str,
     *,
     injection_rules: tuple[InjectionRule, ...],
+    boundary: ValidationBoundary = ValidationBoundary.UNTRUSTED_CONTEXT,
 ) -> ValidationResult:
     """Apply privacy checks and adopted injection rules before context entry."""
-    result = _validate_text(text, ValidationBoundary.UNTRUSTED_CONTEXT)
+    result = _validate_text(text, boundary)
     findings = list(result.findings)
     for rule in injection_rules:
         match = rule.expression.search(text)
@@ -115,7 +144,7 @@ def validate_untrusted_span(
                 category=ValidationCategory.PROMPT_INJECTION,
                 detector_id="linger_injection_rules",
                 detector_version=INJECTION_RULESET_VERSION,
-                boundary=ValidationBoundary.UNTRUSTED_CONTEXT,
+                boundary=boundary,
                 disposition=ValidationDisposition.BLOCK,
                 pattern_id=rule.pattern_id,
                 source_start=match.start(),
