@@ -45,8 +45,8 @@ def test_book_request_precedes_selection_and_original_context_survives(purpose):
             assert payload["request"]["parts"][0]["purpose"] == purpose
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "The refusal is present.",
-                "relevant_evidence_ids": ["refusal"], "limitations": [],
-                "support": [{"evidence_id": "refusal", "part_index": 0,
+                "relevant_evidence_ids": ["E1"], "limitations": [],
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The requested refusal."}],
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
@@ -75,15 +75,14 @@ def test_invented_request_anchors_or_selection_parts_are_rejected(fault):
         else:
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "Direct refusal.",
-                "relevant_evidence_ids": ["refusal"], "limitations": [],
-                "support": [{"evidence_id": "refusal", "part_index": 1,
+                "relevant_evidence_ids": ["E1"], "limitations": [],
+                "support": [{"evidence_id": "E1", "part_index": 1,
                              "necessary_support": "A made-up second requirement."}],
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
     from pydantic_ai.exceptions import UnexpectedModelBehavior
-    expected_error = UnexpectedModelBehavior if fault == "invented_anchor" else ValueError
-    with pytest.raises(expected_error):
+    with pytest.raises(UnexpectedModelBehavior):
         asyncio.run(judge_evidence_strength(
             "Mara refuses", (record("refusal", "Mara refuses."),),
             agent=build_librarian_agent(FunctionModel(model)),
@@ -91,8 +90,8 @@ def test_invented_request_anchors_or_selection_parts_are_rejected(fault):
 
 
 @pytest.mark.parametrize("parts, mappings", [
-    (["Mara's reply and the narrator's description"], [("reply", 0), ("narration", 0)]),
-    (["Mara's reply", "the narrator's description"], [("reply", 0), ("narration", 1)]),
+    (["Mara's reply and the narrator's description"], [("E1", 0), ("E2", 0)]),
+    (["Mara's reply", "the narrator's description"], [("E1", 0), ("E2", 1)]),
 ])
 def test_one_or_multiple_book_needs_can_require_multiple_passages(parts, mappings):
     calls = 0
@@ -105,7 +104,7 @@ def test_one_or_multiple_book_needs_can_require_multiple_passages(parts, mapping
         else:
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "Complete requested quotation.",
-                "relevant_evidence_ids": ["reply", "narration"], "limitations": [],
+                "relevant_evidence_ids": ["E1", "E2"], "limitations": [],
                 "support": [{"evidence_id": identity, "part_index": index,
                              "necessary_support": "Requested wording in this record."}
                             for identity, index in mappings],
@@ -138,7 +137,8 @@ def test_sufficient_cannot_omit_an_existing_book_need():
             }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
-    with pytest.raises(ValueError, match="every requested part"):
+    from pydantic_ai.exceptions import UnexpectedModelBehavior
+    with pytest.raises(UnexpectedModelBehavior):
         asyncio.run(judge_evidence_strength(
             "Compare the refusal with the invitation", (record("refusal", "Mara refused."),),
             agent=build_librarian_agent(FunctionModel(model)),
@@ -163,13 +163,13 @@ def test_assessment_recovers_omitted_need_without_relaxing_span_or_coverage_chec
                 "additional_parts": [{"context_spans": [], "purpose": "reference",
                                       "reader_spans": ["the celebration" if fault == "invented_span" else "the invitation"]}],
                 "evidence_strength": "sufficient", "strength_reason": "Both requested events are supported.",
-                "relevant_evidence_ids": ["refusal"],
-                "support": [{"evidence_id": "refusal", "part_index": 0,
+                "relevant_evidence_ids": ["E1"],
+                "support": [{"evidence_id": "E1", "part_index": 0,
                              "necessary_support": "The refusal."}],
             }
             if fault != "missing_support":
-                output["relevant_evidence_ids"].append("invitation")
-                output["support"].append({"evidence_id": "invitation", "part_index": 1,
+                output["relevant_evidence_ids"].append("E2")
+                output["support"].append({"evidence_id": "E2", "part_index": 1,
                                           "necessary_support": "The invitation named in the original request."})
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
@@ -178,7 +178,8 @@ def test_assessment_recovers_omitted_need_without_relaxing_span_or_coverage_chec
         agent=build_librarian_agent(FunctionModel(model)),
     )
     if fault:
-        with pytest.raises(ValueError, match="invented reader span" if fault == "invented_span" else "every requested part"):
+        from pydantic_ai.exceptions import UnexpectedModelBehavior
+        with pytest.raises(UnexpectedModelBehavior):
             asyncio.run(invocation)
     else:
         result = asyncio.run(invocation)
@@ -334,3 +335,71 @@ def test_application_still_rejects_invalid_spans_from_an_injected_agent():
     )))
     with pytest.raises(ValueError, match="reader span"):
         asyncio.run(plan_book_request("The gardeners paint.", agent=agent))
+
+
+def test_assessor_sees_short_labels_and_an_unknown_label_is_repaired_in_run():
+    from src.linger.agents.librarian.models import BookRequestPlan, LibrarianBookRequestInput
+    from src.linger.orchestration.evidence_strength import assess_book_evidence
+
+    lake = record("pg2397-sec024-ln3115-3140", "All thoughts of work and college were thrust into the background.")
+    other = record("pg2397-sec022-ln2441-2467", "College left little time for solitude.")
+    plan = BookRequestPlan.model_validate({"parts": [{
+        "context_spans": [], "purpose": "reference", "reader_spans": ["forgetting all about college at the lake"],
+    }]})
+    attempts = []
+
+    def model(messages, info):
+        if attempts:
+            assert "unknown evidence ID" in str(messages[-1].parts[0].content)
+        else:
+            payload = json.loads(messages[-1].parts[0].content)
+            # Long corpus IDs, which runs 4, 7 and 15 miscopied, never reach the assessor.
+            assert [e["evidence_id"] for e in payload["evidence"]] == ["E1", "E2"]
+        label = "E7" if not attempts else "E1"
+        attempts.append(label)
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+            "evidence_strength": "sufficient", "strength_reason": "E1 answers the need.",
+            "relevant_evidence_ids": [label], "additional_parts": [],
+            "support": [{"evidence_id": label, "part_index": 0, "necessary_support": "Work and college recede at the lake."}],
+        })])
+
+    decision = asyncio.run(assess_book_evidence(
+        plan, (lake, other),
+        original_request=LibrarianBookRequestInput(current_line="Keller forgetting all about college at the lake"),
+        agent=build_librarian_agent(FunctionModel(model)),
+    ))
+
+    assert decision.relevant_evidence_ids == (lake.evidence_id,)
+    assert decision.strength_reason == "Chapter1 answers the need."
+    assert len(attempts) == 2
+
+
+def test_assessment_id_errors_name_the_closest_supplied_record():
+    from src.linger.agents.librarian.models import (
+        BookRequestPlan, LibrarianBookRequestInput, LibrarianEvidenceStrengthInput,
+        evidence_assessment_errors,
+    )
+
+    lake = record("pg2397-vb3cc1e13-sec024-ln3115-3140", "Lake text.")
+    other = record("pg2397-vb3cc1e13-sec022-ln2441-2467", "College text.")
+    request = LibrarianEvidenceStrengthInput(
+        original_request=LibrarianBookRequestInput(current_line="the lake"),
+        request=BookRequestPlan(parts=()), evidence=(lake, other), max_evidence_records=1,
+    )
+    # Run 5 recorded both faults at once: a spliced ID and support drifting from the selection.
+    wrong = "pg2397-vb3cc1e13-sec022-ln3115-3140"
+    drifted = "pg2397-vb3cc1e13-sec022-ln2441-2475"
+
+    errors = evidence_assessment_errors({
+        "relevant_evidence_ids": [wrong, other.evidence_id],
+        "support": [{"evidence_id": identity} for identity in (wrong, drifted)],
+    }, request)
+
+    assert [error["path"] for error in errors] == [
+        "relevant_evidence_ids", "relevant_evidence_ids[0]",
+        "support[0].evidence_id", "support[1].evidence_id", "support",
+    ]
+    assert lake.evidence_id in errors[1]["closest_supplied_ids"]
+    assert other.evidence_id in errors[3]["closest_supplied_ids"]
+    assert errors[4]["selected_without_support"] == [other.evidence_id]
+    assert errors[4]["support_not_selected"] == [drifted]

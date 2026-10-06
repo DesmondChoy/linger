@@ -1,13 +1,15 @@
-"""Preserve coverage of unchanged, previously accepted claims during revision."""
+"""Preserve accepted claim coverage and supporting sources during revision."""
 
 from __future__ import annotations
 
+import re
+from difflib import SequenceMatcher
 from typing import TYPE_CHECKING
 
-from src.linger.agents.muse.models import MuseCandidate
+from src.linger.agents.muse.models import DraftSentence, MuseCandidate, RetainedSource, limit_claim_texts
 
 if TYPE_CHECKING:
-    from src.linger.agents.provenance.models import ProvenanceReview
+    from src.linger.agents.provenance.models import FindingLocation, ProvenanceReview, UncoveredResponseSpan
 
 
 def _occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
@@ -91,6 +93,228 @@ def retained_claim_errors(
                         "text to current authorized supporting sources, or remove/rewrite it. "
                         "Split or expanded exact claim spans are allowed. Do not copy a source "
                         "assignment blindly: the next review independently checks support."
+                    ),
+                })
+    return errors
+
+
+def retained_sources_for_revision(
+    candidate: MuseCandidate, review: ProvenanceReview,
+) -> tuple[RetainedSource, ...]:
+    """Keep every source the review found contributing, unless a finding rejects the source itself."""
+    if review.response_decision != "revise":
+        return ()
+    if any(finding.location.source_field.startswith("canonical_")
+           for finding in review.response_findings):
+        return ()
+    uses = candidate.evidence_uses
+
+    def key(index: int) -> tuple[str, str] | None:
+        if index >= len(uses) or uses[index].source_kind == "session_line":
+            return None
+        return uses[index].source_kind, uses[index].evidence_id
+
+    rejected = {key(index) for finding in review.response_findings
+                if (index := _rejected_declaration(finding.location)) is not None}
+    retained: dict[tuple[str, str], None] = {}
+    for audit in review.claim_audit:
+        for item in audit.source_contributions:
+            source = key(item.declaration_index) if item.contributes else None
+            if source is not None and source not in rejected:
+                retained[source] = None
+    return tuple(RetainedSource(source_kind=kind, evidence_id=evidence_id)
+                 for kind, evidence_id in retained)
+
+
+def _rejected_declaration(location) -> int | None:
+    """A finding on a mapped claim or quotation disputes wording, not the source."""
+    if location.source_field != "candidate.evidence_uses":
+        return None
+    parts = location.path.split("/")[1:]
+    if not parts or not parts[0].isdigit():
+        return None
+    if len(parts) == 1 or parts[1] in {"evidence_id", "source_kind"}:
+        return int(parts[0])
+    return None
+
+
+def retained_source_errors(
+    candidate: MuseCandidate, retained_sources: tuple[RetainedSource, ...],
+) -> list[dict[str, object]]:
+    """Require each retained source to stay declared, without choosing its claim."""
+    declared = {(use.source_kind, use.evidence_id) for use in candidate.evidence_uses
+                if use.source_kind != "session_line"}
+    return [{
+        "path": "evidence_uses", "value": source.evidence_id,
+        "source_kind": source.source_kind,
+        "error": (
+            "The first review found this source supports part of the reply, and no finding "
+            "rejected the source itself, but the revision no longer declares it. A finding about "
+            "wording asks for the wording to change, not for supporting evidence to be removed. "
+            "Keep this source: rewrite the flagged claim so it states only what the source "
+            "establishes, and map that claim to it. Do not add details the source does not state."
+        ),
+    } for source in retained_sources
+        if (source.source_kind, source.evidence_id) not in declared]
+
+
+_SENTENCE_BREAK = re.compile(r"(?<=[.?!])[\"'”’)\]*_]*(?=\s)|\n[ \t]*\n")
+_MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
+_WORD = re.compile(r"\w+")
+# A connective or two left unmapped ("but", "and so") is not a source claim.
+_MAX_UNMAPPED_WORDS = 3
+# Word overlap at which a new sentence reads as a rewrite of a draft sentence.
+_REWRITE_SIMILARITY = 0.5
+
+
+def _sentence_spans(text: str) -> list[tuple[int, int]]:
+    spans, start = [], 0
+    for match in _SENTENCE_BREAK.finditer(text):
+        spans.append((start, match.end()))
+        start = match.end()
+    spans.append((start, len(text)))
+    trimmed = []
+    for start, end in spans:
+        segment = text[start:end]
+        if segment.strip():
+            lead = len(segment) - len(segment.lstrip())
+            trimmed.append((start + lead, start + len(segment.rstrip())))
+    return trimmed
+
+
+def _normalized(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _overlaps(start: int, end: int, intervals: list[tuple[int, int]]) -> bool:
+    return any(a < end and start < b for a, b in intervals)
+
+
+def _finding_intervals(location: FindingLocation, candidate: MuseCandidate) -> list[tuple[int, int]] | None:
+    """Reply text a finding names, or None when it could concern any sentence."""
+    reply = candidate.reply
+    if location.source_field == "candidate.response":
+        quote = getattr(location, "quote", None)
+        if location.kind != "text_span" or location.path or not quote:
+            return None
+        return _occurrences(reply, quote) or None
+    if location.source_field != "candidate.evidence_uses":
+        return None
+    parts = location.path.split("/")[1:]
+    if not parts or not parts[0].isdigit() or int(parts[0]) >= len(candidate.evidence_uses):
+        return None
+    use = candidate.evidence_uses[int(parts[0])]
+    fields = {"supported_claims": use.supported_claims, "limit_claims": limit_claim_texts(use)}
+    if len(parts) >= 3 and parts[1] in fields and parts[2].isdigit():
+        texts = fields[parts[1]][int(parts[2]):int(parts[2]) + 1]
+    else:
+        quote = getattr(use, "exact_quote", None)
+        texts = (*use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ()))
+    return [interval for text in texts for interval in _occurrences(reply, text)] or None
+
+
+def draft_sentences_for_revision(
+    candidate: MuseCandidate, review: ProvenanceReview,
+    uncovered_spans: tuple[UncoveredResponseSpan, ...],
+) -> tuple[DraftSentence, ...]:
+    """Mark the sentences findings name; an unplaceable finding leaves every sentence open."""
+    if review.response_decision != "revise":
+        return ()
+    flagged: list[tuple[int, int]] = []
+    for finding in review.response_findings:
+        intervals = _finding_intervals(finding.location, candidate)
+        if intervals is None:
+            return ()
+        flagged.extend(intervals)
+    source_dependent = {item.span_index for item in review.coverage_audit
+                        if item.classification == "source_dependent"}
+    needs_source = [(span.start, span.end) for span in uncovered_spans
+                    if span.span_index in source_dependent]
+    reply = candidate.reply
+    return tuple(DraftSentence(
+        text=reply[start:end],
+        flagged=_overlaps(start, end, flagged),
+        needs_source=_overlaps(start, end, needs_source),
+    ) for start, end in _sentence_spans(reply))
+
+
+def _similarity(first: str, second: str) -> float:
+    return SequenceMatcher(None, first.lower().split(), second.lower().split(), autojunk=False).ratio()
+
+
+def _unmapped_words(candidate: MuseCandidate, start: int, end: int) -> int:
+    reply = candidate.reply
+    covered = bytearray(len(reply))
+    for use in candidate.evidence_uses:
+        quote = getattr(use, "exact_quote", None)
+        for text in (*use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ())):
+            for a, b in _occurrences(reply, text):
+                covered[a:b] = b"\1" * (b - a)
+    unmapped = "".join(" " if covered[index] else reply[index] for index in range(start, end))
+    return len(_WORD.findall(_MARKDOWN_LINK.sub(" ", unmapped)))
+
+
+def draft_sentence_errors(
+    candidate: MuseCandidate, draft_sentences: tuple[DraftSentence, ...],
+) -> list[dict[str, object]]:
+    """Keep unflagged sentences word for word, and map or delete source-dependent ones."""
+    if not draft_sentences:
+        return []
+    reply = candidate.reply
+    spans = _sentence_spans(reply)
+    revised = [_normalized(reply[start:end]) for start, end in spans]
+    drafted = [_normalized(sentence.text) for sentence in draft_sentences]
+    errors: list[dict[str, object]] = []
+    for tag, i1, i2, j1, j2 in SequenceMatcher(None, drafted, revised, autojunk=False).get_opcodes():
+        for j in range(j1, j2):
+            start, end = spans[j]
+            if tag == "equal":
+                origin, unchanged = draft_sentences[i1 + j - j1], True
+            elif revised[j] in drafted:
+                origin, unchanged = draft_sentences[drafted.index(revised[j])], True
+            elif tag == "insert":
+                neighbours = [draft_sentences[i] for i in (i1 - 1, i1) if 0 <= i < len(drafted)]
+                if not any(sentence.flagged for sentence in neighbours):
+                    errors.append({
+                        "path": "reply", "value": reply[start:end],
+                        "response_start": start, "response_end": end,
+                        "error": (
+                            "This new sentence is not beside any sentence a finding names. Only "
+                            "flagged sentences may change: delete it, or place the repair next "
+                            "to the flagged sentence it repairs."
+                        ),
+                    })
+                continue
+            else:
+                block = draft_sentences[i1:i2]
+                origin = max(block, key=lambda item: _similarity(_normalized(item.text), revised[j]))
+                if not origin.flagged and any(item.flagged for item in block) and (
+                    _similarity(_normalized(origin.text), revised[j]) < _REWRITE_SIMILARITY
+                ):
+                    # New wording beside a flagged repair, not a rewrite of this sentence.
+                    origin = max((item for item in block if item.flagged),
+                                 key=lambda item: _similarity(_normalized(item.text), revised[j]))
+                unchanged = False
+            if not unchanged and not origin.flagged:
+                errors.append({
+                    "path": "reply", "value": reply[start:end], "draft_sentence": origin.text,
+                    "response_start": start, "response_end": end,
+                    "error": (
+                        "This rewrites a draft sentence that no finding names. Only flagged "
+                        "sentences may change, because the next review has no revision left to "
+                        "repair new wording. Restore the draft sentence word for word, or delete it."
+                    ),
+                })
+            elif (origin.needs_source and not revised[j].endswith("?")
+                  and _similarity(_normalized(origin.text), revised[j]) >= _REWRITE_SIMILARITY
+                  and _unmapped_words(candidate, start, end) > _MAX_UNMAPPED_WORDS):
+                errors.append({
+                    "path": "evidence_uses", "value": reply[start:end],
+                    "response_start": start, "response_end": end,
+                    "error": (
+                        "The review judged this sentence's unmapped content source-dependent. "
+                        "Map its complete substantive content to the sources that support it, or "
+                        "delete it. Rewording alone does not resolve it."
                     ),
                 })
     return errors

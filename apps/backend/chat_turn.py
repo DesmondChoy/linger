@@ -6,7 +6,6 @@ import logging
 import re
 from contextlib import nullcontext
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
 from time import perf_counter
 from uuid import uuid4
 from urllib.parse import urlsplit
@@ -45,12 +44,8 @@ from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
     reset_connection_inspection,
-    register_connection_evidence,
 )
-from src.linger.orchestration.conversational_memory import (
-    curate_after_capture,
-    prepare_surfacing_handoff,
-)
+from src.linger.orchestration.conversational_memory import curate_after_capture
 from src.linger.orchestration.reflection import (
     ReflectionRelease,
     emotional_boundary_release,
@@ -92,9 +87,8 @@ from src.linger.services.memory import (
     MemoryRecord,
     MemoryServiceError,
 )
-from src.linger.contracts.surfacing import MemorySurfacingHandoff
 
-from . import sessions
+from . import reading_progress, sessions
 from .chapter_reference import parse_chapter_answer
 from .config import get_settings
 from .contracts import (
@@ -106,7 +100,7 @@ from .contracts import (
 )
 from .logger import ROOT_NAME
 from .dev_trace import DevTraceSink
-from .reading_progress import ReadingProgressStore, SavedProgress
+from .progress_store import ReadingProgressStore, SavedProgress
 from .schemas import (
     CaptureInspection,
     ChatRequest,
@@ -128,37 +122,39 @@ triage_model = build_triage_model()
 # Triage only narrows Muse's tools, so a slow or failed call is abandoned.
 TRIAGE_TIMEOUT_SECONDS = 10.0
 
-CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.IGNORECASE)
+CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\b", re.IGNORECASE)
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
-    r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
+    r"(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
 TITLE_PREFIX_PATTERN = re.compile(
     r"(?:\bi(?:'m| am)\s+(?:still\s+|also\s+)?reading|"
     r"\bi(?:'ve|’ve| have)?\s+read(?!\s+through\b)|"
-    r"^\s*(?:reading|read(?!\s+through\b)))\s+(?P<title>.+)$",
+    r"^\s*(?:reading|read(?!\s+through\b)))(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
-TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
+TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)(?>\s+(?P<title>.+))$", re.IGNORECASE)
 TITLE_SUFFIX_SEARCH_PATTERN = re.compile(
-    r"\b(?:of|in|from|(?:while\s+)?reading)\s+(?P<title>.+)$",
+    r"\b(?:of|in|from|(?:while\s+)?reading)(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
 TITLE_REFLECTION_CLAUSE_PATTERN = re.compile(
     r"\b(?:and|but)\b|,\s*\w+ing\b", re.IGNORECASE,
 )
-TITLE_SCENE_LABEL_PATTERN = re.compile(r"\s*(?:,[^,]+,|\([^()]+\))\s*")
+TITLE_SCENE_LABEL_PATTERN = re.compile(r"\A\s*+(?:,[^,]+,|\([^()]+\))\s*+\Z")
 # "In <title>, I've completed chapter 8" puts the title before the chapter.
 TITLE_LEAD_PATTERN = re.compile(
     r"^\s*(?:in|from)\s+(?P<title>[^,.!?]+)",
     re.IGNORECASE,
 )
+PROGRESS_ADVERBS = r"(?:(?:now|just|already|finally|recently|only|actually|really)\s+){0,2}"
 TITLE_END_PATTERN = re.compile(
-    r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:just\s+|now\s+)?(?:read|finished|completed|through|up to|at|on)\b)",
+    rf"(?<!\s)\s*+(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
+    r"(?:read|finished|completed|through|up to|at|on)\b)",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
-    r"\b(?:i(?:'ve|’ve| have)\s+(?:now\s+|just\s+)?(?:finished|completed|read\s+through|got\s+through)|"
-    r"i\s+(?:now\s+|just\s+)?(?:finished|completed)|i(?:'m| am)\s+(?:now\s+|just\s+)?done\s+with)\b",
+    rf"\b(?:i(?:['’]ve|['’]d| have| had)\s+{PROGRESS_ADVERBS}(?:finished|completed|read\s+through|got\s+through)|"
+    rf"i\s+{PROGRESS_ADVERBS}(?:finished|completed)|i(?:'m| am)\s+{PROGRESS_ADVERBS}done\s+with)\b",
     re.IGNORECASE,
 )
 COMPLETED_CHAPTER_SUBJECT_PATTERN = re.compile(
@@ -222,7 +218,7 @@ NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
 DECLARATION_END_PATTERN = re.compile(
     r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)|"
-    r"(?:[,—]\s*|\s+(?:and|but)\s+)"
+    r"(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
     r"|what|why|how|tell|can|could|would|please)\b)",
     re.IGNORECASE,
@@ -231,10 +227,13 @@ READ_NAMED_PATTERN = re.compile(
     rf"\bi (?:have )?read\s+(?=(?:the\s+)?(?:editor['’]s\s+)?{NAMED_LOCATION}\b)",
     re.IGNORECASE,
 )
+PROGRESS_PARSER_PATTERNS = (IN_PROGRESS_PATTERN, COMPLETION_PATTERN, READ_NAMED_PATTERN)
 
 
 def _completed_location(message: str) -> str | None:
-    completion = COMPLETION_PATTERN.search(message) or READ_NAMED_PATTERN.search(message)
+    # Someone else's words, quoted or fenced, declare nothing for the reader.
+    unquoted = reading_progress.mask_quotes(message)
+    completion = COMPLETION_PATTERN.search(unquoted) or READ_NAMED_PATTERN.search(unquoted)
     if completion is None:
         return None
     location = DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
@@ -286,7 +285,7 @@ def _named_book_title(location: str, selection: sessions.BookSelection | None) -
                     match = re.search(rf"\b{re.escape(_location_words(label))}\b", message)
                     if match:
                         end = max(end, match.end())
-    qualifier = re.search(r"\b(?:of|in)\s+(.+)$", message[end:])
+    qualifier = re.search(r"\b(?:of|in)(?>\s+(.+))$", message[end:])
     return qualifier.group(1) if qualifier else None
 
 
@@ -508,7 +507,6 @@ def prepare_reflection_turn(
     has_active_memories: bool = False,
     prior_evidence: tuple[EvidenceRecord, ...] = (),
     resolution: ContextResolution | None = None,
-    memory_surfacing: MemorySurfacingHandoff | None = None,
     connection_book_scopes: tuple[ReleaseScope, ...] = (),
 ) -> tuple[TurnInspection, str, dict[str, object]]:
     """Build the request-scoped Muse input and Provenance policy context."""
@@ -556,21 +554,12 @@ def prepare_reflection_turn(
         muse_turn=muse_turn,
         context_resolution=resolution,
         prior_evidence=prior_evidence,
-        memory_surfacing=memory_surfacing,
     )
     inspection_prompt = json.dumps(
-        muse_payload.model_dump(
-            mode="json",
-            exclude={"prior_evidence", "memory_surfacing"},
-        ),
+        muse_payload.model_dump(mode="json", exclude={"prior_evidence"}),
         ensure_ascii=False,
     )
-    # Keep the optional hand-off out of ordinary turns while preserving the
-    # established null-bearing shape of the other Muse input fields.
-    muse_input_payload = muse_payload.model_dump(mode="json")
-    if memory_surfacing is None:
-        muse_input_payload.pop("memory_surfacing", None)
-    muse_input = json.dumps(muse_input_payload, ensure_ascii=False)
+    muse_input = muse_payload.model_dump_json()
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
         "reading_context": context.model_dump(mode="json") if context else None,
@@ -1028,12 +1017,14 @@ def _saved_readings(store: ReadingProgressStore, account: AccountContext) -> dic
 
 def _apply_saved_progress(
     request: ChatRequest, resolution: ContextResolution, saved: ConfirmedReading | None,
-) -> ContextResolution:
+) -> tuple[ContextResolution, reading_progress.PendingProgress | None]:
     """Grant the reader's saved chapter for a book this turn already identified.
 
     Saved progress never selects a book: it applies only when the reader named
     the work or it is the session's active book, and this message neither
-    declared new progress nor left an open question about it.
+    declared new progress nor spoke to it in a way the parser cannot read. This
+    session's own progress for the book, including a retraction, outranks it;
+    once released, the saved chapter is staged as the session's progress.
     """
     if (
         saved is None
@@ -1042,17 +1033,23 @@ def _apply_saved_progress(
         or resolution.work_id != saved.work_id
         or resolution.clarification_question is not None
     ):
-        return resolution
+        return resolution, None
+    slot = sessions.reading_progress(request.session_id)
+    if slot is not None and slot.work_id == saved.work_id:
+        return resolution, None
     selection = sessions.book_selection(request.session_id)
     if selection is not None and selection.part_id != saved.part_id:
-        return resolution
+        return resolution, None
+    version = librarian_service.version_for(saved.work_id)
+    progress = sessions.ReadingProgress(saved.work_id, version, saved.part_id, saved.chapter_max)
+    if reading_progress.unparsed_progress(request.message, progress, PROGRESS_PARSER_PATTERNS):
+        return resolution, None
     return ContextResolution(
         status="confirmed", work_id=saved.work_id, work_title=resolution.work_title,
-        book_version_id=librarian_service.version_for(saved.work_id),
-        chapter_max=saved.chapter_max, part_id=saved.part_id,
+        book_version_id=version, chapter_max=saved.chapter_max, part_id=saved.part_id,
         boundary_source="reader_confirmed", boundary_authorization_basis="saved_progress",
         explanation="The reader confirmed this completed chapter in an earlier conversation.",
-    )
+    ), reading_progress.PendingProgress(slot, progress)
 
 
 def _saved_comparison_scopes(
@@ -1097,6 +1094,8 @@ def _saved_progress_to_record(resolution: ContextResolution) -> SavedProgress | 
 async def _turn_tool_exposure(
     request: ChatRequest,
     inspection: TurnInspection,
+    *,
+    carried: bool,
 ) -> ToolExposure:
     """Triage the reader message once and fix the tools Muse is offered this turn."""
     started = perf_counter()
@@ -1113,8 +1112,9 @@ async def _turn_tool_exposure(
         exposure = expose_tools(
             needs,
             previously_called=sessions.called_tools(request.session_id),
+            # A ceiling carried from an earlier turn says nothing about this message's needs.
             book_override=(
-                inspection.muse_turn.get("reading_context") is not None
+                (inspection.muse_turn.get("reading_context") is not None and not carried)
                 or sessions.pending_clarification(request.session_id) is not None
             ),
         )
@@ -1174,24 +1174,33 @@ async def _run_chat_pipeline(
     initial_reading: ReleaseScope | None = None,
     connection_book_scopes: tuple[ReleaseScope, ...] | None = None,
     public_source_urls: tuple[str, ...] | None = None,
-    reading_progress: ReadingProgressStore | None = None,
+    progress_store: ReadingProgressStore | None = None,
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
-    prior_evidence = _rehydrate_session_evidence(request.session_id)
+    pending_progress, carried = None, False
     if connection_book_scopes is not None:
         resolution = _apply_connection_book_scopes(request, connection_book_scopes)
     elif initial_reading is not None:
         resolution = _apply_initial_reading(request, initial_reading)
     else:
-        resolution = resolve_reading_context(request)
+        resolution, pending_progress, carried = reading_progress.apply(
+            request, resolve_reading_context(request), parser_patterns=PROGRESS_PARSER_PATTERNS,
+        )
     # Only the interactive app passes a store; trusted setups and replays stay hermetic.
     saved_readings = (
-        _saved_readings(reading_progress, account)
-        if reading_progress is not None and connection_book_scopes is None and initial_reading is None
+        _saved_readings(progress_store, account)
+        if progress_store is not None and connection_book_scopes is None and initial_reading is None
         else {}
     )
-    if resolution.work_id is not None:
-        resolution = _apply_saved_progress(request, resolution, saved_readings.get(resolution.work_id))
+    if pending_progress is None and resolution.work_id is not None:
+        resolution, pending_progress = _apply_saved_progress(
+            request, resolution, saved_readings.get(resolution.work_id),
+        )
+        # Like a ceiling carried within the session, saved progress says nothing about this message's needs.
+        carried = carried or pending_progress is not None
+    prior_evidence = reading_progress.permitted_evidence(
+        request.session_id, _rehydrate_session_evidence(request.session_id),
+    )
     release: ReflectionRelease | None = None
     # Self-harm always wins: a first-person self-harm phrase skips the
     # language guard so the emotional-boundary preflight below still applies.
@@ -1231,27 +1240,12 @@ async def _run_chat_pipeline(
         except MemoryServiceError:
             pass
 
-    memory_surfacing: MemorySurfacingHandoff | None = None
-    if release is None and active_memories:
-        try:
-            memory_surfacing = await prepare_surfacing_handoff(
-                account_scope=account.account_id,
-                current_context=request.message,
-                memories=active_memories,
-                now=datetime.now(UTC),
-            )
-        except Exception:
-            # Surfacing is proposal-only. Failure must not block the ordinary
-            # conversation or manufacture a suggestion.
-            memory_surfacing = None
-
     inspection, muse_input, review_context = prepare_reflection_turn(
         request,
         allow_memory_capture=service.capture_enabled(account),
         has_active_memories=bool(active_memories),
         prior_evidence=prior_evidence,
         resolution=resolution,
-        memory_surfacing=memory_surfacing,
         connection_book_scopes=connection_book_scopes or (),
     )
 
@@ -1272,7 +1266,7 @@ async def _run_chat_pipeline(
     nested_connections: tuple[ConnectionRunInspection, ...] = ()
     if release is None:
         # The revision reuses the draft's exposure: triage runs once per reader turn.
-        exposure = await _turn_tool_exposure(request, inspection)
+        exposure = await _turn_tool_exposure(request, inspection, carried=carried)
         # A connection request across books the reader has confirmed runs as the
         # existing unfocused comparison: every book, including this turn's, keeps
         # its own ceiling, and no single book is primary.
@@ -1296,7 +1290,6 @@ async def _run_chat_pipeline(
                         "Each book keeps its own chapter ceiling; no single book is active."
                     ),
                 ),
-                memory_surfacing=memory_surfacing,
                 connection_book_scopes=comparison,
             )
             inspection.tool_exposure = triage_record
@@ -1323,8 +1316,6 @@ async def _run_chat_pipeline(
         exposure_token = set_tool_exposure(exposure)
         connection_scopes_token = set_connection_book_scopes(connection_book_scopes or ())
         try:
-            if memory_surfacing is not None:
-                register_connection_evidence(memory_surfacing.sources)
             release = await reflection_reply(
                 muse_input,
                 sessions.muse_history(request.session_id),
@@ -1375,8 +1366,8 @@ async def _run_chat_pipeline(
     )
     if release.release_source not in {"muse_candidate", "application_clarification"}:
         sessions.restore_reading_state(request.session_id, reading_state)
-    elif reading_progress is not None and (declared := _saved_progress_to_record(resolution)):
-        reading_progress.record(account.account_id, declared)
+    elif progress_store is not None and (declared := _saved_progress_to_record(resolution)):
+        progress_store.record(account.account_id, declared)
     capture = _commit_automatic_capture(release, service, account)
     curation_outcome = None
     if capture.record is not None:
@@ -1420,6 +1411,7 @@ async def _run_chat_pipeline(
         review_finding_codes=release.review_finding_codes,
         tool_names=release.tool_names,
     )
+    reading_progress.commit(request.session_id, pending_progress, release.release_source)
     return inspection, release, capture
 
 
@@ -1439,7 +1431,7 @@ async def run_chat_turn(
     initial_reading: ReleaseScope | None = None,
     connection_book_scopes: tuple[ReleaseScope, ...] | None = None,
     public_source_urls: tuple[str, ...] | None = None,
-    reading_progress: ReadingProgressStore | None = None,
+    progress_store: ReadingProgressStore | None = None,
 ) -> ChatResponse:
     """Run a turn with optional trusted setup; transport payloads cannot grant it."""
     if initial_reading is not None and connection_book_scopes is not None:
@@ -1486,7 +1478,7 @@ async def run_chat_turn(
                     initial_reading=initial_reading,
                     connection_book_scopes=connection_book_scopes,
                     public_source_urls=public_source_urls,
-                    reading_progress=reading_progress,
+                    progress_store=progress_store,
                 )
             if dev_trace is not None:
                 inspection.dev_trace = dev_trace.payload()

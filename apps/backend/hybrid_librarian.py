@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from itertools import zip_longest
 from typing import Protocol
 
@@ -53,6 +55,7 @@ class Candidate:
     metadata: CorpusUnit
     text: str
     source_lines: tuple[int, int]
+    search_text: str
     score: float = 0.0
 
     @property
@@ -72,9 +75,29 @@ def _word_count(text: str) -> int:
     return len(text.split())
 
 
-def _windows(metadata: CorpusUnit, paragraphs: tuple[Paragraph, ...]) -> list[Candidate]:
+def _chapter_cues(metadata: CorpusUnit) -> str:
+    """Reviewed chapter reading aids that search reads beside each passage."""
+    return "\n".join(
+        line for line in (
+            metadata.routing_description,
+            ", ".join(metadata.characters),
+            ", ".join(metadata.retrieval_cues),
+        ) if line
+    )
+
+
+def _cue_digest(units: list[CorpusUnit]) -> str:
+    return hashlib.sha256(json.dumps(sorted(
+        (unit.chapter_id, unit.routing_description, unit.characters, unit.retrieval_cues) for unit in units
+    )).encode()).hexdigest()
+
+
+def _windows(
+    metadata: CorpusUnit, paragraphs: tuple[Paragraph, ...], *, read_chapter_cues: bool = False
+) -> list[Candidate]:
     """Build exact, overlapping search windows without crossing a chapter."""
     windows: list[Candidate] = []
+    cues = _chapter_cues(metadata) if read_chapter_cues else None
     start = 0
     while start < len(paragraphs):
         end = start
@@ -89,11 +112,14 @@ def _windows(metadata: CorpusUnit, paragraphs: tuple[Paragraph, ...]) -> list[Ca
             end += 1
 
         selected = paragraphs[start:end]
+        text = "\n\n".join(paragraph.text for paragraph in selected)
         windows.append(
             Candidate(
                 metadata=metadata,
-                text="\n\n".join(paragraph.text for paragraph in selected),
+                text=text,
                 source_lines=(selected[0].source_lines[0], selected[-1].source_lines[1]),
+                # Cues follow the passage, so embedding truncation clips cues, not text.
+                search_text=f"{text}\n\n{cues}" if cues else text,
             )
         )
         if end >= len(paragraphs):
@@ -135,17 +161,24 @@ def _dedupe(candidates: list[Candidate], limit: int) -> list[Candidate]:
 
 
 class HybridLibrarian(Librarian):
-    """BM25 + embeddings + reciprocal-rank fusion + local cross-encoder."""
+    """BM25 + embeddings + reciprocal-rank fusion + local cross-encoder.
+
+    ``read_chapter_cues`` makes search read each chapter's reviewed cues beside
+    its passages. It stays off in production until the chapter-cue experiment
+    passes, because existing cues lost a required passage in part recall.
+    """
 
     def __init__(
         self,
         *,
         embedding_model: EmbeddingModel | None = None,
         reranker: RerankerModel | None = None,
+        read_chapter_cues: bool = False,
     ) -> None:
         self._embedding = embedding_model
         self._reranker = reranker
-        self._indexes: dict[tuple[tuple[str, str, str, int, tuple[str, ...]], ...], HybridIndex] = {}
+        self._read_chapter_cues = read_chapter_cues
+        self._indexes: dict[tuple[tuple[tuple[str, str, str, int, tuple[str, ...]], ...], str], HybridIndex] = {}
 
     def _embedding_model(self) -> EmbeddingModel:
         if self._embedding is None:
@@ -170,7 +203,9 @@ class HybridLibrarian(Librarian):
                     metadata, body = read_unit(registration, unit)
                 except (OSError, ValueError) as exc:
                     raise CorpusScopeError(str(exc)) from exc
-                candidates.extend(_windows(metadata, _paragraphs(metadata, body)))
+                candidates.extend(_windows(
+                    metadata, _paragraphs(metadata, body), read_chapter_cues=self._read_chapter_cues
+                ))
         return candidates
 
     @staticmethod
@@ -186,14 +221,18 @@ class HybridLibrarian(Librarian):
             if scope.unit_ids:
                 # Validate membership even when an index is already cached.
                 self.eligible_units(scope)
-                scopes.append(scope)
-                continue
-            registered = self.registered_scope(scope.work_id, scope.book_version_id, scope.part_id)
-            if registered is None or scope.chapter_max is None:
-                raise CorpusScopeError("unregistered chapter scope")
-            scopes.append(scope.model_copy(update={"chapter_max": min(scope.chapter_max, registered.max_chapter)}))
+            else:
+                registered = self.registered_scope(scope.work_id, scope.book_version_id, scope.part_id)
+                if registered is None or scope.chapter_max is None:
+                    raise CorpusScopeError("unregistered chapter scope")
+                scope = scope.model_copy(update={"chapter_max": min(scope.chapter_max, registered.max_chapter)})
+            scopes.append(scope)
         request = request.model_copy(update={"book_scopes": scopes})
-        key = self._scope_key(request)
+        digest = ""
+        if self._read_chapter_cues:
+            # Never reuse an index built from chapter cues that have since been revised.
+            digest = _cue_digest([unit for scope in scopes for unit in self.eligible_units(scope)[1]])
+        key = (self._scope_key(request), digest)
         cached = self._indexes.get(key)
         if cached is not None:
             return cached
@@ -201,7 +240,7 @@ class HybridLibrarian(Librarian):
         candidates = self._eligible_windows(request)
         retriever = bm25s.BM25()
         if candidates:
-            texts = [candidate.text for candidate in candidates]
+            texts = [candidate.search_text for candidate in candidates]
             retriever.index(
                 bm25s.tokenize(texts, show_progress=False), show_progress=False
             )
@@ -222,7 +261,7 @@ class HybridLibrarian(Librarian):
             show_progress=False,
         )
         return [
-            Candidate(candidate.metadata, candidate.text, candidate.source_lines, float(score))
+            replace(candidate, score=float(score))
             for candidate, score in zip(
                 (index.candidates[int(candidate_index)] for candidate_index in ids[0]),
                 scores[0],
@@ -242,12 +281,7 @@ class HybridLibrarian(Librarian):
         scores = _cosine(query_embedding, index.embeddings)
         order = np.argsort(-scores)[:SEMANTIC_CANDIDATES]
         return [
-            Candidate(
-                index.candidates[int(candidate_index)].metadata,
-                index.candidates[int(candidate_index)].text,
-                index.candidates[int(candidate_index)].source_lines,
-                float(scores[candidate_index]),
-            )
+            replace(index.candidates[int(candidate_index)], score=float(scores[candidate_index]))
             for candidate_index in order
             if float(scores[candidate_index]) >= threshold
         ]
@@ -263,7 +297,7 @@ class HybridLibrarian(Librarian):
                     RRF_K + rank
                 )
         ranked = [
-            Candidate(item.metadata, item.text, item.source_lines, scores[evidence_id])
+            replace(item, score=scores[evidence_id])
             for evidence_id, item in sorted(
                 by_id.items(), key=lambda entry: -scores[entry[0]]
             )
@@ -295,16 +329,11 @@ class HybridLibrarian(Librarian):
         if recover_for_judgement:
             candidates = list({candidate.evidence_id: candidate for candidate in [*keyword, *semantic]}.values())
         raw_scores = self._reranker_model().rerank(
-            request.query, [candidate.text for candidate in candidates]
+            request.query, [candidate.search_text for candidate in candidates]
         )
         scored = sorted(
             (
-                Candidate(
-                    candidate.metadata,
-                    candidate.text,
-                    candidate.source_lines,
-                    1 / (1 + math.exp(-float(score))),
-                )
+                replace(candidate, score=1 / (1 + math.exp(-float(score))))
                 for candidate, score in zip(candidates, raw_scores, strict=True)
             ),
             key=lambda candidate: -candidate.score,

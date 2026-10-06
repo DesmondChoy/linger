@@ -26,7 +26,7 @@ from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
 )
-from src.linger.agents.muse.skills import REFLECTION
+from src.linger.agents.muse.skills import REFLECTION, SHARED_INSTRUCTIONS, reflection_instructions
 from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.serendipity.agent import build_serendipity_agent
@@ -145,9 +145,19 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual(1, release.revision_count)
         self.assertEqual(["Muse", "Provenance", "Muse", "Provenance"], [role for role, _, _ in calls])
+        muse_runs = iter(("draft", "revision"))
         for role, messages, info in calls:
             if role == "Muse":
-                self.assertEqual(REFLECTION.effective_instructions, info.instructions)
+                # No turn-level exposure is set, so every tool module loads; only
+                # the revision run also carries the revision module.
+                mode = next(muse_runs)
+                self.assertEqual(
+                    SHARED_INSTRUCTIONS
+                    + "\n"
+                    + reflection_instructions(revision=mode == "revision", tools=None),
+                    info.instructions,
+                )
+                self.assertEqual(mode == "revision", "\n# Revision\n" in info.instructions)
                 self.assertEqual(set(REFLECTION.tools), {tool.name for tool in info.function_tools})
                 self.assertEqual(1, len(info.output_tools))
                 self.assertEqual(released_history, messages[:2])

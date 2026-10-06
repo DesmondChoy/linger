@@ -1,0 +1,1335 @@
+{
+  "schema_version": 1,
+  "scenario": "synthetic-journal-evaluation/scenarios/memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19",
+  "source": "Distinct Librarian book-request plans captured in combined-Scenario runs 4-15 (2026-09-26); scopes are the Serendipity task's granted books.",
+  "cases": [
+    {
+      "case_id": "scene-06-plan-1",
+      "scene_id": "scene-06",
+      "captured_in": [
+        "run11",
+        "run12",
+        "run13",
+        "run14",
+        "run15"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Is there a way to see both sides of me without calling either one fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [
+            "Alice"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [
+            "Keller"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-06-plan-2",
+      "scene_id": "scene-06",
+      "captured_in": [
+        "run4",
+        "run6",
+        "run10"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Is there a way to see both sides of me without calling either one fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-06-plan-3",
+      "scene_id": "scene-06",
+      "captured_in": [
+        "run5",
+        "run7",
+        "run8"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Is there a way to see both sides of me without calling either one fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [
+            "Keller forgetting all about college at the lake"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-07-plan-1",
+      "scene_id": "scene-07",
+      "captured_in": [
+        "run11",
+        "run13",
+        "run14",
+        "run15"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Honestly, part of me hopes they show that a different mood makes me a different person, so I'm not really bound to host next month. Do they?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [
+            "Alice telling the Caterpillar"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [
+            "Keller"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-07-plan-2",
+      "scene_id": "scene-07",
+      "captured_in": [
+        "run12"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Honestly, part of me hopes they show that a different mood makes me a different person, so I'm not really bound to host next month. Do they?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [
+            "Alice telling the Caterpillar"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "promising the Fairy he'd be back in an hour"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [
+            "Keller"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-07-plan-3",
+      "scene_id": "scene-07",
+      "captured_in": [
+        "run4",
+        "run5",
+        "run10"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Honestly, part of me hopes they show that a different mood makes me a different person, so I'm not really bound to host next month. Do they?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-07-plan-4",
+      "scene_id": "scene-07",
+      "captured_in": [
+        "run6",
+        "run7",
+        "run8"
+      ],
+      "current_line": "I've been thinking about Alice telling the Caterpillar she's changed several times since morning, Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway, and Keller forgetting all about college at the lake. Put them next to that Hume passage and what I wrote about work versus old friends. Honestly, part of me hopes they show that a different mood makes me a different person, so I'm not really bound to host next month. Do they?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Alice telling the Caterpillar she's changed several times since morning"
+          ]
+        },
+        {
+          "context_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Pinocchio promising the Fairy he'd be back in an hour and then dawdling with Lamp-Wick anyway"
+          ]
+        },
+        {
+          "context_spans": [
+            "Keller forgetting all about college at the lake"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Keller forgetting all about college at the lake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-1",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run10"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "I keep coming back to that idea that we're just a bundle of perceptions",
+            "I'm a different person at work than with my old friends",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "that pull without making one side of me fake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-2",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run12",
+        "run13",
+        "run14"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "I'm a different person at work than with my old friends"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-3",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run15"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "that idea that we're just a bundle of perceptions",
+            "I'm a different person at work than with my old friends",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "that pull without making one side of me fake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-4",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run4",
+        "run6",
+        "run7"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "that pull without making one side of me fake"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-5",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run5"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions",
+            "different person at work than with my old friends",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "that pull without making one side of me fake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-08-plan-6",
+      "scene_id": "scene-08",
+      "captured_in": [
+        "run8",
+        "run11"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read speak to that pull without making one side of me fake?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions",
+            "I'm a different person at work than with my old friends",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "that pull without making one side of me fake"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-1",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run11"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "that idea that we're just a bundle of perceptions"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-2",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run13"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "that idea that we're just a bundle of perceptions",
+            "when my mood shifts I'm not really the one who promised, so I'm off the hook",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-3",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run15"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-4",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run4",
+        "run8",
+        "run12",
+        "run14"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions"
+          ]
+        },
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "when my mood shifts I'm not really the one who promised, so I'm off the hook"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-5",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run5",
+        "run10"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions",
+            "I'm a different person at work than with my old friends",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter",
+            "when my mood shifts I'm not really the one who promised, so I'm off the hook"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "scene-09-plan-6",
+      "scene_id": "scene-09",
+      "captured_in": [
+        "run6"
+      ],
+      "current_line": "I keep coming back to that idea that we're just a bundle of perceptions. I'm a different person at work than with my old friends. And the thing I said I'd host next month: every time something more fun comes up, I tell myself one more day of not preparing won't matter. Does anything I've read back up the idea that when my mood shifts I'm not really the one who promised, so I'm off the hook?",
+      "prior_reader_statements": [],
+      "book_scopes": [
+        {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4"
+        },
+        {
+          "chapter_max": 30,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734"
+        },
+        {
+          "chapter_max": 22,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13"
+        },
+        {
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7"
+        },
+        {
+          "chapter_max": 11,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3"
+        }
+      ],
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "we're just a bundle of perceptions",
+            "when my mood shifts I'm not really the one who promised",
+            "every time something more fun comes up, I tell myself one more day of not preparing won't matter"
+          ]
+        }
+      ]
+    }
+  ]
+}

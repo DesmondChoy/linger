@@ -392,6 +392,14 @@
           "text": "For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception."
         },
         {
+          "kind": "public_source",
+          "evidence_id": "evidence-06-hume-bundle",
+          "source_id": "hume-personal-identity",
+          "start_codepoint": 3621,
+          "end_codepoint": 3789,
+          "text": "they are nothing but a bundle or collection of different perceptions, which succeed each other with an inconceivable rapidity, and are in a perpetual flux and movement."
+        },
+        {
           "kind": "repository_text",
           "evidence_id": "evidence-06-pinocchio-promise",
           "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
@@ -426,6 +434,24 @@
           "start_codepoint": 7929,
           "end_codepoint": 8228,
           "text": "As soon as my examinations were over, Miss Sullivan and I\nhastened to this green nook, where we have a little cottage on one of\nthe three lakes for which Wrentham is famous. Here the long, sunny days\nwere mine, and all thoughts of work and college and the noisy city were\nthrust into the background."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-06-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-06-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -444,9 +470,12 @@
           "evidence-06-prop-situated-self",
           "evidence-06-alice-identity",
           "evidence-06-hume-perceptions",
+          "evidence-06-hume-bundle",
           "evidence-06-pinocchio-promise",
           "evidence-06-pinocchio-delay",
           "evidence-06-pinocchio-dawdling",
+          "evidence-06-pinocchio-keeps-word",
+          "evidence-06-pinocchio-promise-to-be-good",
           "evidence-06-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -461,7 +490,7 @@
           "tentative_connection"
         ],
         "required_public_claims": [
-          "In the supplied passage, Hume reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception."
+          "In the supplied passages, Hume either reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception, or describes a person as a bundle of different perceptions in constant change."
         ],
         "book_retrieval": {
           "required_work_ids": [
@@ -476,24 +505,33 @@
         },
         "evidence_alternatives": [
           {
+            "evidence_id": "evidence-06-hume-perceptions",
+            "accepted_evidence_ids": [
+              "evidence-06-hume-bundle"
+            ]
+          },
+          {
             "evidence_id": "evidence-06-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-06-pinocchio-dawdling"
+              "evidence-06-pinocchio-dawdling",
+              "evidence-06-pinocchio-keeps-word",
+              "evidence-06-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-06-pinocchio-delay",
             "accepted_evidence_ids": [
-              "evidence-06-pinocchio-dawdling"
+              "evidence-06-pinocchio-dawdling",
+              "evidence-06-pinocchio-keeps-word"
             ]
           }
         ]
       },
       "expected_outcomes": [
-        "Offer a tentative comparison among Maya’s remembered differences across settings, Alice’s uncertainty about herself amid changes in size, and Hume’s report of encountering particular perceptions in introspection. Ground the comparison in the relevant personal memory and the supplied sources, with citations to Alice’s Adventures in Wonderland, The Adventures of Pinocchio, The Story of My Life, and Hume.",
-        "Give the additional books distinct roles in the comparison: Pinocchio promises to return and later rationalizes another delay; Keller describes turning from college work to a country holiday after her examinations are over. Cite both the promise and the delay in Pinocchio and the passage about examinations and recreation in Keller. A shift in attention or desire can be explored without calling either of Maya’s social manners false.",
+        "Offer a tentative comparison among Maya’s remembered differences across settings, Alice’s uncertainty about herself amid changes in size, and Hume’s account, either his report of encountering particular perceptions in introspection or his description of a person as a bundle of different perceptions in constant change. Ground the comparison in the relevant personal memory and the supplied sources, with citations to Alice’s Adventures in Wonderland, The Adventures of Pinocchio, The Story of My Life, and Hume.",
+        "Give the additional books distinct roles in the comparison: Pinocchio promises to return and later rationalizes another delay; Keller describes turning from college work to a country holiday; saying that this followed her completed examinations strengthens the answer but is not required. Cite both the promise and the delay in Pinocchio and the Keller passage about recreation at the lake. A shift in attention or desire can be explored without calling either of Maya’s social manners false.",
         "Keep Maya’s continuing wish to host the reading circle visible. The sources can help her reflect on changing experience and continuing commitments, while leaving the analogy open to her judgment and avoiding a moral rule or proof of personal identity.",
-        "Attribute each source precisely: Alice and Pinocchio are literary characters; Keller recounts her own experience; Hume describes an introspective philosophical inquiry; Maya’s note records her personal experience and intention. Quotations must match their cited sources, and claims about Hume must remain within the supplied snapshot."
+        "Attribute each source precisely: Alice and Pinocchio are literary characters; Keller recounts her own experience; Hume offers a philosophical account; Maya’s note records her personal experience and intention. Quotations must match their cited sources, and claims about Hume must remain within the supplied snapshot."
       ],
       "prohibited_outcomes": [
         "Do not present the comparison as proof that Maya lacks a self, that either social manner is fake, or that changing moods erase a commitment.",
@@ -567,6 +605,14 @@
           "text": "For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception."
         },
         {
+          "kind": "public_source",
+          "evidence_id": "evidence-07-hume-bundle",
+          "source_id": "hume-personal-identity",
+          "start_codepoint": 3621,
+          "end_codepoint": 3789,
+          "text": "they are nothing but a bundle or collection of different perceptions, which succeed each other with an inconceivable rapidity, and are in a perpetual flux and movement."
+        },
+        {
           "kind": "repository_text",
           "evidence_id": "evidence-07-pinocchio-promise",
           "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
@@ -601,6 +647,24 @@
           "start_codepoint": 7929,
           "end_codepoint": 8228,
           "text": "As soon as my examinations were over, Miss Sullivan and I\nhastened to this green nook, where we have a little cottage on one of\nthe three lakes for which Wrentham is famous. Here the long, sunny days\nwere mine, and all thoughts of work and college and the noisy city were\nthrust into the background."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-07-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-07-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -619,9 +683,12 @@
           "evidence-07-prop-situated-self",
           "evidence-07-alice-identity",
           "evidence-07-hume-perceptions",
+          "evidence-07-hume-bundle",
           "evidence-07-pinocchio-promise",
           "evidence-07-pinocchio-delay",
           "evidence-07-pinocchio-dawdling",
+          "evidence-07-pinocchio-keeps-word",
+          "evidence-07-pinocchio-promise-to-be-good",
           "evidence-07-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -636,7 +703,7 @@
           "request_better_evidence"
         ],
         "required_public_claims": [
-          "In the supplied passage, Hume reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception."
+          "In the supplied passages, Hume either reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception, or describes a person as a bundle of different perceptions in constant change."
         ],
         "book_retrieval": {
           "required_work_ids": [
@@ -651,15 +718,24 @@
         },
         "evidence_alternatives": [
           {
+            "evidence_id": "evidence-07-hume-perceptions",
+            "accepted_evidence_ids": [
+              "evidence-07-hume-bundle"
+            ]
+          },
+          {
             "evidence_id": "evidence-07-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-07-pinocchio-dawdling"
+              "evidence-07-pinocchio-dawdling",
+              "evidence-07-pinocchio-keeps-word",
+              "evidence-07-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-07-pinocchio-delay",
             "accepted_evidence_ids": [
-              "evidence-07-pinocchio-dawdling"
+              "evidence-07-pinocchio-dawdling",
+              "evidence-07-pinocchio-keeps-word"
             ]
           }
         ]
@@ -682,8 +758,8 @@
       "expected_outcomes": [
         "Qualify or decline the proposed conclusion, or request better evidence for it: changing perceptions, a fictional character’s uncertainty, a delayed return, and a holiday after examinations do not establish that a changed mood ends a person’s obligations.",
         "Use the same personal memory to explain the limit. Maya describes both settings as feeling like her and records her continuing desire to host the reading circle; the record does not say her commitment disappeared.",
-        "Inspect all three requested books and the Hume excerpt. Alice’s uncertainty is part of a fictional scene involving changes in size; Pinocchio explicitly promises a return and later rationalizes further delay; Keller describes recreation after her examinations are over. Cite both Pinocchio passages. Cite Alice or Keller only where they help explain why none shows a changed mood cancelling a promise.",
-        "Keep open a modest personal reflection on change while withholding the stronger claim that the promise no longer counts. Distinguish the literary analogy, Keller’s account of her experience, Hume’s introspective observation, and Maya’s memory. Attribute to Hume only what the supplied passage supports; it does not supply a rule releasing Maya from her commitment."
+        "Inspect all three requested books and the Hume excerpt. Alice’s uncertainty is part of a fictional scene involving changes in size; Pinocchio explicitly promises a return and later rationalizes further delay; Keller describes setting thoughts of work and college aside at the lake; saying that this followed her completed examinations strengthens the answer but is not required. Cite both Pinocchio passages. Cite Alice or Keller only where they help explain why none shows a changed mood cancelling a promise.",
+        "Keep open a modest personal reflection on change while withholding the stronger claim that the promise no longer counts. Distinguish the literary analogy, Keller’s account of her experience, Hume’s observation, and Maya’s memory. Attribute to Hume only what the supplied passages support; it does not supply a rule releasing Maya from her commitment."
       ],
       "prohibited_outcomes": [
         "Do not endorse the inference that the person who promised no longer exists when a mood changes, or that the reading-circle promise is therefore void.",
@@ -813,6 +889,24 @@
           "start_codepoint": 12525,
           "end_codepoint": 12677,
           "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -835,6 +929,8 @@
           "evidence-08-pinocchio-promise",
           "evidence-08-pinocchio-delay",
           "evidence-08-pinocchio-dawdling",
+          "evidence-08-pinocchio-keeps-word",
+          "evidence-08-pinocchio-promise-to-be-good",
           "evidence-08-pinocchio-play-over-study",
           "evidence-08-keller-work-and-recreation",
           "evidence-08-keller-present-joy",
@@ -870,14 +966,17 @@
           {
             "evidence_id": "evidence-08-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-08-pinocchio-dawdling"
+              "evidence-08-pinocchio-dawdling",
+              "evidence-08-pinocchio-keeps-word",
+              "evidence-08-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-08-pinocchio-delay",
             "accepted_evidence_ids": [
               "evidence-08-pinocchio-dawdling",
-              "evidence-08-pinocchio-play-over-study"
+              "evidence-08-pinocchio-play-over-study",
+              "evidence-08-pinocchio-keeps-word"
             ]
           }
         ]
@@ -1029,6 +1128,24 @@
           "start_codepoint": 12525,
           "end_codepoint": 12677,
           "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-keeps-word",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 5474,
+          "end_codepoint": 6146,
+          "text": "“Wait two more minutes.”\n\n“I have waited too long as it is. The Fairy will be worried.”\n\n“Poor Fairy! Is she afraid the bats will eat you up?”\n\n“Listen, Lamp-Wick,” said the Marionette, “are you really sure that\nthere are no schools in the Land of Toys?” “Not even the shadow of one.”\n\n“Not even one teacher?”\n\n“Not one.”\n\n“And one does not have to study?”\n\n“Never, never, never!”\n\n“What a great land!” said Pinocchio, feeling his mouth water. “What a\nbeautiful land! I have never been there, but I can well imagine it.”\n\n“Why don’t you come, too?”\n\n“It is useless for you to tempt me! I told you I promised my good Fairy\nto behave myself, and I am going to keep my word.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-promise-to-be-good",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/25-chapter-25.md",
+          "source_sha256": "455b795a9130af345861683b0c6424d6dc948dbde35c652db774800e3b60cb1a",
+          "start_codepoint": 2705,
+          "end_codepoint": 2794,
+          "text": "“Do you promise?”\n\n“I promise. I want to become a good boy and be a comfort to my father."
         }
       ],
       "prop_relevance": [
@@ -1051,6 +1168,8 @@
           "evidence-09-pinocchio-promise",
           "evidence-09-pinocchio-delay",
           "evidence-09-pinocchio-dawdling",
+          "evidence-09-pinocchio-keeps-word",
+          "evidence-09-pinocchio-promise-to-be-good",
           "evidence-09-pinocchio-play-over-study",
           "evidence-09-keller-work-and-recreation",
           "evidence-09-keller-present-joy",
@@ -1086,14 +1205,17 @@
           {
             "evidence_id": "evidence-09-pinocchio-promise",
             "accepted_evidence_ids": [
-              "evidence-09-pinocchio-dawdling"
+              "evidence-09-pinocchio-dawdling",
+              "evidence-09-pinocchio-keeps-word",
+              "evidence-09-pinocchio-promise-to-be-good"
             ]
           },
           {
             "evidence_id": "evidence-09-pinocchio-delay",
             "accepted_evidence_ids": [
               "evidence-09-pinocchio-dawdling",
-              "evidence-09-pinocchio-play-over-study"
+              "evidence-09-pinocchio-play-over-study",
+              "evidence-09-pinocchio-keeps-word"
             ]
           }
         ]

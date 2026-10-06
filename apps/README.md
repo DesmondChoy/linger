@@ -9,14 +9,22 @@ result to HTTP.
 
 The landing page offers a live path (username and password sign-in) and a
 synthetic path (saved persona evaluations, no sign-in). Accounts and login
-tokens live in `data/accounts.sqlite3` (prototype-grade: salted scrypt
-hashes, no resets or lockouts). Every chat and session route derives the
-account from the bearer token. Released chat turns are saved per account in
-`data/transcripts.sqlite3` and reopen from Past chats; a conversation belongs to
-exactly one account. Automatic memory captures use account-scoped Markdown
-storage under `memories/`. The public API exposes no memory CRUD operations.
+tokens live in `data/accounts.sqlite3`. Passwords use salted scrypt hashes;
+tokens expire after seven days and are stored as SHA-256 digests. The prototype
+has no password resets, email verification, or login lockouts. Every chat,
+history, and session route derives the account from the bearer token.
+Released Muse replies and application clarifications are saved per account in
+`data/transcripts.sqlite3`, together with their inspection details. Signing in
+loads these conversations into the feed and continues the latest session.
+Boundary replies and safe declines are absent from the saved transcript.
+A conversation belongs to exactly one account. Automatic memory captures use
+account-scoped Markdown storage under `memories/`. The public API exposes no
+memory CRUD operations.
 
 ## Setup
+
+For a single Docker image with persistent accounts, transcripts, and memories,
+use the [release and deployment guide](../docs/releasing.md).
 
 From the repository root:
 
@@ -29,15 +37,21 @@ pnpm install --dir apps/frontend
 Set `LINGER_MODEL` and the matching provider key in `.env`. The checked-in
 default is `openai:gpt-6-luna` with `OPENAI_API_KEY`; `google` models use
 `GOOGLE_API_KEY`, and `anthropic` models use `ANTHROPIC_API_KEY`.
+The standard OpenAI model uses low reasoning effort. Muse turn triage uses
+`gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google, and `LINGER_MODEL` for
+Anthropic. It needs no separate credential or model setting.
 
 The remaining backend settings are:
 
 | Setting | Purpose | Default |
 |---|---|---|
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
+| `LINGER_STATE_DIR` | Writable account and transcript database directory | `data/` |
+| `LINGER_MEMORY_DIR` | Writable account memory directory | `memories/` |
+| `LINGER_STATIC_DIR` | Built frontend directory served by FastAPI; the release image sets `/app/static` | unset |
 | `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | All five revisions in [`Settings`](backend/config.py) |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
-| `EXA_API_KEY` | Exa credential for optional public-web search | unset |
+| `EXA_API_KEY` | Exa credential for Serendipity public-web search and separately invoked Sculptor retrieval research | unset |
 | `LOGFIRE_TOKEN` | Logfire write token for deployed or CI runs | unset |
 
 Local Logfire credentials can come from `uv run logfire projects use` instead
@@ -64,6 +78,17 @@ uv run uvicorn apps.backend.main:app --reload
 pnpm --dir apps/frontend dev
 ```
 
+For a production-style local stack, run `docker compose up --build` from the
+repository root. The UI is served at <http://localhost:5173>, Nginx proxies its
+`/api` requests to the backend, and the API remains directly reachable at
+<http://localhost:8000>. Compose stores writable application state and memories
+in named volumes while the reviewed corpus remains immutable in the backend
+image.
+
+The separate `compose.release.yaml` runs a tested release image with the
+frontend and backend together. See the [release guide](../docs/releasing.md)
+for approved image deployment, backup, and rollback.
+
 The Vite development server proxies `/api` to the backend. Set `VITE_API_URL`
 when the frontend should call another API origin. Interactive API documentation
 is available at <http://127.0.0.1:8000/docs>.
@@ -75,8 +100,13 @@ is available at <http://127.0.0.1:8000/docs>.
   Librarian or Serendipity calls, Provenance, and deterministic release
   validation. The **Try a line** tray groups editable prompts by book. Selecting
   a prompt fills the composer. **Send** submits it.
-- **New chat** clears backend conversation and reading-candidate state and mints
-  a fresh frontend session ID. Account-scoped memories persist across sessions.
+- **New chat** creates a fresh session ID and clears the current progress and
+  error display. Earlier conversations and their turn records remain in the feed.
+- **Delete** removes the selected conversation's saved transcript, inspection
+  details, and in-process session state after confirmation. Deleting the active
+  conversation starts a fresh session. Account-scoped memories persist.
+- **Sign out** revokes the current token and clears the browser's remembered
+  account. Saved conversations remain available on the next sign-in.
 
 The collaboration map, saved evaluations, Reader, and Inspect are local
 developer tools for corpus interaction and backend debugging. They are outside
@@ -114,6 +144,22 @@ authorize its whole chapter or Serendipity book search. A book the reader names
 or confirms remains active when a routing tool is uncertain. Naming a different
 book or removing its revision from the permitted scope clears that selection.
 
+The reader's explicit completed chapter carries across ordinary follow-ups
+about the same book and part. A lower declaration applies immediately, including
+when the reply fails. A higher declaration takes effect after a released Muse
+reply or application clarification. An unclear correction retracts the carried
+ceiling and excludes earlier statements and passages that could restore it.
+Changing book or part, deleting the session, or restarting the backend clears
+the ceiling. Saved conversation text can return after a restart, but its earlier
+reader statements do not establish reading permission.
+
+Muse receives at most eight recent released turns and 16,000 characters of
+conversation history, dropping whole oldest turns. A separate no-tool triage
+call classifies the current Line. Application code combines that result with
+reading context and validated source grants to expose specialist tools and
+load the corresponding reflection modules. See the
+[Muse guide](../src/linger/agents/muse/README.md) for the routing and revision rules.
+
 Serendipity can search active account-scoped curated memories, a permitted
 chapter range, and optional public-web sources. Its search grants do not widen
 the release contract. Selected book, memory, and opened public-page records
@@ -127,6 +173,13 @@ matching record is a complete recall. Muse attributes those records to the
 reader's earlier words. Memories do not support claims about the world. A
 `no_matching_memory` decline lets Muse answer without inventing a prior record.
 Recall needs neither a book selection nor public-web access.
+
+When the reader names the sources to consider together (scenes from their
+books, a named public text, their own earlier note), triage pins
+`gather_sources`. Serendipity inspects each named source and returns one bundle
+with every supporting record and the named sources it could not find; Muse
+writes the comparison. A request that names no sources ("anything I've read")
+uses `find_connection`.
 
 The application returns whole replies only after release approval. Clear
 first-person disclosures of intense distress receive the fixed application-owned
@@ -150,17 +203,47 @@ It also suppresses automatic capture and displays no save notice.
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/api/health` | Liveness and configured model |
+| `GET` | `/api/ready` | Offline deployment readiness; returns `200` when ready or `503` with the failed check |
+| `POST` | `/api/auth/signup` | Create an account and return a login token |
+| `POST` | `/api/auth/login` | Check credentials and return a login token |
+| `GET` | `/api/auth/me` | Identify the signed-in account |
+| `POST` | `/api/auth/logout` | Revoke the supplied login token |
 | `POST` | `/api/chat` | Released reply, developer diagnostics, trace correlation, and optional capture notice |
 | `POST` | `/api/chat/stream` | Content-free progress events followed by the released chat result or an error |
-| `DELETE` | `/api/sessions/{session_id}` | Clear one in-process conversation and reading state |
+| `GET` | `/api/history` | Saved conversations, turns, and inspection details for the signed-in account, oldest first |
+| `DELETE` | `/api/sessions/{session_id}` | Delete the account's saved conversation and clear its in-process state |
 | `GET` | `/api/library` | Registered and granted books, their reading locations, and starting locations |
 | `GET` | `/api/library/{work_id}/{book_version_id}/units/{unit_id}` | Canonical text for a granted Reader location |
 
+Sign-up and login accept `username` and `password`. Usernames have 3 to 32
+letters, digits, underscores, periods, or hyphens and are case-insensitive.
+Passwords have 6 to 200 characters. Both routes return `username` and `token`.
+Send `Authorization: Bearer <token>` with chat, history, session deletion, and
+`/api/auth/me` requests. Logout revokes that supplied token. Missing or expired
+authentication returns `401`; another account's conversation returns `404`.
+The health, readiness, and read-only library routes require no sign-in.
+
 Both chat endpoints accept `session_id`, optional `turn_id`, and `message`.
-Session and turn IDs contain 1 to 200 characters. Messages contain 1 to 8000
-characters. The API strips surrounding whitespace and rejects unexpected
-fields. The server supplies account identity and all authority-bearing policy
-state.
+Session and turn IDs contain 1 to 200 characters and reject control characters.
+Messages contain 1 to 8000 characters after normalisation. The API strips
+surrounding whitespace, normalises line endings and Unicode, removes hidden
+control characters, and rejects unexpected fields. Capture offsets and later
+checks use this same normalised message. The server supplies account identity
+and all authority-bearing policy state.
+
+The two chat endpoints share a limit of 10 requests per rolling 60 seconds per
+authenticated account. Exceeding it returns `429` with `Retry-After` before a
+stream opens or a model runs. Counters are local to the backend process.
+The English-language guard returns a fixed notice for confidently non-English
+messages without invoking agents. The deterministic self-harm check takes
+priority over that guard. See the [safeguards](../docs/specification.md#6-safeguards)
+for message, privacy, and output-release rules.
+
+Readiness checks provider configuration, writable storage and SQLite integrity,
+registered corpus files, and local embedding and reranker models. A combined
+release image also checks its model manifest and built frontend. Readiness
+makes no model-provider request and does not verify that the configured API key
+works with the provider.
 
 The frontend uses `/api/chat/stream`, which returns server-sent events.
 `progress` events contain stage, status, timing, and handoff metadata.
@@ -198,11 +281,15 @@ Vite 8 requires Node 20.19+ or 22.12+.
 apps/
 ├── backend/
 │   ├── main.py       # FastAPI routes and HTTP outcome mapping
+│   ├── auth.py       # bearer authentication and account routes
+│   ├── accounts.py   # SQLite accounts and expiring login tokens
 │   ├── chat_turn.py  # complete application-owned chat-turn workflow
 │   ├── config.py     # repository-root .env settings
 │   ├── contracts.py  # typed turn and context envelopes
 │   ├── schemas.py    # public request and response bodies
 │   ├── sessions.py   # in-process conversation and reading state
+│   ├── reading_progress.py # reader-declared chapter carry and retraction
+│   ├── transcripts.py # SQLite released conversations and inspection records
 │   └── telemetry.py  # allowlisted backend and evaluation tracing
 ├── frontend/
 │   └── src/

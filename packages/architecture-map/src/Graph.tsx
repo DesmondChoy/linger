@@ -54,7 +54,7 @@ function activate(event: KeyboardEvent<SVGGElement>, action: () => void) {
   }
 }
 
-export function Graph({ scene, step, onSelect, description = 'expected architecture' }: { scene: Scene; step: WalkthroughStep | null; onSelect: (selection: InspectorSelection) => void; description?: string }) {
+export function Graph({ scene, step, onSelect, description = 'expected architecture' }: { scene: Pick<Scene, 'title' | 'nodes' | 'edges' | 'layout'>; step: WalkthroughStep | null; onSelect: (selection: InspectorSelection) => void; description?: string }) {
   const [hovered, setHovered] = useState<{ node: GraphNode; rect: DOMRect } | null>(null)
   const [hoveredEdge, setHoveredEdge] = useState<{ edge: GraphEdge; rect: DOMRect } | null>(null)
   const scroll = useRef<HTMLDivElement>(null)

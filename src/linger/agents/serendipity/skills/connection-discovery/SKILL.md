@@ -49,7 +49,10 @@ instruction to search every available source. Apply this routing policy:
   connects to a situation or idea, use `search_librarian` within the granted
   books even if the cue names no title or character. Explore plausible works
   before judging the connection. A shared theme alone does not establish support;
-  the returned passages must illuminate the reader's particular question.
+  the returned passages must illuminate the reader's particular question. When
+  `scope.search_all_granted_books` is true, the application has classified the
+  cue as this kind of request: call `search_librarian` before answering, and it
+  searches every granted book.
 - Explicit source comparison or assessment: when the cue asks to compare named
   sources or assess whether they support a proposed conclusion, inspect every
   explicitly requested and permitted source, even if the likely answer is that
@@ -111,6 +114,12 @@ the reader's full wording into a query. Prefer primary or authoritative web sour
 A candidate is an argument that two things illuminate each other, so
 `shared_structure` and `meaningful_difference` must both be real and specific.
 
+When `scope.search_all_granted_books` is true, the reader asked what in their
+reading speaks to their question. Every candidate then cites at least one book
+passage that addresses the question the reader actually asks, together with
+any public text the reader referred to. Candidates differ in the passage or the
+reading of it, not by leaving the book out.
+
 A shared *subject* is not a shared structure. Two passages that both mention a
 journey, a season, bad weather, or being small share vocabulary, not structure.
 Almost any two passages in a work share something at that level, so a candidate
@@ -155,7 +164,12 @@ two remain tied; do not inflate ratings to force a winner.
 
 Judge fit against the complete reader request. When the reader asks to put
 several named sources alongside one another, a comparison that omits one is
-only partial, even if its remaining pair is interesting. The winning comparison
+only partial, even if its remaining pair is interesting. The same holds for
+concerns: when one cue raises several distinct concerns, a candidate that
+answers only one of them is `partial`, however well it answers that one. When
+the evidence supports more than one concern, build at least one candidate that
+combines the supporting records for each, including any retrieved personal
+memory that addresses the same situation. The winning comparison
 must address each requested source in its distinct role, with the corresponding
 evidence IDs. Do not use facts from an inspected memory or page in an
 interpretation while omitting that source from the candidate's evidence.

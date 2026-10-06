@@ -1,0 +1,26 @@
+name: Release checks after candidate promotion
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [release-candidate]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
+# The reusable workflow reads the current release-candidate policy before starting.
+jobs:
+  release:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    uses: ./.github/workflows/release-checks.yml
+    with:
+      candidate_sha: ${{ github.event.workflow_run.head_sha }}
+      ci_run_id: ${{ format('{0}', github.event.workflow_run.id) }}
+      repetitions: ${{ vars.RELEASE_REPETITIONS || '1' }}
+      model: ${{ vars.RELEASE_MODEL || 'openai:gpt-6-luna' }}

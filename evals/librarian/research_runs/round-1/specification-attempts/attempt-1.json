@@ -1,0 +1,240 @@
+{
+  "recorded_at": "2026-10-01T13:40:32+00:00",
+  "status": "failed",
+  "error": "UnexpectedModelBehavior: Exceeded maximum output retries (2)",
+  "ledger": {
+    "searches": [
+      "retrieval augmented generation retrieve more passages top k recall reranking candidate pool research paper RAG context precision cost",
+      "Elasticsearch reciprocal rank fusion rank_window_size candidate documents documentation",
+      "Lost in the Middle long context retrieval position performance paper"
+    ],
+    "opened": {
+      "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+      "https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf": "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs",
+      "https://aclanthology.org/2024.tacl-1.9/": "Lost in the Middle: How Language Models Use Long Contexts - ACL Anthology"
+    }
+  },
+  "turns": [
+    {
+      "part": "input",
+      "input_sha256": "ec23662ded50794e97226d239b88fe884b6e53baaad3c6e030553db1972bfda6"
+    },
+    {
+      "part": "call",
+      "tool": "web_search",
+      "args": {
+        "query": "retrieval augmented generation retrieve more passages top k recall reranking candidate pool research paper RAG context precision cost"
+      }
+    },
+    {
+      "part": "call",
+      "tool": "web_search",
+      "args": {
+        "query": "Elasticsearch reciprocal rank fusion rank_window_size candidate documents documentation"
+      }
+    },
+    {
+      "part": "call",
+      "tool": "web_search",
+      "args": {
+        "query": "Lost in the Middle long context retrieval position performance paper"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "web_search",
+      "content": "Found 5 results for 'retrieval augmented generation retrieve more passages top k recall reranking candidate pool research paper RAG context precision cost':\n\nTitle: Shifting from Ranking to Set Selection for Retrieval Augmented Generation\nURL: https://aclanthology.org/2025.acl-long.861.pdf\n\n- Retrieval in Retrieval-Augmented Generation (RAG) must ensure that retrieved passages are not only individually relevant but also collec tively form a comprehensive set. Existing approaches primarily rerank top-k passages based on their individual relevance, often fail ing to meet the information needs of complex queries in multi-hop question answering. In this work, we propose a set-wise passage se lection approach and introduce SETR, which explicitly identifies the information require ments of a query through Chain-of-Thought reasoning and selects an optimal set of pas sages that collectively satisfy those require ments. Experiments on multi-hop RAG bench marks show that SETR outperforms both pro prietary LLM-based rerankers and open-source baselines in terms of answer correctness and retrieval quality, providing an effective and ef ficient alternative to traditional rerankers in RAG systems. The code is available at https: //github.com/LGAI-Research/SetR\n...\nThis holistic strategy encourages comprehensive coverage of essential information while reducing redundancy within the selected set (Figure 1). To make it practical for real-world applications, we introduce SETR, a fine-tuned LLM designed to implement our set-wise passage selection ap proach. The model first analyzes the user question using Chain-of-Thought (CoT) reasoning to iden tify its information requirements, and selects an optimal subset from the full list of retrieved pas sages, maximizing coverage and relevance. This enables our method to serve as an effective alterna tive to rerankers in RAG systems. Experiments on multi-hop RAG benchmarks, including HotpotQA (Yang et al., 2018), 2Wiki MultiHopQA (Ho et al., 20"
+    },
+    {
+      "part": "tool_result",
+      "tool": "web_search",
+      "content": "Found 5 results for 'Elasticsearch reciprocal rank fusion rank_window_size candidate documents documentation':\n\nTitle: Reciprocal rank fusion | Elasticsearch Reference\nURL: https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion\n\n- You can use RRF as part of a search to combine and rank documents using separate sets of top documents (result sets) from a combination of child retrievers using an RRF retriever. A minimum of two child retrievers is required for ranking.\nAn RRF retriever is an optional object defined as part of a search request’s retriever parameter. The RRF retriever object contains the following parameters:\n...\n(Optional, integer)\nThis value determines the size of the individual result sets per query. A higher value will improve result relevance at the cost of performance. The final ranked result set is pruned down to the search request’s [size](https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-search#search-size-param). `rank_window_size` must be greater than or equal to `size` and greater than or equal to `1`. Defaults to the `size` parameter.\n\n```\n...\n```json\n\n{\n    \"retriever\": {\n        \"rrf\": { <3>\n            \"retrievers\": [\n                {\n                    \"standard\": { <2>\n                        \"query\": {\n                            \"term\": {\n                                \"text\": \"shoes\"\n                            }\n                        }\n                    }\n                },\n                {\n                    \"knn\": { <1>\n                        \"field\": \"vector\",\n                        \"query_vector\": [1.25, 2, 3.5],\n                        \"k\": 50,\n                        \"num_candidates\": 100\n                    }\n                }\n            ],\n            \"rank_window_size\": 50,\n            \"rank_constant\": 20\n        }\n    }\n}\n...\nNote that if `k` from a knn search is larger than `rank_window_size`, the results are truncated to `rank_window_size`. If `k` is smaller th"
+    },
+    {
+      "part": "tool_result",
+      "tool": "web_search",
+      "content": "Found 5 results for 'Lost in the Middle long context retrieval position performance paper':\n\nTitle: Lost in the Middle: How Language Models Use Long Contexts\nURL: https://aclanthology.org/2024.tacl-1.9/\n\n- ## Lost in the Middle: How Language Models Use Long Contexts\n...\nWhile recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades when models must access relevant information in the middle of long contexts, even for explicitly long-context models. Our analysis provides a better understanding of how language models use their input context and provides new evaluation protocols for future long-context language models.\n\n---\n\nTitle: Lost in the Middle: How Language Models Use Long Contexts\nURL: https://arxiv.org/abs/2307.03172\nPublished: 2023-11-20T00:00:00.000Z\n\n- While recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance i"
+    },
+    {
+      "part": "call",
+      "tool": "get_page",
+      "args": {
+        "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+      }
+    },
+    {
+      "part": "call",
+      "tool": "get_page",
+      "args": {
+        "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf"
+      }
+    },
+    {
+      "part": "call",
+      "tool": "get_page",
+      "args": {
+        "url": "https://aclanthology.org/2024.tacl-1.9/"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "get_page",
+      "content": "Title: (untitled)\nURL: https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion\n\n﻿---\ntitle: Reciprocal rank fusion\ndescription: Reciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set. RRF requires...\nurl: https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion\nproducts:\n\n- Elasticsearch\napplies_to:\n- Elastic Stack: Generally available\n\n---\n\n# Reciprocal rank fusion\n\nReciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set. RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results.\nRRF uses the following formula to determine the score for ranking each document:\n\n```python\nscore = 0.0\nfor q in queries:\n    if d in result(q):\n        score += 1.0 / ( k + rank( result(q), d ) )\nreturn score\n\n# where\n# k is a ranking constant\n# q is a query in the set of queries\n# d is a document in the result set of q\n# result(q) is the result set of q\n# rank( result(q), d ) is d's rank within the result(q) starting from 1\n\n```\n\n## Reciprocal rank fusion API\n\nFor the most up-to-date API details, refer to Search APIs.\n\nYou can use RRF as part of a search to combine and rank documents using separate sets of top documents (result sets) from a combination of child retrievers using an RRF retriever. A minimum of two child retrievers is required for ranking.\nAn RRF retriever is an optional object defined as part of a search request’s retriever parameter. The RRF retriever object contains the following parameters:\n\n```\n(Required, array of retriever objects)\nA list of child retrievers to specify which sets of returned top documents will have the RRF formula applied to them. Each child retriever carries an equal weight as part of the RRF formula. Two or more child retrievers are required.\n\n(Optional, int"
+    },
+    {
+      "part": "tool_result",
+      "tool": "get_page",
+      "content": "Title: RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs\nURL: https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf\n\n## RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs\n\nYue Yu ∗ Georgia Tech\n\nWei Ping ∗ NVIDIA\n\nZihan Liu NVIDIA\n\nBoxin Wang NVIDIA\n\nJiaxuan You NVIDIA\n\nChao Zhang Georgia Tech\n\nMohammad Shoeybi NVIDIA\n\nBryan Catanzaro NVIDIA\n\n### Abstract\n\nLarge language models (LLMs) typically utilize the top-k contexts from a retriever in retrieval-augmented generation (RAG). In this work, we propose a novel instruc tion fine-tuning framework RankRAG, which instruction-tunes a single LLM for the dual purpose of context ranking and answer generation in RAG. In particular, the instruction-tuned LLMs work surprisingly well by adding a small fraction of ranking data into the training blend, and outperform existing expert ranking models, including the same LLM exclusively fine-tuned on a large amount of ranking data. For generation, we compare our model with many strong baselines, including GPT-4-0613, GPT-4-turbo-2024-0409, and ChatQA-1.5, an open-sourced model with the state-of-the-art performance on RAG benchmarks. Specifically, our Llama3-RankRAG significantly outperforms Llama3-ChatQA-1.5 and GPT-4 models on nine knowledge-intensive benchmarks. In addition, it also performs comparably to GPT-4 on five RAG benchmarks in the biomedical domain without instruction fine-tuning on biomedical data, demonstrating its superb capability for generalization to new domains.\n\n### 1 Introduction\n\nRetrieval-augmented generation (RAG) (Lewis et al., 2020; Izacard & Grave, 2021; Lin et al., 2024; Wang et al., 2024) is a widely used technique for customizing large language models (LLMs) to handle long-tail knowledge (Mallen et al., 2023; Asai et al., 2024b), provide up-to-date information (Kasai et al., 2023), and adapt to specific domains and tasks (Xiong et al., 2024) "
+    },
+    {
+      "part": "tool_result",
+      "tool": "get_page",
+      "content": "Title: Lost in the Middle: How Language Models Use Long Contexts - ACL Anthology\nURL: https://aclanthology.org/2024.tacl-1.9/\n\nLost in the Middle: How Language Models Use Long Contexts - ACL Anthology\n\n## Lost in the Middle: How Language Models Use Long Contexts\n\nNelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, Percy Liang\n\n##### Abstract\n\nWhile recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades when models must access relevant information in the middle of long contexts, even for explicitly long-context models. Our analysis provides a better understanding of how language models use their input context and provides new evaluation protocols for future long-context language models.\n\nAnthology ID:\n: 2024.tacl-1.9\nVolume:\n: Transactions of the Association for Computational Linguistics, Volume 12\nMonth:\nYear:\n: 2024\nAddress:\n: Cambridge, MA\nVenue:\n: TACL\nSIG:\nPublisher:\n: MIT Press\nNote:\nPages:\n: 157–173\nLanguage:\nURL:\n: https://aclanthology.org/2024.tacl-1.9/\nDOI:\n: 10.1162/tacl_a_00638\nBibkey:\n: liu-etal-2024-lost\nCite (ACL):\n: Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. 2024. Lost in the Middle: How Language Models Use Long Contexts. Transactions of the Association for Computational Linguistics, 12:157–173. Copy ACL citation "
+    },
+    {
+      "part": "call",
+      "tool": "final_result",
+      "args": {
+        "target_category": "Answer window falls beyond the returned-passage cutoff",
+        "problem": "This is the largest approved category, covering 2 needs (n07 and n11). The answering windows appear in the turn-order candidates but are excluded when only the first 3 windows per planned-part query are kept: n11’s answer is fourth in turn order, while n07’s answering window is about sixteenth. The returned pool therefore lacks the evidence despite its presence among the candidates.",
+        "approach": "Increase the per-planned-part contribution to the pool from 3 to 20 windows, retaining the existing turn-order ranking, query merging, overlap removal, and 20-window book-level maximum. This directly addresses failures where the answer is already in the candidates but falls past the current per-part cutoff. A broader candidate-generation change was rejected: it is aimed at answers absent from turn order, a different approved category, and is unnecessary for these two traces. Simply asking the Librarian to read more of the existing 2–6-window pool would also not help when the answer window never enters that pool.",
+        "sources": [
+          {
+            "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf",
+            "title": "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs",
+            "supports": "Describes retrieving a larger candidate set and then reranking/selecting a smaller set; it also discusses the tradeoff between recall and giving the reader too many contexts. This supports widening the candidate-to-pool cutoff while retaining a hard pool cap."
+          },
+          {
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+            "title": "Reciprocal rank fusion",
+            "supports": "Documents that a larger result window can improve relevance at a performance cost and that the final result set can be pruned to a fixed size. This supports separating a larger candidate contribution from the unchanged book-level pool limit."
+          },
+          {
+            "url": "https://aclanthology.org/2024.tacl-1.9/",
+            "title": "Lost in the Middle: How Language Models Use Long Contexts",
+            "supports": "Reports that language-model performance can degrade as context grows and when relevant information is buried in the middle. This supports keeping a hard pool-size limit and measuring reader cost and regressions rather than passing every candidate onward."
+          }
+        ],
+        "retrieval_changes": [
+          "For each planned-part query, keep its first 20 windows from the existing turn-order list in the pool-construction input, instead of its first 3. Do not change the query, candidate rankings, or turn-order algorithm.",
+          "Leave whole-question-query contributions unchanged: keep the first 2 when that query differs from every part, and preserve the existing empty-plan behavior.",
+          "Merge query contributions using the existing turn-taking and overlap-removal rules, then retain the existing maximum of 20 windows per book. Do not increase the final-selection maximum of 5 windows."
+        ],
+        "sculptor_data": null,
+        "expected_fixes": [
+          "n07: the chapter 11 Fire Eater passage explaining that he feels sorry for Pinocchio and spares him, which appears late in turn order and is not currently returned.",
+          "n11: the chapter 22 passage showing Pinocchio barking, the Farmer finding the Weasels, and catching them, which appears fourth in turn order and is currently beyond the per-part cutoff."
+        ],
+        "risks": [
+          "The larger query contribution can add irrelevant or redundant windows, making the Librarian’s pool substantially longer and potentially distracting selection from passages that pass today.",
+          "At the unchanged maximum of 20 windows, the Librarian could read up to about 7,000 words rather than the usual 1,300-word pool; increased assessment latency and cost should be measured.",
+          "With multiple planned parts or a distinct whole-question query, round-robin merging and overlap pruning can still leave a late candidate out of the final 20; verify this against the exact traces and preserve the existing cap.",
+          "This change does not address n09, whose exact answer window is absent from the candidate turn order."
+        ],
+        "test_plan": "Replay all 20 frozen practice traces without changing questions, plans, quotes, text, or scoring. Confirm that n07’s and n11’s answering windows enter the pool and that the Librarian selects evidence containing each answer quote. Compare all pass/fail results with the 17/20 baseline; inspect any regressions among previously passing needs. Record pool-window counts, words read, assessment latency, and cost, and verify that overlap pruning, the 20-window pool maximum, the reached-chapter boundary, and the five-window selection maximum remain unchanged.",
+        "limits_check": "Only the pool-contribution cutoff changes. Search remains restricted to chapters the reader has reached; the Librarian still selects from the existing approximately 350-word windows; selected passages and quotes remain exact with chapter and line numbers. Book text, test questions, answer quotes, frozen plans, and scoring remain unchanged. The final pool remains capped at 20 windows and final selection at 5; the larger possible reading load is explicitly measured. This is a small retrieval-parameter change suitable for a build of a few days or less."
+      }
+    },
+    {
+      "part": "retry_request",
+      "content": "{\"error\": \"The specification breaks the application's contract.\", \"errors\": [\"Expected fixes must be failed practice needs: ['n07', 'n09', 'n11'].\"]}\n\nFix the errors and try again."
+    },
+    {
+      "part": "call",
+      "tool": "final_result",
+      "args": {
+        "target_category": "Answer window falls beyond the returned-passage cutoff",
+        "problem": "This is the largest approved category, covering 2 needs (n07 and n11). Their answering windows appear in the query’s turn-order candidates but fall beyond the current per-part pool cutoff: n11’s answer is fourth in turn order, and n07’s answer is much later. The third miss, n09, belongs to the separate approved category for an answer window absent from candidate turn order; its recorded keyword and meaning ranks are 10th and 4th, respectively.",
+        "approach": "Build one retrieval-funnel expansion: preserve the union of the existing top-10 keyword and top-10 meaning candidates through fusion even when candidates overlap, and increase the per-planned-part pool contribution from 3 to 20 windows. Keep current turn-order ranking and reranking. The broader contribution addresses n07 and n11; retaining overlapping candidates may also recover n09’s highly ranked window, although that is less certain because it is absent from turn order. I reject simply asking the Librarian to read more of the current pool: it cannot select a window that never enters the pool. I also reject query expansion as the sole change: n07 and n11 already have answers in their candidate lists, so their immediate bottleneck is the pool cutoff.",
+        "sources": [
+          {
+            "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf",
+            "title": "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs",
+            "supports": "Describes retrieving a larger candidate set and reranking to a smaller reader set. It also discusses the tradeoff between retrieving too few contexts and passing too many to the reader, supporting a broader candidate funnel with a retained pool cap."
+          },
+          {
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+            "title": "Reciprocal rank fusion",
+            "supports": "Explains that larger result windows may improve relevance at a performance cost and that the final ranked results can be pruned to a fixed size."
+          },
+          {
+            "url": "https://aclanthology.org/2024.tacl-1.9/",
+            "title": "Lost in the Middle: How Language Models Use Long Contexts",
+            "supports": "Finds that reader performance can degrade when relevant information is buried in a long context, supporting a fixed final pool limit and measurement of increased reading cost."
+          }
+        ],
+        "retrieval_changes": [
+          "At fusion, retain the union of the current top-10 BM25 and top-10 meaning windows through reranking, including overlapping windows; do not discard an overlapping window at this stage. Rerank this union using the existing cross-encoder and piece-scoring behavior, and preserve the existing turn-order construction from keyword, fused, meaning, and reranked lists.",
+          "In pool construction, keep the first 20 windows from each planned-part query’s existing turn-order list instead of the first 3. Leave the whole-question contribution unchanged: first 2 windows when distinct from every part, and the existing empty-plan behavior.",
+          "Merge query contributions by the existing turn-taking rule. Keep the existing post-merge overlap removal, 20-window-per-book pool cap, reached-chapter filter, and Librarian maximum of 5 selected windows."
+        ],
+        "sculptor_data": null,
+        "expected_fixes": [
+          "n07 — aim to bring the late turn-order candidate containing the chapter 11 explanation that Fire Eater feels sorry for Pinocchio and spares him into the pool.",
+          "n11 — aim to include the fourth turn-order candidate containing the chapter 22 outcome where Pinocchio barks and the Farmer catches the Weasels.",
+          "n09 — may recover the highly ranked but absent chapter 18 answer window by retaining overlapping candidates through fusion; this is less certain than the cutoff fixes and should be checked separately."
+        ],
+        "risks": [
+          "The larger per-part contribution can add irrelevant or redundant windows and distract the Librarian from passages that pass today.",
+          "The pool remains capped at 20 windows, but the Librarian may read up to about 7,000 words rather than the usual approximately 1,300; measure latency and cost.",
+          "Retaining overlapping fusion candidates increases cross-encoder work, potentially up to 20 candidate windows per query under the current top-10-per-retriever limits.",
+          "The unchanged post-merge overlap rule may still remove an answer window if at least half of its lines are covered by an earlier same-chapter window; verify n09’s exact window in the resulting pool.",
+          "Questions that pass today may regress if the larger pool contains distracting material, especially when multiple planned parts contribute candidates.",
+          "The input establishes that n09’s exact window is absent from turn order but does not identify precisely which operation removed it; its fix is therefore uncertain."
+        ],
+        "test_plan": "Replay all 20 frozen practice traces, retaining their questions, plans, book text, answer quotes, and scoring. Verify that n07’s and n11’s answering windows enter the pool and are selected, and check whether n09’s exact answer window survives fusion, post-merge overlap removal, and the final cap. Compare all pass/fail outcomes with the 17/20 baseline and inspect every regression among previously passing needs. Record pool-window counts, words read, cross-encoder work, Librarian assessment latency, and cost. Confirm every pool window remains within a reached chapter and that final selection still uses today’s windows.",
+        "limits_check": "This changes only fusion candidate retention and how many turn-order candidates each planned-part query contributes to the pool. The final pool stays capped at 20 today’s approximately 350-word windows, and the Librarian still selects at most 5. Chapter reach filtering remains in force; quoted text and chapter/line numbers remain exact. Book text, practice questions, answer quotes, frozen plans, and scoring do not change. Increased reading and reranking cost is measured, and the retrieval-funnel adjustment is a bounded configuration change suitable for a build of a few days at most."
+      }
+    },
+    {
+      "part": "retry_request",
+      "content": "{\"error\": \"The specification breaks the application's contract.\", \"errors\": [\"Expected fixes must be failed practice needs: ['n07', 'n09', 'n11'].\"]}\n\nFix the errors and try again."
+    },
+    {
+      "part": "call",
+      "tool": "final_result",
+      "args": {
+        "target_category": "Answer window falls beyond the returned-passage cutoff",
+        "problem": "This approved category covers the most needs: 2 (n07 and n11). For both, the answer appears in the turn-order candidates but is excluded by the three-window per-part pool cutoff: n11’s answer is fourth, and n07’s answer is seventeenth. n09 is the third miss in the other approved category; its traces show highly ranked answer evidence but the error analysis classifies its exact answer window as absent from turn order.",
+        "approach": "Raise the per-planned-part pool contribution from 3 to 20, leaving the candidate ranking and later pool rules intact. That is a direct fix for the selected category: it allows n11’s fourth-ranked and n07’s seventeenth-ranked turn-order candidates to reach the pool. It may also help n09: its trace’s turn-order list includes the nearby chapter 18 window `ch18-ln2215-2238` at position five, while the error analysis says the exact answer window is absent. Verify whether that candidate contains sufficient answer evidence; do not assume it fixes n09. I reject expanding query generation as the primary change because n07 and n11 already have answer candidates. Merely asking the Librarian to read more of the existing pool would not help when the needed window was cut before the pool.",
+        "sources": [
+          {
+            "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/db93ccb6cf392f352570dd5af0a223d3-Paper-Conference.pdf",
+            "title": "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs",
+            "supports": "Describes retrieval of a broader candidate set followed by reranking to a smaller reader set, and notes the recall-versus-context-size tradeoff. This supports widening the pool contribution while retaining a hard downstream limit."
+          },
+          {
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+            "title": "Reciprocal rank fusion",
+            "supports": "Explains that larger retrieval windows can improve relevance at a performance cost, while the final result set can be pruned to a fixed size."
+          },
+          {
+            "url": "https://aclanthology.org/2024.tacl-1.9/",
+            "title": "Lost in the Middle: How Language Models Use Long Contexts",
+            "supports": "Reports that reader performance can degrade when relevant information is buried in longer contexts, supporting a fixed pool cap and measurement of added reading cost."
+          }
+        ],
+        "retrieval_changes": [
+          "For each planned-part query, retain the first 20 windows in its existing turn-order list for pool construction instead of the first 3. Make no change to queries, candidate ranking, or turn-order construction.",
+          "Keep whole-question contributions unchanged: first 2 windows when the whole-question query differs from every part, and existing empty-plan behavior.",
+          "Keep the current query-list merge, overlap removal, reached-chapter filter, 20-window-per-book pool cap, and maximum of 5 Librarian-selected windows unchanged."
+        ],
+        "sculptor_data": null,
+        "expected_fixes": [
+          "n07 — include its late turn-order candidate containing the chapter 11 explanation that Fire Eater feels sorry for Pinocchio and spares him.",
+          "n11 — include its fourth turn-order candidate showing Pinocchio barking and the Farmer catching the Weasels.",
+          "n09 — possible incidental fix only: the turn-order trace includes a chapter 18 candidate at position five that may contain relevant burial evidence, but the error analysis says the exact answer window is absent. Test whether this candidate suffices; do not count this miss as fixed unless the answer quote is present in selected evidence."
+        ],
+        "risks": [
+          "A wider contribution can add irrelevant or redundant windows and distract the Librarian from passages that pass today.",
+          "The final pool stays capped at 20 windows, but the Librarian could read up to about 7,000 words rather than the usual approximately 1,300. Measure assessment latency and cost.",
+          "With multiple planned parts, merging and overlap removal plus the fixed 20-window cap may still exclude a late candidate.",
+          "The exact n09 window’s absence is inconsistent with the displayed turn-order list, which contains a nearby chapter 18 candidate. Whether the cutoff change fixes n09 is uncertain.",
+          "Questions that pass today could regress if the larger pool contains distracting evidence."
+        ],
+        "test_plan": "Replay all 20 frozen traces with questions, plans, book text, answer quotes, and scoring unchanged. Check that n07’s and n11’s answer windows enter the pool and are selected, and whether n09’s exact answer quote is present in a selected passage. Compare outcomes against the 17/20 baseline and inspect any regressions. Record pool size, words read, latency, and cost; confirm chapter reach filtering and the 20-window pool and 5-window selection caps remain in force.",
+        "limits_check": "Only the planned-part pool-contribution cutoff changes. The Librarian still selects from today’s approximately 350-word windows; exact quoted passages and chapter/line numbers, reading boundary, book text, test questions, answer quotes, frozen plans, and scoring remain unchanged. The pool remains capped at 20 windows and selection at 5. Measure the possible increase in words read and cost. The parameter change is bounded and suitable for a build of a few days at most."
+      }
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+"""Frozen Experiment 3 request plans stay valid for their needs."""
+
+import asyncio
+import json
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+from apps.backend.contracts import BookScope, LibrarianRequest
+from apps.backend.hybrid_librarian import HybridLibrarian
+from apps.backend.librarian import Librarian
+from evals.librarian import chapter_cue_recall
+from evals.librarian.chapter_cue_recall import NEEDS, PLANS, revised_corpus
+from src.linger.agents.librarian.models import (
+    BookRequestPlan,
+    LibrarianBookRequestInput,
+    book_request_span_errors,
+)
+from src.linger.agents.sculptor.chapter_cue_models import ChapterCueRevision, ChapterCues
+from src.linger.corpus import registry
+from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
+
+
+class _Embedding:
+    def passage_embed(self, documents):
+        return iter(np.ones((len(documents), 2)))
+
+    def query_embed(self, query):
+        return iter((np.ones(2),))
+
+
+class _Reranker:
+    def rerank(self, query, documents):
+        return [10.0 if query.casefold() in document.casefold() else -10.0 for document in documents]
+
+
+def test_every_need_has_a_valid_frozen_plan() -> None:
+    needs = json.loads(NEEDS.read_text(encoding="utf-8"))
+    plans = json.loads(PLANS.read_text(encoding="utf-8"))["plans"]
+    questions = {
+        need["id"]: need["question"]
+        for set_name in ("practice", "sealed")
+        for need in needs[set_name]["needs"]
+    }
+
+    assert set(plans) == set(questions)
+    for need_id, question in questions.items():
+        plan = BookRequestPlan.model_validate(plans[need_id])
+        assert book_request_span_errors(plan, LibrarianBookRequestInput(current_line=question)) == [], need_id
+
+
+def _existing_cues() -> dict[int, ChapterCues]:
+    return {
+        unit.chapter_number: ChapterCues(
+            chapter_number=unit.chapter_number, routing_description=unit.routing_description,
+            characters=unit.characters, retrieval_cues=unit.retrieval_cues,
+        )
+        for unit in Librarian().units_for(PINOCCHIO.work_id, PINOCCHIO.book_version_id)
+    }
+
+
+def test_revised_cues_reach_search_without_changing_the_canonical_corpus() -> None:
+    catalog = registry.CORPORA[PINOCCHIO.work_id].root / "catalog.json"
+    before = catalog.read_bytes()
+    cues = _existing_cues()
+    cues[1] = cues[1].model_copy(update={"retrieval_cues": ("zanzibarine relic",)})
+    librarian = HybridLibrarian(read_chapter_cues=True, embedding_model=_Embedding(), reranker=_Reranker())
+    request = LibrarianRequest(query="zanzibarine", book_scopes=[
+        BookScope(work_id=PINOCCHIO.work_id, book_version_id=PINOCCHIO.book_version_id, chapter_max=3),
+    ])
+
+    with revised_corpus(PINOCCHIO.work_id, cues):
+        units = Librarian().units_for(PINOCCHIO.work_id, PINOCCHIO.book_version_id)
+        bundle = librarian.retrieve(request)
+
+    assert units[0].retrieval_cues == ("zanzibarine relic",)
+    assert units[1].retrieval_cues == cues[2].retrieval_cues
+    assert bundle.items and {item.chapter for item in bundle.items} == {1}
+    assert all("zanzibarine" not in item.excerpt for item in bundle.items)
+    assert catalog.read_bytes() == before
+
+
+@pytest.fixture
+def runs(tmp_path, monkeypatch):
+    monkeypatch.setattr(chapter_cue_recall, "RUNS", tmp_path)
+    monkeypatch.setattr(chapter_cue_recall, "_approver", lambda: "Owner")
+    return tmp_path
+
+
+def _propose(runs, stage: int, chapters=None) -> Path:
+    chapters = tuple(_existing_cues().values()) if chapters is None else chapters
+    revision = ChapterCueRevision(failure_patterns=("A pattern.",), chapters=chapters)
+    proposal = runs / f"stage{stage}-proposal.json"
+    proposal.write_text(json.dumps({"revision": revision.model_dump(mode="json")}), encoding="utf-8")
+    return proposal
+
+
+def _record(runs, search: str, reached: set[str]) -> None:
+    needs = json.loads(NEEDS.read_text(encoding="utf-8"))["practice"]["needs"]
+    (runs / f"{search}-practice.json").write_text(json.dumps({
+        "identity": chapter_cue_recall._identity(search),
+        "needs": [
+            {"id": need["id"], "chapter": need["chapter"], "reached": need["id"] in reached, "pool_chapters": []}
+            for need in needs
+        ],
+    }), encoding="utf-8")
+
+
+@pytest.mark.parametrize("source", [
+    "src/linger/orchestration/book_evidence.py",
+    "apps/backend/hybrid_librarian.py",
+])
+def test_saved_scores_are_stale_after_retrieval_implementation_changes(runs, monkeypatch, source) -> None:
+    _record(runs, "today", {"n01"})
+    recorded = runs / "today-practice.json"
+    assert chapter_cue_recall._fresh(recorded, "today")["needs"]
+
+    changed = Path(chapter_cue_recall.__file__).resolve().parents[2] / source
+    original_hash = chapter_cue_recall._sha256
+    monkeypatch.setattr(
+        chapter_cue_recall, "_sha256",
+        lambda path: "changed-source" if path.resolve() == changed else original_hash(path),
+    )
+
+    with pytest.raises(SystemExit, match="today-practice.json is stale"):
+        chapter_cue_recall._fresh(recorded, "today")
+
+
+def test_saved_scores_are_stale_after_the_search_candidate_budget_changes(runs, monkeypatch) -> None:
+    _record(runs, "today", {"n01"})
+    recorded = runs / "today-practice.json"
+    assert chapter_cue_recall._fresh(recorded, "today")["needs"]
+    monkeypatch.setattr(chapter_cue_recall, "PART_CANDIDATES", chapter_cue_recall.PART_CANDIDATES + 1)
+
+    with pytest.raises(SystemExit, match="today-practice.json is stale"):
+        chapter_cue_recall._fresh(recorded, "today")
+
+
+def test_scoring_refuses_a_proposal_changed_after_approval(runs) -> None:
+    proposal = _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+
+    assert len(chapter_cue_recall.approved_cues(2)) == 36
+    proposal.write_text(proposal.read_text(encoding="utf-8").replace("A pattern.", "Edited."), encoding="utf-8")
+    with pytest.raises(SystemExit, match="changed after approval"):
+        chapter_cue_recall.approved_cues(2)
+
+
+@pytest.mark.parametrize(("change", "error"), [
+    (lambda chapters: chapters[1:] + chapters[1:2], "every chapter exactly once"),
+    (lambda chapters: (chapters[0].model_copy(update={"retrieval_cues": ("word " * 61,)}), *chapters[1:]),
+     "the budget is 60"),
+])
+def test_approval_holds_proposals_to_coverage_and_budget(runs, change, error) -> None:
+    _propose(runs, 2, change(tuple(_existing_cues().values())))
+    with pytest.raises(SystemExit, match=error):
+        chapter_cue_recall.approve(2)
+
+
+def test_next_stage_refuses_feedback_from_other_cues(runs) -> None:
+    _record(runs, "stage1", {"n01"})
+    proposal = _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+    _record(runs, "stage2", {"n01", "n02"})
+    assert len(chapter_cue_recall.revision_input(3).rounds) == 2
+
+    proposal.write_text(proposal.read_text(encoding="utf-8").replace("A pattern.", "Edited."), encoding="utf-8")
+    chapter_cue_recall.approve(2)
+    with pytest.raises(SystemExit, match="stage2-practice.json is stale"):
+        chapter_cue_recall.revision_input(3)
+
+
+@pytest.mark.parametrize("stage2", [{"n01"}, {"n02", "n03"}])
+def test_stage_three_stops_without_a_net_gain_or_after_a_loss(runs, stage2) -> None:
+    _record(runs, "stage1", {"n01"})
+    _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+    _record(runs, "stage2", stage2)
+    with pytest.raises(SystemExit, match="Stop rule"):
+        chapter_cue_recall._check_stop_rule()
+
+
+def test_sealed_scores_run_once_and_freeze_every_stage(runs) -> None:
+    proposal = _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+    output = runs / "stage2-sealed.json"
+    chapter_cue_recall._lock_stages_for_sealed(output)
+    output.write_text("{}", encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="runs once"):
+        chapter_cue_recall._lock_stages_for_sealed(output)
+    with pytest.raises(SystemExit, match="stages are frozen"):
+        chapter_cue_recall.approve(2)
+    proposal.write_text(proposal.read_text(encoding="utf-8").replace("A pattern.", "Edited."), encoding="utf-8")
+    with pytest.raises(SystemExit, match="changed after approval"):
+        chapter_cue_recall._lock_stages_for_sealed(runs / "stage1-sealed.json")
+
+
+def test_a_research_round_searches_stage2_cues_under_its_approved_specification(runs, tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(chapter_cue_recall, "RESEARCH_RUNS", tmp_path / "research")
+    _propose(runs, 2)
+    chapter_cue_recall.approve(2)
+    folder = tmp_path / "research" / "round-1"
+    folder.mkdir(parents=True)
+    specification = folder / "specification.json"
+    specification.write_text('{"output": "keep more"}', encoding="utf-8")
+    (folder / "specification-approval.json").write_text(
+        json.dumps({"sha256": chapter_cue_recall._sha256(specification)}), encoding="utf-8",
+    )
+
+    assert (chapter_cue_recall.cue_stage("round1"), chapter_cue_recall.part_candidates("round1")) == (2, 20)
+    assert chapter_cue_recall.part_candidates("stage2") == 4
+    identity = chapter_cue_recall._identity("round1")
+    assert identity["part_candidates"] == 20
+    assert identity["proposal_sha256"] == chapter_cue_recall.approved_sha256(2)
+    assert identity["specification_sha256"] == chapter_cue_recall._sha256(specification)
+    specification.write_text('{"output": "edited"}', encoding="utf-8")
+    with pytest.raises(SystemExit, match="changed after approval"):
+        chapter_cue_recall._identity("round1")
+
+
+def _selection_setup(monkeypatch, picks):
+    from src.linger.agents.librarian.models import EvidenceStrengthDecision
+    from src.linger.orchestration import evidence_strength
+
+    needs = json.loads(NEEDS.read_text(encoding="utf-8"))["practice"]["needs"][:2]
+    item = lambda evidence_id, text: type("Item", (), {"evidence_id": evidence_id, "excerpt": text})()
+    pools = {need["id"]: (item("wrong", "Unrelated text."), item("right", f"Before. {need['quote']} After."))
+             for need in needs}
+    monkeypatch.setattr(chapter_cue_recall, "_pools", lambda set_name, search: [
+        (need, BookRequestPlan(parts=()), LibrarianBookRequestInput(current_line=need["question"]), pools[need["id"]])
+        for need in needs
+    ])
+    monkeypatch.setattr(chapter_cue_recall, "evidence_record_from_item", lambda item: item)
+    calls = []
+
+    async def assess(plan, records, original_request, **kwargs):
+        calls.append(original_request.current_line)
+        return EvidenceStrengthDecision(
+            evidence_strength="sufficient", strength_reason="Test.", relevant_evidence_ids=picks[len(calls) - 1],
+        )
+
+    monkeypatch.setattr(evidence_strength, "assess_book_evidence", assess)
+    monkeypatch.setattr(chapter_cue_recall, "SELECTION_CONCURRENCY", 1)
+    return needs, calls
+
+
+def test_selection_passes_only_when_a_selected_passage_holds_the_quote(runs, monkeypatch) -> None:
+    _selection_setup(monkeypatch, [("right",), ("wrong",)])
+    results = asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+    assert [result["passed"] for result in results] == [True, False]
+    assert all(result["reached"] for result in results)
+    assert not list(runs.glob("*.partial.jsonl")) and not list(runs.glob("*.lock"))
+    with pytest.raises(SystemExit, match="runs once"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+
+def test_interrupted_selection_resumes_without_resampling(runs, monkeypatch) -> None:
+    needs, calls = _selection_setup(monkeypatch, [("wrong",)])
+    output = runs / "today-practice-selected.json"
+    finished = {
+        "id": needs[0]["id"], "identity": chapter_cue_recall._identity("today"), "passed": True, "selected": ["right"],
+        "pool_sha256": chapter_cue_recall._pool_sha256(chapter_cue_recall._pools("practice", "today")[0][3]),
+    }
+    output.with_suffix(".partial.jsonl").write_text(json.dumps(finished) + "\n", encoding="utf-8")
+
+    results = asyncio.run(chapter_cue_recall.select("practice", "today"))
+
+    assert calls == [needs[1]["question"]]
+    assert [result["passed"] for result in results] == [True, False]
+
+
+def test_selection_never_resumes_from_other_needs_or_plans(runs, monkeypatch) -> None:
+    needs, calls = _selection_setup(monkeypatch, [("wrong",)])
+    finished = {
+        "id": needs[0]["id"], "identity": {**chapter_cue_recall._identity("today"), "needs_sha256": "older"},
+        "passed": True, "selected": ["right"],
+        "pool_sha256": chapter_cue_recall._pool_sha256(chapter_cue_recall._pools("practice", "today")[0][3]),
+    }
+    (runs / "today-practice-selected.partial.jsonl").write_text(json.dumps(finished) + "\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="cannot be resumed"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))
+    assert calls == []
+
+
+def test_research_rounds_refuse_stale_traces(runs, tmp_path, monkeypatch) -> None:
+    from evals.librarian import research_loop
+
+    monkeypatch.setattr(research_loop, "ROOT", tmp_path / "research")
+    traces = runs / "today-practice-traces.json"
+    traces.write_text(json.dumps({"search": "today", "identity": chapter_cue_recall._identity("today")}), encoding="utf-8")
+    (research_loop._round(2) / "traces.json").write_text(json.dumps({"path": str(traces)}), encoding="utf-8")
+    assert research_loop._traces(2)["search"] == "today"
+
+    traces.write_text(json.dumps({"search": "today", "identity": {"needs_sha256": "older"}}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="is stale"):
+        research_loop._traces(2)
+
+
+def test_selection_refuses_to_run_twice_at_once(runs, monkeypatch) -> None:
+    _selection_setup(monkeypatch, [])
+    (runs / "today-practice-selected.lock").touch()
+    with pytest.raises(SystemExit, match="another selection is running"):
+        asyncio.run(chapter_cue_recall.select("practice", "today"))

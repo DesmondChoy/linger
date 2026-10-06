@@ -1,7 +1,10 @@
 """Tests for the measured production Librarian retrieval strategy."""
 
 import re
+import shutil
+import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +16,7 @@ from apps.backend.hybrid_librarian import (
     RERANKER_MODEL,
     HybridLibrarian,
 )
+from src.linger.corpus import registry
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
 from src.linger.corpus.animal_farm import BOOK as ANIMAL_FARM
 from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
@@ -35,6 +39,30 @@ class TermReranker:
     def rerank(self, query: str, documents: list[str]):
         terms = set(WORDS.findall(query.casefold()))
         return [10.0 if terms & set(WORDS.findall(document.casefold())) else -10.0 for document in documents]
+
+
+class RecordingEmbedding(ConstantEmbedding):
+    def __init__(self) -> None:
+        self.batches: list[list[str]] = []
+
+    def passage_embed(self, documents: list[str]):
+        self.batches.append(documents)
+        return super().passage_embed(documents)
+
+
+class RecordingReranker(TermReranker):
+    def __init__(self) -> None:
+        self.documents: list[str] = []
+
+    def rerank(self, query: str, documents: list[str]):
+        self.documents.extend(documents)
+        return super().rerank(query, documents)
+
+
+def pinocchio_scope(chapter_max: int) -> BookScope:
+    return BookScope(
+        work_id=PINOCCHIO.work_id, book_version_id=PINOCCHIO.book_version_id, chapter_max=chapter_max
+    )
 
 
 def request(query: str, *, chapter_max: int = 5) -> LibrarianRequest:
@@ -193,6 +221,83 @@ class HybridLibrarianTests(unittest.TestCase):
         self.assertFalse(any("05-advice-from-a-caterpillar" in str(path) for path in opened))
         self.assertFalse(any("06-pig-and-pepper" in str(path) for path in opened))
 
+    def test_search_reads_revised_chapter_cues_but_returns_canonical_text(self) -> None:
+        registration = registry.CORPORA[PINOCCHIO.work_id]
+        pinocchio_request = LibrarianRequest(query="zanzibarine", book_scopes=[pinocchio_scope(3)])
+        embedding, reranker = RecordingEmbedding(), RecordingReranker()
+        librarian = HybridLibrarian(embedding_model=embedding, reranker=reranker, read_chapter_cues=True)
+        production_embedding = RecordingEmbedding()
+        production = HybridLibrarian(embedding_model=production_embedding, reranker=TermReranker())
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / registration.root.name
+            shutil.copytree(registration.root, root)
+            with patch.dict(registry.CORPORA, {PINOCCHIO.work_id: replace(registration, root=root)}):
+                self.assertEqual([], librarian.retrieve(pinocchio_request).items)
+                self.assertEqual([], production.retrieve(pinocchio_request).items)
+                for path in (root / "catalog.json", root / "chapters" / "01-chapter-01.md"):
+                    text = path.read_text(encoding="utf-8")
+                    path.write_text(text.replace('"talking firewood"', '"zanzibarine relic"', 1), encoding="utf-8")
+                bundle = librarian.retrieve(pinocchio_request)
+                keyword = librarian._bm25("zanzibarine", librarian._index(pinocchio_request))
+                # Production search ignores cues unless the experiment opts in.
+                self.assertEqual([], production.retrieve(pinocchio_request).items)
+
+        self.assertEqual(2, len(embedding.batches))
+        self.assertEqual(1, len(production_embedding.batches))
+        self.assertTrue(keyword)
+        self.assertTrue(any("zanzibarine relic" in document for document in embedding.batches[1]))
+        self.assertTrue(any("zanzibarine relic" in document for document in reranker.documents))
+        self.assertTrue(bundle.items)
+        source_lines = PINOCCHIO.default_source.read_text(encoding="utf-8").splitlines()
+        for item in bundle.items:
+            self.assertEqual(1, item.chapter)
+            start, end = item.source_lines
+            self.assertEqual("\n".join(source_lines[start - 1:end]), item.excerpt)
+            self.assertNotIn("zanzibarine", item.excerpt)
+
+    def test_later_chapter_cues_never_reach_an_earlier_reader(self) -> None:
+        opened: list[Path] = []
+        original = Path.read_text
+
+        def recording_read(path: Path, *args, **kwargs):
+            opened.append(path)
+            return original(path, *args, **kwargs)
+
+        embedding, reranker = RecordingEmbedding(), RecordingReranker()
+        librarian = HybridLibrarian(embedding_model=embedding, reranker=reranker, read_chapter_cues=True)
+        with patch.object(Path, "read_text", autospec=True, side_effect=recording_read):
+            bundle = librarian.retrieve(LibrarianRequest(
+                # Chapter 11's cues; the reader has only reached chapter 3.
+                query="compassionate sneezing sacrifice for Harlequin",
+                book_scopes=[pinocchio_scope(3)],
+            ))
+
+        self.assertTrue(all(item.chapter <= 3 for item in bundle.items))
+        chapter_paths = [path for path in opened if path.suffix == ".md"]
+        self.assertTrue(chapter_paths)
+        self.assertTrue(all(int(path.name.split("-", 1)[0]) <= 3 for path in chapter_paths))
+        later_cues = {
+            cue
+            for unit in librarian.units_for(PINOCCHIO.work_id, PINOCCHIO.book_version_id)
+            if unit.chapter_number > 3
+            for cue in unit.retrieval_cues
+        }
+        searched = [*(document for batch in embedding.batches for document in batch), *reranker.documents]
+        self.assertTrue(searched)
+        self.assertFalse([cue for cue in later_cues for document in searched if cue in document])
+
+    def test_reordered_scopes_reuse_one_cue_index(self) -> None:
+        embedding = RecordingEmbedding()
+        librarian = HybridLibrarian(embedding_model=embedding, reranker=TermReranker(), read_chapter_cues=True)
+        scopes = [
+            BookScope(work_id=WORK_ID, book_version_id=BOOK_VERSION_ID, chapter_max=2),
+            pinocchio_scope(2),
+        ]
+        first = librarian.retrieve(LibrarianRequest(query="Alice Geppetto", book_scopes=scopes))
+        second = librarian.retrieve(LibrarianRequest(query="Alice Geppetto", book_scopes=scopes[::-1]))
+
+        self.assertEqual(1, len(embedding.batches))
+        self.assertEqual(first.items, second.items)
 
 if __name__ == "__main__":
     unittest.main()

@@ -74,8 +74,8 @@ export const components: Record<ComponentId, ComponentDefinition> = {
   },
   sculptor: {
     id: 'sculptor', label: 'Sculptor', role: 'Memory proposals', kind: 'agent',
-    summary: 'Proposes curation over bounded records, or judges whether supplied memories should be surfaced now, deferred, or left unmentioned.',
-    receives: ['Bounded authorized memories', 'For surfacing: current situation, decision time, and prior feedback'],
+    summary: 'Proposes curation over bounded records, or in offline evaluation only, judges whether supplied memories should be surfaced now, deferred, or left unmentioned. Chat never runs surfacing.',
+    receives: ['Bounded authorized memories', 'For offline surfacing: current situation, decision time, and prior feedback'],
     returns: ['Curation proposal or no change', 'Surfacing proposal, defer, or do not surface'],
     authority: 'Does not retrieve freely, write memory, release wording, schedule work, or send notifications.',
   },
@@ -205,7 +205,6 @@ const bookStep: WalkthroughStep = {
 }
 const currentChat = 'Illustrates the implemented production chat boundary. This explorer does not execute agents or establish an evaluation pass.'
 const memoryTarget = 'Target route: the current chat evidence contract does not yet admit personal-memory evidence. Existing retrieval services alone do not complete this Objective.'
-const surfacingTarget = 'Target — not implemented end to end. Chat triggers, personal-memory evidence release, ordered outcome dependencies, and full-sequence replay/grading are missing; the offline runner covers only Sculptor decisions.'
 
 const captureNodes: GraphNode[] = [
   { id: 'capture_review', x: 740, y: 530 }, { id: 'memory_policy', x: 940, y: 530 },
@@ -256,57 +255,6 @@ const connectionStep: WalkthroughStep = {
   description: 'Serendipity compares eligible candidates and returns a tentative proposal or a decline. Current book-only release works; public-web release and personal-memory inputs remain gaps.',
   nodes: ['muse', 'serendipity', 'librarian', 'corpus', 'web'],
   edges: ['muse-serendipity', 'serendipity-librarian', 'librarian-corpus', 'serendipity-web'],
-}
-
-const initialSurfacing: Scene = {
-  id: 'update-and-curate', title: 'A preference changes',
-  summary: 'An initial Line is captured and then triggers reviewed curation over actual durable outcomes.',
-  status: 'target', statusNote: surfacingTarget,
-  input: { title: 'Illustrative user Line', text: 'I used to enjoy busy weekend meetups, but lately a quiet walk with one friend leaves me feeling much more restored.' },
-  expected: ['Capture one exact approved span; observe its real source ID.', 'Trigger curation only after a successful new durable capture.', 'Review the exact curation proposal, preserve originals, and apply only through Memory & Policy.'],
-  nodes: [
-    { id: 'input', x: 90, y: 145 }, { id: 'preflight', x: 260, y: 145 },
-    { id: 'muse', x: 440, y: 145 }, { id: 'provenance', x: 650, y: 145 },
-    { id: 'release', x: 930, y: 145 }, { id: 'response', x: 1110, y: 145 },
-    { id: 'capture_review', x: 650, y: 345 }, { id: 'memory_policy', x: 930, y: 345 },
-    { id: 'memory', x: 1110, y: 345 }, { id: 'sculptor', x: 440, y: 520 },
-    { id: 'curation_review', x: 740, y: 520 },
-  ],
-  edges: [
-    ...startEdges, reviewEdge, ...releaseEdges, ...captureEdges,
-    edge('memory_policy', 'sculptor', 'After new capture', 'Target application trigger selects bounded earlier sources plus the observed new capture.', ['Authorized source records', 'Actual new capture ID']),
-    edge('sculptor', 'curation_review', 'Proposal', 'A proposal does not change memory; a separate review binds the exact action and sources.', ['Curation proposal digest', 'Source snapshots']),
-    edge('curation_review', 'memory_policy', 'Reviewed action', 'Only an exactly reviewed and policy-valid action changes the retrieval view.', ['Bound curation verdict', 'Immutable-source checks']),
-  ],
-  steps: [
-    startStep, reviewStep, checkBeforeCaptureStep, captureStep,
-    { title: 'Trigger curation from an observed write', description: 'The target flow invokes Sculptor only after a successful new capture. A veto, safe decline, or idempotent retry cannot manufacture a state change.', nodes: ['memory_policy', 'sculptor'], edges: ['memory_policy-sculptor'] },
-    { title: 'Review and apply a source-preserving proposal', description: 'A separate Provenance call reviews the exact curation action. Memory & Policy validates and applies it while preserving every original; this chat trigger is still missing.', nodes: ['sculptor', 'curation_review', 'memory_policy', 'memory'], edges: ['sculptor-curation_review', 'curation_review-memory_policy', 'memory_policy-memory'] },
-    respondAfterCaptureStep,
-  ],
-}
-
-function laterSurfacing(silent: boolean): Scene {
-  return conversation({
-    id: silent ? 'defer-the-same-cue' : 'useful-later-cue',
-    title: silent ? 'The same cue, too early' : 'A useful later cue',
-    summary: silent ? 'Only the supplied decision time changes; the suggestion stays unmentioned.' : 'A fresh chat benefits from the refined preference without asking for recall.',
-    status: 'target', statusNote: surfacingTarget,
-    text: 'I have a free afternoon coming up and I’m not sure what would help me reset.',
-    expected: silent
-      ? ['Use the same Line, memory snapshot, situation, and prior history as the timely Scene.', 'Change only decision time; defer the suggestion while preserving a useful conversation.', 'Do not schedule a notification or another run.']
-      : ['Start with empty chat history and the actual initial capture/curation outcomes.', 'Surface only a useful, timely, non-repeated connection with resolvable source lineage.', 'Muse owns wording; Provenance and deterministic checks still own release.'],
-    extraNodes: [...memoryNodes, { id: 'sculptor', x: 685, y: 145 }],
-    extraEdges: [
-      ...memoryEdges.filter((item) => item.id !== 'librarian-muse'),
-      edge('librarian', 'sculptor', 'Candidates', 'Target: the application supplies bounded eligible candidates, not retrieval authority.', ['Authorized source records and lineage', 'Situation, decision time, prior feedback']),
-      edge('sculptor', 'muse', silent ? 'Defer' : 'Surface now', silent ? 'A deferral leaves the memory unmentioned while ordinary conversation continues.' : 'A useful proposal carries resolvable sources to Muse for conversational wording.', silent ? ['Defer decision', 'No suggested memory wording'] : ['Useful proposal', 'Source lineage and constraints']),
-    ],
-    beforeReview: [
-      { title: 'Retrieve from real durable outcomes', description: 'The later chat starts fresh. Account-authorized records must come from the initial Scene’s observed state, never fabricated captured or curated Props.', nodes: ['session', 'memory', 'memory_policy', 'librarian', 'muse'], edges: ['session-muse', 'memory-memory_policy', 'memory_policy-librarian'] },
-      { title: silent ? 'Choose silence at this time' : 'Decide whether this history helps now', description: silent ? 'Sculptor receives the same candidates and context at an earlier decision time. Deferral suppresses the suggestion, not Muse’s ordinary helpful reply.' : 'Sculptor judges usefulness, timing, and prior exposure over the supplied candidates. A surface-now decision is a proposal for Muse, never an automatic reply.', nodes: ['librarian', 'sculptor', 'muse'], edges: ['librarian-sculptor', 'sculptor-muse'] },
-    ],
-  })
 }
 
 export const objectiveScenes: ObjectiveScenes[] = [
@@ -478,5 +426,4 @@ export const objectiveScenes: ObjectiveScenes[] = [
         afterReview: [{ title: 'Veto storage independently of the reply', description: 'Provenance can permit a careful response while rejecting a sensitive nomination. Memory & Policy must refuse that capture; a conversational pass cannot override the veto.', nodes: ['provenance', 'capture_review', 'memory_policy'], edges: ['provenance-capture_review', 'capture_review-memory_policy'] }] }),
     ],
   },
-  { objectiveId: 'proactive_memory_surfacing', scenes: [initialSurfacing, laterSurfacing(false), laterSurfacing(true)] },
 ]

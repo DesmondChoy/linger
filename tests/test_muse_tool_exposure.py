@@ -41,7 +41,7 @@ from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate,
 
 BOOK_TOOLS = ["librarian_route", "librarian_search"]
 ALL_TOOLS = [*BOOK_TOOLS, "serendipity_explore"]
-ALL_INTENTS = ["find_connection", "get_recommendation", "recall_memory"]
+ALL_INTENTS = ["find_connection", "gather_sources", "get_recommendation", "recall_memory"]
 NO_MEMORY = {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
 NOTHING = TurnNeeds(book_content="no", memory="none")
 RECALL = TurnNeeds(book_content="no", memory="own_earlier_reflections")

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-review-a-multi-recall-v1",
+  "owner": "muse",
+  "primary_behavior": "recall_own_memory",
+  "description": "The reader returns to an ongoing decision. Serendipity recalls three of their notes, two of which pull in different directions. Muse must attribute each note to the reader, keep any quoted wording exact, preserve the disagreement instead of resolving it, and add nothing beyond the notes.",
+  "input": {
+    "reader_message": "I'm still going back and forth about moving closer to my sister. What have I said about it so far?",
+    "reader_context": {
+      "book_confirmed": false,
+      "chapter_state": null,
+      "candidate_book": null
+    },
+    "tools": {
+      "serendipity_outcome": "recall",
+      "memory_records": [
+        "Moving closer to my sister would mean Sunday dinners again, and I miss those more than I expected.",
+        "I'm afraid that if I move I'll be starting over with no friends nearby.",
+        "Every time I picture the new flat I feel lighter, then guilty for wanting to leave."
+      ]
+    }
+  },
+  "fixed_exposure": {
+    "tools": ["serendipity_explore"],
+    "pinned_intent": "recall_memory"
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": ["last month", "last year", "your parents", "your partner", "your job", "you should move", "you should stay"],
+    "max_words": 190,
+    "required_tools": ["serendipity_explore"],
+    "allowed_intents": ["recall_memory"],
+    "semantic_review": {
+      "criteria": [
+        "attributes each recalled point to the reader's own earlier notes",
+        "keeps any quoted note word for word",
+        "preserves the tension between the notes rather than resolving it into a recommendation",
+        "adds no dates, people, or details beyond the notes",
+        "invites the reader to compare the notes with how they feel now"
+      ],
+      "forbidden_claims": [
+        "a detail about the reader that is not in the three notes",
+        "a recommendation to move or to stay"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "invented_memory",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}

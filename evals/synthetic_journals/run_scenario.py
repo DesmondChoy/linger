@@ -83,6 +83,24 @@ def run_selected(
     timeout_seconds: float = 1800,
 ) -> dict[str, Any]:
     scenario, entry = read_selection(menu_path, number, repository_root)
+    return run_path(
+        scenario, entry, confirmed_model, repository_root=repository_root,
+        timeout_seconds=timeout_seconds,
+    )
+
+
+def run_path(
+    scenario: Path,
+    entry: dict[str, Any],
+    confirmed_model: str,
+    *,
+    repository_root: Path = REPOSITORY_ROOT,
+    timeout_seconds: float = 1800,
+    output_directory: Path | None = None,
+) -> dict[str, Any]:
+    """Run an already selected Scenario, retaining evidence outside its sources if requested."""
+    if output_directory is not None:
+        output_directory.mkdir(parents=True, exist_ok=False)
     check = preflight(scenario, entry, repository_root, confirmed_model)
     model = check["configuration"]["model"]
     if check["issues"]:
@@ -91,15 +109,17 @@ def run_selected(
             scenario, repository_root=repository_root, model=model,
             category=check["issues"][0]["category"], problems=problems,
             execution_status="not_started",
+            report_dir=output_directory,
         )
         return {
             "status": "blocked", "execution_status": "not_started", "model": model,
             "problems": problems, "analysis_report": str(report),
+            "blocking_problems": problems, "evaluation_findings": [],
             "analysis_data": str(report.with_suffix(".json")),
         }
 
     stamp = datetime.now().astimezone().strftime("%Y-%m-%dT%H%M%S%z")
-    run_directory = Path(tempfile.mkdtemp(prefix=f"scenario-run-{stamp}-", dir=scenario))
+    run_directory = output_directory or Path(tempfile.mkdtemp(prefix=f"scenario-run-{stamp}-", dir=scenario))
     artifact_path = run_directory / "evaluation.json"
     log_path = run_directory / "run.log"
     summary_path = run_directory / "summary.json"
@@ -122,6 +142,7 @@ def run_selected(
     }
     print(f"SCENARIO_RUN_STARTED={json.dumps(result)}", flush=True)
     problems: list[str] = []
+    evaluation_findings: list[str] = []
     category = "execution"
     artifact: dict[str, Any] | None = None
     log = ""
@@ -171,8 +192,8 @@ def run_selected(
             if summary["scenes_failed"] or summary["judgments_failed"]:
                 if not problems:
                     category = "execution" if summary["execution_failures"] else "behavioral"
-                problems.append(
-                    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+                (problems if summary["execution_failures"] else evaluation_findings).append(
+                    "The artifact records an agent or application execution failure; inspect its failure category before attributing a cause."
                     if summary["execution_failures"] else
                     "The replay completed with failed evaluation checks; see expected versus observed evidence."
                 )
@@ -192,6 +213,9 @@ def run_selected(
     if scenario_hashes(scenario) != check["hashes"]:
         category = "selection"
         problems.append("Scenario files changed during execution; do not treat this run as evidence for the current scenario.")
+    result["blocking_problems"] = list(problems)
+    result["evaluation_findings"] = evaluation_findings
+    problems.extend(evaluation_findings)
     result["status"] = "failed" if problems else "passed"
     result["problems"] = problems
     result["finished_at"] = datetime.now().astimezone().isoformat()
@@ -200,6 +224,7 @@ def run_selected(
         category=category if problems else "none", problems=problems, artifact=artifact,
         logfire_url=result["logfire_url"], output_path=artifact_path if artifact_path.is_file() else None,
         run_log_path=log_path, execution_status=result["execution_status"], telemetry=telemetry,
+        report_dir=output_directory,
     )
     result["analysis_report"] = str(report)
     result["analysis_data"] = str(report.with_suffix(".json"))

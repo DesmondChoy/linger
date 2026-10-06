@@ -290,14 +290,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             status="no_change", memory_ids=()
         )
 
-        with (
-            patch.object(
-                chat_turn,
-                "prepare_surfacing_handoff",
-                AsyncMock(return_value=None),
-            ),
-            patch.object(chat_turn, "curate_after_capture", trigger),
-        ):
+        with patch.object(chat_turn, "curate_after_capture", trigger):
             await self.run_chat(
                 ChatRequest(
                     session_id="capture-curation-trigger",

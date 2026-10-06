@@ -30,11 +30,6 @@ const objectiveIconPaths = {
     'M12 18.5a2 2 0 1 0 0 .01',
     'M7.7 6.5 10.3 16M16.3 6.5 13.7 16M8 5.5h8',
   ],
-  proactive_memory_surfacing: [
-    'M12 3a9 9 0 1 0 9 9',
-    'M12 7v5l3 2',
-    'M19 2v6M16 5h6',
-  ],
   cross_source_tentative_connection: [
     'M9.5 14.5 14.5 9.5',
     'M7.5 17.5H6a4 4 0 0 1 0-8h3',

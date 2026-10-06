@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from difflib import get_close_matches
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -208,6 +209,75 @@ class BookEvidenceAssessment(EvidenceStrengthDecision):
         if len(pairs) != len(set(pairs)):
             raise ValueError("requested support mappings must be unique")
         return self
+
+
+def evidence_assessment_errors(
+    assessment: BookEvidenceAssessment | dict[str, object], request: LibrarianEvidenceStrengthInput,
+) -> list[dict[str, object]]:
+    """Check source selection and requested coverage before and after schema validation."""
+    candidate = assessment.model_dump(mode="json") if isinstance(assessment, BookEvidenceAssessment) else assessment
+    selected_raw, support = candidate.get("relevant_evidence_ids"), candidate.get("support")
+    if not isinstance(selected_raw, list) or not isinstance(support, list):
+        return []  # The output schema reports malformed field types.
+    selected = [str(item) for item in selected_raw]
+    support_ids = [str(item.get("evidence_id")) for item in support if isinstance(item, dict)]
+    available = tuple(record.evidence_id for record in request.evidence)
+    known = set(available)
+    errors: list[dict[str, object]] = []
+    if len(selected) != len(set(selected)):
+        errors.append({"path": "relevant_evidence_ids", "error": "Selected evidence IDs must be unique."})
+    if len(selected) > request.max_evidence_records:
+        errors.append({
+            "path": "relevant_evidence_ids",
+            "error": f"Select at most {request.max_evidence_records} records.",
+        })
+    paths = [(f"relevant_evidence_ids[{index}]", evidence_id) for index, evidence_id in enumerate(selected)]
+    paths += [(f"support[{index}].evidence_id", evidence_id) for index, evidence_id in enumerate(support_ids)]
+    for path, evidence_id in paths:
+        if evidence_id in known:
+            continue
+        error: dict[str, object] = {
+            "path": path, "value": evidence_id,
+            "error": "Assessment returned an unknown evidence ID; copy it exactly from the supplied evidence.",
+        }
+        close = get_close_matches(evidence_id, available, n=3, cutoff=0.8)
+        if close:
+            error["closest_supplied_ids"] = close
+        errors.append(error)
+    if set(selected) != set(support_ids):
+        errors.append({
+            "path": "support",
+            "error": "Every selected record needs a support entry, and every support entry must be selected.",
+            "selected_without_support": sorted(set(selected) - set(support_ids)),
+            "support_not_selected": sorted(set(support_ids) - set(selected)),
+        })
+    try:
+        additions = BookRequestPlan.model_validate({"parts": candidate.get("additional_parts", [])})
+    except ValueError:
+        return errors  # Keep selection feedback; the schema checks malformed parts.
+    for error in book_request_span_errors(additions, request.original_request):
+        errors.append({**error, "path": str(error["path"]).replace("parts[", "additional_parts[", 1)})
+    try:
+        normalized_support = tuple(RequestedBookSupport.model_validate(item) for item in support)
+    except ValueError:
+        return errors  # The schema reports malformed support without inferring missing coverage.
+    requested = set(range(len(request.request.parts) + len(additions.parts)))
+    supported = set()
+    for index, item in enumerate(normalized_support):
+        part_index = item.part_index
+        supported.add(part_index)
+        if part_index not in requested:
+            errors.append({
+                "path": f"support[{index}].part_index", "value": part_index,
+                "error": "Evidence assessment introduced an unknown requested part.",
+            })
+    missing = sorted(requested - supported)
+    if candidate.get("evidence_strength") == "sufficient" and missing:
+        errors.append({
+            "path": "support", "missing_part_indices": missing,
+            "error": "Sufficient evidence must support every requested part.",
+        })
+    return errors
 
 
 class BoundaryMemoryAssessment(StrictModel):

@@ -127,13 +127,12 @@ def inspect_scenario(scenario: Path, repository_root: Path, model: str | None = 
     objectives = raw.get("objective_ids", [])
     if not isinstance(objectives, list) or not all(isinstance(item, str) for item in objectives):
         objectives = []
-    scenario_contract = raw.get("scenario_contract", "component_v1")
-    if not isinstance(scenario_contract, str):
-        scenario_contract = "component_v1"
-    support = replay_support_for(
-        objectives,
-        scenario_contract=scenario_contract,
-    )
+    run_configurations = raw.get("run_configuration_ids", [])
+    if not isinstance(run_configurations, list) or not all(
+        isinstance(item, str) for item in run_configurations
+    ):
+        run_configurations = []
+    support = replay_support_for(objectives, run_configurations)
     try:
         validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
         if (scenario / "ground-truth-adoption.json").is_file():
@@ -158,7 +157,6 @@ def inspect_scenario(scenario: Path, repository_root: Path, model: str | None = 
     return {
         "scenario": scenario.name,
         "objective_ids": objectives,
-        "scenario_contract": scenario_contract,
         "scene_count": len(raw.get("scenes", [])) if isinstance(raw.get("scenes"), list) else 0,
         "scene_ids": [
             scene["scene_id"] for scene in raw.get("scenes", [])

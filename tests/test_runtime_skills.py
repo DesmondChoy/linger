@@ -153,15 +153,19 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "librarian.evidence-assessment",
         "sculptor.memory-curation",
         "sculptor.memory-surfacing",
+        "sculptor.chapter-cues",
+        "sculptor.retrieval-error-analysis",
+        "sculptor.retrieval-research",
         "serendipity.connection-discovery",
         "serendipity.memory-recall",
+        "serendipity.source-gathering",
         "provenance.emotional-preflight",
         "provenance.candidate-review",
         "provenance.curation-review",
     }
     # Muse and boundary inference each retain their input-specific fingerprints.
-    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 14
-    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 14
+    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 15
+    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 15
 
 
 def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, monkeypatch):
@@ -172,9 +176,14 @@ def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, mo
     for assignment in assignments:
         package = f"src.linger.agents.{assignment.role.lower()}"
         assert load_prompt("agents", assignment.role.lower()) == assignment.shared_instructions
-        assert load_instructions(
-            package, f"skills/{assignment.name}/SKILL.md"
-        ) == assignment.instructions
+        core = load_instructions(package, f"skills/{assignment.name}/SKILL.md")
+        if assignment.skill_id == "muse.reflection":
+            # The complete text is the core followed by every module resource.
+            modules = ("revision", "routing", "grounding", "connections")
+            parts = [core, *(load_instructions(package, f"skills/reflection/{name}.md") for name in modules)]
+            assert assignment.instructions == "\n\n".join(parts)
+        else:
+            assert core == assignment.instructions
 
 
 def test_validator_roles_keep_fixed_output_contracts() -> None:

@@ -94,6 +94,15 @@ extract “Nora refusing the invitation”. Do not extract “my silence at lunc
 or invent a question about Nora's silence. The comparison itself is handled
 by the caller; your output identifies the book evidence it needs.
 
+Split a named sequence the same way. When one reference names separate events
+in order, such as a character doing one thing and then another, return one
+part per event, because each will be searched and supported separately. Repeat
+the shared book or character locator in each part's `context_spans`. For
+example, from "Nora promising to wait at the bridge and then wandering off
+with the peddler", extract "Nora promising to wait at the bridge" and
+"wandering off with the peddler", each with "Nora" as context. Do not split one
+event into its details, and do not add a step the reader did not name.
+
 A chapter range is reading permission, not a request to survey those chapters;
 exclude progress statements from `reader_spans`. Include a range only when the
 reader actually requests an account across that range.

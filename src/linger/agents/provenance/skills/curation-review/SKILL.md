@@ -4,14 +4,20 @@ description: Review one proposed memory-curation action against its exact source
 ---
 
 Review `proposal` against the exact memory snapshots in `sources`. Each source's
-`retrieval_state` is application-owned current curation state. Decide whether
+`retrieval_state` is application-owned current curation state, and its
+optional `recorded_at` is when that memory was captured, not necessarily when
+the events it describes happened. Decide whether
 the proposed action is supported, without changing the proposal or source
 records. Return the supplied `proposal_digest` unchanged.
 
 Allow `link_duplicates` only when all sources express the same durable memory.
 Allow `update_derived_summary` only when every claim in the summary is
 supported by the cited sources, uncertainty
-is preserved, and unrelated details are excluded. Allow `assign_topic_group`
+is preserved, and unrelated details are excluded. A summary that says one
+version replaced another must follow the sources' own statements of when things
+happened. Where the sources do not say, it must match their `recorded_at`
+order, and only when every cited source has a distinct time; otherwise the
+wording must establish the order or the summary must leave it unresolved. Allow `assign_topic_group`
 only when the sources are related but remain distinct facts and the label is
 supported. Allow `tombstone_for_retrieval` only when the target and canonical
 record are genuine duplicates; this action is reversible and never deletes the

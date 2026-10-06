@@ -48,10 +48,17 @@ _RETRIEVAL = ReplaySupport(
     name="longitudinal retrieval",
     module="evals.synthetic_journals.retrieval_replay",
 )
-_CONVERSATIONAL_SURFACING = ReplaySupport(
-    name="conversational memory surfacing",
-    module="evals.synthetic_journals.conversational_surfacing_replay",
+_LINE_ATTACK = ReplaySupport(
+    name="Line attacks: reply and memory capture",
+    module="evals.synthetic_journals.line_attack_replay",
 )
+
+_MEMORY_LOOP = ReplaySupport(
+    name="memory curation and recall loop",
+    module="evals.synthetic_journals.memory_loop_replay",
+)
+
+MEMORY_LOOP_RUN_CONFIGURATION_ID = "memory-curation-recall-loop"
 
 _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection"}): _CONNECTION,
@@ -64,6 +71,8 @@ _SUPPORTED_REPLAYS = {
     frozenset({"reviewed_automatic_memory_capture", "bounded_memory_curation"}): _CAPTURE_CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,
     frozenset({"longitudinal_memory_retrieval"}): _RETRIEVAL,
+    frozenset({"longitudinal_memory_retrieval", "untrusted_content_injection_resistance"}): _RETRIEVAL,
+    frozenset({"reviewed_automatic_memory_capture", "untrusted_content_injection_resistance"}): _LINE_ATTACK,
     frozenset(
         {"session_scoped_conversation_continuity", "longitudinal_memory_retrieval"}
     ): _RETRIEVAL,
@@ -77,18 +86,22 @@ _SUPPORTED_REPLAYS = {
 
 def replay_support_for(
     objective_ids: Iterable[str],
-    *,
-    scenario_contract: str = "component_v1",
+    run_configuration_ids: Iterable[str] = (),
 ) -> ReplaySupport | None:
-    """Return the runner for one exact selection and scenario contract."""
+    """Return the runner for one exact, order-independent selection.
 
-    if (
-        scenario_contract == "conversational_v1"
-        and frozenset(objective_ids) == frozenset({"proactive_memory_surfacing"})
-    ):
-        return _CONVERSATIONAL_SURFACING
+    A Scenario that declares the memory-loop run configuration is an experiment
+    over its Objective, so it selects that runner and no Objective default.
+    """
 
-    return _SUPPORTED_REPLAYS.get(frozenset(objective_ids))
+    selection = frozenset(objective_ids)
+    if MEMORY_LOOP_RUN_CONFIGURATION_ID in run_configuration_ids:
+        return (
+            _MEMORY_LOOP
+            if selection == frozenset({"longitudinal_memory_retrieval"})
+            else None
+        )
+    return _SUPPORTED_REPLAYS.get(selection)
 
 
-__all__ = ["ReplaySupport", "replay_support_for"]
+__all__ = ["MEMORY_LOOP_RUN_CONFIGURATION_ID", "ReplaySupport", "replay_support_for"]

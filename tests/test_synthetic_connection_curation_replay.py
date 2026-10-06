@@ -17,6 +17,7 @@ from evals.synthetic_journals.connection_curation_replay import replay_connectio
 from evals.synthetic_journals.connection_replay import ConnectionSceneObservation
 from evals.synthetic_journals.curation_replay import CurationSceneObservation, replay_curation_scene
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
+from src.linger.agents.sculptor.models import ExistingCuration
 from src.linger.agents.serendipity.models import CandidateRubric, ConnectionCandidate, ConnectionProposal
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from tests.test_synthetic_connection_replay import response, source_events
@@ -139,7 +140,8 @@ def test_replay_keeps_original_order_account_inputs_and_adoption(reverse_objecti
         scene = curation_by_props[tuple(memory.memory_id for memory in batch.memories)]
         expected = {prop.prop_id: prop.source_text for prop in backstory.props}
         assert all(memory.text == expected[memory.memory_id] for memory in batch.memories)
-        assert set(batch.model_dump()) == {"account_scope", "memories"}
+        assert set(batch.model_dump()) == {"account_scope", "memories", "existing_curation"}
+        assert batch.existing_curation == ExistingCuration()
         order.append(scene.scene_id)
         accounts.add(batch.account_scope)
         return _response_for(batch, truth)
@@ -392,3 +394,58 @@ def test_standalone_connection_runner_rejects_combined_scenario_before_handler()
             backstory_bytes=backstory_bytes, chat_handler=chat,
         ))
     chat.assert_not_awaited()
+
+
+def test_selected_scenes_keep_original_order_and_allow_gaps():
+    backstory, truth, adoption, backstory_bytes, truth_bytes = _scenario()
+    requested = (backstory.scenes[-1].scene_id, backstory.scenes[1].scene_id)
+    visits = []
+
+    async def chat(request, service, account, **kwargs):
+        visits.append(next(line.scene_id for line in backstory.lines if line.text == request.message))
+        assert not sessions.history(request.session_id)
+        return response()
+
+    async def curate(batch):
+        visits.append(next(scene.scene_id for scene in backstory.scenes
+                           if scene.prop_ids == tuple(memory.memory_id for memory in batch.memories)))
+        return _response_for(batch, truth)
+
+    result = asyncio.run(replay_connection_curation_scenes(
+        backstory, truth, adoption=adoption, ground_truth_bytes=truth_bytes,
+        backstory_bytes=backstory_bytes, chat_handler=chat, curation_handler=curate,
+        configured_model="test:connection-curation", scene_ids=requested,
+    ))
+    expected = tuple(scene.scene_id for scene in backstory.scenes if scene.scene_id in requested)
+    assert tuple(visits) == result.selected_scene_ids == expected
+    assert tuple(scene.scene_id for scene in result.scenes) == expected
+    assert result.dataset_version == adoption.adopted_ground_truth_identity
+
+
+@pytest.mark.parametrize("selected", [(), ("unknown-scene",), ("scene-01", "scene-01")])
+def test_invalid_scene_selection_prevents_every_handler(selected):
+    backstory, truth, adoption, backstory_bytes, truth_bytes = _scenario()
+    chat, curate = AsyncMock(), AsyncMock()
+    with pytest.raises(ValueError):
+        asyncio.run(replay_connection_curation_scenes(
+            backstory, truth, adoption=adoption, ground_truth_bytes=truth_bytes,
+            backstory_bytes=backstory_bytes, chat_handler=chat, curation_handler=curate,
+            configured_model="test:connection-curation", scene_ids=selected,
+        ))
+    chat.assert_not_awaited()
+    curate.assert_not_awaited()
+
+
+def test_scene_selection_does_not_skip_validation_of_unselected_scenes():
+    content, labels = connection_curation_documents(ROOT)
+    labels["proposals"][0]["curation"]["primary_behavior"] = "paraphrased_duplicate"
+    backstory, truth, adoption, backstory_bytes, truth_bytes = _models(content, labels)
+    chat, curate = AsyncMock(), AsyncMock()
+    with pytest.raises(ValueError):
+        asyncio.run(replay_connection_curation_scenes(
+            backstory, truth, adoption=adoption, ground_truth_bytes=truth_bytes,
+            backstory_bytes=backstory_bytes, chat_handler=chat, curation_handler=curate,
+            configured_model="test:connection-curation", scene_ids=(backstory.scenes[-1].scene_id,),
+        ))
+    chat.assert_not_awaited()
+    curate.assert_not_awaited()

@@ -1,122 +1,18 @@
-"""Application triggers for the conversational memory path."""
+"""Application trigger for capture-triggered conversational curation."""
 
 import asyncio
 
-from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
-import pytest
-
-from src.linger.agents.sculptor.surfacing_models import (
-    AtTime,
-    Defer,
-    DoNotSurface,
-    SurfaceNow,
-)
-from src.linger.contracts.curation import CuratedMemory
-from src.linger.orchestration.conversational_memory import (
-    curate_after_capture,
-    prepare_surfacing_handoff,
-    select_relevant_memories,
-)
+from src.linger.orchestration.conversational_memory import curate_after_capture
 from src.linger.services.memory import (
     AccountContext,
     AutomaticMemoryCandidate,
     MemoryPolicyService,
 )
-
-
-NOW = datetime(2026, 9, 21, 10, tzinfo=timezone.utc)
-
-
-def _memory(memory_id: str, text: str) -> CuratedMemory:
-    return CuratedMemory(
-        memory_id=memory_id,
-        kind="original",
-        text=text,
-        source_memory_ids=(memory_id,),
-        created_at=NOW.isoformat(),
-    )
-
-
-def test_relevant_memory_selection_is_positive_overlap_ranked_and_bounded() -> None:
-    memories = tuple(
-        [_memory("best", "I prefer tea while reading tea essays.")]
-        + [_memory(f"match-{index:02}", "Tea is my reading drink.") for index in range(12)]
-        + [_memory("irrelevant", "I take the bus to work.")]
-    )
-
-    selected = select_relevant_memories(
-        "What tea should I make while reading?", memories
-    )
-
-    assert len(selected) == 12
-    assert selected[0].memory_id == "best"
-    assert "irrelevant" not in {item.memory_id for item in selected}
-
-
-def test_surface_now_becomes_a_typed_handoff_with_exact_sources() -> None:
-    memory = _memory("memory-1", "I prefer mint tea while reading.")
-    decide = AsyncMock(
-        return_value=SurfaceNow(
-            decision="surface_now",
-            source_memory_ids=(memory.memory_id,),
-            suggestion="Mint tea may suit this reading session.",
-            rationale="The saved preference is relevant now.",
-        )
-    )
-
-    handoff = asyncio.run(
-        prepare_surfacing_handoff(
-            account_scope="private-account",
-            current_context="I am choosing tea for this reading session.",
-            memories=(memory,),
-            now=NOW,
-            decide=decide,
-        )
-    )
-
-    assert handoff is not None
-    assert handoff.suggestion == "Mint tea may suit this reading session."
-    assert handoff.sources[0].evidence_id == memory.memory_id
-    assert handoff.sources[0].excerpt == memory.text
-    request = decide.await_args.args[0]
-    assert request.account_scope == "private-account"
-    assert request.context.current_context == "I am choosing tea for this reading session."
-
-
-@pytest.mark.parametrize(
-    "decision",
-    [
-        Defer(
-            decision="defer",
-            source_memory_ids=("memory-1",),
-            suggestion="Consider mint tea later.",
-            rationale="It is not useful yet.",
-            reconsideration=AtTime(kind="time", at=datetime(2026, 9, 22, tzinfo=timezone.utc)),
-        ),
-        DoNotSurface(
-            decision="do_not_surface",
-            source_memory_ids=("memory-1",),
-            reason="irrelevant",
-            rationale="The preference does not help now.",
-        ),
-    ],
-)
-def test_defer_and_silence_create_no_muse_handoff(decision: object) -> None:
-    memory = _memory("memory-1", "I prefer mint tea while reading.")
-    assert asyncio.run(
-        prepare_surfacing_handoff(
-            account_scope="account",
-            current_context="Tea for reading",
-            memories=(memory,),
-            now=NOW,
-            decide=AsyncMock(return_value=decision),
-        )
-    ) is None
 
 
 def test_new_capture_triggers_curation_with_new_and_relevant_prior_original() -> None:

@@ -1,0 +1,114 @@
+{
+  "recorded_at": "2026-10-01T13:50:22+00:00",
+  "status": "succeeded",
+  "error": null,
+  "ledger": {
+    "searches": [
+      "information retrieval retrieve more candidates top k recall reranking candidate pool depth precision recall passage retrieval paper",
+      "passage retrieval recall candidate pool depth top k retrieved passages reranking candidate set recall cut off empirical paper retrieve rerank"
+    ],
+    "opened": {
+      "https://aclanthology.org/2021.emnlp-main.560.pdf": "Joint Passage Ranking for Diverse Multi-Answer Retrieval",
+      "https://aclanthology.org/2022.emnlp-main.249.pdf": "Improving Passage Retrieval with Zero-Shot Question Generation"
+    }
+  },
+  "turns": [
+    {
+      "part": "input",
+      "input_sha256": "ec23662ded50794e97226d239b88fe884b6e53baaad3c6e030553db1972bfda6"
+    },
+    {
+      "part": "call",
+      "tool": "web_search",
+      "args": {
+        "query": "information retrieval retrieve more candidates top k recall reranking candidate pool depth precision recall passage retrieval paper"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "web_search",
+      "content": "Found 5 results for 'information retrieval retrieve more candidates top k recall reranking candidate pool depth precision recall passage retrieval paper':\n\nTitle: ReFIT: Relevance Feedback from a Reranker during Inference | alphaXiv\nURL: https://www.alphaxiv.org/abs/2305.11744\nPublished: 2024-05-28T00:00:00.000Z\nAuthor: Hannaneh Hajishirzi\n\n- Retrieve-and-rerank is a prevalent framework in neural information retrieval, wherein a bi-encoder network initially retrieves a pre-defined number of candidates (e.g., K=100), which are then reranked by a more powerful cross-encoder model. While the reranker often yields improved candidate scores compared to the retriever, its scope is confined to only the top K retrieved candidates. As a result, the reranker cannot improve retrieval performance in terms of Recall@K. In this work, we propose to leverage the reranker to improve recall by making it provide relevance feedback to the retriever at inference time. Specifically, given a test instance during inference, we distill the reranker's predictions for that instance into the retriever's query representation using a lightweight update mechanism. The aim of the distillation loss is to align the retriever's candidate scores more closely with those produced by the reranker. The algorithm then proceeds by executing a second retrieval step using the updated query vector. We empirically demonstrate that this method, applicable to various retrieve-and-rerank frameworks, substantially enhances retrieval recall across multiple domains, languages, and modalities.\n...\nInformation retrieval systems face a fundamental challenge: balancing efficiency with recall performance. The dominant retrieve-and-rerank (R&R) framework uses a fast bi-encoder to retrieve candidate documents, followed by a more accurate but slower cross-encoder reranker. However, this approach has an inherent limitation - the reranker cannot improve Recall@K because it can only reorder the initial candidates retrieved by t"
+    },
+    {
+      "part": "call",
+      "tool": "get_page",
+      "args": {
+        "url": "https://aclanthology.org/2021.emnlp-main.560.pdf"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "get_page",
+      "content": "Title: Joint Passage Ranking for Diverse Multi-Answer Retrieval\nURL: https://aclanthology.org/2021.emnlp-main.560.pdf\nAuthor: Sewon Min ; Kenton Lee ; Ming-Wei Chang ; Kristina Toutanova ; Hannaneh Hajishirzi\n\nProceedings of the 2021 Conference on Empirical Methods in Natural Language Processing, pages 6997–7008 November 7–11, 2021. c 2021 Association for Computational Linguistics\n\n## Joint Passage Ranking for Diverse Multi-Answer Retrieval\n\nSewon Min 1,∗ Kenton Lee 2, Ming-Wei Chang 2, Kristina Toutanova 2, Hannaneh Hajishirzi 1\n\n1University of Washington 2Google Research {sewon,hannaneh}@cs.washington.edu {kentonl,mingweichang,kristout}@google.com\n\n### Abstract\n\nWe study multi-answer retrieval, an under explored problem that requires retrieving pas sages to cover multiple distinct answers for a given question. This task requires joint mod eling of retrieved passages, as models should not repeatedly retrieve passages containing the same answer at the cost of missing a differ ent valid answer. In this paper, we introduce JPR, the first joint passage retrieval model for multi-answer retrieval. JPR makes use of an autoregressive reranker that selects a sequence of passages, each conditioned on previously se lected passages. JPR is trained to select pas sages that cover new answers at each timestep and uses a tree-decoding algorithm to enable flexibility in the degree of diversity. Com pared to prior approaches, JPR achieves signif icantly better answer coverage on three multi answer datasets. When combined with down stream question answering, the improved re trieval enables larger answer generation mod els since they need to consider fewer passages, establishing a new state-of-the-art.\n\n### 1 Introduction\n\nPassage retrieval is the problem of retrieving a set of passages relevant to a natural language question from a large text corpus. Most prior work focuses on single-answer retrieval, which scores passages independently from each other according to their relevance to"
+    },
+    {
+      "part": "call",
+      "tool": "web_search",
+      "args": {
+        "query": "passage retrieval recall candidate pool depth top k retrieved passages reranking candidate set recall cut off empirical paper retrieve rerank"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "web_search",
+      "content": "Found 5 results for 'passage retrieval recall candidate pool depth top k retrieved passages reranking candidate set recall cut off empirical paper retrieve rerank':\n\nTitle: Ranked List Truncation for  Large Language Model-based Re-Ranking\nURL: https://staff.fnwi.uva.nl/m.derijke/wp-content/papercite-data/pdf/meng-2024-ranked-arxiv.pdf\n\n- ABSTRACT We study ranked list truncation (RLT) from a novel “retrieve-then re-rank” perspective, where we optimize re-ranking by truncating the retrieved list (i.e., trim re-ranking candidates). RLT is crucial for re-ranking as it can improve re-ranking efficiency by sending variable-length candidate lists to a re-ranker on a per-query basis. It also has the potential to improve re-ranking effectiveness. Despite its importance, there is limited research into applying RLT methods to this new perspective. To address this research gap, we repro duce existing RLT methods in the context of re-ranking, especially newly emerged large language model (LLM)-based re-ranking. In particular, we examine to what extent established findings on RLT for retrieval are generalizable to the “retrieve-then-re-rank” setup from three perspectives: (i) assessing RLT methods in the context of LLM-based re-ranking with lexical first-stage retrieval, (ii) in vestigating the impact of different types of first-stage retrievers on RLT methods, and (iii) investigating the impact of different types of re-rankers on RLT methods. We perform experiments on the TREC 2019 and 2020 deep learning tracks, investigating 8 RLT methods for pipelines involving 3 retrievers and 2 re-rankers. We reach new insights into RLT methods in the context of re-ranking.\n...\n1 INTRODUCTION Ranked list truncation (RLT), a.k.a. query cut-off prediction [10, 23], has been studied for over two decades [3, 32] and recently at tracted lots of attention in the information retrieval (IR) commu nity [6, 7, 25, 29, 57, 60]. The task of RLT is to determine how many items in a ranked list should be r"
+    },
+    {
+      "part": "call",
+      "tool": "get_page",
+      "args": {
+        "url": "https://aclanthology.org/2022.emnlp-main.249.pdf"
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "get_page",
+      "content": "Title: Improving Passage Retrieval with Zero-Shot Question Generation\nURL: https://aclanthology.org/2022.emnlp-main.249.pdf\n\nProceedings of the 2022 Conference on Empirical Methods in Natural Language Processing, pages 3781–3797 December 7-11, 2022 ©2022 Association for Computational Linguistics\n\n## Improving Passage Retrieval with Zero-Shot Question Generation\n\nDevendra Singh Sachan 1,2∗, Mike Lewis 3, Mandar Joshi 4, Armen Aghajanyan 3, Wen-tau Yih 3, Joelle Pineau 1,2,3, Luke Zettlemoyer 3,5\n\n1McGill University; 2Mila - Quebec AI Institute 3Meta AI Research; 4Google Research; 5University of Washington sachande@mila.quebec, mandarj@google.com {mikelewis,armenag,scottyih,jpineau,lsz}@meta.com\n\n### Abstract\n\nWe propose a simple and effective re-ranking method for improving passage retrieval in open question answering. The re-ranker re-scores retrieved passages with a zero-shot question generation model, which uses a pre-trained lan guage model to compute the probability of the input question conditioned on a retrieved pas sage. This approach can be applied on top of any retrieval method (e.g. neural or keyword based), does not require any domain- or task specific training (and therefore is expected to generalize better to data distribution shifts), and provides rich cross-attention between query and passage (i.e. it must explain every token in the question). When evaluated on a number of open-domain retrieval datasets, our re-ranker improves strong unsupervised retrieval mod els by 6%-18% absolute and strong supervised models by up to 12% in terms of top-20 passage retrieval accuracy. We also obtain new state of-the-art results on full open-domain question answering by simply adding the new re-ranker to existing models with no further changes. 1\n\n### 1 Introduction\n\nText retrieval is a core sub-task in many NLP prob lems, for example, open-domain question answer ing where a document must be retrieved and then read to answer an input query. Queries and docu ments are"
+    },
+    {
+      "part": "call",
+      "tool": "final_result",
+      "args": {
+        "target_category": "Answer window falls beyond the returned-passage cutoff",
+        "problem": "This approved category covers 2 needs (n07 and n11), more than the other approved category, which covers 1. Both traces show the answer already present in the query's turn-order candidates but excluded by the pool's first-3-per-planned-part cutoff: n11's answer is fourth; n07's answer window appears much later (16th in the displayed turn-order list), despite ranking 8th by meaning and 109th by keyword. The failure is therefore pool truncation, not a need to change question wording or improve candidate generation for these two misses.",
+        "approach": "Increase the number of turn-order candidates retained per planned-part query from 3 to 20, while retaining the existing whole-question rule, overlap filter, and maximum of 20 windows per book. This admits n11's fourth-ranked answer and, for n07's single query, the answer window shown at turn-order position 16. The UPR study supports the general retrieve-then-rerank trade-off relevant here: larger candidate pools can improve retrieval accuracy, while reranking cost increases with pool size. Rejected alternative: change first-stage retrieval or reranker ordering. It is less directly suited to these traces because both answer windows are already in the candidate turn order; altering ranking cannot reliably recover a relevant candidate that the pool cutoff discards, and n07's answer has a very low reranker score.",
+        "sources": [
+          {
+            "url": "https://aclanthology.org/2022.emnlp-main.249.pdf",
+            "title": "Improving Passage Retrieval with Zero-Shot Question Generation",
+            "supports": "The paper evaluates reranking larger candidate pools and reports that larger pools can improve retrieval accuracy, with reranking latency increasing as the pool grows. This supports expanding the handoff pool while explicitly measuring the added reading cost."
+          },
+          {
+            "url": "https://aclanthology.org/2021.emnlp-main.560.pdf",
+            "title": "Joint Passage Ranking for Diverse Multi-Answer Retrieval",
+            "supports": "The paper describes a retrieve-then-rerank pipeline and explains that returned passage sets are evaluated for answer coverage. It supports treating answer coverage in the retained set as an explicit retrieval objective; its trained joint-ranking method is not selected for this small, single-answer failure."
+          }
+        ],
+        "retrieval_changes": [
+          "For each planned-part query, retain up to the first 20 unique windows in the existing turn_order_with_rerank_scores list instead of the first 3.",
+          "Leave the whole-question contribution unchanged: retain its first 2 windows when its query differs from every part; retain up to 20 when the plan is empty. Continue removing duplicate query lists as today.",
+          "Merge the retained query lists using the existing taking-turns merge, same-chapter overlap filter, and maximum of 20 windows per book. Do not alter candidate generation, ranking, chapter eligibility, or the Librarian's maximum of 5 selected windows.",
+          "Log the pool size and whether each answer window occurring in turn order survives the merge and overlap filter, to distinguish remaining cutoff misses from selection misses."
+        ],
+        "sculptor_data": null,
+        "expected_fixes": [
+          "n11: the answer window is fourth in turn order and should enter the pool instead of being excluded by the per-part top-3 cutoff.",
+          "n07: the answer window occurs at position 16 in the displayed turn-order candidates and should enter the pool for this single-query need."
+        ],
+        "risks": [
+          "Reading cost can increase substantially: a one-part query may contribute up to 20 windows (about 7,000 words before deduplication), compared with the usual pool of 2–6 windows. The Librarian still selects at most 5.",
+          "More distractors may cause the Librarian to overlook answers that pass today, particularly when multiple planned parts contribute many candidates before the book-level 20-window cap is reached.",
+          "The change will not fix n09, whose answer window is absent from the candidate turn order; nor does pool inclusion guarantee that the Librarian selects an answer window.",
+          "The existing overlap filter or 20-window book cap may still remove an answer window in some multi-query cases."
+        ],
+        "test_plan": "Replay all 20 frozen practice needs with the current windows, tags, plans, ranking traces, and scoring. Compare answer-window pool inclusion, pass count, Librarian selections, average and maximum pool size, and estimated words read against baseline. Verify that n07 and n11's answer windows survive the pool merge and are eligible for selection. Treat any newly failing baseline pass as a regression; inspect whether it arose from added distractors, overlap removal, or the 20-window cap. Separately confirm that n09 remains classified as a candidate-generation miss rather than claiming this change fixes it.",
+        "limits_check": "This modifies only how many existing turn-order candidates are handed to the Librarian. It keeps today's approximately 350-word windows as the ranking, reading, and selection unit; does not change book text, questions, quotes, plans, or scoring; preserves exact quoted text and chapter/line identifiers; retains the reached-chapter boundary and the existing overlap handling; and keeps the 20-window pool cap and 5-window selection cap. The maximum reading load rises to at most 20 windows per book, about 7,000 words before overlap/deduplication effects, and should be measured. The change is a small pool-assembly parameter adjustment suitable for a build within a few days."
+      }
+    },
+    {
+      "part": "tool_result",
+      "tool": "final_result",
+      "content": "Final result processed."
+    }
+  ]
+}

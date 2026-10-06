@@ -89,7 +89,7 @@ def summarize_artifact(artifact: dict) -> dict:
             summary["execution_failures"].append({"scene_id": scene_id, "detail": details[-1]})
         for turn in scene.get("turns", ()):
             if isinstance(turn, dict) and turn.get("failure_type") in {"model", "application"}:
-                kind = "provider" if turn["failure_type"] == "model" else "application"
+                kind = "model" if turn["failure_type"] == "model" else "application"
                 details.append(f"{kind} failure at {turn.get('failure_stage') or 'unknown stage'}")
                 summary["execution_failures"].append({"scene_id": scene_id, "detail": details[-1]})
         for detail in details:
@@ -99,8 +99,8 @@ def summarize_artifact(artifact: dict) -> dict:
                 scene_failures.append({"scene_id": scene_id, "detail": detail})
         if scene_failures:
             summary["scenes_failed"] += 1
-            for exchange in scene.get("agent_exchanges", ()):
-                if isinstance(exchange, dict) and exchange.get("failure_code"):
+            for _, exchange in _recorded(scene, "agent_exchanges"):
+                if exchange.get("failure_code"):
                     summary["execution_failures"].append({
                         "scene_id": scene_id,
                         "detail": f"{exchange.get('role', 'agent')} {exchange.get('stage', '')}: {exchange['failure_code']}",
@@ -114,7 +114,98 @@ def summarize_artifact(artifact: dict) -> dict:
             item for item in scene_failures
             if item["detail"] in {"provider_failure", "execution_failure"}
         )
+    security_cases = [scene for scene in scenes
+                      if isinstance(scene.get("line_attack") or scene.get("injection"), dict)]
+    if security_cases:
+        checks = {"attacks_total": 0, "attacks_exercised": 0,
+                  "attacks_passing_hard_checks": 0, "controls_total": 0,
+                  "controls_passing_hard_checks": 0, "semantic_review_required": True}
+        for scene in security_cases:
+            observation = scene.get("line_attack") or scene["injection"]
+            attack = observation.get("kind") == "attack"
+            prefix = "attacks" if attack else "controls"
+            checks[f"{prefix}_total"] += 1
+            exposed = observation.get("attack_exposed") is True
+            if attack and exposed:
+                checks["attacks_exercised"] += 1
+            grades = scene.get("grades", ())
+            passed = (observation.get("status") == "passes_hard_gates"
+                      and not observation.get("hard_failures")
+                      and not _failure_details(scene)
+                      and not any(_failure_details(grade) for grade in grades)
+                      and not scene.get("execution_error"))
+            if passed and (not attack or exposed):
+                checks[f"{prefix}_passing_hard_checks"] += 1
+        summary["security_checks"] = checks
     return summary
+
+
+def _recorded(scene: dict, key: str) -> list[tuple[str, dict]]:
+    """Return a Scene's records under `key`, including those nested in its grades."""
+    def items(holder: dict, name: str) -> list:
+        value = holder.get(name)
+        return list(value) if isinstance(value, (list, tuple)) else []
+
+    holders = [("", scene)] + [
+        (f"grades[{index}].", grade)
+        for index, grade in enumerate(items(scene, "grades"))
+        if isinstance(grade, dict)
+    ]
+    return [
+        (f"{prefix}{key}[{index}]", item)
+        for prefix, holder in holders
+        for index, item in enumerate(items(holder, key))
+        if isinstance(item, dict)
+    ]
+
+
+def recorded_execution_diagnostics(scene: dict, scene_index: int) -> list[dict]:
+    """Describe recorded failure metadata without guessing a provider or model cause."""
+    diagnostics = []
+    for reference, exchange in _recorded(scene, "agent_exchanges"):
+        if not (
+            exchange.get("failure_code") or exchange.get("status") in {"failure", "failed", "error", "cancelled"}
+        ):
+            continue
+        recorded = exchange.get("failure_category")
+        status = exchange.get("provider_status_code")
+        status = status if type(status) is int and 400 <= status <= 599 else None
+        kind = exchange.get("provider_error_kind")
+        category = {
+            "model_response_error": "model_output_error", "usage_limit": "usage_limit",
+            "cancelled": "cancelled", "provider_error": "provider_error",
+        }.get(recorded, "unknown")
+        if category == "provider_error" and kind == "http" and status is not None:
+            category = "provider_http_error"
+        messages = exchange.get("model_messages", ())
+        if exchange.get("model_messages_include_history"):
+            messages = messages[len(exchange.get("message_history", ())) :]
+        repairs = sum(
+            part.get("part_kind") == "retry-prompt"
+            for message in messages if isinstance(message, dict)
+            for part in message.get("parts", ()) if isinstance(part, dict)
+        )
+        detail = f"{exchange.get('role', 'Agent')} {exchange.get('stage', '')}: {_safe_text(exchange.get('failure_code') or 'failed')}"
+        if category == "provider_http_error":
+            detail += f" (HTTP {status})."
+            if status == 429:
+                detail += " HTTP status alone does not distinguish quota exhaustion from a retryable rate limit."
+        elif category == "model_output_error":
+            detail += f"; {repairs} recorded repair prompt(s). The metadata does not specify whether the repair budget was exhausted."
+        diagnostics.append({
+            "category": category, "detail": detail, "source": "recorded",
+            "confidence": "unresolved" if category == "unknown" else "confirmed",
+            "evidence_refs": [f"artifact.scenes[{scene_index}].{reference}"],
+            "provider_status_code": status, "provider_error_kind": kind,
+        })
+    for reference, event in _recorded(scene, "events"):
+        if event.get("status") == "retrieval_unavailable":
+            diagnostics.append({
+                "category": "unknown", "source": "recorded", "confidence": "unresolved",
+                "detail": f"{event.get('operation') or 'Retrieval'} returned retrieval_unavailable; this event records no underlying cause.",
+                "evidence_refs": [f"artifact.scenes[{scene_index}].{reference}"],
+            })
+    return diagnostics
 
 
 def _safe_text(value: object, limit: int = 1800) -> str:
@@ -275,4 +366,4 @@ def _history_evidence(
     return result
 
 
-__all__ = ["collect_diagnostic_evidence", "summarize_artifact"]
+__all__ = ["collect_diagnostic_evidence", "recorded_execution_diagnostics", "summarize_artifact"]

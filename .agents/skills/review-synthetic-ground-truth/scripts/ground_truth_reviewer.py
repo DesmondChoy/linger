@@ -60,7 +60,23 @@ def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _proposal_summary(proposal: GroundTruthProposal) -> str:
+def _proposal_summary(
+    proposal: GroundTruthProposal,
+    security_proposal: GroundTruthProposal | None = None,
+) -> str:
+    if proposal.line_attack is not None:
+        if proposal.line_attack.kind == "benign_control":
+            return "Clean Line comparison: reply result"
+        goal = proposal.line_attack.attack_goal.replace("_", " ")
+        return f"Line attack: {goal} — reply result"
+    if proposal.line_capture is not None:
+        is_attack = (
+            security_proposal is not None
+            and security_proposal.line_attack is not None
+            and security_proposal.line_attack.kind == "attack"
+        )
+        label = "Line attack" if is_attack else "Clean Line comparison"
+        return f"{label}: saved-memory result"
     if proposal.connection is not None:
         return {
             "proposal": "Tentative connection",
@@ -84,12 +100,19 @@ def _proposal_summary(proposal: GroundTruthProposal) -> str:
             }
             return labels[expected.action.action]
         return "No curation proposal"
+    if proposal.injection is not None:
+        return (
+            "Attack in saved memory"
+            if proposal.injection.kind == "attack"
+            else "Clean memory comparison"
+        )
     if proposal.prop_relevance:
         relevant = sum(
             item.relevance == "relevant" for item in proposal.prop_relevance
         )
         distractors = len(proposal.prop_relevance) - relevant
-        return f"{relevant} relevant · {distractors} distractor"
+        summary = f"{relevant} relevant · {distractors} distractor"
+        return f"Supporting retrieval: {summary}" if security_proposal else summary
     if proposal.book_expectation is not None:
         if proposal.book_expectation.kind == "grounded_book_reflection":
             return (
@@ -111,6 +134,10 @@ def _source_roles(proposal: GroundTruthProposal) -> dict[str, str]:
     if proposal.surfacing is not None:
         roles.update({key: "allowed source" for key in proposal.surfacing.allowed_source_ids})
         roles.update({key: "required source" for key in proposal.surfacing.required_source_ids})
+    if proposal.injection is not None:
+        roles[proposal.injection.source_prop_id] = (
+            "poisoned memory" if proposal.injection.kind == "attack" else "clean memory"
+        )
     if proposal.curation is None:
         return roles
     expected = proposal.curation.expected
@@ -142,7 +169,9 @@ def build_review_payload(
     """Join scenario entities into a legible, deterministic review projection."""
 
     selected_objectives = frozenset(backstory.objective_ids)
-    replay = replay_support_for(selected_objectives)
+    replay = replay_support_for(
+        selected_objectives, backstory.run_configuration_ids
+    )
     book_plan_scenes = {}
     if selected_objectives and selected_objectives <= BOOK_OBJECTIVE_IDS:
         book_plan = compile_book_replay_plan(backstory, ground_truth)
@@ -164,7 +193,14 @@ def build_review_payload(
     }
     rows: list[dict[str, Any]] = []
     for scene in sorted(backstory.scenes, key=lambda item: item.order):
-        for objective_id in scene.objective_ids:
+        security_proposal = proposals.get(
+            (scene.scene_id, "untrusted_content_injection_resistance")
+        )
+        objective_ids = sorted(
+            scene.objective_ids,
+            key=lambda value: value != "untrusted_content_injection_resistance",
+        )
+        for objective_id in objective_ids:
             proposal = proposals[(scene.scene_id, objective_id)]
             compiled_book_scene = book_plan_scenes.get(scene.scene_id)
             book_scene_facts = None
@@ -186,7 +222,15 @@ def build_review_payload(
                         "id": line.line_id,
                         "order": line.order,
                         "text": line.text,
-                        "role": None,
+                        "role": (
+                            "user message with attack"
+                            if security_proposal.line_attack.kind == "attack"
+                            else "clean user message"
+                        ) if (
+                            security_proposal is not None
+                            and security_proposal.line_attack is not None
+                            and security_proposal.line_attack.source_line_id == line_id
+                        ) else None,
                     }
                 )
             for prop_id in scene.prop_ids:
@@ -204,6 +248,11 @@ def build_review_payload(
                         "text": prop.source_text,
                         "role": roles.get(prop.prop_id, "context"),
                         "lifecycle": lifecycle,
+                        "recordedAt": (
+                            prop.recorded_at.isoformat()
+                            if prop.recorded_at is not None
+                            else None
+                        ),
                     }
                 )
             for input_id in scene.offline_input_ids:
@@ -229,7 +278,7 @@ def build_review_payload(
                     "sceneOrder": scene.order,
                     "objectiveId": objective_id,
                     "freshSession": scene.fresh_session,
-                    "summary": _proposal_summary(proposal),
+                    "summary": _proposal_summary(proposal, security_proposal),
                     "inputs": inputs,
                     "bookTitles": {
                         scope.work_id: CORPORA[scope.work_id].book.title
@@ -277,6 +326,18 @@ def build_review_payload(
                     "connection": (
                         proposal.connection.model_dump(mode="json")
                         if proposal.connection is not None else None
+                    ),
+                    "injection": (
+                        proposal.injection.model_dump(mode="json")
+                        if proposal.injection is not None else None
+                    ),
+                    "lineAttack": (
+                        proposal.line_attack.model_dump(mode="json")
+                        if proposal.line_attack is not None else None
+                    ),
+                    "lineCapture": (
+                        proposal.line_capture.model_dump(mode="json")
+                        if proposal.line_capture is not None else None
                     ),
                     "bookSceneFacts": book_scene_facts,
                     "bookExpectation": (

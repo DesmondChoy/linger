@@ -124,6 +124,6 @@ release evidence:
 - These results do not establish the complete 4.2.5 conversational path,
   because no later fresh-chat surfacing and release Scene ran.
 
-The two revised cases now pass. The remaining 4.2.5 work is the complete
-conversational replay. An adopted `proactive_memory_surfacing` Scenario must
-exercise later fresh-chat surfacing, Provenance review, and final release.
+The two revised cases now pass. Conversational surfacing was later retired
+(2026-09-27): surfacing is offline only, so no fresh-chat surfacing replay
+remains to run.

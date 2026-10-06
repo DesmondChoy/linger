@@ -99,7 +99,6 @@ def surfacing_documents() -> tuple[dict, dict, bytes]:
             }
         proposals.append(proposal)
     backstory = {
-        "scenario_contract": "component_v1",
         "objective_ids": [objective],
         "backstory": {
             "backstory_id": "backstory-surfacing", "person_id": "person-surfacing",
@@ -115,7 +114,6 @@ def surfacing_documents() -> tuple[dict, dict, bytes]:
     }
     payload = json_bytes(backstory)
     truth = {
-        "scenario_contract": "component_v1",
         "ground_truth_status": "proposed",
         "backstory_sha256": hashlib.sha256(payload).hexdigest(),
         "proposals": proposals,

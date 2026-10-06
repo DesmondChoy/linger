@@ -1,0 +1,44 @@
+{
+  "backstory_sha256": "a837bf24f8669fc4ec82d5a48bc58bec9c909ac2d8c1dcfa3fcc814e5dceef3b",
+  "proposed_ground_truth_sha256": "0d4cbb4a0ae55d2f0b8136e17e71a347dc2d839c47a59ce774c3f56603255472",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-10-01T07:39:56.000309+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-current-night",
+      "scene_id": "scene-current-night",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-several-changes",
+      "scene_id": "scene-several-changes",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-start-of-evening-nerves",
+      "scene_id": "scene-start-of-evening-nerves",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-dietary-preservation",
+      "scene_id": "scene-dietary-preservation",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-charging-no-match",
+      "scene_id": "scene-charging-no-match",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "dda950c48d64cda2f4c2d398846c79f036b99ff5576d7213eb5133d4f558ccbe"
+}

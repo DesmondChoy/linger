@@ -66,6 +66,7 @@ class ConnectionCurationEvaluationRun(StrictModel):
     system_variant: str
     curation_identities: CurationEvaluationIdentities
     runtime_prompt_fingerprints: tuple[PromptFingerprint, ...]
+    selected_scene_ids: tuple[str, ...] = ()
     scenes: tuple[CombinedObservation, ...]
 
 
@@ -85,6 +86,7 @@ async def replay_connection_curation_scenes(
     chat_handler: ConnectionChatHandler | None = None,
     curation_handler: CurationHandler | None = None,
     configured_model: str | None = None,
+    scene_ids: Sequence[str] | None = None,
 ) -> ConnectionCurationEvaluationRun:
     """Dispatch each Scene under one account, with independent source snapshots.
 
@@ -105,12 +107,22 @@ async def replay_connection_curation_scenes(
     plan = compile_connection_replay_plan(backstory, ground_truth)
     connections = {item.scene.scene_id: item for item in plan.scenes}
     ordered = sorted(backstory.scenes, key=lambda item: item.order)
+    all_scenes = tuple(ordered)
+    if scene_ids is not None:
+        requested = set(scene_ids)
+        if not requested or len(requested) != len(scene_ids):
+            raise ValueError("Scene selection must be non-empty and contain no duplicates")
+        unknown = requested - {scene.scene_id for scene in ordered}
+        if unknown:
+            raise ValueError(f"Unknown Scenes: {', '.join(sorted(unknown))}")
+        ordered = [scene for scene in ordered if scene.scene_id in requested]
+    selected_scene_ids = tuple(scene.scene_id for scene in ordered)
     by_id = {scene.scene_id: scene for scene in ordered}
     run_id = uuid4().hex
     account = AccountContext(f"synthetic-eval:{backstory.backstory.evaluation_account_id}:{run_id}")
     curations = {
         scene.scene_id: curation_scene_input(backstory, ground_truth, scene, account_scope=account.account_id)
-        for scene in ordered if scene.objective_ids == (CURATION_OBJECTIVE_ID,)
+        for scene in all_scenes if scene.objective_ids == (CURATION_OBJECTIVE_ID,)
     }
     production_chat = chat_handler is None
     if production_chat or curation_handler is None:
@@ -124,7 +136,7 @@ async def replay_connection_curation_scenes(
     with tempfile.TemporaryDirectory(prefix="linger-connection-curation-eval-") as directory:
         async def execute(scene_id: str) -> CombinedObservation:
             scene = by_id[scene_id]
-            if scene.order != len(observations) + 1:
+            if scene_id != selected_scene_ids[len(observations)]:
                 raise RuntimeError("combined evaluation Scenes executed out of order")
             observation: CombinedObservation
             try:
@@ -165,6 +177,8 @@ async def replay_connection_curation_scenes(
                 "objective_ids": list(backstory.objective_ids),
                 "backstory_sha256": ground_truth.backstory_sha256,
                 "dataset_version": adoption.adopted_ground_truth_identity,
+                "selected_scene_ids": list(selected_scene_ids),
+                "scenario_scene_count": len(all_scenes),
             },
         )
         emit_evaluation_link(report, dataset_name=dataset.name)
@@ -178,6 +192,7 @@ async def replay_connection_curation_scenes(
         dataset_version=adoption.adopted_ground_truth_identity,
         system_variant=RUNTIME_SYSTEM_VARIANT, curation_identities=identities,
         runtime_prompt_fingerprints=RUNTIME_PROMPT_FINGERPRINTS,
+        selected_scene_ids=selected_scene_ids,
         scenes=tuple(observations),
     )
 
@@ -188,11 +203,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("ground_truth", type=Path)
     parser.add_argument("--adoption", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--scenes", nargs="+", help="Scene IDs to execute in original Scenario order")
     args = parser.parse_args(argv)
     backstory, truth, adoption = validate_ground_truth_adoption_files(args.backstory, args.ground_truth, args.adoption)
     run = asyncio.run(replay_connection_curation_scenes(
         backstory, truth, adoption=adoption,
         ground_truth_bytes=args.ground_truth.read_bytes(), backstory_bytes=args.backstory.read_bytes(),
+        scene_ids=args.scenes,
     ))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(run.model_dump_json(indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,337 @@
+{
+  "set": "practice",
+  "search": "stage1",
+  "identity": {
+    "needs_sha256": "327c22173c66ca37296f2f5f143b0dae8efada9a734850a63f04411b52bc2a96",
+    "plans_sha256": "4fd5e470a3f63122698a6111a3bbe7a28fa190e1f52325aa9fb65f08ebc56c16",
+    "proposal_sha256": null
+  },
+  "model": "openai:gpt-6-luna",
+  "prompt_template_id": "librarian.evidence-strength",
+  "prompt_digest": "03fe6cbdd81706221dc567f0880eeca0b636a7d825ca4d0789b8b7cc3b2b8446",
+  "recorded_at": "2026-10-01T12:00:35+00:00",
+  "passed": 15,
+  "needs": [
+    {
+      "id": "n01",
+      "chapter": 17,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch17-ln2001-2037"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 924,
+      "model_calls": 1,
+      "input_tokens": 3935,
+      "output_tokens": 151
+    },
+    {
+      "id": "n02",
+      "chapter": 4,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch04-ln0475-0523"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 4,
+      "pool_words": 1346,
+      "model_calls": 1,
+      "input_tokens": 4664,
+      "output_tokens": 149
+    },
+    {
+      "id": "n03",
+      "chapter": 7,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch07-ln0728-0782"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 949,
+      "model_calls": 1,
+      "input_tokens": 3896,
+      "output_tokens": 134
+    },
+    {
+      "id": "n04",
+      "chapter": 8,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch08-ln0825-0883"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 791,
+      "model_calls": 1,
+      "input_tokens": 3674,
+      "output_tokens": 115
+    },
+    {
+      "id": "n05",
+      "chapter": 6,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch06-ln0643-0663"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 735,
+      "model_calls": 1,
+      "input_tokens": 3557,
+      "output_tokens": 126
+    },
+    {
+      "id": "n06",
+      "chapter": 5,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch05-ln0559-0593"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 2,
+      "pool_words": 659,
+      "model_calls": 1,
+      "input_tokens": 3296,
+      "output_tokens": 115
+    },
+    {
+      "id": "n07",
+      "chapter": 11,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch10-ln1038-1078"
+      ],
+      "evidence_strength": "weak",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 831,
+      "model_calls": 1,
+      "input_tokens": 3739,
+      "output_tokens": 157
+    },
+    {
+      "id": "n08",
+      "chapter": 12,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch18-ln2071-2109"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1015,
+      "model_calls": 1,
+      "input_tokens": 3994,
+      "output_tokens": 153
+    },
+    {
+      "id": "n09",
+      "chapter": 18,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch12-ln1333-1382"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1016,
+      "model_calls": 1,
+      "input_tokens": 4020,
+      "output_tokens": 138
+    },
+    {
+      "id": "n10",
+      "chapter": 19,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch19-ln2306-2341"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 990,
+      "model_calls": 1,
+      "input_tokens": 3857,
+      "output_tokens": 125
+    },
+    {
+      "id": "n11",
+      "chapter": 22,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch21-ln2497-2529",
+        "pg500-v6bdc1734-ch22-ln2621-2654"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 862,
+      "model_calls": 1,
+      "input_tokens": 3762,
+      "output_tokens": 185
+    },
+    {
+      "id": "n12",
+      "chapter": 23,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch23-ln2680-2708",
+        "pg500-v6bdc1734-ch23-ln2702-2741"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 773,
+      "model_calls": 1,
+      "input_tokens": 3741,
+      "output_tokens": 175
+    },
+    {
+      "id": "n13",
+      "chapter": 28,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch28-ln3694-3729"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1008,
+      "model_calls": 1,
+      "input_tokens": 3959,
+      "output_tokens": 127
+    },
+    {
+      "id": "n14",
+      "chapter": 29,
+      "passed": false,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch29-ln3944-3990"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1016,
+      "model_calls": 1,
+      "input_tokens": 4064,
+      "output_tokens": 125
+    },
+    {
+      "id": "n15",
+      "chapter": 30,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4068-4127"
+      ],
+      "evidence_strength": "weak",
+      "error": null,
+      "pool_size": 6,
+      "pool_words": 1908,
+      "model_calls": 1,
+      "input_tokens": 5879,
+      "output_tokens": 225
+    },
+    {
+      "id": "n16",
+      "chapter": 32,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch32-ln4494-4548"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1031,
+      "model_calls": 1,
+      "input_tokens": 4023,
+      "output_tokens": 126
+    },
+    {
+      "id": "n17",
+      "chapter": 33,
+      "passed": false,
+      "reached": true,
+      "selected": [],
+      "evidence_strength": "none",
+      "error": "UnexpectedModelBehavior: Exceeded maximum output retries (1)",
+      "pool_size": 14,
+      "pool_words": 4145,
+      "model_calls": 2,
+      "input_tokens": 20872,
+      "output_tokens": 221
+    },
+    {
+      "id": "n18",
+      "chapter": 35,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch35-ln5288-5299"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 788,
+      "model_calls": 1,
+      "input_tokens": 3644,
+      "output_tokens": 125
+    },
+    {
+      "id": "n19",
+      "chapter": 36,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch36-ln5661-5718"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 793,
+      "model_calls": 1,
+      "input_tokens": 3707,
+      "output_tokens": 133
+    },
+    {
+      "id": "n20",
+      "chapter": 36,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch36-ln5789-5832"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 16,
+      "pool_words": 5200,
+      "model_calls": 1,
+      "input_tokens": 12000,
+      "output_tokens": 322
+    }
+  ]
+}

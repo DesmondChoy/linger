@@ -21,7 +21,7 @@ from src.linger.agents.serendipity.models import (
 class ConnectionRunInspection:
     """Content-free outcome metadata for one nested discovery run."""
 
-    status: Literal["proposal", "decline", "recall"]
+    status: Literal["proposal", "decline", "recall", "gathered"]
     reason: DeclineReason | None
     book_search_outcomes: tuple[str, ...]
     failure_code: str | None = None

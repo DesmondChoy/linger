@@ -6,9 +6,9 @@ import hashlib
 import json
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import AwareDatetime, Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.sculptor.models import CurationProposal
 
 CurationRiskCode = Literal[
@@ -28,6 +28,7 @@ class CurationSourceEvidence(StrictModel):
     text: str = Field(min_length=1)
     record_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     retrieval_state: Literal["active", "tombstoned"]
+    recorded_at: AwareDatetime | None = None
 
 
 class CurationReviewInput(StrictModel):

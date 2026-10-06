@@ -118,21 +118,6 @@ describe('buildLiveTurn', () => {
     expect(muse?.stages[0]).toMatchObject({ stage: 'draft', status: 'complete' })
   })
 
-  it('replays the settled stages as an ordered walkthrough between entry and release', () => {
-    const { scene } = build(reflection)
-
-    expect(scene.steps[0].nodes).toEqual(['input', 'preflight'])
-    expect(scene.steps.at(-1)?.nodes).toEqual(['release', 'response'])
-    // One step per settled stage; the three "running" reports add nothing.
-    expect(scene.steps.map((step) => step.title)).toEqual([
-      'Your message enters the turn',
-      'Provenance · emotional boundary preflight',
-      'Muse · draft',
-      'Provenance · review',
-      'The application released the reply',
-    ])
-  })
-
   it('falls back to the reporting agent when a stage name is unrecognised', () => {
     const { activity } = build([event('Sculptor', 'processing', 'complete')])
 

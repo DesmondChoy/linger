@@ -232,37 +232,6 @@
         "A useful non-sensitive response remains possible when policy permits it."
       ],
       "packageCount": 0
-    },
-    {
-      "id": "proactive_memory_surfacing",
-      "title": "Proactive memory surfacing",
-      "family": "conversation_and_memory",
-      "summary": "A new reflection updates a person's memory through reviewed capture and Sculptor curation. In a later fresh chat, Sculptor decides whether that history can help the conversation, and Muse responds through the normal review gates. This objective tests the complete flow and appropriate silence.",
-      "measures": [
-        "capture_outcome_accuracy",
-        "curation_application_accuracy",
-        "source_preservation",
-        "fresh_session_memory_use",
-        "decision_accuracy",
-        "inappropriate_surfacing_rate",
-        "timing_contrast_accuracy",
-        "grounded_release_accuracy"
-      ],
-      "academicValue": [
-        "An observable sequence from a natural Line through reviewed memory change to a later useful conversation.",
-        "Distinct agent responsibilities, application-controlled orchestration, inspectable source lineage, and appropriate silence.",
-        "Separate deterministic state and release checks from independent human judgments of usefulness and sensitive inference."
-      ],
-      "criteria": [
-        "The initial Line enters the normal preflight and Muse path. Only an exact, approved durable span is stored through the authenticated capture policy.",
-        "A successful new capture triggers bounded curation. Only an exactly reviewed and policy-approved proposal changes the retrieval view; originals remain unchanged and audit verification succeeds.",
-        "No nomination, veto, suppressed capture, retries, rejected curation, and no-change branches record their real outcomes without invented memory or duplicate changes.",
-        "The later chat starts without earlier conversation history, retrieves authorised evidence from actual durable state, and supplies only bounded candidate memories and current context to Sculptor.",
-        "A useful surfacing proposal reflects the updated preference and reaches Muse with resolvable source lineage. Provenance and deterministic memory-evidence checks control the released wording.",
-        "Deferred, cancelled, repeated, weakly supported, or sensitive suggestions stay unmentioned while the ordinary conversation remains helpful when policy permits it.",
-        "The timing pair changes the surfacing decision when only the supplied decision time changes; no deferral schedules work or sends a notification."
-      ],
-      "packageCount": 0
     }
   ],
   "packages": [

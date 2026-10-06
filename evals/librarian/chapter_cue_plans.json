@@ -1,0 +1,502 @@
+{
+  "schema_version": 1,
+  "frozen_on": "2026-10-01",
+  "model": "openai:gpt-6-luna",
+  "prompt_template_id": "librarian.book-request",
+  "prompt_digest": "0ba4e7ebf86ccb3c204b4094020b6850911f4ad184c83aa7d417d903102cbc2e",
+  "plans": {
+    "n01": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where does Pinocchio's nose grow because he lies to the Fairy about his money?"
+          ]
+        }
+      ]
+    },
+    "n02": {
+      "parts": [
+        {
+          "context_spans": [
+            "Pinocchio",
+            "the cricket that was trying to give him advice"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why did Pinocchio kill the cricket that was trying to give him advice?"
+          ]
+        }
+      ]
+    },
+    "n03": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "he's too fussy to eat the pears unless his dad peels them for him"
+          ]
+        }
+      ]
+    },
+    "n04": {
+      "parts": [
+        {
+          "context_spans": [
+            "Geppetto sold his own coat so Pinocchio could go to school"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where is that?"
+          ]
+        }
+      ]
+    },
+    "n05": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "How did his wooden feet get burned off?"
+          ]
+        }
+      ]
+    },
+    "n06": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "When he tries to cook an egg and a baby chick comes out instead."
+          ]
+        }
+      ]
+    },
+    "n07": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why did the puppet master Stromboli let him go instead of burning him?"
+          ]
+        }
+      ]
+    },
+    "n08": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "When does he first meet the fox and the cat on his way home with the coins?"
+          ]
+        }
+      ]
+    },
+    "n09": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where he buries his gold coins hoping they'll grow into a money tree."
+          ]
+        }
+      ]
+    },
+    "n10": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "The unfair judge who sends him to jail for being robbed."
+          ]
+        }
+      ]
+    },
+    "n11": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "When he has to work as a guard dog and catches the animals stealing chickens."
+          ]
+        }
+      ]
+    },
+    "n12": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "He finds the Fairy's grave and thinks she died because of him."
+          ]
+        }
+      ]
+    },
+    "n13": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "The green fisherman who wants to fry him along with the other fish."
+          ]
+        }
+      ]
+    },
+    "n14": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": true,
+          "reader_spans": [
+            "The slow snail who takes all night to come and open the door."
+          ]
+        }
+      ]
+    },
+    "n15": {
+      "parts": [
+        {
+          "context_spans": [
+            "he"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "promises to come back in an hour"
+          ]
+        },
+        {
+          "context_spans": [
+            "he"
+          ],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "runs off to Pleasure Island with his friend instead"
+          ]
+        }
+      ]
+    },
+    "n16": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "When he wakes up and finds he has donkey ears."
+          ]
+        }
+      ]
+    },
+    "n17": {
+      "parts": []
+    },
+    "n18": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "reference",
+          "uncertain": false,
+          "reader_spans": [
+            "Finding his father again inside the whale."
+          ]
+        }
+      ]
+    },
+    "n19": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "His friend Candlewick dying after being turned into a donkey."
+          ]
+        }
+      ]
+    },
+    "n20": {
+      "parts": []
+    },
+    "s01": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "What was the carpenter going to make out of the log before it started talking?"
+          ]
+        }
+      ]
+    },
+    "s02": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why did Geppetto want to make a puppet in the first place?"
+          ]
+        }
+      ]
+    },
+    "s03": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where’s the part where Geppetto gets arrested after chasing Pinocchio down the street?"
+          ]
+        }
+      ]
+    },
+    "s04": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "How much did Pinocchio get for selling his schoolbook?"
+          ]
+        }
+      ]
+    },
+    "s05": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "the puppets stop their show because they recognize Pinocchio in the audience"
+          ]
+        }
+      ]
+    },
+    "s06": {
+      "parts": [
+        {
+          "context_spans": [
+            "the cricket’s ghost"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "tries to get Pinocchio to go home"
+          ]
+        }
+      ]
+    },
+    "s07": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why didn’t Pinocchio say anything at first when the robbers demanded his money?"
+          ]
+        }
+      ]
+    },
+    "s08": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "the part where the girl at the window says she’s dead and won’t let Pinocchio in"
+          ]
+        }
+      ]
+    },
+    "s09": {
+      "parts": [
+        {
+          "context_spans": [
+            "the fairy’s carriage when she sent it to collect Pinocchio"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "What animals were pulling"
+          ]
+        }
+      ]
+    },
+    "s10": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why did that huge snake in the road suddenly die?"
+          ]
+        }
+      ]
+    },
+    "s11": {
+      "parts": [
+        {
+          "context_spans": [
+            "a farmer chains Pinocchio up to guard his chickens"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where’s the bit"
+          ]
+        }
+      ]
+    },
+    "s12": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "What food finally convinced Pinocchio to help the woman carry her water home?"
+          ]
+        }
+      ]
+    },
+    "s13": {
+      "parts": [
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why did the fairy say Pinocchio couldn’t grow any taller?"
+          ]
+        }
+      ]
+    },
+    "s14": {
+      "parts": [
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "the scene where the schoolboys try to attach strings to Pinocchio and make him dance"
+          ]
+        }
+      ]
+    },
+    "s15": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "the fish try to eat the schoolbooks the boys throw into the sea"
+          ]
+        }
+      ]
+    },
+    "s16": {
+      "parts": [
+        {
+          "context_spans": [
+            "Pinocchio"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where’s the bit where Pinocchio saves the dog that was chasing him?"
+          ]
+        }
+      ]
+    },
+    "s17": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "What kind of shoes did the donkeys pulling the boys’ wagon wear?"
+          ]
+        }
+      ]
+    },
+    "s18": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Where’s the bit where a blue goat tries to pull Pinocchio out of the sea?"
+          ]
+        }
+      ]
+    },
+    "s19": {
+      "parts": [
+        {
+          "context_spans": [
+            "Pinocchio and Geppetto tried to escape"
+          ],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "Why was the shark sleeping with its mouth open"
+          ]
+        }
+      ]
+    },
+    "s20": {
+      "parts": [
+        {
+          "context_spans": [],
+          "purpose": "answer",
+          "uncertain": false,
+          "reader_spans": [
+            "the part where the big fish gives Pinocchio and his father a ride to shore"
+          ]
+        }
+      ]
+    }
+  }
+}

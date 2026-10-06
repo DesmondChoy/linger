@@ -10,6 +10,7 @@ import sys
 import tempfile
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Literal
@@ -33,7 +34,7 @@ from evals.sculptor.harness import (
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
-    CuratableMemory,
+    CurationMemory,
     SculptorResponse,
 )
 from src.linger.agents.sculptor.prompt import (
@@ -81,12 +82,23 @@ CurationHandler = Callable[[AccountScopedMemories], Awaitable[SculptorResponse]]
 class _SyntheticMemoryService(MemoryPolicyService):
     """Expose scenario Props as immutable service records for the replay."""
 
-    def __init__(self, records: tuple[MemoryRecord, ...], root: Path) -> None:
+    def __init__(
+        self,
+        records: tuple[MemoryRecord, ...],
+        root: Path,
+        recorded_at: dict[str, datetime | None],
+    ) -> None:
         super().__init__(root)
         self._synthetic_records = {record.memory_id: record for record in records}
+        self._recorded_at = recorded_at
 
     def _records_by_id(self, context: AccountContext) -> dict[str, MemoryRecord]:
         return dict(self._synthetic_records)
+
+    def recorded_at(self, record: MemoryRecord) -> datetime | None:
+        """Report only the Prop's own recording time, never the placeholder."""
+
+        return self._recorded_at.get(record.memory_id)
 
 
 class _AllowingProvenance:
@@ -144,7 +156,7 @@ class CurationSceneObservation(StrictModel):
 
     scene_id: str
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
-    input_memories: tuple[CuratableMemory, ...]
+    input_memories: tuple[CurationMemory, ...]
     expected: CurationExpectation
     response: SculptorResponse
     ground_truth_result: GroundTruthResult
@@ -177,7 +189,7 @@ class CurationEvaluationRun(StrictModel):
 class CurationEvaluationInput(StrictModel):
     order: int = Field(ge=1)
     scene_id: str
-    memories: tuple[CuratableMemory, ...]
+    memories: tuple[CurationMemory, ...]
 
 
 class CurationEvaluationExpected(StrictModel):
@@ -465,7 +477,11 @@ async def replay_curation_scene(
         for memory in batch.memories
     )
     with tempfile.TemporaryDirectory(prefix="linger-curation-replay-") as root:
-        service = _SyntheticMemoryService(records, Path(root))
+        service = _SyntheticMemoryService(
+            records,
+            Path(root),
+            {memory.memory_id: memory.recorded_at for memory in batch.memories},
+        )
 
         loop_kwargs: dict[str, Any] = {}
         if handler is not None:
@@ -591,7 +607,13 @@ def curation_scene_input(
         )
         if lifecycle is None or lifecycle.state != "active":
             raise ValueError(f"Scene {scene.scene_id} Prop {prop_id} is not active")
-        memories.append(CuratableMemory(memory_id=prop.prop_id, text=prop.source_text))
+        memories.append(
+            CurationMemory(
+                memory_id=prop.prop_id,
+                text=prop.source_text,
+                recorded_at=prop.recorded_at,
+            )
+        )
 
     proposals = [
         proposal for proposal in ground_truth.proposals

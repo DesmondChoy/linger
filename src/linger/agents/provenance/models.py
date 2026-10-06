@@ -11,7 +11,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, computed_field, field_validator, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.models import EvidenceUse, MemoryNomination, limit_claim_texts
 from src.linger.agents.provenance.excerpt_feedback import literal_source_context
 from src.linger.agents.provenance.quotation_audit import (
@@ -137,7 +137,8 @@ class ResponseCoverageAudit(StrictModel):
         description=(
             "Review the whole reply, not this fragment alone. Presentation includes formatting "
             "and accurate labels for bound quotes. Reader reflection includes current-reader "
-            "context, open questions, evidence limits and reader-requested exploratory possibilities, "
+            "context, open questions, evidence limits, exploratory possibilities and Muse's own "
+            "non-sensitive distinctions and suggestions, "
             "not invented facts or assertions of established personal causes. "
             "If any substantive part needs an undeclared source, use source_dependent and "
             "give a finding overlapping that current response span."
@@ -787,11 +788,22 @@ class ProvenanceInput(StrictModel):
             expected_members = set(references)
             members = [(m.declaration_index, m.claim_index) for m in audit.source_contributions]
             if len(members) != len(expected_members) or set(members) != expected_members:
-                errors.append({
+                error: dict[str, object] = {
                     "path": f"claim_audit[{index}].source_contributions", "value": [list(m) for m in members],
-                    "error": "source_contributions must assess every current group member exactly once",
+                    "error": (
+                        "source_contributions must assess every current group member exactly once. "
+                        "List only the [declaration_index, claim_index] pairs in current_target; a "
+                        "declaration that no longer maps this claim is not a member, even as non-contributing."
+                    ),
                     "current_target": [member.model_dump(mode="json") for member in group.declarations],
-                })
+                }
+                if extra := sorted(set(members) - expected_members):
+                    error["remove_members"] = [list(m) for m in extra]
+                if missing := sorted(expected_members - set(members)):
+                    error["add_members"] = [list(m) for m in missing]
+                if duplicates := sorted({m for m in members if members.count(m) > 1}):
+                    error["duplicate_members"] = [list(m) for m in duplicates]
+                errors.append(error)
             elif audit.supported and all(member.contributes for member in audit.source_contributions):
                 for finding_index, finding in enumerate(review.findings):
                     if _denies_complete_claim(finding, group):

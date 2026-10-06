@@ -1,0 +1,339 @@
+{
+  "set": "practice",
+  "search": "stage2",
+  "identity": {
+    "needs_sha256": "327c22173c66ca37296f2f5f143b0dae8efada9a734850a63f04411b52bc2a96",
+    "plans_sha256": "4fd5e470a3f63122698a6111a3bbe7a28fa190e1f52325aa9fb65f08ebc56c16",
+    "proposal_sha256": "c3e1f68e039207b209c1071a8de5be546ee6fdaf16e305d78d9d12e220104ad5"
+  },
+  "model": "openai:gpt-6-luna",
+  "prompt_template_id": "librarian.evidence-strength",
+  "prompt_digest": "03fe6cbdd81706221dc567f0880eeca0b636a7d825ca4d0789b8b7cc3b2b8446",
+  "recorded_at": "2026-10-01T12:01:09+00:00",
+  "passed": 17,
+  "needs": [
+    {
+      "id": "n01",
+      "chapter": 17,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch17-ln2001-2037",
+        "pg500-v6bdc1734-ch17-ln2030-2060"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 2,
+      "pool_words": 576,
+      "model_calls": 1,
+      "input_tokens": 3240,
+      "output_tokens": 176
+    },
+    {
+      "id": "n02",
+      "chapter": 4,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch04-ln0475-0523",
+        "pg500-v6bdc1734-ch04-ln0436-0480"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1008,
+      "model_calls": 1,
+      "input_tokens": 4042,
+      "output_tokens": 199
+    },
+    {
+      "id": "n03",
+      "chapter": 7,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch07-ln0728-0782"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1027,
+      "model_calls": 1,
+      "input_tokens": 3988,
+      "output_tokens": 115
+    },
+    {
+      "id": "n04",
+      "chapter": 8,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch08-ln0825-0883"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 2,
+      "pool_words": 672,
+      "model_calls": 1,
+      "input_tokens": 3379,
+      "output_tokens": 136
+    },
+    {
+      "id": "n05",
+      "chapter": 6,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch06-ln0643-0663"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 735,
+      "model_calls": 1,
+      "input_tokens": 3557,
+      "output_tokens": 133
+    },
+    {
+      "id": "n06",
+      "chapter": 5,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch05-ln0559-0593"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 2,
+      "pool_words": 659,
+      "model_calls": 1,
+      "input_tokens": 3296,
+      "output_tokens": 119
+    },
+    {
+      "id": "n07",
+      "chapter": 11,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch10-ln1038-1078"
+      ],
+      "evidence_strength": "weak",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 792,
+      "model_calls": 1,
+      "input_tokens": 3679,
+      "output_tokens": 157
+    },
+    {
+      "id": "n08",
+      "chapter": 12,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch12-ln1208-1263"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 987,
+      "model_calls": 1,
+      "input_tokens": 4007,
+      "output_tokens": 136
+    },
+    {
+      "id": "n09",
+      "chapter": 18,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch12-ln1333-1382"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 2,
+      "pool_words": 678,
+      "model_calls": 1,
+      "input_tokens": 3398,
+      "output_tokens": 153
+    },
+    {
+      "id": "n10",
+      "chapter": 19,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch19-ln2306-2341"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 866,
+      "model_calls": 1,
+      "input_tokens": 3736,
+      "output_tokens": 135
+    },
+    {
+      "id": "n11",
+      "chapter": 22,
+      "passed": false,
+      "reached": false,
+      "selected": [
+        "pg500-v6bdc1734-ch22-ln2551-2605"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 924,
+      "model_calls": 1,
+      "input_tokens": 3882,
+      "output_tokens": 136
+    },
+    {
+      "id": "n12",
+      "chapter": 23,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch23-ln2680-2708"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 663,
+      "model_calls": 1,
+      "input_tokens": 3558,
+      "output_tokens": 133
+    },
+    {
+      "id": "n13",
+      "chapter": 28,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch28-ln3694-3729"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1008,
+      "model_calls": 1,
+      "input_tokens": 3959,
+      "output_tokens": 124
+    },
+    {
+      "id": "n14",
+      "chapter": 29,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch29-ln3900-3950"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 1029,
+      "model_calls": 1,
+      "input_tokens": 4103,
+      "output_tokens": 121
+    },
+    {
+      "id": "n15",
+      "chapter": 30,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4068-4127"
+      ],
+      "evidence_strength": "weak",
+      "error": null,
+      "pool_size": 6,
+      "pool_words": 1908,
+      "model_calls": 1,
+      "input_tokens": 5879,
+      "output_tokens": 221
+    },
+    {
+      "id": "n16",
+      "chapter": 32,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch32-ln4494-4548"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 793,
+      "model_calls": 1,
+      "input_tokens": 3693,
+      "output_tokens": 106
+    },
+    {
+      "id": "n17",
+      "chapter": 33,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch33-ln4959-5003"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 12,
+      "pool_words": 3573,
+      "model_calls": 1,
+      "input_tokens": 9126,
+      "output_tokens": 377
+    },
+    {
+      "id": "n18",
+      "chapter": 35,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch35-ln5288-5299"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 778,
+      "model_calls": 1,
+      "input_tokens": 3605,
+      "output_tokens": 141
+    },
+    {
+      "id": "n19",
+      "chapter": 36,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch36-ln5661-5718"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 3,
+      "pool_words": 992,
+      "model_calls": 1,
+      "input_tokens": 3975,
+      "output_tokens": 149
+    },
+    {
+      "id": "n20",
+      "chapter": 36,
+      "passed": true,
+      "reached": true,
+      "selected": [
+        "pg500-v6bdc1734-ch36-ln5789-5832"
+      ],
+      "evidence_strength": "sufficient",
+      "error": null,
+      "pool_size": 18,
+      "pool_words": 5883,
+      "model_calls": 1,
+      "input_tokens": 13319,
+      "output_tokens": 329
+    }
+  ]
+}

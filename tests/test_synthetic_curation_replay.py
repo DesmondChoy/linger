@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import logfire
@@ -18,6 +20,7 @@ from evals.sculptor.harness import (
     ExpectedCurationProposal,
     grade_curation_expectation,
 )
+from evals.synthetic_journals import curation_replay
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.curation_replay import (
     CURATION_OBJECTIVE_ID,
@@ -36,6 +39,7 @@ from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.sculptor.agent import build_sculptor_agent
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
+    CurationMemory,
     CurationProposal,
     DerivedSummary,
     DuplicateLink,
@@ -43,7 +47,9 @@ from src.linger.agents.sculptor.models import (
     SculptorResponse,
     TopicGroup,
 )
-from src.linger.orchestration.curation import propose_curation
+from src.linger.agents.provenance.curation_models import CurationProvenanceReview
+from src.linger.orchestration.curation import propose_curation, run_curation_loop
+from src.linger.services.memory import AccountContext, MemoryRecord
 
 
 def _json_bytes(document: dict[str, object]) -> bytes:
@@ -475,6 +481,11 @@ def test_replay_resolves_active_same_account_props_and_all_outcomes() -> None:
         tuple(memory.memory_id for memory in batch.memories)
         for batch in observed_batches
     ] == [scene.prop_ids for scene in backstory.scenes]
+    assert all(
+        memory.recorded_at is None
+        for batch in observed_batches
+        for memory in batch.memories
+    )
     assert {scene.response.kind for scene in result.scenes} == {
         "curation_proposal",
         "no_curation_proposal",
@@ -735,3 +746,106 @@ def test_cli_returns_nonzero_for_an_invalid_scenario(
 
     assert result == 1
     assert "EVALUATION_RUN_ERROR=" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    ("dates", "sculptor_dates", "provenance_dates"),
+    [
+        ((None, None), [None, None], [None, None]),
+        (
+            (datetime(2026, 2, 5, 21, tzinfo=UTC), datetime(2026, 6, 16, 20, tzinfo=UTC)),
+            ["2026-02-05T21:00:00Z", "2026-06-16T20:00:00Z"],
+            ["2026-02-05T21:00:00Z", "2026-06-16T20:00:00Z"],
+        ),
+        (
+            (datetime(2026, 2, 5, 21, tzinfo=UTC), None),
+            ["2026-02-05T21:00:00Z", None],
+            ["2026-02-05T21:00:00Z", None],
+        ),
+    ],
+)
+def test_synthetic_curation_prompts_carry_only_prop_capture_times(
+    tmp_path: Path, dates, sculptor_dates, provenance_dates
+) -> None:
+    """The placeholder record time never reaches Sculptor or Provenance."""
+
+    records = tuple(
+        MemoryRecord(
+            memory_id=memory_id,
+            account_key=hashlib.sha256(b"synthetic-account").hexdigest(),
+            text=text,
+            capture_type="automatic",
+            source_event_id=f"synthetic:{memory_id}",
+            idempotency_key=f"synthetic:{memory_id}",
+            evidence_ids=(),
+            created_at="2026-01-01T00:00:00+00:00",
+            updated_at="2026-01-01T00:00:00+00:00",
+        )
+        for memory_id, text in (
+            ("prop-old", "Book club meets on Mondays."),
+            ("prop-new", "Book club moved to Fridays."),
+        )
+    )
+    service = curation_replay._SyntheticMemoryService(
+        records, tmp_path, dict(zip(("prop-old", "prop-new"), dates))
+    )
+    prompts: dict[str, dict] = {}
+
+    class Sculptor:
+        async def run(self, prompt: str, **_kwargs):
+            prompts["sculptor"] = json.loads(prompt)
+            return SimpleNamespace(
+                output=CurationProposal(
+                    kind="curation_proposal",
+                    action=DerivedSummary(
+                        action="update_derived_summary",
+                        source_memory_ids=("prop-old", "prop-new"),
+                        summary="Book club moved from Mondays to Fridays.",
+                    ),
+                ),
+                new_messages=lambda: (),
+            )
+
+    class Provenance:
+        async def run(self, prompt: str, **_kwargs):
+            prompts["provenance"] = json.loads(prompt)
+            return SimpleNamespace(
+                output=CurationProvenanceReview(
+                    proposal_digest=prompts["provenance"]["proposal_digest"],
+                    decision="allow",
+                ),
+                new_messages=lambda: (),
+            )
+
+    asyncio.run(
+        run_curation_loop(
+            AccountContext("synthetic-account"),
+            ("prop-old", "prop-new"),
+            service=service,
+            sculptor=Sculptor(),
+            provenance=Provenance(),
+        )
+    )
+
+    assert [
+        memory.get("recorded_at") for memory in prompts["sculptor"]["memories"]
+    ] == sculptor_dates
+    assert [
+        source.get("recorded_at") for source in prompts["provenance"]["sources"]
+    ] == provenance_dates
+    assert "2026-01-01" not in json.dumps(prompts)
+
+
+def test_curation_artifacts_keep_prop_capture_times() -> None:
+    memory = CurationMemory(
+        memory_id="prop-old",
+        text="Book club meets on Mondays.",
+        recorded_at=datetime(2026, 2, 5, 21, tzinfo=UTC),
+    )
+    observation_input = curation_replay.CurationEvaluationInput(
+        order=1, scene_id="scene", memories=(memory, memory.model_copy(update={"memory_id": "prop-new"}))
+    )
+
+    dumped = json.loads(observation_input.model_dump_json())
+
+    assert dumped["memories"][0]["recorded_at"] == "2026-02-05T21:00:00Z"

@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # and outputs, Serendipity searches, memory text) to Inspect. Never enable
     # for a deployment real readers use.
     linger_dev_inspect: bool = False
+    linger_state_dir: Path = REPO_ROOT / "data"
+    linger_memory_dir: Path = REPO_ROOT / "memories"
+    linger_static_dir: Path | None = None
 
     @property
     def allowed_origins(self) -> list[str]:

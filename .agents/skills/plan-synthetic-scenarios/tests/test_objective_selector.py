@@ -21,16 +21,16 @@ sys.modules[SPEC.name] = selector
 SPEC.loader.exec_module(selector)
 
 
-def test_current_catalog_has_eleven_unique_objectives() -> None:
+def test_current_catalog_has_ten_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
     document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
     assert "schema_version" not in document
-    assert len(catalog.objectives) == 11
-    assert len(set(catalog.ids)) == 11
+    assert len(catalog.objectives) == 10
+    assert len(set(catalog.ids)) == 10
     assert "session_scoped_conversation_continuity" in catalog.ids
     assert "longitudinal_memory_retrieval" in catalog.ids
-    assert "proactive_memory_surfacing" in catalog.ids
+    assert "proactive_memory_surfacing" not in catalog.ids
     assert "user_controlled_memory_lifecycle" not in catalog.ids
     assert "Objective, Scenario, Backstory, Prop, Scene, Line, Ground truth" in document[
         "canonical_vocabulary"
@@ -58,6 +58,7 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
         "supported_replay_combinations"
     ] == [
         ["reviewed_automatic_memory_capture", "bounded_memory_curation"],
+        ["bounded_memory_curation", "cross_source_tentative_connection"],
         ["session_scoped_conversation_continuity", "longitudinal_memory_retrieval"],
         ["grounded_book_reflection", "spoiler_boundary_clarification"],
         ["cross_source_tentative_connection", "weak_evidence_safe_decline"],
@@ -144,14 +145,6 @@ def test_catalog_rejects_unknown_combination_partners(tmp_path: Path) -> None:
 
     with pytest.raises(selector.SelectorError, match="unknown objective"):
         selector.load_catalog(path)
-
-
-def test_proactive_objective_is_selectable_without_capture() -> None:
-    catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
-
-    assert selector.validate_selection(catalog, ["proactive_memory_surfacing"]) == (
-        "proactive_memory_surfacing",
-    )
 
 
 def test_catalog_exposes_grouping_and_choosing_aids() -> None:

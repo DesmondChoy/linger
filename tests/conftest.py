@@ -99,7 +99,7 @@ def isolated_accounts_and_transcripts(tmp_path_factory, monkeypatch):
         return
     from apps.backend import auth
     from apps.backend.accounts import AccountStore
-    from apps.backend.reading_progress import ReadingProgressStore
+    from apps.backend.progress_store import ReadingProgressStore
     from apps.backend.transcripts import TranscriptStore
 
     directory = tmp_path_factory.mktemp("stores")

@@ -1,0 +1,378 @@
+{
+  "set": "sealed",
+  "search": "today",
+  "identity": {
+    "needs_sha256": "327c22173c66ca37296f2f5f143b0dae8efada9a734850a63f04411b52bc2a96",
+    "plans_sha256": "4fd5e470a3f63122698a6111a3bbe7a28fa190e1f52325aa9fb65f08ebc56c16",
+    "proposal_sha256": null
+  },
+  "reached": 14,
+  "needs": [
+    {
+      "id": "s01",
+      "chapter": 1,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        2,
+        1
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch02-ln0206-0275",
+        "pg500-v6bdc1734-ch02-ln0154-0220",
+        "pg500-v6bdc1734-ch01-ln0092-0130"
+      ]
+    },
+    {
+      "id": "s02",
+      "chapter": 2,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        30,
+        8,
+        3
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch30-ln4114-4172",
+        "pg500-v6bdc1734-ch08-ln0793-0834",
+        "pg500-v6bdc1734-ch03-ln0319-0363"
+      ]
+    },
+    {
+      "id": "s03",
+      "chapter": 3,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        3,
+        4,
+        27
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch03-ln0356-0399",
+        "pg500-v6bdc1734-ch04-ln0436-0480",
+        "pg500-v6bdc1734-ch27-ln3535-3554"
+      ]
+    },
+    {
+      "id": "s04",
+      "chapter": 9,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch09-ln0974-0988"
+      ],
+      "pool_chapters": [
+        29,
+        9,
+        12
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch29-ln3747-3795",
+        "pg500-v6bdc1734-ch09-ln0974-0988",
+        "pg500-v6bdc1734-ch12-ln1208-1263"
+      ]
+    },
+    {
+      "id": "s05",
+      "chapter": 10,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch10-ln1000-1045"
+      ],
+      "pool_chapters": [
+        10,
+        33,
+        26
+      ],
+      "pool_size": 4,
+      "pool": [
+        "pg500-v6bdc1734-ch10-ln1000-1045",
+        "pg500-v6bdc1734-ch33-ln4833-4884",
+        "pg500-v6bdc1734-ch33-ln4897-4932",
+        "pg500-v6bdc1734-ch26-ln3215-3260"
+      ]
+    },
+    {
+      "id": "s06",
+      "chapter": 13,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch13-ln1453-1508"
+      ],
+      "pool_chapters": [
+        13,
+        4
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch13-ln1453-1508",
+        "pg500-v6bdc1734-ch04-ln0436-0480",
+        "pg500-v6bdc1734-ch04-ln0475-0523"
+      ]
+    },
+    {
+      "id": "s07",
+      "chapter": 14,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch14-ln1549-1598"
+      ],
+      "pool_chapters": [
+        19,
+        14
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch19-ln2306-2341",
+        "pg500-v6bdc1734-ch14-ln1549-1598",
+        "pg500-v6bdc1734-ch19-ln2335-2359"
+      ]
+    },
+    {
+      "id": "s08",
+      "chapter": 15,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch15-ln1636-1679"
+      ],
+      "pool_chapters": [
+        15,
+        7,
+        29
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch15-ln1636-1679",
+        "pg500-v6bdc1734-ch07-ln0701-0735",
+        "pg500-v6bdc1734-ch29-ln3868-3915"
+      ]
+    },
+    {
+      "id": "s09",
+      "chapter": 16,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch16-ln1787-1826"
+      ],
+      "pool_chapters": [
+        18,
+        34,
+        16
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch18-ln2071-2109",
+        "pg500-v6bdc1734-ch34-ln5074-5107",
+        "pg500-v6bdc1734-ch16-ln1787-1826"
+      ]
+    },
+    {
+      "id": "s10",
+      "chapter": 20,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        10,
+        20,
+        23
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch10-ln1038-1078",
+        "pg500-v6bdc1734-ch20-ln2398-2434",
+        "pg500-v6bdc1734-ch23-ln2702-2741"
+      ]
+    },
+    {
+      "id": "s11",
+      "chapter": 21,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch21-ln2497-2529"
+      ],
+      "pool_chapters": [
+        21,
+        22
+      ],
+      "pool_size": 4,
+      "pool": [
+        "pg500-v6bdc1734-ch21-ln2497-2529",
+        "pg500-v6bdc1734-ch21-ln2459-2504",
+        "pg500-v6bdc1734-ch22-ln2551-2605",
+        "pg500-v6bdc1734-ch22-ln2595-2633"
+      ]
+    },
+    {
+      "id": "s12",
+      "chapter": 24,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch24-ln3002-3053"
+      ],
+      "pool_chapters": [
+        24,
+        34
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch24-ln3002-3053",
+        "pg500-v6bdc1734-ch24-ln3047-3070",
+        "pg500-v6bdc1734-ch34-ln5192-5236"
+      ]
+    },
+    {
+      "id": "s13",
+      "chapter": 25,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch25-ln3081-3146"
+      ],
+      "pool_chapters": [
+        25,
+        14,
+        35
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch25-ln3081-3146",
+        "pg500-v6bdc1734-ch14-ln1549-1598",
+        "pg500-v6bdc1734-ch35-ln5301-5331"
+      ]
+    },
+    {
+      "id": "s14",
+      "chapter": 26,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch26-ln3215-3260"
+      ],
+      "pool_chapters": [
+        26,
+        27,
+        34
+      ],
+      "pool_size": 4,
+      "pool": [
+        "pg500-v6bdc1734-ch26-ln3215-3260",
+        "pg500-v6bdc1734-ch27-ln3324-3379",
+        "pg500-v6bdc1734-ch27-ln3446-3479",
+        "pg500-v6bdc1734-ch34-ln5052-5084"
+      ]
+    },
+    {
+      "id": "s15",
+      "chapter": 27,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch27-ln3370-3421",
+        "pg500-v6bdc1734-ch27-ln3416-3453"
+      ],
+      "pool_chapters": [
+        27,
+        28,
+        35
+      ],
+      "pool_size": 4,
+      "pool": [
+        "pg500-v6bdc1734-ch27-ln3370-3421",
+        "pg500-v6bdc1734-ch28-ln3650-3702",
+        "pg500-v6bdc1734-ch35-ln5333-5376",
+        "pg500-v6bdc1734-ch27-ln3416-3453"
+      ]
+    },
+    {
+      "id": "s16",
+      "chapter": 28,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch28-ln3564-3600"
+      ],
+      "pool_chapters": [
+        23,
+        29,
+        28
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch23-ln2680-2708",
+        "pg500-v6bdc1734-ch29-ln3747-3795",
+        "pg500-v6bdc1734-ch28-ln3564-3600"
+      ]
+    },
+    {
+      "id": "s17",
+      "chapter": 31,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch31-ln4266-4309"
+      ],
+      "pool_chapters": [
+        31
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch31-ln4266-4309",
+        "pg500-v6bdc1734-ch31-ln4297-4352",
+        "pg500-v6bdc1734-ch31-ln4380-4420"
+      ]
+    },
+    {
+      "id": "s18",
+      "chapter": 34,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        34,
+        36,
+        24
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch34-ln5136-5176",
+        "pg500-v6bdc1734-ch36-ln5619-5675",
+        "pg500-v6bdc1734-ch24-ln2865-2903"
+      ]
+    },
+    {
+      "id": "s19",
+      "chapter": 35,
+      "reached": true,
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch35-ln5366-5402",
+        "pg500-v6bdc1734-ch35-ln5394-5434"
+      ],
+      "pool_chapters": [
+        35,
+        34
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch35-ln5366-5402",
+        "pg500-v6bdc1734-ch35-ln5394-5434",
+        "pg500-v6bdc1734-ch34-ln5136-5176"
+      ]
+    },
+    {
+      "id": "s20",
+      "chapter": 36,
+      "reached": false,
+      "evidence_ids": [],
+      "pool_chapters": [
+        24,
+        36,
+        35
+      ],
+      "pool_size": 3,
+      "pool": [
+        "pg500-v6bdc1734-ch24-ln2897-2946",
+        "pg500-v6bdc1734-ch36-ln5450-5499",
+        "pg500-v6bdc1734-ch35-ln5427-5440"
+      ]
+    }
+  ]
+}

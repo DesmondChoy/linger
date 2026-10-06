@@ -1,0 +1,1245 @@
+{
+  "target": "current",
+  "model": "gpt-6-luna",
+  "prompt": {
+    "template_id": "muse.revision",
+    "digest": "d76d692a228d3ec2c088b66fbb00f7f508063576fb04d2c0c894498a1e393ed1"
+  },
+  "runs": 6,
+  "cases": 6,
+  "errors": 0,
+  "retry_exhausted": 0,
+  "hard_pass_rate": 0.833,
+  "first_attempt_clean_rate": 0.583,
+  "mean_retries": 0.61,
+  "mean_input_tokens": 34714,
+  "mean_output_tokens": 351,
+  "per_case": {
+    "muse-revision-attribution-order-v1": {
+      "rules": [
+        "R12: when rephrasing a flagged claim keep who said what and the order of events, and reassess support for the new wording",
+        "R6: keep unflagged sentences word for word or delete them",
+        "R4: keep the retained source declared and mapped"
+      ],
+      "hard_pass": "6/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren a storm is coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren a storm is coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 4.24,
+          "input_tokens": 12576,
+          "output_tokens": 170
+        },
+        {
+          "reply": "In Chapter 1, before the boat left, Marta looked at the sky and told Oren that a storm was coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat left, Marta looked at the sky and told Oren that a storm was coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 6.98,
+          "input_tokens": 25437,
+          "output_tokens": 209
+        },
+        {
+          "reply": "In Chapter 1, before the boat leaves, Marta tells Oren that a storm is coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat leaves, Marta tells Oren that a storm is coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 4.21,
+          "input_tokens": 12576,
+          "output_tokens": 162
+        },
+        {
+          "reply": "In Chapter 1, before the boat left, Marta looked at the sky and told Oren a storm was coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat left, Marta looked at the sky and told Oren a storm was coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.72,
+          "input_tokens": 25437,
+          "output_tokens": 207
+        },
+        {
+          "reply": "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren a storm is coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren a storm is coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 3.86,
+          "input_tokens": 12576,
+          "output_tokens": 170
+        },
+        {
+          "reply": "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren that a storm is coming. Oren only laughs and unties the rope. It is a small moment, but it sets up who listens and who does not. What did you make of his laugh?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, before the boat leaves, Marta looks at the sky and tells Oren that a storm is coming.",
+                "Oren only laughs and unties the rope."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-warning",
+              "source_location": "Chapter 1, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.94,
+          "input_tokens": 25437,
+          "output_tokens": 209
+        }
+      ]
+    },
+    "muse-revision-quoted-fragment-v1": {
+      "rules": [
+        "R15/R14: remove an unnecessary quoted fragment by rewriting the idea as supported plain prose; never replace it with a shorter quoted fragment",
+        "R4: keep the retained source declared and mapped to the rewritten claim",
+        "C21/G9: keep quotation mechanics out of the reply"
+      ],
+      "hard_pass": "4/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "In Chapter 1, Ines describes the ferry as patient and says it knows its way home, suggesting she sees it as steady and reassuring. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines describes the ferry as patient and says it knows its way home, suggesting she sees it as steady and reassuring.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unbound_quote",
+              "exact_quote"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.83,
+          "input_tokens": 53524,
+          "output_tokens": 436
+        },
+        {
+          "reply": "In Chapter 1, Ines describes the ferry: “It is a patient animal,” Ines said of the ferry, “and it knows its own way home.” That gives it a familiar, reassuring quality. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines describes the ferry: “It is a patient animal,” Ines said of the ferry, “and it knows its own way home.” That gives it a familiar, reassuring quality.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": "“It is a patient animal,” Ines said of the ferry, “and it knows its own way home.”"
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "forbidden_present: '“'"
+          ],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "exact_quote"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 18.49,
+          "input_tokens": 53274,
+          "output_tokens": 500
+        },
+        {
+          "reply": "In Chapter 1, Ines’s description of the ferry as patient and able to find its way home gives her words a calm, trusting tone. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines’s description of the ferry as patient and able to find its way home gives her words a calm, trusting tone.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.48,
+          "input_tokens": 25518,
+          "output_tokens": 212
+        },
+        {
+          "reply": "In Chapter 1, Ines describes the ferry as “It is a patient animal,” Ines said of the ferry, “and it knows its own way home.” This suggests she sees it as dependable, perhaps even reassuring. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines describes the ferry as “It is a patient animal,” Ines said of the ferry, “and it knows its own way home.” This suggests she sees it as dependable, perhaps even reassuring.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": "“It is a patient animal,” Ines said of the ferry, “and it knows its own way home.”"
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "forbidden_present: '“'"
+          ],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "exact_quote"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 17.85,
+          "input_tokens": 53290,
+          "output_tokens": 514
+        },
+        {
+          "reply": "In Chapter 1, Ines describes the ferry as patient and sure of its way home, which gives her words a calm, almost affectionate tone. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines describes the ferry as patient and sure of its way home, which gives her words a calm, almost affectionate tone.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.9,
+          "input_tokens": 25518,
+          "output_tokens": 212
+        },
+        {
+          "reply": "In Chapter 1, Ines describes the ferry as patient and sure of its way home, which gives her words a calm, almost fond tone. She stays at the rail long after the others go below. Does that match how the crossing felt to you as you read?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines describes the ferry as patient and sure of its way home, which gives her words a calm, almost fond tone.",
+                "She stays at the rail long after the others go below."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-animal",
+              "source_location": "Chapter 1, passage 3",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 8.05,
+          "input_tokens": 25518,
+          "output_tokens": 212
+        }
+      ]
+    },
+    "muse-revision-requested-quote-v1": {
+      "rules": [
+        "R10: preserve the reader's request (here, a request for exact wording) while repairing",
+        "R1: keep an accepted claim's mapping and its full quotation declaration when its exact text is retained",
+        "R9: a flagged needs_source sentence is mapped or deleted, not reworded into another unsupported claim"
+      ],
+      "hard_pass": "6/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 3.41,
+          "input_tokens": 25597,
+          "output_tokens": 196
+        },
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 2,
+          "retry_categories": [
+            [
+              "source_application"
+            ],
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 15.44,
+          "input_tokens": 52842,
+          "output_tokens": 514
+        },
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 8.23,
+          "input_tokens": 25597,
+          "output_tokens": 196
+        },
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 5.93,
+          "input_tokens": 25597,
+          "output_tokens": 196
+        },
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.12,
+          "input_tokens": 25597,
+          "output_tokens": 196
+        },
+        {
+          "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-keeper",
+              "source_location": "Chapter 1, passage 4",
+              "exact_quote": "You will learn the lamp before you learn my name,"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.83,
+          "input_tokens": 25597,
+          "output_tokens": 196
+        }
+      ]
+    },
+    "muse-revision-session-line-v1": {
+      "rules": [
+        "R16: a reader-sourced fact flagged as unattributed is repaired by attributing it to the reader in reply plus a matching session_line declaration; a conditional restatement does not repair it",
+        "C44/C45: the session_line quote is the reader's own earlier words, verbatim"
+      ],
+      "hard_pass": "6/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "You said the book club meets next Thursday evening, so one chapter every other day would get you there with time to spare. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it. Which of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said the book club meets next Thursday evening, so one chapter every other day would get you there with time to spare."
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            },
+            {
+              "supported_claims": [
+                "Which of the four do you expect to take longest?"
+              ],
+              "source_kind": "session_line",
+              "quote": "I've got four chapters left."
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 2.46,
+          "input_tokens": 11947,
+          "output_tokens": 183
+        },
+        {
+          "reply": "You said you meet next Thursday evening, so one chapter every other day would get you there with time to spare. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it.\n\nWhich of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said you meet next Thursday evening"
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            },
+            {
+              "supported_claims": [
+                "one chapter every other day would get you there with time to spare",
+                "Which of the four do you expect to take longest?"
+              ],
+              "source_kind": "session_line",
+              "quote": "I've got four chapters left. How should I pace them before we meet?"
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 4.27,
+          "input_tokens": 11947,
+          "output_tokens": 189
+        },
+        {
+          "reply": "You said you meet next Thursday evening. With four chapters left, you could read one every other day and leave the final chapter for the evening before, if that pace feels comfortable. Which of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said you meet next Thursday evening."
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 2,
+          "retry_categories": [
+            [
+              "needs_source_unmapped"
+            ],
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 11.43,
+          "input_tokens": 36998,
+          "output_tokens": 377
+        },
+        {
+          "reply": "You said your book club meets next Thursday evening. With four chapters left, you might try one chapter a day and keep a spare evening for anything that runs long. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it. Which of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said your book club meets next Thursday evening."
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 7.72,
+          "input_tokens": 11947,
+          "output_tokens": 438
+        },
+        {
+          "reply": "You said your book club meets next Thursday evening, so one chapter every other day would get you there with time to spare. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it. Which of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said your book club meets next Thursday evening, so one chapter every other day would get you there with time to spare."
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            },
+            {
+              "supported_claims": [
+                "Which of the four do you expect to take longest?"
+              ],
+              "source_kind": "session_line",
+              "quote": "I've got four chapters left."
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 3.8,
+          "input_tokens": 11947,
+          "output_tokens": 183
+        },
+        {
+          "reply": "You said your book-club meeting is next Thursday evening, so you could read two chapters on one day and one on each of the next two days, leaving the final chapter for just before the meeting. That gives you a little room if a chapter takes longer than expected. Which of the four do you expect to take longest?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "You said your book-club meeting is next Thursday evening"
+              ],
+              "source_kind": "session_line",
+              "quote": "I'm reading this one for my book club, and we meet next Thursday evening."
+            },
+            {
+              "supported_claims": [
+                "you could read two chapters on one day and one on each of the next two days, leaving the final chapter for just before the meeting"
+              ],
+              "source_kind": "session_line",
+              "quote": "I've got four chapters left."
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 4.23,
+          "input_tokens": 11947,
+          "output_tokens": 193
+        }
+      ]
+    },
+    "muse-revision-source-mapping-v1": {
+      "rules": [
+        "R9: map the complete content of a needs_source sentence or delete it; rewording alone does not resolve it",
+        "R13: for a source-mapping repair, delete redundant closing interpretations that repeat the source accounts, then regenerate declarations against the final reply",
+        "R11/R10: keep the unaffected accepted claim that answers the reader's request"
+      ],
+      "hard_pass": "5/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 6.27,
+          "input_tokens": 26060,
+          "output_tokens": 263
+        },
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 0,
+          "retry_categories": [],
+          "tool_calls": [],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 3.47,
+          "input_tokens": 12811,
+          "output_tokens": 226
+        },
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. Together these moments show a promise kept faithfully from the very first day. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell.",
+                "Together these moments show a promise kept faithfully from the very first day."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore.",
+                "Together these moments show a promise kept faithfully from the very first day."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "deleted: unflagged sentence 2 kept or reworded instead of deleted",
+            "forbidden_present: 'faithfully'"
+          ],
+          "retries": 2,
+          "retry_categories": [
+            [
+              "claim_span",
+              "unflagged_rewrite"
+            ],
+            [
+              "needs_source_unmapped"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 26.65,
+          "input_tokens": 84326,
+          "output_tokens": 916
+        },
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 2,
+          "retry_categories": [
+            [
+              "claim_span",
+              "unflagged_rewrite"
+            ],
+            [
+              "needs_source_unmapped"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 22.96,
+          "input_tokens": 84326,
+          "output_tokens": 874
+        },
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 3,
+          "retry_categories": [
+            [
+              "claim_span",
+              "unflagged_rewrite"
+            ],
+            [
+              "needs_source_unmapped"
+            ],
+            [
+              "needs_source_unmapped"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 27.15,
+          "input_tokens": 84395,
+          "output_tokens": 1080
+        },
+        {
+          "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c1-promise",
+              "source_location": "Chapter 1, passage 1",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-letter",
+              "source_location": "Chapter 2, passage 1",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 2,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ],
+            [
+              "needs_source_unmapped"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 21.25,
+          "input_tokens": 68914,
+          "output_tokens": 828
+        }
+      ]
+    },
+    "muse-revision-unflagged-repeat-v1": {
+      "rules": [
+        "R8: address every finding, apply each repair to every instance of the defect, and delete (do not reword) an unflagged sentence that repeats a flagged problem",
+        "R12: when rephrasing a flagged claim keep whether it was proposed or completed; an announcement does not establish its promised outcome",
+        "R4: keep the retained source declared and rewrite the disputed wording instead of removing the source"
+      ],
+      "hard_pass": "3/6",
+      "errors": 0,
+      "runs": [
+        {
+          "reply": "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 12.02,
+          "input_tokens": 38847,
+          "output_tokens": 338
+        },
+        {
+          "reply": "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. With the harbour closed each evening, the fishing families have to change their routines. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit.",
+                "With the harbour closed each evening, the fishing families have to change their routines."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "deleted: unflagged sentence 2 kept or reworded instead of deleted",
+            "forbidden_present: 'harbour closed'",
+            "forbidden_present: 'fishing families'"
+          ],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 12.1,
+          "input_tokens": 38849,
+          "output_tokens": 374
+        },
+        {
+          "reply": "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 12.09,
+          "input_tokens": 38955,
+          "output_tokens": 341
+        },
+        {
+          "reply": "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 16.64,
+          "input_tokens": 52484,
+          "output_tokens": 370
+        },
+        {
+          "reply": "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. With the harbour closed each evening, the fishing families have to change their routines. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, the harbour master decides to ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit.",
+                "With the harbour closed each evening, the fishing families have to change their routines."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "deleted: unflagged sentence 2 kept or reworded instead of deleted",
+            "forbidden_present: 'harbour closed'",
+            "forbidden_present: 'fishing families'"
+          ],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite",
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search",
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 15.19,
+          "input_tokens": 52658,
+          "output_tokens": 404
+        },
+        {
+          "reply": "In Chapter 2, he decides to ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. With the harbour closed each evening, the fishing families have to change their routines. Does his caution seem reasonable to you?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 2, he decides to ask the council to close the harbour at dusk.",
+                "He also wants every boat home before the lamps are lit."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "lowmere-c2-meeting",
+              "source_location": "Chapter 2, passage 2",
+              "exact_quote": null
+            }
+          ],
+          "hard_pass": false,
+          "failures": [
+            "deleted: unflagged sentence 2 kept or reworded instead of deleted",
+            "forbidden_present: 'harbour closed'",
+            "forbidden_present: 'fishing families'"
+          ],
+          "retries": 1,
+          "retry_categories": [
+            [
+              "unflagged_rewrite"
+            ]
+          ],
+          "tool_calls": [
+            "librarian_search"
+          ],
+          "modules": "complete-skill",
+          "instructions_sha256": "7cc1769b097cf9238ffd8490b9a20cffc4245998e633df21b12826703c1a2aa0",
+          "seconds": 11.56,
+          "input_tokens": 38839,
+          "output_tokens": 344
+        }
+      ]
+    }
+  }
+}

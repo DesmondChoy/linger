@@ -127,26 +127,9 @@ describe('routes and authority boundaries', () => {
   })
 
   it('marks unsupported complete memory and cross-source flows as targets', () => {
-    const targets = ['longitudinal_memory_retrieval', 'cross_source_tentative_connection', 'proactive_memory_surfacing']
+    const targets = ['longitudinal_memory_retrieval', 'cross_source_tentative_connection']
     for (const objective of objectiveScenes.filter((item) => targets.includes(item.objectiveId))) {
       expect(objective.scenes.every((item) => item.status === 'target')).toBe(true)
-    }
-  })
-
-  it('separates the proactive prerequisite write from later selective surfacing', () => {
-    const initial = scene('proactive_memory_surfacing', 'update-and-curate')
-    const later = scene('proactive_memory_surfacing', 'useful-later-cue')
-    const deferred = scene('proactive_memory_surfacing', 'defer-the-same-cue')
-    expect(initial.edges.some((edge) => edge.source === 'sculptor' && edge.target === 'curation_review')).toBe(true)
-    expect(initial.edges.some((edge) => edge.source === 'curation_review' && edge.target === 'memory_policy')).toBe(true)
-    expect(later.input).toEqual(deferred.input)
-    expect(later.nodes).toEqual(deferred.nodes)
-    expect(later.edges.find((edge) => edge.id === 'sculptor-muse')?.label).toBe('Surface now')
-    expect(deferred.edges.find((edge) => edge.id === 'sculptor-muse')?.label).toBe('Defer')
-    for (const item of [later, deferred]) {
-      expect(item.nodes.map((node) => node.id)).toContain('session')
-      expect(item.edges.some((edge) => edge.target === 'memory')).toBe(false)
-      expect(item.edges.some((edge) => edge.source === 'librarian' && edge.target === 'sculptor')).toBe(true)
     }
   })
 

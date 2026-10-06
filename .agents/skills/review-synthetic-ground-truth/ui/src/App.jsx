@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { InjectionExpectation } from './InjectionExpectation.jsx'
+import { LineAttackExpectation, LineCaptureExpectation } from './LineAttackExpectation.jsx'
 import { decisionPayload, reviewProgress, toggleId } from './review.js'
 import { MarkdownContent, publicSourceReadingText, SourceDocument } from './SourceDocument.jsx'
 
@@ -44,6 +46,7 @@ function InputRecord({ item }) {
         {item.role ? <StatusPill tone={item.role === 'expected source' || item.role === 'relevant' ? 'positive' : 'neutral'}>{item.role}</StatusPill> : null}
       </header>
       {item.lifecycle ? <p className="constraint">Source state: {item.lifecycle}</p> : null}
+      {item.recordedAt ? <p className="constraint">Recorded: <time dateTime={item.recordedAt}>{item.recordedAt.replace('T', ' ')}</time></p> : null}
       {item.surfacingContext ? (
         <section className="typed-expectation">
           <div className="field-pair"><span>Decision time</span><strong>{item.surfacingContext.now}</strong></div>
@@ -289,6 +292,9 @@ function GroundTruthDetails({ row }) {
           {row.capture.nomination.span ? <blockquote className="exact-quote">{row.capture.nomination.span.text}</blockquote> : null}
         </section>
       ) : null}
+      <InjectionExpectation value={row.injection} />
+      <LineAttackExpectation value={row.lineAttack} />
+      <LineCaptureExpectation value={row.lineCapture} />
       <CurationExpectation value={row.curation} />
       <SurfacingExpectation value={row.surfacing} />
       <GroundingExpectation value={row.grounding} />

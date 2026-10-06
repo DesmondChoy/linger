@@ -18,11 +18,6 @@ from evals.synthetic_journals.book_contract import (
     BookContractError,
     compile_book_replay_plan,
 )
-from evals.synthetic_journals.conversational_surfacing_contract import (
-    CONVERSATIONAL_CONTRACT,
-    ConversationalContractError,
-    compile_conversational_scenes,
-)
 from evals.synthetic_journals.models import (
     CaptureCandidate,
     CaptureExpectation,
@@ -40,6 +35,10 @@ from evals.synthetic_journals.models import (
     SyntheticBackstory,
     UnavailableCandidate,
 )
+from evals.synthetic_journals.memory_injection import (
+    INJECTION_RUN_CONFIGURATION_ID, validate_memory_injection,
+)
+from evals.synthetic_journals.line_attack_contract import validate_line_attacks
 from evals.synthetic_journals.surfacing_contract import (
     SURFACING_OBJECTIVE_ID,
     SurfacingContractError,
@@ -258,17 +257,13 @@ def validate_scenario(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
     failures.extend(_validate_sensitive_capture_objective(backstory, ground_truth))
+    failures.extend(validate_memory_injection(backstory, ground_truth))
+    failures.extend(validate_line_attacks(backstory, ground_truth))
     if SURFACING_OBJECTIVE_ID in backstory.objective_ids:
-        if backstory.scenario_contract == CONVERSATIONAL_CONTRACT:
-            try:
-                compile_conversational_scenes(backstory, ground_truth)
-            except ConversationalContractError as error:
-                failures.append(str(error))
-        else:
-            try:
-                compile_surfacing_scenes(backstory, ground_truth)
-            except SurfacingContractError as error:
-                failures.append(str(error))
+        try:
+            compile_surfacing_scenes(backstory, ground_truth)
+        except SurfacingContractError as error:
+            failures.append(str(error))
     failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)
     )
@@ -906,6 +901,122 @@ def _validate_run_configurations(
                     ground_truth,
                 )
             )
+        if configuration.line_attack_mix is not None:
+            scene_ids = {scene.scene_id for scene in scenes}
+            kinds = [
+                proposal.line_attack.kind
+                for proposal in ground_truth.proposals
+                if proposal.scene_id in scene_ids and proposal.line_attack is not None
+            ]
+            mix = configuration.line_attack_mix
+            if (
+                kinds.count("attack") != mix.attack
+                or kinds.count("benign_control") != mix.benign_control
+            ):
+                failures.append(
+                    f"run configuration {configuration_id} does not match its "
+                    "Line attack/control counts"
+                )
+        if configuration.curation_recall_loop is not None:
+            failures.extend(
+                _validate_curation_recall_loop(
+                    configuration,
+                    scenes,
+                    backstory,
+                    ground_truth,
+                )
+            )
+    return failures
+
+
+def _validate_curation_recall_loop(
+    configuration: RunConfiguration,
+    scenes: list[Scene],
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+) -> list[str]:
+    """Require one shared curatable Prop bank and one recall Line per Scene."""
+
+    label = f"run configuration {configuration.run_configuration_id}"
+    failures: list[str] = []
+    if backstory.objective_ids != (configuration.objective_id,) or len(scenes) != len(
+        backstory.scenes
+    ):
+        failures.append(
+            f"{label} requires {configuration.objective_id} as the only Objective"
+        )
+    if len(backstory.run_configuration_ids) != 1:
+        failures.append(f"{label} cannot be combined with another run configuration")
+    if not scenes:
+        return failures
+
+    prop_bank = set(scenes[0].prop_ids)
+    if not 2 <= len(prop_bank) <= 12:
+        failures.append(f"{label} requires 2-12 Props for bounded curation")
+    props = {prop.prop_id: prop for prop in backstory.props}
+    proposals = {
+        proposal.scene_id: proposal
+        for proposal in ground_truth.proposals
+        if proposal.objective_id == configuration.objective_id
+    }
+    relevant_counts: list[int] = []
+    for scene in scenes:
+        if set(scene.prop_ids) != prop_bank:
+            failures.append(f"{label} requires every Scene to share one Prop bank")
+        if not scene.fresh_session or scene.offline_input_ids:
+            failures.append(
+                f"{label} requires fresh-session Scene {scene.scene_id} "
+                "without offline inputs"
+            )
+        if len(scene.line_ids) != 1:
+            failures.append(
+                f"{label} requires exactly one Line in Scene {scene.scene_id}"
+            )
+        for prop_id in scene.prop_ids:
+            lifecycle = next(
+                item
+                for item in props[prop_id].lifecycle
+                if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"{label} requires Prop {prop_id} to be active for "
+                    f"{scene.scene_id}"
+                )
+        proposal = proposals.get(scene.scene_id)
+        if proposal is None:  # Covered by the general proposal topology check.
+            continue
+        judgments = {item.prop_id: item.relevance for item in proposal.prop_relevance}
+        if set(judgments) != set(scene.prop_ids):
+            failures.append(
+                f"{label} requires one Prop relevance judgment for every Prop in "
+                f"{scene.scene_id}"
+            )
+            continue
+        relevant_ids = {
+            prop_id
+            for prop_id, relevance in judgments.items()
+            if relevance == "relevant"
+        }
+        relevant_counts.append(len(relevant_ids))
+        evidence_prop_ids = [
+            evidence.prop_id
+            for evidence in proposal.evidence
+            if isinstance(evidence, PropEvidence)
+        ]
+        if (
+            len(evidence_prop_ids) != len(proposal.evidence)
+            or len(evidence_prop_ids) != len(set(evidence_prop_ids))
+            or set(evidence_prop_ids) != relevant_ids
+        ):
+            failures.append(
+                f"proposal {proposal.proposal_id} Prop evidence must exactly match "
+                "its relevant Prop judgments"
+            )
+    if relevant_counts and (0 not in relevant_counts or not any(relevant_counts)):
+        failures.append(
+            f"{label} requires a Scene with a relevant Prop and a Scene with none"
+        )
     return failures
 
 
@@ -929,8 +1040,11 @@ def _validate_retrieval_prop_mix(
             f"{expected_prop_count} Props per retrieval Scene, found "
             f"{len(expected_prop_ids)} in {scenes[0].scene_id}"
         )
+    injection_controls = configuration.run_configuration_id == INJECTION_RUN_CONFIGURATION_ID
     for scene in scenes[1:]:
-        if set(scene.prop_ids) != expected_prop_ids:
+        if injection_controls and len(scene.prop_ids) != expected_prop_count:
+            failures.append(f"injection Scene {scene.scene_id} requires {expected_prop_count} Props")
+        elif not injection_controls and set(scene.prop_ids) != expected_prop_ids:
             failures.append(
                 f"run configuration {configuration.run_configuration_id} requires "
                 "all retrieval Scenes to share the same Prop bank"
@@ -996,6 +1110,8 @@ def _validate_retrieval_prop_mix(
             (0, expected_prop_count),
         ]
     )
+    if injection_controls:
+        required_mixes = [(mix.relevant, mix.distractor)] * 2
     if sorted(observed_mixes) != required_mixes:
         failures.append(
             f"run configuration {configuration.run_configuration_id} requires "

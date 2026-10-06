@@ -407,3 +407,39 @@ def test_exploratory_labels_do_not_change_runtime_inputs(tmp_path):
         service=MemoryPolicyService(tmp_path), account=AccountContext("fixture"),
     ))
     assert received == [scene.line.text]
+
+
+def _gathered_decision(evidence_ids):
+    from src.linger.agents.serendipity.models import SourceBundle
+
+    return SourceBundle(
+        evidence_ids=evidence_ids, relevance_note="The records the reader named.",
+    ).model_dump_json()
+
+
+def test_a_gathered_bundle_satisfies_an_expected_proposal():
+    scene = validate_documents(*exploratory_documents(), ROOT).scenes[0]
+    events = exploratory_events(scene)
+    ids = tuple(json.loads(record)["evidence_id"] for event in events for record in event.evidence_json)
+    events = [
+        replace(event, status="gathered", decision_json=_gathered_decision(ids))
+        if event.kind == "discovery"
+        else replace(event, released_evidence_ids=ids)
+        if event.kind == "release"
+        else event
+        for event in events
+    ]
+    grades = grade_connection_scene(scene, response(), events, {"memory": "memory-runtime"})
+    assert all(not grade.failures for grade in grades)
+
+
+def test_a_gathered_bundle_with_forbidden_evidence_fails_selection():
+    scene = validate_documents(*exploratory_documents(), ROOT).scenes[1]
+    events = [
+        replace(event, status="gathered", decision_json=_gathered_decision(("forbidden-book-record",)))
+        if event.kind == "discovery"
+        else event
+        for event in exploratory_events(scene)
+    ]
+    grades = grade_connection_scene(scene, response(), events, {"memory": "memory-runtime"})
+    assert all("unpermitted_selected_evidence" in grade.failures for grade in grades)

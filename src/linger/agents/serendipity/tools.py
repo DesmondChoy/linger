@@ -169,6 +169,7 @@ class SerendipityDependencies:
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
     opened_web_evidence: dict[str, WebConnectionEvidence] = field(default_factory=dict)
+    attempted_web_urls: set[str] = field(default_factory=set)
 
     def record(
         self,
@@ -271,6 +272,8 @@ async def search_librarian(
     books, select plausible sources; the whole granted library may be explored.
     work_ids selects a nonempty, unique subset of the available book IDs. It is
     required when multiple books are available; permission does not request a survey.
+    When scope.search_all_granted_books is true, every granted book is searched
+    and work_ids is ignored.
     max_results_per_source limits the selected records, not reading permission.
     """
     if "book_corpus" not in ctx.deps.task.scope.allowed_sources:
@@ -278,7 +281,10 @@ async def search_librarian(
 
     book_scopes = ctx.deps.task.scope.book_scopes
     granted_work_ids = {scope.work_id for scope in book_scopes}
-    if work_ids is None:
+    if ctx.deps.task.scope.search_all_granted_books:
+        # The reader named no books, so the application searches all of them.
+        work_ids = None
+    elif work_ids is None:
         if len(granted_work_ids) > 1:
             raise ModelRetry("Select books with work_ids when multiple books are available.")
     else:
@@ -389,6 +395,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                     "may open only an exact URL returned by web_search during "
                     "this Serendipity run."
                 )
+            ctx.deps.attempted_web_urls.add(requested_url)
 
         if name in {"web_search", "get_page"}:
             record_connection_event(ConnectionEvaluationEvent(

@@ -31,8 +31,16 @@ from apps.backend.contracts import (
     MuseRevisionReview,
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
-from src.linger.agents.muse.skills import REFLECTION
-from src.linger.agents.muse.claim_repair import accepted_claims_for_revision
+from src.linger.agents.muse.skills import (
+    REFLECTION,
+    reflection_modules,
+    reflection_run_options,
+)
+from src.linger.agents.muse.claim_repair import (
+    accepted_claims_for_revision,
+    draft_sentences_for_revision,
+    retained_sources_for_revision,
+)
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     INSTRUCTIONS as MUSE_INSTRUCTIONS,
@@ -58,6 +66,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionExplorationResult,
     MemoryRecall,
+    SourceBundle,
 )
 from src.linger.contracts.emotional import BoundaryDecision, boundary_response
 from src.linger.contracts.language import LANGUAGE_BOUNDARY_RESPONSE
@@ -78,7 +87,12 @@ from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
-from src.linger.orchestration.turn_context import turn_evidence, active_memories, connection_book_scopes
+from src.linger.orchestration.turn_context import (
+    active_memories,
+    connection_book_scopes,
+    tool_exposure,
+    turn_evidence,
+)
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
@@ -101,6 +115,26 @@ MUSE_REQUEST_LIMIT = (
 # attempts. A model that answers with calls to tools it was never given would
 # otherwise keep earning fresh retry prompts.
 PROVENANCE_REVIEW_REQUEST_LIMIT = CANDIDATE_REVIEW.output_retries + 1
+
+
+def _reflection_options(*, revision: bool) -> dict[str, Any]:
+    """Muse's run options carrying only the modules this mode and turn's tool exposure need."""
+    exposure = tool_exposure()
+    return reflection_run_options(
+        revision=revision, tools=None if exposure is None else exposure.tools
+    )
+
+
+def _reflection_module_attrs(*, revision: bool) -> dict[str, object]:
+    """The fixed names of the reflection modules the run loaded, for its span."""
+    exposure = tool_exposure()
+    return {
+        "muse.reflection_modules": list(
+            reflection_modules(
+                revision=revision, tools=None if exposure is None else exposure.tools
+            )
+        )
+    }
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
@@ -649,6 +683,8 @@ def _validated_book_evidence(
             selected_ids = set(decision.evidence_ids)
             if any(item.source_kind != "memory" for item in exploration.evidence):
                 raise ReleaseValidationError("A Serendipity recall returned non-memory evidence")
+        elif isinstance(decision, SourceBundle):
+            selected_ids = set(decision.evidence_ids)
         else:
             selected_ids = set(decision.selected_candidate.evidence_ids)
         returned_ids = {item.evidence_id for item in exploration.evidence}
@@ -883,7 +919,7 @@ async def _review(
     previous_response_review: PreviousResponseReview | None = None,
     *,
     required_clarification: str | None = None,
-) -> ProvenanceReview:
+) -> tuple[ProvenanceReview, ProvenanceInput]:
     review_input = _provenance_input(
         candidate,
         review_context,
@@ -922,7 +958,7 @@ async def _review(
         review_input.validate_review(review)
     except Exception:
         raise ReleaseValidationError("Provenance review output is invalid") from None
-    return review
+    return review, review_input
 
 
 def _reviewed_capture(
@@ -1105,12 +1141,13 @@ async def _reflection_reply(
             prompt_template_id=DRAFT_PROMPT_FINGERPRINT.template_id,
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
+            span_attrs=_reflection_module_attrs(revision=False),
             message_history=history,
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=False),
         )
     except Exception:
         return _record_release(
@@ -1144,7 +1181,7 @@ async def _reflection_reply(
     draft_review_context = _effective_review_context(review_context, draft_routing)
     draft_nomination = _nomination(candidate)
     try:
-        review = await _review(
+        review, review_input = await _review(
             candidate,
             provenance,
             draft_review_context,
@@ -1281,6 +1318,10 @@ async def _reflection_reply(
             review=MuseRevisionReview(
                 findings=review.response_findings,
                 previously_accepted_claims=accepted_claims_for_revision(candidate, review),
+                retained_sources=retained_sources_for_revision(candidate, review),
+                draft_sentences=draft_sentences_for_revision(
+                    candidate, review, review_input.uncovered_response_spans,
+                ),
                 source_quote_interiors=source_quote_interiors(
                     quoted_response_spans(candidate.reply), review.quotation_audit,
                 ),
@@ -1320,12 +1361,13 @@ async def _reflection_reply(
             prompt_template_id=REVISION_PROMPT_FINGERPRINT.template_id,
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
+            span_attrs=_reflection_module_attrs(revision=True),
             message_history=[*history, *draft_result.new_messages()],
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=True),
         )
     except Exception:
         return _record_release(
@@ -1380,7 +1422,7 @@ async def _reflection_reply(
     revised_nomination = _nomination(revised_candidate)
 
     try:
-        revised_review = await _review(
+        revised_review, _ = await _review(
             revised_candidate,
             provenance,
             revised_review_context,

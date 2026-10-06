@@ -1,0 +1,31 @@
+name: Release checks (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Full commit SHA from successful release-candidate CI
+        required: true
+        type: string
+      repetitions:
+        description: Runs per Scenario (positive integer, no automatic retries)
+        default: '1'
+        type: string
+      model:
+        description: Provider and model for every replay
+        default: openai:gpt-6-luna
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/release-candidate'
+    uses: ./.github/workflows/release-checks.yml
+    with:
+      candidate_sha: ${{ inputs.candidate_sha }}
+      repetitions: ${{ inputs.repetitions }}
+      model: ${{ inputs.model }}

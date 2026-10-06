@@ -2,10 +2,12 @@
 
 import asyncio
 import json
+import zlib
 from unittest.mock import patch
 
 import pytest
-from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.exceptions import UnexpectedModelBehavior
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart, UserPromptPart
 from pydantic_ai.models.function import FunctionModel
 
 from apps.backend.contracts import BookScope, EvidenceBundle, EvidenceItem
@@ -25,25 +27,35 @@ def part(text):
 
 
 def item(identity, chapter=3):
+    start = zlib.crc32(identity.encode()) % 100_000 * 10
     return EvidenceItem(
         evidence_id=identity, work_id="fiction", book_version_id="fiction-v1",
         chapter_id=f"fiction-ch{chapter:02d}", chapter=chapter, location=f"Chapter {chapter}",
-        source_title="Fiction", source_sha256="a" * 64, source_lines=(1, 2),
+        source_title="Fiction", source_sha256="a" * 64, source_lines=(start, start + 1),
         excerpt=identity, relevance=.1,
     )
 
 
-def assessment_model(additional=(), *, strength="sufficient", support_ids=("refusal", "response")):
+def labels(payload):
+    """The assessor sees short labels; each test excerpt is its record's identity."""
+    return {e["text"]: e["evidence_id"] for e in payload["evidence"]}
+
+
+def assessment_model(additional=(), *, strength="sufficient", support_ids=("refusal", "response"), retries=None):
     def model(messages, info):
-        payload = json.loads(messages[-1].parts[0].content)
+        payload = json.loads(next(part.content for message in messages for part in message.parts
+                                  if isinstance(part, UserPromptPart)))
+        if retries is not None:
+            retries.extend(part.content for part in messages[-1].parts if isinstance(part, RetryPromptPart))
         assert payload["original_request"]["current_line"] == LINE
-        assert {e["evidence_id"] for e in payload["evidence"]} == {"refusal", "response"}
+        label = labels(payload)
+        assert set(label) == {"refusal", "response"}
         output = {
             "evidence_strength": strength, "strength_reason": "The two book needs are assessed separately.",
-            "relevant_evidence_ids": list(support_ids),
+            "relevant_evidence_ids": [label[eid] for eid in support_ids],
             "additional_parts": [part(text).model_dump(mode="json") for text in additional],
             "limitations": ["The captain's response remains unsupported."] if strength == "weak" else [],
-            "support": [{"evidence_id": eid, "part_index": index,
+            "support": [{"evidence_id": label[eid], "part_index": index,
                          "necessary_support": "Requested book wording."}
                         for index, eid in enumerate(support_ids)],
         }
@@ -103,14 +115,17 @@ def test_a_newly_noticed_but_unsupported_need_prevents_a_sufficient_result():
         chapter_id=i.chapter_id, chapter_number=i.chapter, location=i.location,
         source_sha256=i.source_sha256, source_lines=i.source_lines, text=i.excerpt,
     ) for i in (item("refusal"), item("response")))
+    retries = []
     with (
         patch("src.linger.orchestration.evidence_strength.plan_book_request",
               return_value=BookRequestPlan(parts=(part(REFUSAL),))),
-        pytest.raises(ValueError, match="every requested part"),
+        pytest.raises(UnexpectedModelBehavior),
     ):
         asyncio.run(judge_evidence_strength(
-            LINE, records, agent=assessment_model((RESPONSE,), support_ids=("refusal",)),
+            LINE, records, agent=assessment_model((RESPONSE,), support_ids=("refusal",), retries=retries),
         ))
+    assert len(retries) == 1
+    assert any(error.get("missing_part_indices") == [1] for error in json.loads(retries[0])["errors"])
 
 
 def test_candidate_budget_preserves_later_needs_and_original_fallback():
@@ -129,14 +144,14 @@ def test_candidate_budget_preserves_later_needs_and_original_fallback():
 
     def model(messages, info):
         payload = json.loads(messages[-1].parts[0].content)
-        observed = {e["evidence_id"] for e in payload["evidence"]}
-        assert len(observed) <= 20
-        assert {f"need-{index}-rank-0" for index in range(9)} <= observed
+        label = labels(payload)
+        assert len(label) <= 20
+        assert {f"need-{index}-rank-0" for index in range(9)} <= set(label)
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
             "evidence_strength": "weak", "strength_reason": "Only the last need is supported.",
-            "relevant_evidence_ids": ["need-7-rank-0"],
+            "relevant_evidence_ids": [label["need-7-rank-0"]],
             "limitations": ["The other seven needs remain unresolved."],
-            "support": [{"evidence_id": "need-7-rank-0", "part_index": 7,
+            "support": [{"evidence_id": label["need-7-rank-0"], "part_index": 7,
                          "necessary_support": "The last requested event."}],
         })])
 

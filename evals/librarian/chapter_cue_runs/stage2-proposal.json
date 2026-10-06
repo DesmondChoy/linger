@@ -1,0 +1,518 @@
+{
+  "stage": 2,
+  "created_at": "2026-10-01T10:57:24+00:00",
+  "model": "openai:gpt-6-luna",
+  "prompt_template_id": "sculptor.chapter_cues",
+  "prompt_digest": "08cdf24bfa57627acbcf493d4268622b127b36addc99913a924588bf40f617c3",
+  "input_sha256": "e12449035f25b8b2a53ee4ec7b85dd1fce68945376c964875fdc333e159f5b91",
+  "revision": {
+    "failure_patterns": [
+      "Chapter 11’s current aids do not sufficiently cue the distinct turning point: Fire Eater’s pity is shown by sneezing, and Pinocchio’s offer to take Harlequin’s place wins the pardon. The question was a miss despite nearby theater chapters being returned.",
+      "Chapter 12’s current description makes it too easy to confuse the first encounter with Fox and Cat with their later reunion in Chapter 18. Distinguish the first meeting by the five coins Fire Eater gives for Geppetto and the Fox’s and Cat’s invitation to the Field of Wonders.",
+      "Chapter 18 was returned for the buried-coins question, but search did not reach the passage. This is a passage-retrieval miss, not a chapter-selection failure, so chapter aids cannot repair it."
+    ],
+    "chapters": [
+      {
+        "chapter_number": 1,
+        "routing_description": "Mastro Cherry’s log cries when struck and giggles when planed, frightening him into a faint.",
+        "characters": [
+          "Mastro Cherry",
+          "Mastro Antonio"
+        ],
+        "retrieval_cues": [
+          "talking firewood begs not to be hit",
+          "hatchet and plane make the log cry and laugh"
+        ]
+      },
+      {
+        "chapter_number": 2,
+        "routing_description": "Geppetto asks Cherry for the log; the two argue over Polendina and fight before Geppetto limps home with the wood.",
+        "characters": [
+          "Mastro Cherry",
+          "Geppetto",
+          "Polendina"
+        ],
+        "retrieval_cues": [
+          "yellow wig; Polendina means cornmeal mush",
+          "log bumps Geppetto’s legs"
+        ]
+      },
+      {
+        "chapter_number": 3,
+        "routing_description": "Geppetto carves Pinocchio, whose nose stretches and mouth mocks him; Pinocchio runs away, and the crowd’s intervention gets Geppetto arrested.",
+        "characters": [
+          "Geppetto",
+          "Pinocchio",
+          "Carabineer"
+        ],
+        "retrieval_cues": [
+          "painted fireplace",
+          "Carabineer catches Pinocchio by his nose",
+          "Geppetto taken to prison"
+        ]
+      },
+      {
+        "chapter_number": 4,
+        "routing_description": "Pinocchio rejects the Talking Cricket’s advice about school and work, then throws a hammer and kills him.",
+        "characters": [
+          "Pinocchio",
+          "Talking Cricket"
+        ],
+        "retrieval_cues": [
+          "Cricket warns against running away from parents",
+          "hammer hits the Cricket’s head"
+        ]
+      },
+      {
+        "chapter_number": 5,
+        "routing_description": "Hungry Pinocchio finds an egg in the sweepings and tries to fry it, but a little Chick hatches and flies out the window.",
+        "characters": [
+          "Pinocchio",
+          "Chick"
+        ],
+        "retrieval_cues": [
+          "painted pot gives no food",
+          "egg and empty shells; Chick escapes"
+        ]
+      },
+      {
+        "chapter_number": 6,
+        "routing_description": "An old man drenches Pinocchio when he begs for bread. Back home he sleeps with his feet on the stove, and they burn to ashes.",
+        "characters": [
+          "Pinocchio",
+          "Geppetto",
+          "Old man"
+        ],
+        "retrieval_cues": [
+          "stormy village; ice-cold water from the window",
+          "burned feet by the stove"
+        ]
+      },
+      {
+        "chapter_number": 7,
+        "routing_description": "Geppetto finds Pinocchio footless and gives him his three peeled breakfast pears; Pinocchio eventually eats the skins and cores.",
+        "characters": [
+          "Geppetto",
+          "Pinocchio"
+        ],
+        "retrieval_cues": [
+          "Pinocchio says the cat ate his feet",
+          "fussy about peeled pears, then eats cores"
+        ]
+      },
+      {
+        "chapter_number": 8,
+        "routing_description": "Geppetto makes Pinocchio new feet and paper clothes, then sells his patched coat to buy an A-B-C book.",
+        "characters": [
+          "Geppetto",
+          "Pinocchio"
+        ],
+        "retrieval_cues": [
+          "feet glued with eggshell glue",
+          "flowered paper suit; coat traded for schoolbook"
+        ]
+      },
+      {
+        "chapter_number": 9,
+        "routing_description": "Music draws Pinocchio from school to the Great Marionette Theater, where he sells his A-B-C book for four pennies.",
+        "characters": [
+          "Pinocchio",
+          "Ragpicker"
+        ],
+        "retrieval_cues": [
+          "pipes and drums",
+          "ragpicker buys schoolbook; four pennies admission"
+        ]
+      },
+      {
+        "chapter_number": 10,
+        "routing_description": "The theater puppets recognize Pinocchio and stop the show. Fire Eater then orders him brought to the kitchen for the roast-lamb fire.",
+        "characters": [
+          "Pinocchio",
+          "Harlequin",
+          "Pulcinella",
+          "Signora Rosaura",
+          "Fire Eater"
+        ],
+        "retrieval_cues": [
+          "wooden brothers cheer him onstage",
+          "bearded director wants puppet as firewood"
+        ]
+      },
+      {
+        "chapter_number": 11,
+        "routing_description": "Fire Eater’s pity makes him sneeze and spare Pinocchio. Pinocchio offers himself instead of Harlequin, and Fire Eater pardons them both.",
+        "characters": [
+          "Pinocchio",
+          "Harlequin",
+          "Fire Eater"
+        ],
+        "retrieval_cues": [
+          "sneezes show Fire Eater feels sorry",
+          "volunteers for Harlequin; both pardoned"
+        ]
+      },
+      {
+        "chapter_number": 12,
+        "routing_description": "Fire Eater gives Pinocchio five gold pieces for Geppetto. On the road home he first meets a lame Fox and blind Cat, who tempt him toward the Field of Wonders.",
+        "characters": [
+          "Pinocchio",
+          "Fire Eater",
+          "Fox",
+          "Cat",
+          "Blackbird"
+        ],
+        "retrieval_cues": [
+          "first meeting with Fox and Cat after the theater",
+          "Blackbird warning; Cat eats him",
+          "five coins and promise of a money tree"
+        ]
+      },
+      {
+        "chapter_number": 13,
+        "routing_description": "Fox and Cat leave Pinocchio to pay their lavish inn bill. He travels alone at midnight and meets the ghost of the Talking Cricket.",
+        "characters": [
+          "Pinocchio",
+          "Fox",
+          "Cat",
+          "Talking Cricket"
+        ],
+        "retrieval_cues": [
+          "Inn of the Red Lobster; unpaid supper",
+          "ghost warns against swindlers"
+        ]
+      },
+      {
+        "chapter_number": 14,
+        "routing_description": "Black-sacked Assassins chase Pinocchio for the coins under his tongue. He bites off a cat’s paw and escapes a burning pine and muddy pool.",
+        "characters": [
+          "Pinocchio",
+          "Assassins"
+        ],
+        "retrieval_cues": [
+          "coins hidden in mouth",
+          "cat’s paw; burning tree"
+        ]
+      },
+      {
+        "chapter_number": 15,
+        "routing_description": "The azure-haired maiden refuses Pinocchio shelter. The Assassins’ knives break against his wooden back, so they hang him from an oak.",
+        "characters": [
+          "Pinocchio",
+          "Assassins",
+          "Lovely Maiden with Azure Hair"
+        ],
+        "retrieval_cues": [
+          "maiden says she is dead",
+          "broken knives; hanging from oak"
+        ]
+      },
+      {
+        "chapter_number": 16,
+        "routing_description": "The Fairy has Pinocchio rescued from the oak and brought home. A Crow, Owl, and Talking Cricket debate whether he is dead or alive.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Falcon",
+          "Medoro",
+          "Crow",
+          "Owl",
+          "Talking Cricket"
+        ],
+        "retrieval_cues": [
+          "Falcon and glass coach pulled by mice",
+          "three doctors; Pinocchio weeps"
+        ]
+      },
+      {
+        "chapter_number": 17,
+        "routing_description": "Black Rabbits carrying a coffin frighten Pinocchio into taking bitter medicine. He lies about his coins, and his nose grows too long for the door.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Rabbits"
+        ],
+        "retrieval_cues": [
+          "sugar before medicine; black coffin",
+          "lies make nose grow"
+        ]
+      },
+      {
+        "chapter_number": 18,
+        "routing_description": "Woodpeckers shorten Pinocchio’s nose. He meets Fox and Cat again, follows them to the Field of Wonders, and buries his four coins.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Fox",
+          "Cat",
+          "Woodpeckers"
+        ],
+        "retrieval_cues": [
+          "second encounter with Fox and Cat; Cat’s paw in sling",
+          "coins buried and watered with his shoe"
+        ]
+      },
+      {
+        "chapter_number": 19,
+        "routing_description": "A Parrot tells Pinocchio the Fox and Cat stole his buried money. A Gorilla judge imprisons him for reporting the robbery; an amnesty frees him.",
+        "characters": [
+          "Pinocchio",
+          "Parrot",
+          "Fox",
+          "Cat",
+          "Gorilla"
+        ],
+        "retrieval_cues": [
+          "empty hole; four coins gone",
+          "robbery victim sent to jail; four months"
+        ]
+      },
+      {
+        "chapter_number": 20,
+        "routing_description": "On his muddy return, Pinocchio meets a smoking-tailed Serpent that dies laughing when he gets stuck headfirst in mud. Then a grapevine trap catches him.",
+        "characters": [
+          "Pinocchio",
+          "Serpent"
+        ],
+        "retrieval_cues": [
+          "Serpent bursts laughing",
+          "trap set for weasels"
+        ]
+      },
+      {
+        "chapter_number": 21,
+        "routing_description": "Caught while stealing grapes, Pinocchio is chained as a Farmer’s replacement watchdog beside the henhouse.",
+        "characters": [
+          "Pinocchio",
+          "Farmer",
+          "Glowworm",
+          "Melampo"
+        ],
+        "retrieval_cues": [
+          "Glowworm says hunger does not excuse theft",
+          "dog collar and iron chain"
+        ]
+      },
+      {
+        "chapter_number": 22,
+        "routing_description": "Pinocchio refuses the Weasels’ chicken bribe, traps them in the coop, and barks for the Farmer, who frees him.",
+        "characters": [
+          "Pinocchio",
+          "Farmer",
+          "Weasels",
+          "Melampo"
+        ],
+        "retrieval_cues": [
+          "one chicken offered for silence",
+          "barking exposes coop thieves"
+        ]
+      },
+      {
+        "chapter_number": 23,
+        "routing_description": "Pinocchio mourns at the Fairy’s tombstone. A Pigeon carries him to the shore, where he sees Geppetto’s boat disappear and dives after him.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Pigeon",
+          "Geppetto"
+        ],
+        "retrieval_cues": [
+          "marble epitaph",
+          "chickpeas at pigeon coop; father’s boat"
+        ]
+      },
+      {
+        "chapter_number": 24,
+        "routing_description": "On the Island of the Busy Bees, Pinocchio hears a Dolphin’s Shark warning, refuses work, then carries water jugs and recognizes the Fairy.",
+        "characters": [
+          "Pinocchio",
+          "Dolphin",
+          "Fairy",
+          "Coal Man",
+          "Bricklayer"
+        ],
+        "retrieval_cues": [
+          "work offered for food",
+          "cauliflower and water jugs; azure hair"
+        ]
+      },
+      {
+        "chapter_number": 25,
+        "routing_description": "The grown Fairy becomes Pinocchio’s mother and promises he may become a boy if he obeys, studies, and works.",
+        "characters": [
+          "Pinocchio",
+          "Fairy"
+        ],
+        "retrieval_cues": [
+          "Marionettes do not grow",
+          "promises to study and work"
+        ]
+      },
+      {
+        "chapter_number": 26,
+        "routing_description": "Pinocchio studies well at school, but unruly classmates tempt him to skip class and go see a supposed Shark.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Teacher",
+          "Schoolboys"
+        ],
+        "retrieval_cues": [
+          "teased for being a puppet",
+          "bad companions lure him from school"
+        ]
+      },
+      {
+        "chapter_number": 27,
+        "routing_description": "A fake Shark outing leads to a fight; a thrown arithmetic book wounds Eugene. Carabineers arrest Pinocchio, who runs away while retrieving his cap.",
+        "characters": [
+          "Pinocchio",
+          "Eugene",
+          "Crab",
+          "Carabineers",
+          "Mastiff"
+        ],
+        "retrieval_cues": [
+          "books thrown at seaside fight",
+          "arrest and cap escape"
+        ]
+      },
+      {
+        "chapter_number": 28,
+        "routing_description": "Pinocchio saves pursuing Mastiff Alidoro from drowning, then a Green Fisherman nets Pinocchio and prepares to fry him with fish.",
+        "characters": [
+          "Pinocchio",
+          "Alidoro",
+          "Green Fisherman"
+        ],
+        "retrieval_cues": [
+          "rescues dog by the tail",
+          "flour-covered puppet nearly fried"
+        ]
+      },
+      {
+        "chapter_number": 29,
+        "routing_description": "Alidoro rescues Pinocchio from the frying pan. A slow Snail delays opening the Fairy’s door; after forgiveness Pinocchio excels at school.",
+        "characters": [
+          "Pinocchio",
+          "Alidoro",
+          "Eugene",
+          "Snail",
+          "Fairy"
+        ],
+        "retrieval_cues": [
+          "Snail takes hours to descend",
+          "chalk food; planned coffee-and-milk party"
+        ]
+      },
+      {
+        "chapter_number": 30,
+        "routing_description": "While delivering party invitations, Pinocchio finds Lamp-Wick bound for the Land of Toys. Though told to return within an hour, he stays for the wagon.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Lamp-Wick",
+          "Romeo"
+        ],
+        "retrieval_cues": [
+          "Lamp-Wick is Romeo",
+          "no-school country; midnight wagon"
+        ]
+      },
+      {
+        "chapter_number": 31,
+        "routing_description": "Pinocchio rides with Lamp-Wick to the Land of Toys, where they play for five months. A donkey in the wagon weeps and warns him.",
+        "characters": [
+          "Pinocchio",
+          "Lamp-Wick",
+          "Little Man",
+          "Donkeys"
+        ],
+        "retrieval_cues": [
+          "donkeys wear boys’ shoes",
+          "weeping donkey; DOWN WITH ARITHMETIC"
+        ]
+      },
+      {
+        "chapter_number": 32,
+        "routing_description": "Pinocchio wakes with donkey ears. The Dormouse diagnoses donkey fever; he and Lamp-Wick hide their ears, laugh, then transform into braying donkeys.",
+        "characters": [
+          "Pinocchio",
+          "Dormouse",
+          "Lamp-Wick",
+          "Little Man"
+        ],
+        "retrieval_cues": [
+          "cotton bags hide ears",
+          "donkey fever and braying"
+        ]
+      },
+      {
+        "chapter_number": 33,
+        "routing_description": "The Little Man sells Pinocchio to a circus. He sees the Fairy during a performance, injures his leg jumping through a ring, and is sold for drum skin.",
+        "characters": [
+          "Pinocchio",
+          "Lamp-Wick",
+          "Little Man",
+          "Fairy",
+          "Circus Manager",
+          "Buyer"
+        ],
+        "retrieval_cues": [
+          "trained with whip to dance and jump",
+          "lame donkey bought for drumhead"
+        ]
+      },
+      {
+        "chapter_number": 34,
+        "routing_description": "Fish eat Pinocchio’s donkey coat, revealing the wooden puppet. He escapes his buyer but is swallowed by the Shark while swimming toward an azure Goat.",
+        "characters": [
+          "Pinocchio",
+          "Fairy",
+          "Goat",
+          "Shark",
+          "Tunny"
+        ],
+        "retrieval_cues": [
+          "Attila of the Sea swallows him",
+          "Tunny in dark stomach"
+        ]
+      },
+      {
+        "chapter_number": 35,
+        "routing_description": "Inside the Shark, Pinocchio finds Geppetto, who survived on a swallowed ship’s supplies. Their escape attempt is interrupted by the Shark’s sneeze.",
+        "characters": [
+          "Pinocchio",
+          "Geppetto",
+          "Shark",
+          "Tunny"
+        ],
+        "retrieval_cues": [
+          "candlelit table; two years inside",
+          "escape past tongue and teeth fails"
+        ]
+      },
+      {
+        "chapter_number": 36,
+        "routing_description": "The Tunny brings Pinocchio and Geppetto ashore. Pinocchio works, studies, and gives his savings to the ill Fairy; he wakes a real boy beside his restored father.",
+        "characters": [
+          "Pinocchio",
+          "Geppetto",
+          "Tunny",
+          "Fox",
+          "Cat",
+          "Talking Cricket",
+          "Farmer John",
+          "Lamp-Wick",
+          "Snail",
+          "Fairy"
+        ],
+        "retrieval_cues": [
+          "Lamp-Wick dies at farm",
+          "milk, reed baskets, and study support Geppetto",
+          "gives fifty pennies to Fairy; becomes a real boy"
+        ]
+      }
+    ]
+  }
+}

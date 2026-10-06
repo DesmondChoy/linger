@@ -26,7 +26,7 @@ function group(options: Pick<LayoutGroup, 'id' | 'label' | 'y' | 'height'>): Lay
 }
 
 function compose(options: {
-  scene: Scene
+  scene: Pick<Scene, 'nodes'>
   groups: LayoutGroup[]
   height: number
   position: (node: GraphNode) => Pick<GraphNode, 'x' | 'y'>
@@ -80,7 +80,7 @@ function placeSpecialists(nodes: GraphNode[]): Map<ComponentId, [number, number]
   return placed
 }
 
-function layoutCompact(scene: Scene): SceneLayout {
+function layoutCompact(scene: Pick<Scene, 'nodes'>): SceneLayout {
   const specialists = scene.nodes.filter(node => !(node.id in COMPACT_CONVERSATION) && !COMPACT_AFTER_RELEASE.has(node.id))
   const afterRelease = scene.nodes.some(node => COMPACT_AFTER_RELEASE.has(node.id))
   const slots = placeSpecialists(specialists)
@@ -130,7 +130,7 @@ function layoutCompact(scene: Scene): SceneLayout {
   }
 }
 
-export function layoutScene(scene: Scene): SceneLayout {
+export function layoutScene(scene: Pick<Scene, 'nodes' | 'layout'>): SceneLayout {
   if (scene.layout === 'compact') return layoutCompact(scene)
   const ids = new Set(scene.nodes.map(node => node.id))
   const scaledX = (node: GraphNode) => node.x * width / 1200
@@ -141,20 +141,6 @@ export function layoutScene(scene: Scene): SceneLayout {
       scene, height: 290,
       groups: [group({ id: 'main', label: ids.has('proposal') ? 'Offline curation · proposals only' : 'Current conversation', y: 16, height: 258 })],
       position: node => ({ x: scaledX(node), y: 154 }),
-    })
-  }
-
-  if (ids.has('curation_review')) {
-    return compose({
-      scene, height: 692,
-      groups: [
-        group({ id: 'conversation', label: 'Current conversation', y: 16, height: 258 }),
-        group({ id: 'capture-curation', label: 'Capture and curation', y: 310, height: 366 }),
-      ],
-      position: node => ({
-        x: scaledX(node),
-        y: onConversation(node) ? 154 : node.id === 'sculptor' || node.id === 'curation_review' ? 570 : 390,
-      }),
     })
   }
 
@@ -174,7 +160,7 @@ export function layoutScene(scene: Scene): SceneLayout {
     const hasSession = ids.has('session')
     const retrievalLabel = ids.has('corpus')
       ? lowerMemorySources ? 'Evidence and memory retrieval' : 'Evidence retrieval'
-      : ids.has('sculptor') ? 'Memory retrieval and surfacing' : 'Memory retrieval'
+      : 'Memory retrieval'
 
     if (lowerMemorySources) {
       return compose({

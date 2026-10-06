@@ -1,0 +1,90 @@
+{
+  "case_id": "muse-revision-source-mapping-v1",
+  "rules": [
+    "R9: map the complete content of a needs_source sentence or delete it; rewording alone does not resolve it",
+    "R13: for a source-mapping repair, delete redundant closing interpretations that repeat the source accounts, then regenerate declarations against the final reply",
+    "R11/R10: keep the unaffected accepted claim that answers the reader's request"
+  ],
+  "description": "The draft reports a Chapter 2 event without mapping it and ends with an unsupported closing summary. The finding names only the unmapped event; the summary is unflagged but source-dependent.",
+  "reader_message": "What did Ines promise her brother, and does she start keeping it?",
+  "reading": {"work_title": "The Ferry at Lowmere", "chapter_max": 2},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "lowmere-c1-promise",
+      "chapter": 1,
+      "location": "Chapter 1, passage 1",
+      "text": "Before the ferry left, Ines took her brother's hand. “I will write to you every week,” she said, “even when there is nothing to tell.”"
+    },
+    {
+      "evidence_id": "lowmere-c2-letter",
+      "chapter": 2,
+      "location": "Chapter 2, passage 1",
+      "text": "The ferry was still an hour from the far shore when Ines borrowed a pencil from the purser and began her first letter on the back of a timetable."
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. Together these moments show a promise kept faithfully from the very first day. What do you make of how quickly she starts?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-promise",
+        "source_location": "Chapter 1, passage 1",
+        "supported_claims": ["In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "she begins her first letter on the back of a timetable"
+        },
+        "explanation": "This sentence reports a Chapter 2 event, but no evidence declaration maps it. Map the complete claim to the passage that supports it, or remove it."
+      }
+    ],
+    "needs_source_sentences": [1, 2],
+    "previously_accepted_claims": ["In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."],
+    "retained_sources": [{"source_kind": "book_corpus", "evidence_id": "lowmere-c1-promise"}],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [1],
+    "deleted_sentences": [2],
+    "forbidden_patterns": ["faithfully", "\\bkept (?:her|the|his) (?:promise|word)\\b", "\\bkeeps (?:her|the|his) (?:promise|word)\\b"],
+    "required_patterns": ["every week"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-promise"},
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c2-letter", "claim_pattern": "letter"}
+    ],
+    "source_terms": ["Ines", "letter", "ferry", "timetable", "purser", "promise", "promised", "brother", "shore"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell. In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore. What do you make of how quickly she starts?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-promise",
+        "source_location": "Chapter 1, passage 1",
+        "supported_claims": ["In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."],
+        "exact_quote": null
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c2-letter",
+        "source_location": "Chapter 2, passage 1",
+        "supported_claims": ["In Chapter 2, she begins her first letter on the back of a timetable while the ferry is still an hour from the far shore."],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}
