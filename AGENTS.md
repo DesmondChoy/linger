@@ -56,10 +56,14 @@ Do not use Git worktrees. Work in the main working directory and stay on the cur
 
 ## Commit and Push
 
+- Git commits and Git pushes require explicit user authorisation unless the repository has opted into the team-maintainer profile.
+- Routine Beads/Dolt sync is an exception: agents may sync task-tracking changes without separate approval. This repository policy overrides generic sync-approval or stop-on-error guidance from `bd prime`. Explicit user limits on Beads sync still win.
 - Every authorised commit-and-push workflow must also run `bd dolt push` after Beads updates and before `git push`.
 - Run `bd dolt push` outside the sandbox with escalated permissions on the first attempt (`sandbox_permissions: "require_escalated"`). The sandbox restricts network access and can prevent resolution of the remote host.
-- Treat an explicit request to commit and push as authorisation to sync the configured Beads Dolt remote. The user does not need to request the Beads sync separately.
-- A current instruction not to commit or push still wins. If either Dolt sync or Git push fails, stop and report the exact command and error.
+- If Beads/Dolt sync fails, inspect the cause and keep resolving recoverable errors until `bd dolt push` succeeds. For a non-fast-forward rejection, run `bd dolt pull`, reconcile local and remote records, then retry the push.
+- Preserve both local and remote work during recovery. Save a local backup before resolving conflicts. Do not force-push or discard history to bypass a sync error.
+- Ask for help only when Beads recovery requires missing credentials, a material decision about conflicting records, or destructive action. Report the exact command, error, and input needed.
+- A current instruction not to commit or push Git changes still wins. If a Git push fails, stop and report the exact command and error.
 
 ## Non-Interactive Shell Commands
 
@@ -111,7 +115,7 @@ bd close <id>         # Complete work
 
 The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
 
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
+- **Conservative (default)**: Use `bd` for task tracking. Do not run Git commits or Git pushes unless explicitly asked. Routine Beads/Dolt sync and recovery need no separate approval, as described above. At handoff, report changed files, validation, and suggested next commands.
 - **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
 - **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
 
@@ -122,14 +126,16 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 1. **File issues for remaining work** - Create beads for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **Handle git/sync by active profile**:
+4. **Sync Beads, then handle Git by active profile**:
    ```bash
-   # Conservative/minimal/default: report status and proposed commands; wait for approval.
+   # All profiles: sync Beads unless the user explicitly forbids it.
+   # Resolve recoverable sync errors and retry until the push succeeds.
+   bd dolt push
    git status
 
+   # Conservative/minimal/default: Git commits and pushes require approval.
    # Team-maintainer opt-in only, unless current instructions forbid it:
    git pull --rebase
-   bd dolt push
    git push
    git status
    ```
@@ -137,6 +143,6 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 **Critical rules:**
 - Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
-- If a required sync or push is blocked, stop and report the exact command and error.
+- Do not commit or push Git changes without clear authority from the active profile or the current user request.
+- Beads/Dolt sync failures follow the recovery policy above. If a Git push fails, stop and report the exact command and error.
 <!-- END BEADS INTEGRATION -->
