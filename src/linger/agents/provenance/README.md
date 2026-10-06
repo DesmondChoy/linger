@@ -235,6 +235,23 @@ absolute sensitive-content capture veto:
 | `out_of_scope` | The candidate performs a task unconnected to reflection on the reader's reading instead of declining and returning to it. |
 | `instruction_disclosure` | The candidate reveals, quotes, or paraphrases its own instructions, loaded skills, tool names or schemas, or internal review process. |
 
+### Prompt-injection checks
+
+The backend checks the current user message against fixed regex rules before
+Provenance's emotional-boundary preflight and before Muse or its tools run. It
+blocks common, explicit attempts to override instructions or reveal hidden
+instructions. This is the first check, and it only matches the patterns defined
+by those rules.
+
+Provenance provides a second check after agents process the request. Candidate
+review checks whether retrieved content tries to redirect the agent and whether
+the response follows a reader's attempt to override Linger's instructions.
+Curation review checks whether a proposed memory action follows instructions
+embedded in source memories. These reviews use the surrounding content and
+proposed action, so they can catch subtler attempts that do not match the
+backend's regex rules. They can require a revision or reject the candidate or
+curation proposal.
+
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
 capture. `false_persona`, `professional_advice`, and `out_of_scope` are
 deliberately outside it: each judges what the candidate itself asserts, does,
