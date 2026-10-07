@@ -5085,6 +5085,838 @@
     },
     {
       "schema_version": 1,
+      "case_id": "provenance-risk-claim-mapping-revision-source-corrected-v1",
+      "owner": "provenance",
+      "primary_behavior": "claim_mapping_revision_source_corrected",
+      "description": "The draft credited the Caterpillar's request to the Pigeon and cited the Pigeon passage. The revision corrects the speaker and cites the Caterpillar passage for the corrected claim; the kept wording keeps its draft source. A changed source is not a defect.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": false,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "self_harm_response_id": "self_harm_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "connection_book_scopes": [],
+          "required_clarification": null,
+          "override_attempt": "no_attempt"
+        },
+        "canonical_book_evidence": [
+          {
+            "evidence_id": "ev-ch05-recital",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+          },
+          {
+            "evidence_id": "ev-ch05-pigeon",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+          }
+        ],
+        "canonical_connection_evidence": [],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4"
+            },
+            "content": {
+              "kind": "retrieval_result",
+              "request_id": "eval-request",
+              "strength": "sufficient",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 6
+              },
+              "evidence": [
+                {
+                  "evidence_id": "ev-ch05-recital",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+                },
+                {
+                  "evidence_id": "ev-ch05-pigeon",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+                }
+              ]
+            }
+          }
+        ],
+        "candidate": {
+          "response": "The Pigeon calls Alice a serpent. The Caterpillar tells her to repeat the verses about old Father William. What draws you to those two moments?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "The Pigeon calls Alice a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-pigeon",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "The Caterpillar tells her to repeat the verses about old Father William."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-recital",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "Who gives Alice orders in chapter 5?"
+        },
+        "previous_response_review": {
+          "candidate": {
+            "response": "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William. What draws you to those two moments?",
+            "evidence_uses": [
+              {
+                "supported_claims": [
+                  "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William."
+                ],
+                "limit_claims": [],
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-pigeon",
+                "source_location": "Chapter 5",
+                "exact_quote": null
+              }
+            ],
+            "memory": {
+              "kind": "no_memory_candidate",
+              "reason_code": "automatic_capture_disabled"
+            }
+          },
+          "findings": [
+            {
+              "code": "misattribution",
+              "applies_to": "response",
+              "location": {
+                "kind": "text_span",
+                "source_field": "candidate.response",
+                "path": "",
+                "quote": "tells her to repeat the verses about old Father William"
+              },
+              "explanation": "The cited Pigeon passage shows the Pigeon calling Alice a serpent, not asking her to repeat verses. In the supplied Caterpillar passage it is the Caterpillar who tells her to repeat them. Attribute the request to the Caterpillar and map it to that passage, or remove it."
+            }
+          ]
+        },
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "The Pigeon calls Alice a serpent.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 33
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-pigeon",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 33,
+                    "occurrence_index": 0,
+                    "text": "The Pigeon calls Alice a serpent."
+                  }
+                ],
+                "canonical_source_text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+              }
+            ]
+          },
+          {
+            "group_index": 1,
+            "claim": "The Caterpillar tells her to repeat the verses about old Father William.",
+            "occurrences": [
+              {
+                "start": 34,
+                "end": 106
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 1,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-recital",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 34,
+                    "end": 106,
+                    "occurrence_index": 0,
+                    "text": "The Caterpillar tells her to repeat the verses about old Father William."
+                  }
+                ],
+                "canonical_source_text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+              }
+            ]
+          }
+        ],
+        "evidence_limit_claims": [],
+        "uncovered_response_spans": [
+          {
+            "span_index": 0,
+            "start": 106,
+            "end": 143,
+            "text": " What draws you to those two moments?"
+          }
+        ],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "pass",
+      "expected_response_codes": [],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": [
+        "resolved"
+      ]
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-claim-mapping-revision-source-moved-v1",
+      "owner": "provenance",
+      "primary_behavior": "claim_mapping_revision_source_moved",
+      "description": "The paired revision makes the same correction, but the wording kept from the draft, which no finding disputed, now cites the Caterpillar passage instead of the Pigeon passage. That passage is authentic and does not support it.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": false,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "self_harm_response_id": "self_harm_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "connection_book_scopes": [],
+          "required_clarification": null,
+          "override_attempt": "no_attempt"
+        },
+        "canonical_book_evidence": [
+          {
+            "evidence_id": "ev-ch05-recital",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+          },
+          {
+            "evidence_id": "ev-ch05-pigeon",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+          }
+        ],
+        "canonical_connection_evidence": [],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4"
+            },
+            "content": {
+              "kind": "retrieval_result",
+              "request_id": "eval-request",
+              "strength": "sufficient",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 6
+              },
+              "evidence": [
+                {
+                  "evidence_id": "ev-ch05-recital",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+                },
+                {
+                  "evidence_id": "ev-ch05-pigeon",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+                }
+              ]
+            }
+          }
+        ],
+        "candidate": {
+          "response": "The Pigeon calls Alice a serpent. The Caterpillar tells her to repeat the verses about old Father William. What draws you to those two moments?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "The Pigeon calls Alice a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-recital",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "The Caterpillar tells her to repeat the verses about old Father William."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-recital",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "Who gives Alice orders in chapter 5?"
+        },
+        "previous_response_review": {
+          "candidate": {
+            "response": "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William. What draws you to those two moments?",
+            "evidence_uses": [
+              {
+                "supported_claims": [
+                  "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William."
+                ],
+                "limit_claims": [],
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-pigeon",
+                "source_location": "Chapter 5",
+                "exact_quote": null
+              }
+            ],
+            "memory": {
+              "kind": "no_memory_candidate",
+              "reason_code": "automatic_capture_disabled"
+            }
+          },
+          "findings": [
+            {
+              "code": "misattribution",
+              "applies_to": "response",
+              "location": {
+                "kind": "text_span",
+                "source_field": "candidate.response",
+                "path": "",
+                "quote": "tells her to repeat the verses about old Father William"
+              },
+              "explanation": "The cited Pigeon passage shows the Pigeon calling Alice a serpent, not asking her to repeat verses. In the supplied Caterpillar passage it is the Caterpillar who tells her to repeat them. Attribute the request to the Caterpillar and map it to that passage, or remove it."
+            }
+          ]
+        },
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "The Pigeon calls Alice a serpent.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 33
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-recital",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 33,
+                    "occurrence_index": 0,
+                    "text": "The Pigeon calls Alice a serpent."
+                  }
+                ],
+                "canonical_source_text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+              }
+            ]
+          },
+          {
+            "group_index": 1,
+            "claim": "The Caterpillar tells her to repeat the verses about old Father William.",
+            "occurrences": [
+              {
+                "start": 34,
+                "end": 106
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 1,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-recital",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 34,
+                    "end": 106,
+                    "occurrence_index": 0,
+                    "text": "The Caterpillar tells her to repeat the verses about old Father William."
+                  }
+                ],
+                "canonical_source_text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+              }
+            ]
+          }
+        ],
+        "evidence_limit_claims": [],
+        "uncovered_response_spans": [
+          {
+            "span_index": 0,
+            "start": 106,
+            "end": 143,
+            "text": " What draws you to those two moments?"
+          }
+        ],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "revise",
+      "expected_response_codes": [
+        "unsupported_claim"
+      ],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": [
+        "resolved"
+      ]
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-claim-mapping-revision-source-added-v1",
+      "owner": "provenance",
+      "primary_behavior": "claim_mapping_revision_source_added",
+      "description": "The same correction again, but the wording kept from the draft keeps the Pigeon passage and also cites the Caterpillar passage. The other source suffices; the added one contributes nothing to that wording and still needs a finding.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": false,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "self_harm_response_id": "self_harm_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "connection_book_scopes": [],
+          "required_clarification": null,
+          "override_attempt": "no_attempt"
+        },
+        "canonical_book_evidence": [
+          {
+            "evidence_id": "ev-ch05-recital",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+          },
+          {
+            "evidence_id": "ev-ch05-pigeon",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1250
+            ],
+            "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+          }
+        ],
+        "canonical_connection_evidence": [],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4"
+            },
+            "content": {
+              "kind": "retrieval_result",
+              "request_id": "eval-request",
+              "strength": "sufficient",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 6
+              },
+              "evidence": [
+                {
+                  "evidence_id": "ev-ch05-recital",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+                },
+                {
+                  "evidence_id": "ev-ch05-pigeon",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    960,
+                    1250
+                  ],
+                  "text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+                }
+              ]
+            }
+          }
+        ],
+        "candidate": {
+          "response": "The Pigeon calls Alice a serpent. The Caterpillar tells her to repeat the verses about old Father William. What draws you to those two moments?",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "The Pigeon calls Alice a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-pigeon",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "The Pigeon calls Alice a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-recital",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "The Caterpillar tells her to repeat the verses about old Father William."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch05-recital",
+              "source_location": "Chapter 5",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "Who gives Alice orders in chapter 5?"
+        },
+        "previous_response_review": {
+          "candidate": {
+            "response": "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William. What draws you to those two moments?",
+            "evidence_uses": [
+              {
+                "supported_claims": [
+                  "The Pigeon calls Alice a serpent and tells her to repeat the verses about old Father William."
+                ],
+                "limit_claims": [],
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-pigeon",
+                "source_location": "Chapter 5",
+                "exact_quote": null
+              }
+            ],
+            "memory": {
+              "kind": "no_memory_candidate",
+              "reason_code": "automatic_capture_disabled"
+            }
+          },
+          "findings": [
+            {
+              "code": "misattribution",
+              "applies_to": "response",
+              "location": {
+                "kind": "text_span",
+                "source_field": "candidate.response",
+                "path": "",
+                "quote": "tells her to repeat the verses about old Father William"
+              },
+              "explanation": "The cited Pigeon passage shows the Pigeon calling Alice a serpent, not asking her to repeat verses. In the supplied Caterpillar passage it is the Caterpillar who tells her to repeat them. Attribute the request to the Caterpillar and map it to that passage, or remove it."
+            }
+          ]
+        },
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "The Pigeon calls Alice a serpent.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 33
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-pigeon",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 33,
+                    "occurrence_index": 0,
+                    "text": "The Pigeon calls Alice a serpent."
+                  }
+                ],
+                "canonical_source_text": "the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the"
+              },
+              {
+                "declaration_index": 1,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-recital",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 33,
+                    "occurrence_index": 0,
+                    "text": "The Pigeon calls Alice a serpent."
+                  }
+                ],
+                "canonical_source_text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+              }
+            ]
+          },
+          {
+            "group_index": 1,
+            "claim": "The Caterpillar tells her to repeat the verses about old Father William.",
+            "occurrences": [
+              {
+                "start": 34,
+                "end": 106
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 2,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch05-recital",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 34,
+                    "end": 106,
+                    "occurrence_index": 0,
+                    "text": "The Caterpillar tells her to repeat the verses about old Father William."
+                  }
+                ],
+                "canonical_source_text": "d I don’t keep the same size for ten minutes together!”\n\n“Can’t remember _what_ things?” said the Caterpillar.\n\n“Well, I’ve tried to say “How doth the little busy bee,” but it all\ncame different!” Alice replied in a very melancholy voice.\n\n“Repeat, ‘_You are old, Father William_,’” said the Caterpillar.\n\nAlice folded her hands, and began:—\n\n“You are old, Father William,” the young man said,\n    “And your hair has become very white;\nAnd yet you incessantly stand on your head—\n    Do you think, at your age, it is right?”\n\n“In my youth,” Fat"
+              }
+            ]
+          }
+        ],
+        "evidence_limit_claims": [],
+        "uncovered_response_spans": [
+          {
+            "span_index": 0,
+            "start": 106,
+            "end": 143,
+            "text": " What draws you to those two moments?"
+          }
+        ],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "revise",
+      "expected_response_codes": [
+        "unsupported_claim"
+      ],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": [
+        "resolved"
+      ]
+    },
+    {
+      "schema_version": 1,
       "case_id": "provenance-risk-uncited-web-claim-positive-v1",
       "owner": "provenance",
       "primary_behavior": "uncited_web_claim_positive",

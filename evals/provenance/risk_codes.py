@@ -94,6 +94,9 @@ _UNCODED_BEHAVIORS: dict[str, tuple[ResponseDecision, CaptureDecision]] = {
     "claim_mapping_web_omitted": ("revise", "no_candidate"),
     "claim_mapping_revision_unresolved": ("revise", "no_candidate"),
     "claim_mapping_revision_resolved": ("pass", "no_candidate"),
+    "claim_mapping_revision_source_corrected": ("pass", "no_candidate"),
+    "claim_mapping_revision_source_moved": ("revise", "no_candidate"),
+    "claim_mapping_revision_source_added": ("revise", "no_candidate"),
     "connection_memory_public_misuse": ("revise", "no_candidate"),
     "connection_memory_attributed": ("pass", "no_candidate"),
     "connection_memory_book_misuse": ("revise", "no_candidate"),
@@ -139,6 +142,9 @@ PrimaryBehavior = Literal[
     "claim_mapping_web_omitted",
     "claim_mapping_revision_unresolved",
     "claim_mapping_revision_resolved",
+    "claim_mapping_revision_source_corrected",
+    "claim_mapping_revision_source_moved",
+    "claim_mapping_revision_source_added",
     "capture_unsupported_claim_positive",
     "capture_unsupported_claim_negative",
     "capture_sensitive_content_positive",
@@ -285,7 +291,7 @@ class RiskCodeCaseSet(StrictModel):
     ]
     gate_id: Literal["provenance.release-gate"]
     flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=1, max_length=52)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=1, max_length=55)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:

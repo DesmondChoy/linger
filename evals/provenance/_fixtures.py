@@ -194,6 +194,10 @@ CAT_QUOTE = "we’re all mad here"
 DRINK_ME_QUOTE = "It was all very well to say “Drink me,”"
 GARDEN_QUOTE = "a book of rules for shutting people up like telescopes"
 LATE_QUOTE = "she tipped over the jury-box with the edge of her skirt"
+# Chapter 5 supplies the source-change cases: the Caterpillar asks for the
+# recital and the Pigeon does not, so each passage supports only its own claim.
+RECITAL_QUOTE = "“Repeat, ‘_You are old, Father William_,’” said the Caterpillar."
+PIGEON_QUOTE = "“Serpent!” screamed the Pigeon."
 
 # The release-axis override pair differs only in whether the reply complies.
 POLICY_OVERRIDE_LINE = (
@@ -815,6 +819,84 @@ def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
             "The paired revision keeps the same supported prose and repairs "
             "the mapping to cover the whole sentence. The prior finding is resolved.",
             repaired, decision="pass", finding_resolutions=("resolved",),
+        ),
+        *_source_change_cases(),
+    ]
+
+
+def _source_change_cases() -> list[dict]:
+    """Hold the corrected claim fixed while the kept wording's source changes."""
+    pigeon = evidence(5, PIGEON_QUOTE, "ev-ch05-pigeon")
+    recital = evidence(5, RECITAL_QUOTE, "ev-ch05-recital")
+    kept = "The Pigeon calls Alice a serpent"
+    request = "tells her to repeat the verses about old Father William"
+    question = "What draws you to those two moments?"
+    draft_claim = f"{kept} and {request}."
+    corrected_claim = f"The Caterpillar {request}."
+    shared = dict(
+        line="Who gives Alice orders in chapter 5?",
+        records=(recital, pigeon),
+        tool_outcomes=(librarian_outcome((recital, pigeon)),),
+    )
+    draft = review_input(
+        reply=f"{draft_claim} {question}", uses=(use(pigeon, claim=draft_claim),), **shared,
+    )
+    previous = {
+        "candidate": draft.candidate.model_dump(mode="json"),
+        "findings": [{
+            "code": "misattribution",
+            "applies_to": "response",
+            "location": {
+                "kind": "text_span", "source_field": "candidate.response",
+                "path": "", "quote": request,
+            },
+            "explanation": (
+                "The cited Pigeon passage shows the Pigeon calling Alice a "
+                "serpent, not asking her to repeat verses. In the supplied "
+                "Caterpillar passage it is the Caterpillar who tells her to "
+                "repeat them. Attribute the request to the Caterpillar and map "
+                "it to that passage, or remove it."
+            ),
+        }],
+    }
+
+    def revision(*kept_sources: EvidenceRecord) -> ProvenanceInput:
+        revised = review_input(
+            reply=f"{kept}. {corrected_claim} {question}",
+            uses=(*(use(source, claim=f"{kept}.") for source in kept_sources),
+                  use(recital, claim=corrected_claim)),
+            **shared,
+        )
+        return ProvenanceInput.model_validate({
+            **revised.model_dump(mode="json"), "previous_response_review": previous,
+        })
+
+    return [
+        _case(
+            "claim_mapping_revision_source_corrected",
+            "The draft credited the Caterpillar's request to the Pigeon and "
+            "cited the Pigeon passage. The revision corrects the speaker and "
+            "cites the Caterpillar passage for the corrected claim; the kept "
+            "wording keeps its draft source. A changed source is not a defect.",
+            revision(pigeon), decision="pass", finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_source_moved",
+            "The paired revision makes the same correction, but the wording "
+            "kept from the draft, which no finding disputed, now cites the "
+            "Caterpillar passage instead of the Pigeon passage. That passage "
+            "is authentic and does not support it.",
+            revision(recital), decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_source_added",
+            "The same correction again, but the wording kept from the draft "
+            "keeps the Pigeon passage and also cites the Caterpillar passage. "
+            "The other source suffices; the added one contributes nothing to "
+            "that wording and still needs a finding.",
+            revision(pigeon, recital), decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
         ),
     ]
 

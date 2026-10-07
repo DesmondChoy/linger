@@ -109,10 +109,10 @@ class RiskCodeCaseSetTests(unittest.TestCase):
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
         self.assertEqual(("4.2.1", "4.2.2", "4.2.3"), self.case_set.flows)
-        self.assertEqual(52, len(self.case_set.cases))
+        self.assertEqual(55, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
-        self.assertEqual(17, len(self.case_set.positives))
-        self.assertEqual(17, len(self.case_set.negatives))
+        self.assertEqual(19, len(self.case_set.positives))
+        self.assertEqual(18, len(self.case_set.negatives))
         self.assertEqual(8, len(self.case_set.capture_positives))
         self.assertEqual(9, len(self.case_set.capture_negatives))
 
@@ -181,6 +181,56 @@ class RiskCodeCaseSetTests(unittest.TestCase):
             broken.review_input.candidate.evidence_uses,
             repaired.review_input.candidate.evidence_uses,
         )
+
+    def test_source_change_pair_differs_only_in_the_source_of_the_kept_wording(self) -> None:
+        corrected = self.by_behavior["claim_mapping_revision_source_corrected"]
+        moved = self.by_behavior["claim_mapping_revision_source_moved"]
+        self.assertEqual(
+            corrected.review_input.previous_response_review,
+            moved.review_input.previous_response_review,
+        )
+        self.assertEqual(
+            corrected.review_input.candidate.response,
+            moved.review_input.candidate.response,
+        )
+        self.assertEqual(
+            corrected.review_input.canonical_book_evidence,
+            moved.review_input.canonical_book_evidence,
+        )
+        original = corrected.review_input.previous_response_review.candidate
+        [draft_use] = original.evidence_uses
+        kept, rewritten = corrected.review_input.candidate.response.split(". ")[:2]
+        self.assertIn(kept, original.response)
+        self.assertNotIn(rewritten, original.response)
+
+        def sources(case) -> dict[str, set[str]]:
+            mapped: dict[str, set[str]] = {}
+            for declared in case.review_input.candidate.evidence_uses:
+                for claim in declared.supported_claims:
+                    mapped.setdefault(claim.rstrip("."), set()).add(declared.evidence_id)
+            return mapped
+
+        # The corrected claim leaves the draft's source in both; only the kept wording's source differs.
+        self.assertNotIn(draft_use.evidence_id, sources(corrected)[rewritten])
+        self.assertEqual(sources(corrected)[rewritten], sources(moved)[rewritten])
+        self.assertEqual({draft_use.evidence_id}, sources(corrected)[kept])
+        self.assertEqual(sources(moved)[rewritten], sources(moved)[kept])
+        self.assertEqual(("pass", ("resolved",)), (
+            corrected.expected_response_decision, corrected.expected_finding_resolutions))
+        self.assertEqual(("revise", ("unsupported_claim",), ("resolved",)), (
+            moved.expected_response_decision, moved.expected_response_codes,
+            moved.expected_finding_resolutions))
+        # The added-source case keeps the draft's source on the kept wording and adds the other beside it.
+        added = self.by_behavior["claim_mapping_revision_source_added"]
+        self.assertEqual(
+            (corrected.review_input.previous_response_review, corrected.review_input.candidate.response),
+            (added.review_input.previous_response_review, added.review_input.candidate.response),
+        )
+        self.assertEqual(sources(corrected)[rewritten], sources(added)[rewritten])
+        self.assertEqual(sources(corrected)[kept] | sources(moved)[kept], sources(added)[kept])
+        self.assertEqual(("revise", ("unsupported_claim",), ("resolved",)), (
+            added.expected_response_decision, added.expected_response_codes,
+            added.expected_finding_resolutions))
 
     def test_every_veto_code_has_a_positive_and_a_paired_negative(self) -> None:
         for code in FLOW_422_CODES:
@@ -672,7 +722,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(report.summary.targets_pass)
         self.assertEqual(1.0, report.summary.block_recall)
-        self.assertEqual(0.3529, report.summary.code_precision)
+        self.assertEqual(0.4211, report.summary.code_precision)
         self.assertEqual(1.0, report.summary.capture_veto_recall)
         self.assertEqual(0.125, report.summary.capture_code_precision)
 
@@ -683,7 +733,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(52, report.summary.evaluation_error_count)
+        self.assertEqual(55, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 
