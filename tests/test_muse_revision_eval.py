@@ -249,6 +249,69 @@ def test_corrected_speaker_takes_a_new_source_and_the_kept_sentence_gains_none(b
     assert [failure.split(":")[0] for failure in failures] == ["missing_declaration", "forbidden_declaration"]
 
 
+_KEPT = "In Chapter 5, the Pigeon takes Alice for a serpent and screams at her."
+_DRAFTED = "The Pigeon then tells Alice to repeat the verses about old Father William."
+_SWAPPED = "The Pigeon, not the Caterpillar, tells Alice to repeat the verses about old Father William."
+_CORRECTED = "The Caterpillar tells Alice to repeat the verses about old Father William."
+
+# (second sentence or None for deletion, claims on the Pigeon passage, claims on the recital
+# passage, the grader's failure kinds in order). No failure kinds means the revision passes.
+SPEAKER_REPAIRS = {
+    "reference": (_CORRECTED, [_KEPT], [_CORRECTED], []),
+    "caterpillar-not-the-pigeon": (
+        "The Caterpillar, not the Pigeon, tells Alice to repeat the verses about old Father William.",
+        [_KEPT], ..., [],
+    ),
+    "passive-caterpillar-after-the-verb": (
+        "Alice is told to repeat the verses about old Father William by the Caterpillar.",
+        [_KEPT], ..., [],
+    ),
+    "recital": (
+        "The Caterpillar asks Alice for a recital of the verses about old Father William.",
+        [_KEPT], ..., [],
+    ),
+    "say-the-verses": (
+        "The Caterpillar has Alice say the verses about old Father William.", [_KEPT], ..., [],
+    ),
+    "unrepaired-draft-sentence": (
+        _DRAFTED, [_KEPT, _DRAFTED], [],
+        ["repaired", "missing_declaration", "forbidden_declaration", "required_missing", "forbidden_present"],
+    ),
+    "pigeon-not-the-caterpillar": (_SWAPPED, [_KEPT], ..., ["forbidden_present"]),
+    "corrected-claim-left-on-the-pigeon-passage": (
+        _CORRECTED, [_KEPT, _CORRECTED], [], ["missing_declaration", "forbidden_declaration"],
+    ),
+    "kept-sentence-given-the-recital-passage": (
+        _CORRECTED, [_KEPT], [_CORRECTED, _KEPT], ["forbidden_declaration"],
+    ),
+    # By design: the finding allows removal, but this case exercises the correction path.
+    "flagged-sentence-deleted": (None, [_KEPT], [], ["missing_declaration", "required_missing"]),
+}
+
+
+@pytest.mark.parametrize("name", SPEAKER_REPAIRS)
+def test_corrected_speaker_grading_follows_the_speaker_and_source_not_one_phrasing(name):
+    """Any wording that credits the Caterpillar and maps the claim to the recital passage passes.
+    Crediting the Pigeon, leaving either claim on the wrong passage, or deleting the claim fails."""
+    case = by_id("muse-revision-misattributed-speaker-v1")
+    second, pigeon_claims, recital_claims, expected = SPEAKER_REPAIRS[name]
+    if recital_claims is ...:
+        recital_claims = [second]
+    pigeon, recital = case.reference_revision["evidence_uses"]
+    assert case.reference_revision["reply"].split(". ")[:2] == [_KEPT[:-1], _CORRECTED[:-1]]
+    assert _DRAFTED in case.draft["reply"]
+    question = case.reference_revision["reply"].split(". ")[2]
+    candidate = MuseCandidate.model_validate(case.reference_revision | {
+        "reply": " ".join(part for part in (_KEPT, second, question) if part),
+        "evidence_uses": [
+            use | {"supported_claims": claims}
+            for use, claims in ((pigeon, pigeon_claims), (recital, recital_claims)) if claims
+        ],
+    })
+    failures = grade_revision(case, candidate)["failures"]
+    assert [failure.split(":")[0] for failure in failures] == expected, failures
+
+
 def test_unknown_case_id_is_rejected():
     with pytest.raises(ValueError, match="unknown case"):
         revision_run.select_cases(CASES, ["muse-revision-missing-v1"])

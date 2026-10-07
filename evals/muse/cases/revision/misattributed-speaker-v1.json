@@ -5,7 +5,7 @@
     "R17: wording kept from a draft claim no finding disputes keeps its draft sources and gains none; never add a source to wording it does not support",
     "R4: keep the retained source declared and mapped to the claim it still supports"
   ],
-  "description": "A draft sentence credits the Pigeon with the Caterpillar's request and maps it to the Pigeon passage. The finding names the misattributing words. The repair names the Caterpillar and maps the corrected claim to the Caterpillar passage, which the draft did not declare; the unflagged Pigeon sentence keeps the Pigeon passage and gains none.",
+  "description": "A draft sentence credits the Pigeon with the Caterpillar's request and maps it to the Pigeon passage. The finding names the misattributing words. The repair names the Caterpillar and maps the corrected claim to the Caterpillar passage, which the draft did not declare; the unflagged Pigeon sentence keeps the Pigeon passage and gains none. The finding also allows removing the sentence, but deleting it fails this case by design: the case exists to exercise the correction path, so the corrected claim and its Caterpillar-passage declaration are required.",
   "reader_message": "Who orders Alice about in chapter 5?",
   "reading": {"work_title": "Alice's Adventures in Wonderland", "chapter_max": 5},
   "exposed_tools": ["librarian_search"],
@@ -64,14 +64,14 @@
   "expect": {
     "flagged_sentences": [1],
     "repaired_sentences": [1],
-    "forbidden_patterns": ["\\bPigeon\\b[^.]*\\b(repeat|recite)"],
-    "required_patterns": ["\\bCaterpillar\\b[^.]*\\b(repeat|recite)"],
+    "forbidden_patterns": ["\\bPigeon(?:,? (?:and |but )?(?:not|rather than) the Caterpillar,?)? (?:(?:then|also|later|next|soon) )?(?:(?:tells|told|asks|asked|orders|ordered|instructs|instructed|commands|commanded|bids|bade|directs|directed|urges|urged|wants|wanted)|(?:has|had|makes|made|gets|got) (?:Alice|her))\\b(?:(?!\\bCaterpillar\\b)[^.?!])*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)"],
+    "required_patterns": ["\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"],
     "required_declarations": [
-      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "Caterpillar[^.]*(repeat|recite)"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"},
       {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon", "claim_pattern": "serpent"}
     ],
     "forbidden_declarations": [
-      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon", "claim_pattern": "(repeat|recite|Father William)"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon", "claim_pattern": "\\bCaterpillar\\b|\\brepeat\\b|\\brecit\\w*|\\bverses?\\b|\\bpoem\\b|Father William"},
       {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "serpent"}
     ],
     "source_terms": ["Caterpillar", "Pigeon", "serpent", "repeat", "recite", "verses", "poem", "Father William"]
