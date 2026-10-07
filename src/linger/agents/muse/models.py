@@ -168,7 +168,8 @@ class MuseCandidate(StrictModel):
             key = _record_key(use)
             first = first_by_record.get(key) if key else None
             if (first is not None and not use.get("supported_claims") and use.get("exact_quote") is None
-                    # Limits that are not a list are left for field validation to reject.
+                    # Claims or limits that are not a list are left for field validation to reject.
+                    and isinstance(use.get("supported_claims", ()), (list, tuple, type(None)))
                     and all(isinstance(item.get("limit_claims") or (), (list, tuple)) for item in (first, use))):
                 limits = list(first.get("limit_claims") or ())
                 first["limit_claims"] = limits + [

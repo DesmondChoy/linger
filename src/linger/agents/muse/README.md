@@ -125,7 +125,7 @@ context. There is no direct Muse-to-storage or Muse-to-reader bypass.
 ## Evaluation and supported scope
 
 The [Muse evaluations](../../../../evals/muse/README.md) contain 19 main
-reflection cases, 32 review cases, six revision fixtures, and a separate
+reflection cases, 32 review cases, seven revision fixtures, and a separate
 turn-triage pack. Reflection runs compare the first and current Muse with fixed
 tool results. Revision runs hold the draft and review fixed; blind review
 grades saved reflection replies against each case's semantic rubric.

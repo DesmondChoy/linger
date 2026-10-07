@@ -508,6 +508,17 @@ def test_a_claimless_repeat_declaration_beside_limits_that_are_not_a_list_is_ret
     assert repaired["output"] == _revise(UNFLAGGED, [UNFLAGGED.reference_revision])["output"]
 
 
+@pytest.mark.parametrize("value", [0, False, ""], ids=repr)
+def test_a_repeat_declaration_whose_empty_claims_are_not_a_list_is_retried(value):
+    use = UNFLAGGED.reference_revision["evidence_uses"][0]
+    bad = UNFLAGGED.reference_revision | {"evidence_uses": [use, use | {"supported_claims": value}]}
+    with pytest.raises(ValidationError):
+        MuseCandidate.model_validate(bad)
+    repaired = _revise(UNFLAGGED, [bad, UNFLAGGED.reference_revision])
+    assert len(repaired["retries"]) == 1
+    assert repaired["output"] == _revise(UNFLAGGED, [UNFLAGGED.reference_revision])["output"]
+
+
 def test_a_label_inside_a_claim_is_expanded_and_a_malformed_one_retried():
     good = UNFLAGGED.reference_revision | {"reply": f"{_FIRST} {{{{SENTENCE_2}}}} {_ASK}"}
     good["evidence_uses"] = [good["evidence_uses"][0] | {"supported_claims": [f"{_FIRST} {{{{SENTENCE_2}}}}"]}]
