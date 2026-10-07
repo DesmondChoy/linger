@@ -206,11 +206,9 @@ def test_retry_categories_name_an_unaddressed_finding(bound):
     assert "unaddressed_finding" in retry_categories([message])[0]
 
 
-def test_kept_wording_given_another_source_is_retried_and_fails_the_grader(bound):
-    """The recorded identity-theme revision: the kept claim also mapped to the other passage."""
-    from pydantic_ai import ModelRetry
-    from pydantic_ai.messages import ModelRequest, RetryPromptPart
-
+def test_kept_wording_of_the_flagged_claim_given_another_source_fails_the_grader_without_a_retry(bound):
+    """The recorded identity-theme revision: the kept claim also mapped to the other passage. A finding
+    touches that draft claim, so revision validation leaves the added source to the next review."""
     case = by_id("muse-revision-added-source-v1")
     bound(case)
     data = json.loads(json.dumps(case.reference_revision))
@@ -218,10 +216,7 @@ def test_kept_wording_given_another_source_is_retried_and_fails_the_grader(bound
     data["evidence_uses"][0]["supported_claims"].append(kept)
     padded = MuseCandidate.model_validate(data)
     context = SimpleNamespace(prompt=revision_input(case).model_dump_json())
-    with pytest.raises(ModelRetry) as caught:
-        validate_muse_output(context, padded)
-    message = ModelRequest(parts=[RetryPromptPart(content=str(caught.value))])
-    assert retry_categories([message]) == [["added_source"]]
+    assert validate_muse_output(context, padded) is padded
     failures = grade_revision(case, padded)["failures"]
     assert [failure.split(":")[0] for failure in failures] == ["forbidden_declaration"]
 

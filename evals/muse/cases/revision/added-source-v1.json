@@ -1,7 +1,7 @@
 {
   "case_id": "muse-revision-added-source-v1",
   "rules": [
-    "R17: wording kept from the draft keeps its draft sources; do not add a source to wording no finding names",
+    "R17: wording kept from a draft claim no finding disputes keeps its draft sources and gains none; never add a source to wording it does not support",
     "R12: when rephrasing a flagged claim reassess support for the new wording; remove an interpretation the source does not establish"
   ],
   "description": "Reduced from a live identity-theme run. The finding names only the interpretive clause of a sentence mapped to one passage. Removing the clause is the repair; the kept wording must stay mapped to that passage alone, not also to the other passage.",

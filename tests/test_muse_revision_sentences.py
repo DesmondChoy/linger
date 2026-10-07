@@ -305,10 +305,10 @@ SIZE = f"Later, she says she dislikes changing so often and wants to be a little
 TALLER = "Later, she says she dislikes changing so often and wants to be a little taller."
 
 
-def identity_draft(size=SIZE):
-    return declared(f"{IDENTITY} {size} {QUESTION}",
+def identity_draft():
+    return declared(f"{IDENTITY} {SIZE} {QUESTION}",
                     {"evidence_id": ONE, "supported_claims": [IDENTITY]},
-                    {"evidence_id": TWO, "supported_claims": [size]})
+                    {"evidence_id": TWO, "supported_claims": [SIZE]})
 
 
 def mapped(reply, *pairs):
@@ -327,13 +327,10 @@ def added(revised, *locations):
 REPAIRED = f"{IDENTITY} {TALLER} {QUESTION}"
 
 
-def test_kept_wording_given_a_source_the_draft_did_not_map_is_rejected():
-    """The recorded run: the flagged clause removed, the kept claim also mapped to another source."""
-    errors = added(mapped(REPAIRED, (ONE, (IDENTITY, TALLER)), (TWO, (TALLER,))), quoted(CLAUSE))
-    assert [(error["path"], error["value"], error["evidence_id"]) for error in errors] == [
-        ("evidence_uses", TALLER, ONE),
-    ]
-    assert REPAIRED[errors[0]["response_start"]:errors[0]["response_end"]] == TALLER
+def test_kept_wording_of_a_claim_a_finding_touches_may_gain_a_source():
+    """The recorded run: the flagged clause removed, the kept claim also mapped to another source.
+    A finding disputes that draft claim as a whole, so the next review judges the added source."""
+    assert added(mapped(REPAIRED, (ONE, (IDENTITY, TALLER)), (TWO, (TALLER,))), quoted(CLAUSE)) == []
 
 
 def test_kept_wording_with_only_its_draft_source_passes():
@@ -342,7 +339,10 @@ def test_kept_wording_with_only_its_draft_source_passes():
 
 def test_unflagged_sentence_kept_word_for_word_cannot_gain_a_source():
     errors = added(mapped(REPAIRED, (ONE, (IDENTITY,)), (TWO, (IDENTITY, TALLER))), quoted(CLAUSE))
-    assert [(error["value"], error["evidence_id"]) for error in errors] == [(IDENTITY, TWO)]
+    assert [(error["path"], error["value"], error["evidence_id"]) for error in errors] == [
+        ("evidence_uses", IDENTITY, TWO),
+    ]
+    assert REPAIRED[errors[0]["response_start"]:errors[0]["response_end"]] == IDENTITY
 
 
 def test_wording_inside_a_finding_quote_may_be_mapped_to_another_source():
@@ -395,17 +395,16 @@ def test_flagged_sentence_kept_with_a_second_source_for_joint_support_passes(loc
     assert added_source_errors(joint, marks, review(location).response_findings) == []
 
 
-def test_flagged_sentence_kept_with_a_source_added_outside_the_quote_is_rejected():
+def test_flagged_claim_kept_with_a_source_added_outside_the_quote_passes():
     kept = "Later, she says she dislikes changing so often and wants to be a little taller"
     revised = mapped(f"{IDENTITY} {SIZE} {QUESTION}", (ONE, (IDENTITY, kept)), (TWO, (SIZE,)))
-    assert [(error["value"], error["evidence_id"]) for error in added(revised, quoted(CLAUSE))] == [(kept, ONE)]
+    assert added(revised, quoted(CLAUSE)) == []
 
 
-def test_moving_kept_wording_outside_a_partial_quote_to_another_source_is_rejected():
-    """A documented limit: when the finding quotes only part of a sentence, re-sourcing the rest is
-    indistinguishable from the recorded failure, even if the explanation asked for it."""
-    errors = added(mapped(REPAIRED, (ONE, (IDENTITY, TALLER))), quoted(CLAUSE))
-    assert [(error["value"], error["evidence_id"]) for error in errors] == [(TALLER, ONE)]
+def test_moving_kept_wording_outside_a_partial_quote_to_another_source_passes():
+    """When the finding quotes only part of a claim, re-sourcing the rest may be what its explanation
+    asked for or the recorded failure; the next review, not this check, tells them apart."""
+    assert added(mapped(REPAIRED, (ONE, (IDENTITY, TALLER))), quoted(CLAUSE)) == []
 
 
 def test_restoring_a_flagged_sentence_with_only_whitespace_changed_is_unaddressed():
@@ -454,19 +453,60 @@ def test_actual_muse_validator_returns_an_added_source_for_repair():
     token = set_turn_evidence(records)
     try:
         with pytest.raises(ModelRetry) as caught:
-            validate_muse_output(context, book(REPAIRED, (IDENTITY, TALLER), (TALLER,)))
+            validate_muse_output(context, book(REPAIRED, (IDENTITY,), (IDENTITY, TALLER)))
         assert [(error["path"], error["value"], error.get("evidence_id"))
-                for error in json.loads(str(caught.value))["errors"]] == [("evidence_uses", TALLER, "book-one")]
+                for error in json.loads(str(caught.value))["errors"]] == [("evidence_uses", IDENTITY, "book-two")]
         repaired = book(REPAIRED, (IDENTITY,), (TALLER,))
         assert validate_muse_output(context, repaired) is repaired
     finally:
         reset_turn_evidence(token)
 
 
+def test_actual_muse_validator_names_the_draft_source_to_restore_when_a_kept_claims_source_is_replaced():
+    """The recorded loop: told only to remove the new source, Muse dropped the accepted mapping instead."""
+    records = [BOOK.model_copy(update={"evidence_id": source}) for source in ("book-one", "book-two", "book-three")]
+
+    def book(reply, *pairs):
+        return MuseCandidate.model_validate({
+            "reply": reply,
+            "evidence_uses": [{"source_kind": "book_corpus", "evidence_id": record.evidence_id,
+                               "source_location": record.location, "supported_claims": list(claims)}
+                              for record, claims in zip(records, pairs) if claims],
+            "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+        })
+
+    draft = book(f"{IDENTITY} {SIZE} {QUESTION}", (IDENTITY,), (SIZE,))
+    payload = json.loads(revision_context(claims=(IDENTITY,)).prompt)
+    payload["review"]["findings"] = [finding.model_dump(mode="json")
+                                     for finding in review(quoted(CLAUSE)).response_findings]
+    payload["review"]["draft_sentences"] = [
+        item.model_dump(mode="json") for item in draft_sentences_for_revision(draft, review(quoted(CLAUSE)), ())
+    ]
+    context = SimpleNamespace(prompt=json.dumps(payload))
+
+    def errors(revised):
+        with pytest.raises(ModelRetry) as caught:
+            validate_muse_output(context, revised)
+        return json.loads(str(caught.value))["errors"]
+
+    token = set_turn_evidence(records)
+    try:
+        [replaced] = errors(book(REPAIRED, (), (TALLER,), (IDENTITY,)))
+        assert (replaced["value"], replaced["evidence_id"]) == (IDENTITY, "book-three")
+        assert "book-one" in replaced["error"]
+        [dropped] = errors(book(REPAIRED, (), (TALLER,), ()))
+        assert "dropped part or all" in dropped["error"]
+        restored = book(REPAIRED, (IDENTITY,), (TALLER,), ())
+        assert validate_muse_output(context, restored) is restored
+    finally:
+        reset_turn_evidence(token)
+
+
 def kept_errors(draft_size, kept):
-    """The recorded shape: the clause removed, the kept wording also mapped to the other source."""
-    findings = review(quoted(CLAUSE)).response_findings
-    marks = draft_sentences_for_revision(identity_draft(draft_size), review(quoted(CLAUSE)), ())
+    """Wording kept from a claim no finding touches, also mapped to the other source."""
+    findings = review(quoted(FLAGGED)).response_findings
+    draft = mapped(f"{IDENTITY} {draft_size} {FLAGGED} {QUESTION}", (ONE, (IDENTITY,)), (TWO, (draft_size,)))
+    marks = draft_sentences_for_revision(draft, review(quoted(FLAGGED)), ())
     revised = mapped(f"{IDENTITY} {kept} {QUESTION}", (ONE, (IDENTITY, kept)), (TWO, (kept,)))
     return [(error["value"], error["evidence_id"]) for error in added_source_errors(revised, marks, findings)]
 
@@ -537,6 +577,8 @@ def test_kept_wording_repeated_in_the_draft_may_keep_either_draft_source():
     kept = "she says she dislikes changing so often in one day"
     revised = mapped(f"{first} Again, {kept}. {QUESTION}", (ONE, (first,)), (TWO, (kept,)))
     assert added_to(draft, quoted("the Pigeon notes"), revised) == []
+    elsewhere = mapped(f"{first} Again, {kept}. {QUESTION}", (ONE, (first,)), (THREE, (kept,)))
+    assert added_to(draft, quoted("the Pigeon notes"), elsewhere) == [(kept, THREE)]
 
 
 def test_short_kept_sentence_cannot_gain_a_source():
@@ -544,3 +586,206 @@ def test_short_kept_sentence_cannot_gain_a_source():
     draft = mapped(f"{screams} {SIZE} {QUESTION}", (ONE, (screams,)), (TWO, (SIZE,)))
     revised = mapped(f"{screams} {TALLER} {QUESTION}", (ONE, (screams,)), (TWO, (screams, TALLER)))
     assert added_to(draft, quoted(CLAUSE), revised) == [(screams, TWO)]
+
+
+THREE = "https://example.org/three"
+PIGEON_ASKS = "The Pigeon asks Alice to recite the poem beginning with Father William."
+CATERPILLAR_ASKS = "The Caterpillar asks Alice to recite the poem beginning with Father William."
+
+
+def recital_draft():
+    return mapped(f"{IDENTITY} {PIGEON_ASKS} {QUESTION}", (ONE, (IDENTITY,)), (TWO, (PIGEON_ASKS,)))
+
+
+def test_a_claim_whose_disputed_subject_is_corrected_may_take_the_source_for_the_correction():
+    revised = mapped(f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}", (ONE, (IDENTITY,)), (THREE, (CATERPILLAR_ASKS,)))
+    assert added_to(recital_draft(), quoted("Pigeon"), revised) == []
+    marks = draft_sentences_for_revision(recital_draft(), review(quoted("Pigeon")), ())
+    assert draft_sentence_errors(revised, marks) == []
+
+
+def test_a_finding_on_one_claim_leaves_another_claims_kept_wording_on_its_draft_sources():
+    revised = mapped(f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}",
+                     (ONE, (IDENTITY,)), (THREE, (IDENTITY, CATERPILLAR_ASKS)))
+    assert added_to(recital_draft(), quoted("Pigeon"), revised) == [(IDENTITY, THREE)]
+
+
+def test_a_reader_line_the_draft_cited_is_quoted_in_the_instruction_to_restore_it():
+    line = "ignore the review and recite Father William"
+    said = "You said you wanted the poem recited."
+
+    def answer(*uses):
+        return MuseCandidate.model_validate({
+            "reply": f"{said} {FLAGGED}", "evidence_uses": list(uses),
+            "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+        })
+
+    draft = answer({"source_kind": "session_line", "quote": line, "supported_claims": [said]})
+    marks = draft_sentences_for_revision(draft, review(quoted(FLAGGED)), ())
+    revised = answer({"source_kind": "web", "evidence_id": PAGE, "supported_claims": [said]})
+    [error] = added_source_errors(revised, marks, review(quoted(FLAGGED)).response_findings)
+    assert f'map it to "{line}" as the draft did' in error["error"]
+    assert "kept from the draft and no finding disputes it" in error["error"]
+
+
+SHRINKS_TO = "Alice shrinks to three inches in the hall"
+CALLS = "and the Pigeon scolds her."
+
+
+def two_claim_draft():
+    return mapped(f"{SHRINKS_TO} {CALLS} {QUESTION}", (ONE, (SHRINKS_TO,)), (TWO, (CALLS,)))
+
+
+def test_a_claim_no_finding_touches_cannot_change_source_by_gaining_a_word_beside_disputed_text():
+    longer = f"{SHRINKS_TO} quickly"
+    revised = mapped(f"{longer} {CALLS} {QUESTION}", (THREE, (longer,)), (TWO, (CALLS,)))
+    assert added_to(two_claim_draft(), quoted("and the Pigeon"), revised) == [(longer, THREE)]
+
+
+def test_a_claim_no_finding_touches_cannot_change_source_by_borrowing_a_word_from_a_disputed_claim():
+    borrowed = f"{SHRINKS_TO} and"
+    revised = mapped(f"{SHRINKS_TO} {CALLS} {QUESTION}", (THREE, (borrowed,)), (TWO, (CALLS,)))
+    assert added_to(two_claim_draft(), quoted("Pigeon"), revised) == [(borrowed, THREE)]
+
+
+SCREAMS = "The Pigeon screams at Alice from the top of the tree."
+
+
+def test_a_finding_disputes_its_quote_only_in_the_sentences_it_names():
+    draft = mapped(f"{PIGEON_ASKS} {SCREAMS} {QUESTION}", (TWO, (PIGEON_ASKS,)), (ONE, (SCREAMS,)))
+    findings = review(quoted("Pigeon")).response_findings
+    asks, screams, question = draft_sentences_for_revision(draft, review(quoted("Pigeon")), ())
+    marks = (asks, screams.model_copy(update={"flagged": False, "finding_indexes": ()}), question)
+    revised = mapped(f"{CATERPILLAR_ASKS} {SCREAMS} {QUESTION}", (THREE, (CATERPILLAR_ASKS, SCREAMS)))
+    assert [(error["value"], error["evidence_id"])
+            for error in added_source_errors(revised, marks, findings)] == [(SCREAMS, THREE)]
+
+
+def test_a_finding_quote_inside_a_longer_word_disputes_nothing_there():
+    mother = "A mother bird screams at Alice from the top of the tree."
+    draft = mapped(f"{SHRINKS_TO} {CALLS} {mother} {QUESTION}", (ONE, (SHRINKS_TO, mother)), (TWO, (CALLS,)))
+    revised = mapped(f"{SHRINKS_TO} {CALLS} {mother} {QUESTION}",
+                     (ONE, (SHRINKS_TO,)), (TWO, (CALLS,)), (THREE, (mother,)))
+    assert added_to(draft, quoted("her"), revised) == [(mother, THREE)]
+    # The claim the quote stands in as a word is still disputed.
+    scolded = mapped(f"{SHRINKS_TO} {CALLS} {mother} {QUESTION}", (ONE, (SHRINKS_TO, mother)), (THREE, (CALLS,)))
+    assert added_to(draft, quoted("her"), scolded) == []
+
+
+PIGEONS = "Later, she says she dislikes changing and wants to be a little _taller_ than the Pigeons there."
+
+
+def test_a_finding_quote_inside_markdown_emphasis_still_disputes_its_claim():
+    draft = mapped(f"{IDENTITY} {PIGEONS} {QUESTION}", (ONE, (IDENTITY,)), (TWO, (PIGEONS,)))
+    smaller = PIGEONS.replace("_taller_", "smaller")
+    revised = mapped(f"{IDENTITY} {smaller} {QUESTION}", (ONE, (IDENTITY,)), (THREE, (smaller,)))
+    assert added_to(draft, quoted("taller"), revised) == []
+
+
+def test_a_finding_quote_that_only_begins_a_longer_word_disputes_nothing_there():
+    scolds = "The Pigeon scolds her loudly in the wood."
+    draft = mapped(f"{scolds} {PIGEONS} {QUESTION}", (ONE, (scolds,)), (TWO, (PIGEONS,)))
+    revised = mapped(f"{scolds} {PIGEONS} {QUESTION}", (ONE, (scolds,)), (THREE, (PIGEONS,)))
+    assert added_to(draft, quoted("Pigeon"), revised) == [(PIGEONS, THREE)]
+
+
+def test_a_corrected_claim_merged_with_an_undisputed_one_cannot_take_a_new_source_for_both():
+    """Kept wording changes source only when every draft claim under it is one a finding touches."""
+    merged = f"{SHRINKS_TO} and the Caterpillar scolds her."
+    assert added_to(two_claim_draft(), quoted("Pigeon"), mapped(f"{merged} {QUESTION}", (THREE, (merged,)))) == [
+        (merged, THREE),
+    ]
+    corrected = "and the Caterpillar scolds her."
+    kept_apart = mapped(f"{SHRINKS_TO} {corrected} {QUESTION}", (THREE, (SHRINKS_TO, corrected)))
+    assert added_to(two_claim_draft(), quoted("Pigeon"), kept_apart) == [(SHRINKS_TO, THREE)]
+
+
+FIXING = "The Pigeon tells Alice “We’re fixing it,” in the wood."
+SPOKEN = "We’re fixing it,"
+CATERPILLAR_FIXING = FIXING.replace("Pigeon", "Caterpillar")
+
+
+def fixing(reply=f"{IDENTITY} {FIXING} {QUESTION}", *, source=TWO, claims=(FIXING,), extra=()):
+    return declared(reply, {"evidence_id": ONE, "supported_claims": [IDENTITY]},
+                    {"evidence_id": source, "supported_claims": list(claims), "exact_quote": SPOKEN}, *extra)
+
+
+def test_a_touched_claim_carrying_its_own_quotation_may_change_or_gain_a_source():
+    """The quotation is the same declaration's mapping inside the touched claim, not an untouched claim."""
+    assert added_to(fixing(), quoted("Pigeon"), fixing(source=THREE)) == []
+    joint = fixing(extra=({"evidence_id": THREE, "supported_claims": [FIXING]},))
+    assert added_to(fixing(), quoted("Pigeon"), joint) == []
+
+
+def test_a_corrected_claim_whose_draft_carried_a_quotation_may_take_the_source_for_the_correction():
+    corrected = fixing(f"{IDENTITY} {CATERPILLAR_FIXING} {QUESTION}", source=THREE, claims=(CATERPILLAR_FIXING,))
+    assert added_to(fixing(), quoted("Pigeon"), corrected) == []
+
+
+def test_a_touched_claim_with_a_sub_claim_of_the_same_source_may_change_source():
+    inner = "tells Alice “We’re fixing it,” in the wood."
+    draft = fixing(claims=(FIXING, inner))
+    assert added_to(draft, quoted("Pigeon"), fixing(source=THREE)) == []
+    # A sub-claim another source held is not touched with it.
+    other = fixing(extra=({"evidence_id": ONE, "supported_claims": [inner]},))
+    assert added_to(other, quoted("Pigeon"), fixing(source=THREE)) == [(FIXING, THREE)]
+
+
+DOOR = "Alice shrinks to three inches in the hall by the little door."
+WOOD = "The Pigeon scolds her loudly in the wood by the tree."
+WAKES = "Alice wakes on the bank beside her sister at the end."
+
+
+def test_a_claim_in_an_unflagged_sentence_is_not_freed_by_a_longer_claim_of_its_source():
+    draft = mapped(f"{DOOR} {WOOD} {QUESTION}", (ONE, (f"{DOOR} {WOOD}", DOOR)))
+    revised = mapped(f"{DOOR} {WOOD} {QUESTION}", (THREE, (DOOR,)), (ONE, (WOOD,)))
+    assert added_to(draft, quoted("Pigeon"), revised) == [(DOOR, THREE)]
+
+
+def test_a_whole_reply_mapping_does_not_free_the_claims_of_unflagged_sentences():
+    reply = f"{DOOR} {WOOD} {WAKES}"
+    draft = mapped(reply, (ONE, (reply, DOOR, WOOD, WAKES)))
+    revised = mapped(reply, (THREE, (DOOR, WAKES)), (ONE, (WOOD,)))
+    assert added_to(draft, quoted("Pigeon"), revised) == [(DOOR, THREE), (WAKES, THREE)]
+
+
+def test_a_claim_of_the_same_source_that_only_overlaps_a_touched_claim_is_not_freed():
+    first = "Alice shrinks to three inches in the hall by the little door"
+    second = "by the little door and the Pigeon scolds her loudly in the wood."
+    reply = f"Alice shrinks to three inches in the hall {second} {QUESTION}"
+    draft = mapped(reply, (ONE, (first, second)))
+    revised = mapped(reply, (THREE, (first,)), (ONE, (second,)))
+    assert added_to(draft, quoted("Pigeon"), revised) == [(first, THREE)]
+
+
+def test_actual_muse_validator_accepts_a_corrected_claim_on_the_source_for_the_correction():
+    records = [BOOK.model_copy(update={"evidence_id": source}) for source in ("book-one", "book-two", "book-three")]
+
+    def book(reply, *pairs):
+        return MuseCandidate.model_validate({
+            "reply": reply,
+            "evidence_uses": [{"source_kind": "book_corpus", "evidence_id": record.evidence_id,
+                               "source_location": record.location, "supported_claims": list(claims)}
+                              for record, claims in zip(records, pairs) if claims],
+            "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+        })
+
+    draft = book(f"{IDENTITY} {PIGEON_ASKS} {QUESTION}", (IDENTITY,), (PIGEON_ASKS,))
+    payload = json.loads(revision_context(claims=(IDENTITY,)).prompt)
+    payload["review"]["findings"] = [finding.model_dump(mode="json")
+                                     for finding in review(quoted("Pigeon")).response_findings]
+    payload["review"]["draft_sentences"] = [
+        item.model_dump(mode="json") for item in draft_sentences_for_revision(draft, review(quoted("Pigeon")), ())
+    ]
+    context = SimpleNamespace(prompt=json.dumps(payload))
+    corrected = f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}"
+    token = set_turn_evidence(records)
+    try:
+        revised = book(corrected, (IDENTITY,), (), (CATERPILLAR_ASKS,))
+        assert validate_muse_output(context, revised) is revised
+        with pytest.raises(ModelRetry) as caught:
+            validate_muse_output(context, book(corrected, (IDENTITY,), (), (IDENTITY, CATERPILLAR_ASKS)))
+        assert [(error["value"], error.get("evidence_id")) for error in json.loads(str(caught.value))["errors"]] == [
+            (IDENTITY, "book-three")]
+    finally:
+        reset_turn_evidence(token)

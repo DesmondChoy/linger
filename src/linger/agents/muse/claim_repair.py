@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from difflib import SequenceMatcher
 from typing import TYPE_CHECKING
@@ -339,6 +340,10 @@ def _unmapped_words(candidate: MuseCandidate, start: int, end: int) -> int:
     return len(_WORD.findall(_MARKDOWN_LINK.sub(" ", unmapped)))
 
 
+def _splits_word(text: str, position: int) -> bool:
+    return bool(re.match(r"[^\W_]{2}", text[max(position - 1, 0):position + 1]))
+
+
 def added_source_errors(
     candidate: MuseCandidate, draft_sentences: tuple[DraftSentence, ...], findings: tuple[RiskFinding, ...],
 ) -> list[dict[str, object]]:
@@ -348,20 +353,29 @@ def added_source_errors(
     texts = [_normalized(sentence.text) for sentence in draft_sentences]
     draft = " ".join(texts)
     disputed: list[tuple[int, int]] = []
+    named: list[tuple[int, int]] = []
     mapped: list[tuple[int, int, tuple[str, str]]] = []
     offset = 0
     for sentence, text in zip(draft_sentences, texts):
         for index in sentence.finding_indexes:
             if index >= len(findings):
                 continue
+            named.append((offset, offset + len(text)))
             location = findings[index].location
             quote = getattr(location, "quote", None) if location.source_field == "candidate.response" else None
-            # A finding on a declaration frees every mapping in the sentences it names.
-            disputed.extend(quote and _occurrences(draft, _normalized(quote)) or [(offset, offset + len(text))])
+            if not quote:
+                # A finding on a declaration frees every mapping in the sentences it names.
+                disputed.append((offset, offset + len(text)))
+                continue
+            # A finding disputes its quote where it stands as whole words in a sentence it names.
+            disputed.extend(
+                (a, b) for a, b in _occurrences(draft, _normalized(quote))
+                if a < offset + len(text) and offset < b and not _splits_word(draft, a) and not _splits_word(draft, b))
         for mapping in sentence.source_mappings:
             mapped.extend((a, b, (mapping.source_kind, mapping.evidence_id))
                           for a, b in _occurrences(draft, _normalized(mapping.mapped_text)))
         offset += len(text) + 1
+    touched = [(a, b, key) for a, b, key in mapped if _overlaps(a, b, disputed)]
     # Draft words with their character spans; case, punctuation and link targets do not count.
     spans = [match.span() for match in _WORD.finditer(_MARKDOWN_LINK.sub(lambda m: " " * len(m[0]), draft))]
     words = [draft[a:b].lower().strip("_") for a, b in spans]
@@ -378,21 +392,27 @@ def added_source_errors(
             run_words = words[run.a:run.a + run.size]
             found = [(spans[i][0], spans[i + run.size - 1][1]) for i in range(len(words) - run.size + 1)
                      if words[i:i + run.size] == run_words]
-            if any(_overlaps(a, b, disputed) for a, b in found):
+            # A draft mapping a finding touches is disputed as a whole, with the same source's mappings
+            # inside it in the sentences findings name: the next review judges its new sources. Kept
+            # wording is free when every draft mapping under it is disputed, or the draft left it unmapped.
+            under = [(a, b, key) for a, b, key in mapped if _overlaps(a, b, found)]
+            if all(_overlaps(a, b, named) and any(k == key and ta <= a and b <= tb for ta, tb, k in touched)
+                   for a, b, key in under):
                 continue
-            # Draft wording the draft left unmapped may cite any source.
-            before = {key for a, b, key in mapped if _overlaps(a, b, found)}
-            if before and source not in before:
+            before = {key for _, _, key in under}
+            if source not in before:
                 start = candidate.reply.find(claim)
+                draft_sources = ", ".join(sorted(json.dumps(item, ensure_ascii=False) for _, item in before))
                 errors.append({
                     "path": "evidence_uses", "value": claim,
                     "response_start": start, "response_end": start + len(claim),
                     "source_kind": use.source_kind, "evidence_id": source[1],
                     "error": (
                         "This wording was kept from the draft and no finding disputes it or its sources, "
-                        "so it must keep the draft's sources: remove this added source from it. If a "
-                        "retained source now has no claim, rewrite the flagged claim to state what "
-                        "that source establishes rather than attaching the source to other text."
+                        f"so it must keep the draft's sources: map it to {draft_sources} as the draft did, and "
+                        "remove this added source from it. If a retained source now has no claim, "
+                        "rewrite the flagged claim to state what that source establishes rather than "
+                        "attaching the source to other text."
                     ),
                 })
     return errors
