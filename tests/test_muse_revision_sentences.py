@@ -789,3 +789,24 @@ def test_actual_muse_validator_accepts_a_corrected_claim_on_the_source_for_the_c
             (IDENTITY, "book-three")]
     finally:
         reset_turn_evidence(token)
+
+
+PIGEONS_SCOLD = "The Pigeons there scold Alice loudly from the branches above."
+
+
+def test_a_finding_quote_names_only_the_sentences_where_it_stands_as_a_word():
+    draft = mapped(f"{PIGEON_ASKS} {PIGEONS_SCOLD} {QUESTION}", (TWO, (PIGEON_ASKS,)), (ONE, (PIGEONS_SCOLD,)))
+    marks = draft_sentences_for_revision(draft, review(quoted("Pigeon")), ())
+    assert [mark.text for mark in marks if mark.flagged] == [PIGEON_ASKS]
+    revised = mapped(f"{CATERPILLAR_ASKS} {PIGEONS_SCOLD} {QUESTION}", (THREE, (CATERPILLAR_ASKS, PIGEONS_SCOLD)))
+    errors = added_source_errors(revised, marks, review(quoted("Pigeon")).response_findings)
+    assert [(error["value"], error["evidence_id"]) for error in errors] == [(PIGEONS_SCOLD, THREE)]
+    assert "no finding disputes it" in errors[0]["error"]
+
+
+def test_a_finding_quote_found_only_inside_longer_words_names_and_disputes_them():
+    draft = mapped(f"{IDENTITY} {PIGEONS_SCOLD} {QUESTION}", (TWO, (IDENTITY,)), (ONE, (PIGEONS_SCOLD,)))
+    marks = draft_sentences_for_revision(draft, review(quoted("Pigeon")), ())
+    assert [mark.text for mark in marks if mark.flagged] == [PIGEONS_SCOLD]
+    revised = mapped(f"{IDENTITY} {PIGEONS_SCOLD} {QUESTION}", (TWO, (IDENTITY,)), (THREE, (PIGEONS_SCOLD,)))
+    assert added_source_errors(revised, marks, review(quoted("Pigeon")).response_findings) == []

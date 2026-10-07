@@ -206,7 +206,7 @@ def _finding_intervals(location: FindingLocation, candidate: MuseCandidate) -> l
         quote = getattr(location, "quote", None)
         if location.kind != "text_span" or location.path or not quote:
             return None
-        return _occurrences(reply, quote) or None
+        return _quote_occurrences(reply, quote) or None
     if location.source_field != "candidate.evidence_uses":
         return None
     parts = location.path.split("/")[1:]
@@ -344,6 +344,12 @@ def _splits_word(text: str, position: int) -> bool:
     return bool(re.match(r"[^\W_]{2}", text[max(position - 1, 0):position + 1]))
 
 
+def _quote_occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
+    """Where a finding's quote stands as whole words; every occurrence when it never does."""
+    found = _occurrences(text, fragment)
+    return [(a, b) for a, b in found if not _splits_word(text, a) and not _splits_word(text, b)] or found
+
+
 def added_source_errors(
     candidate: MuseCandidate, draft_sentences: tuple[DraftSentence, ...], findings: tuple[RiskFinding, ...],
 ) -> list[dict[str, object]]:
@@ -367,10 +373,10 @@ def added_source_errors(
                 # A finding on a declaration frees every mapping in the sentences it names.
                 disputed.append((offset, offset + len(text)))
                 continue
-            # A finding disputes its quote where it stands as whole words in a sentence it names.
+            # A finding disputes its quote where placement found it, in a sentence it names.
             disputed.extend(
-                (a, b) for a, b in _occurrences(draft, _normalized(quote))
-                if a < offset + len(text) and offset < b and not _splits_word(draft, a) and not _splits_word(draft, b))
+                (a, b) for a, b in _quote_occurrences(draft, _normalized(quote))
+                if a < offset + len(text) and offset < b)
         for mapping in sentence.source_mappings:
             mapped.extend((a, b, (mapping.source_kind, mapping.evidence_id))
                           for a, b in _occurrences(draft, _normalized(mapping.mapped_text)))
