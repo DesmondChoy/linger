@@ -38,8 +38,8 @@ def by_id(case_id):
 
 
 def test_revision_pack_has_one_case_per_rule_group():
-    assert len(CASES) == 7
-    assert len({case.case_id for case in CASES}) == 7
+    assert len(CASES) == 8
+    assert len({case.case_id for case in CASES}) == 8
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case.case_id)
@@ -219,6 +219,34 @@ def test_kept_wording_of_the_flagged_claim_given_another_source_fails_the_grader
     assert validate_muse_output(context, padded) is padded
     failures = grade_revision(case, padded)["failures"]
     assert [failure.split(":")[0] for failure in failures] == ["forbidden_declaration"]
+
+
+def test_corrected_speaker_takes_a_new_source_and_the_kept_sentence_gains_none(bound):
+    """The reference maps the corrected claim to a passage the draft never declared, and validates.
+    Giving the unflagged Pigeon sentence that passage too is an added source; leaving the corrected
+    claim on the Pigeon passage validates and is left to the grader."""
+    from pydantic_ai import ModelRetry
+    from pydantic_ai.messages import ModelRequest, RetryPromptPart
+
+    case = by_id("muse-revision-misattributed-speaker-v1")
+    bound(case)
+    context = SimpleNamespace(prompt=revision_input(case).model_dump_json())
+    pigeon, recital = case.reference_revision["evidence_uses"]
+    kept, corrected = pigeon["supported_claims"][0], recital["supported_claims"][0]
+
+    padded = json.loads(json.dumps(case.reference_revision))
+    padded["evidence_uses"][1]["supported_claims"].append(kept)
+    with pytest.raises(ModelRetry) as caught:
+        validate_muse_output(context, MuseCandidate.model_validate(padded))
+    message = ModelRequest(parts=[RetryPromptPart(content=str(caught.value))])
+    assert retry_categories([message]) == [["added_source"]]
+
+    unmoved = json.loads(json.dumps(case.reference_revision))
+    unmoved["evidence_uses"] = [pigeon | {"supported_claims": [kept, corrected]}]
+    candidate = MuseCandidate.model_validate(unmoved)
+    assert validate_muse_output(context, candidate) is candidate
+    failures = grade_revision(case, candidate)["failures"]
+    assert [failure.split(":")[0] for failure in failures] == ["missing_declaration", "forbidden_declaration"]
 
 
 def test_unknown_case_id_is_rejected():
