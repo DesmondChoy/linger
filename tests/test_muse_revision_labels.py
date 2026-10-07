@@ -481,6 +481,33 @@ def test_an_unusable_label_is_retried_and_never_returned(name):
     assert repaired["output"] == _revise(UNFLAGGED, [UNFLAGGED.reference_revision])["output"]
 
 
+@pytest.mark.parametrize("reply", [None, f"{_FIRST} {{{{SENTENCE_2}}}} {_ASK}"], ids=["plain", "labelled"])
+@pytest.mark.parametrize("field, value", [("supported_claims", 42), ("limit_claims", True)])
+def test_a_declaration_field_that_is_not_a_list_is_left_for_schema_validation_to_retry(field, value, reply):
+    bad = UNFLAGGED.reference_revision | {
+        "evidence_uses": [UNFLAGGED.reference_revision["evidence_uses"][0] | {field: value}]}
+    bad = bad | {"reply": reply or bad["reply"]}
+    ctx = SimpleNamespace(prompt="", messages=[*accepted(UNFLAGGED.draft),
+                                               ModelRequest(parts=[UserPromptPart(content="")])])
+    assert expand_labels(ctx, bad, draft_sentences(UNFLAGGED)) == (bad, None)
+    repaired = _revise(UNFLAGGED, [bad, UNFLAGGED.reference_revision])
+    assert len(repaired["retries"]) == 1
+    assert repaired["output"] == _revise(UNFLAGGED, [UNFLAGGED.reference_revision])["output"]
+
+
+@pytest.mark.parametrize("malformed", ["first", "repeat"])
+def test_a_claimless_repeat_declaration_beside_limits_that_are_not_a_list_is_retried(malformed):
+    use = UNFLAGGED.reference_revision["evidence_uses"][0]
+    repeat = use | {"supported_claims": []}
+    uses = [use | {"limit_claims": 42}, repeat] if malformed == "first" else [use, repeat | {"limit_claims": 42}]
+    bad = UNFLAGGED.reference_revision | {"evidence_uses": uses}
+    with pytest.raises(ValidationError):
+        MuseCandidate.model_validate(bad)
+    repaired = _revise(UNFLAGGED, [bad, UNFLAGGED.reference_revision])
+    assert len(repaired["retries"]) == 1
+    assert repaired["output"] == _revise(UNFLAGGED, [UNFLAGGED.reference_revision])["output"]
+
+
 def test_a_label_inside_a_claim_is_expanded_and_a_malformed_one_retried():
     good = UNFLAGGED.reference_revision | {"reply": f"{_FIRST} {{{{SENTENCE_2}}}} {_ASK}"}
     good["evidence_uses"] = [good["evidence_uses"][0] | {"supported_claims": [f"{_FIRST} {{{{SENTENCE_2}}}}"]}]

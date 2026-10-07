@@ -180,6 +180,13 @@ def test_flagged_sentence_kept_word_for_word_may_change_its_mapping(revised):
     assert draft_sentence_errors(revised, placed(candidate(DRAFT, claims=(FLAGGED,)))) == []
 
 
+def test_flagged_sentence_kept_word_for_word_may_move_its_claim_to_a_limit():
+    marks = placed(candidate(DRAFT, claims=(KEPT, FLAGGED)))
+    assert draft_sentence_errors(candidate(DRAFT, claims=(KEPT,), limits=(FLAGGED,)), marks) == []
+    restored = draft_sentence_errors(candidate(DRAFT, claims=(KEPT, FLAGGED)), marks)
+    assert [error["draft_sentence"] for error in restored] == [FLAGGED]
+
+
 def test_flagged_claim_merged_into_an_unflagged_sentence_is_still_an_unflagged_rewrite():
     neck = "Alice’s neck has grown so long that her head rises above the trees."
     marks = placed(candidate(f"{neck} {FLAGGED}", claims=(neck,)))

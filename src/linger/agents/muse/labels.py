@@ -91,7 +91,8 @@ def expand_labels(
     # Anything malformed passes through unchanged for schema validation to reject.
     if (not isinstance(data, dict) or not isinstance(data.get("reply"), str)
             or not isinstance(data.get("evidence_uses", []), list)
-            or not all(isinstance(use, dict) for use in data.get("evidence_uses", []))):
+            or not all(isinstance(use, dict) and isinstance(use.get(field) or [], list)
+                       for use in data.get("evidence_uses", []) for field in ("supported_claims", "limit_claims"))):
         return raw, None
     uses = [dict(use) for use in data.get("evidence_uses", [])]
     if not any(LABEL_TRACE.search(text) for text in [data["reply"], *_use_texts(uses)]):

@@ -319,8 +319,8 @@ def _sentence_mappings(candidate: MuseCandidate, start: int, end: int) -> tuple[
     return tuple(mappings)
 
 
-def _mapping_keys(mappings: tuple[SentenceMapping, ...]) -> set[tuple[str, str, str]]:
-    return {(item.source_kind, item.evidence_id, _normalized(item.mapped_text)) for item in mappings}
+def _mapping_keys(mappings: tuple[SentenceMapping, ...]) -> set[tuple[str, str, str, str]]:
+    return {(item.source_kind, item.evidence_id, item.field, _normalized(item.mapped_text)) for item in mappings}
 
 
 def _similarity(first: str, second: str) -> float:
