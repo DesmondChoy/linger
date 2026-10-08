@@ -5,11 +5,11 @@
   "primary_behavior": "route_external_recommendation_to_web",
   "contrast_group": "source-routing",
   "tier": "capability",
-  "description": "Case 31 with an extra search result about Baltimore. Douglass learned to read there, so it shares a place with the story, but it says nothing about why literacy was forbidden, so it must not appear on the shortlist.",
+  "description": "Case 31 with an extra search result about Baltimore. Douglass learned to read there, so it shares a place with the story, but it says nothing about why literacy was forbidden, so it must not appear on the shortlist. On 8 Oct the case was given the intent production triage pins for an outside recommendation (get_recommendation, presented directly); it had been written as find_connection, which production no longer sends for this request.",
   "input": {
     "cue": "Can you recommend something outside the book about why it was forbidden to teach enslaved people to read?",
-    "intent": "find_connection",
-    "presentation": "ask_before_showing",
+    "intent": "get_recommendation",
+    "presentation": "direct",
     "scope": {
       "allowed_sources": [
         "book_corpus",
@@ -57,7 +57,7 @@
   },
   "expected": {
     "status": "proposal",
-    "presentation": "ask_before_showing",
+    "presentation": "direct",
     "semantic_review": {
       "criteria": [
         "Offers a relevant outside source on why literacy was forbidden",

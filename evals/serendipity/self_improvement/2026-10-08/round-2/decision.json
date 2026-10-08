@@ -1,0 +1,26 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 121,
+  "practice_passes_candidate": 117,
+  "practice_runs": 165,
+  "gain": -4,
+  "case_losses": {
+    "serendipity-alice-bridge-with-distractors-v3": 1,
+    "serendipity-alice-connect-to-reader-memory-v3": 5,
+    "serendipity-alice-memory-connection-real-over-echo-v3": 2,
+    "serendipity-alice-memory-granted-not-asked-v3": 1,
+    "serendipity-animal-farm-real-bridge-v3": 1,
+    "serendipity-exclude-ineligible-evidence-v3": 2,
+    "serendipity-expand-to-cross-source-v3": 1,
+    "serendipity-recall-no-matching-memory-v3": 1,
+    "serendipity-recall-sibling-no-matching-memory-v3": 1,
+    "serendipity-recall-two-matching-records-v3": 2,
+    "serendipity-stop-after-primary-source-v3": 2
+  },
+  "reasons": [
+    "practice gain -4 is below 10",
+    "cases lost more than 2 passes: ['serendipity-alice-connect-to-reader-memory-v3']",
+    "stable cases fell below 4: ['serendipity-alice-connect-to-reader-memory-v3', 'serendipity-alice-memory-connection-real-over-echo-v3', 'serendipity-recall-two-matching-records-v3', 'serendipity-stop-after-primary-source-v3']"
+  ],
+  "execution_errors_candidate": 0
+}

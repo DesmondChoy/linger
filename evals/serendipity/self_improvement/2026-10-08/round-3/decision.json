@@ -1,0 +1,23 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 116,
+  "practice_passes_candidate": 112,
+  "practice_runs": 165,
+  "gain": -4,
+  "case_losses": {
+    "serendipity-alice-connect-to-reader-memory-v3": 2,
+    "serendipity-alice-web-with-distractor-v3": 2,
+    "serendipity-animal-farm-real-bridge-v3": 1,
+    "serendipity-animal-farm-route-external-web-v3": 2,
+    "serendipity-decline-insufficient-bridge-v3": 1,
+    "serendipity-expand-to-cross-source-v3": 3,
+    "serendipity-recommendation-intent-direct-v3": 1,
+    "serendipity-route-book-relationship-v3": 1,
+    "serendipity-route-external-recommendation-v3": 3
+  },
+  "reasons": [
+    "practice gain -4 is below 10",
+    "cases lost more than 2 passes: ['serendipity-expand-to-cross-source-v3', 'serendipity-route-external-recommendation-v3']"
+  ],
+  "execution_errors_candidate": 0
+}

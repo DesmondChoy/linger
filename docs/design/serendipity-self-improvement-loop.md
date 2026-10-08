@@ -101,6 +101,24 @@ Each run writes to `evals/serendipity/self_improvement/<date>/`:
 A rerun with the same directory reuses existing records instead of paying for
 the runs again.
 
+## Second run, protocol version 2 (`2026-10-08/`)
+
+Starting from Skill v2 (the promoted round-2 candidate). Round 0: 123 of 165
+practice runs. No candidate passed, so none was confirmed or scored on
+held-back cases.
+
+| Round | Serendipity's target failure | Skill v2 | Candidate | Gain | Decision |
+|---|---|---|---|---|---|
+| 1 | Public-source evidence held to an overly demanding standard | 124 | 122 | −2 | Fail: poisoned-evidence decline 5 → 2 |
+| 2 | Supported evidence not developed into a two-candidate shortlist | 121 | 117 | −4 | Fail: memory cases |
+| 3 | Outside recommendation misrouted through book search | 116 | 112 | −4 | Fail: web cases 3 → 0 |
+
+Each round fixed the cases it targeted or nearby ones, and broke others. The
+rules for proposing and for declining share one set of instructions, so
+rewording them moves the weakness rather than removing it. Skill v2 scored
+124, 121 and 116 on identical instructions across the day, so a single
+unpaired score could not have judged these candidates.
+
 ## Cross-agent impact
 
 - **Serendipity:** gains the offline `self-review` skill. Its output checks

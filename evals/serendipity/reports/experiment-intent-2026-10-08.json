@@ -1,0 +1,2916 @@
+{
+  "experiment": "intent",
+  "comparison": {
+    "conditions": [
+      "as-written",
+      "triage-intent"
+    ],
+    "as-written": 8,
+    "triage-intent": 15,
+    "runs": 35,
+    "cases_up": 5,
+    "cases_down": 0,
+    "by_behaviour": {
+      "route_external_recommendation_to_web": {
+        "as-written": 8,
+        "triage-intent": 15,
+        "runs": 35
+      }
+    },
+    "case_changes": {
+      "serendipity-route-external-recommendation-v3": [
+        3,
+        5
+      ],
+      "serendipity-recommendation-intent-direct-v3": [
+        0,
+        1
+      ],
+      "serendipity-douglass-route-external-web-v3": [
+        0,
+        1
+      ],
+      "serendipity-alice-web-with-distractor-v3": [
+        1,
+        3
+      ],
+      "serendipity-douglass-web-with-distractor-v3": [
+        0,
+        1
+      ]
+    }
+  },
+  "reports": {
+    "as-written": {
+      "schema_version": 2,
+      "experiment": "serendipity-component-reliability",
+      "run_id": "29c2a3f20a3543fba71f915c2c3914b6",
+      "generated_at": "2026-10-08T12:58:33.165033Z",
+      "model": "openai:gpt-6-luna",
+      "prompt_digests": {
+        "serendipity.connection-discovery": "31d8275b5c846d0e023b4d81e0f9d479f13cb192f7c93370c4357b7fdfdd75c3"
+      },
+      "dataset_digest": "d01fe8cdaab762380a131f8812b9e448c3eb286589eaf5e1d5bbbd7b0151572a",
+      "concurrency": 2,
+      "summary": {
+        "case_count": 7,
+        "repeats": 5,
+        "total_runs": 35,
+        "total_passes": 8,
+        "run_pass_rate": 0.2286,
+        "cases_pass_pow_k": 0,
+        "cases_unstable": 3,
+        "cases_never_passed": 4,
+        "cases_with_unstable_decision": 3,
+        "suite_pass_pow_k": false
+      },
+      "tiers": {
+        "capability": {
+          "case_count": 2,
+          "repeats": 5,
+          "total_runs": 10,
+          "total_passes": 1,
+          "run_pass_rate": 0.1,
+          "cases_pass_pow_k": 0,
+          "cases_unstable": 1,
+          "cases_never_passed": 1,
+          "cases_with_unstable_decision": 1,
+          "suite_pass_pow_k": false
+        },
+        "regression": {
+          "case_count": 5,
+          "repeats": 5,
+          "total_runs": 25,
+          "total_passes": 7,
+          "run_pass_rate": 0.28,
+          "cases_pass_pow_k": 0,
+          "cases_unstable": 2,
+          "cases_never_passed": 3,
+          "cases_with_unstable_decision": 2,
+          "suite_pass_pow_k": false
+        }
+      },
+      "cases": [
+        {
+          "case_id": "serendipity-route-external-recommendation-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 3,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "proposal",
+            "decline"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 10.874,
+          "mean_model_requests": 3.2,
+          "runs": [
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 12.096269250003388,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-continuity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cPersonal Identity\u201d could offer a lens on Alice's uncertainty by framing it as a question of what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Alice's uncertainty about who she is can be read as pressure on the idea that personal identity remains continuous as a person changes; the essay surveys what makes a person at one time the same person at another.",
+                    "meaningful_difference": "This lens asks about persistence and sameness across time, rather than how a person defines herself through choices.",
+                    "interpretation": "A potentially useful outside essay is the Stanford Encyclopedia of Philosophy's \u201cPersonal Identity.\u201d Its stated focus gives you a way to ask whether Alice's uncertainty is about changing characteristics, or about what would make her the same person through those changes. The available description is brief, so this is a suggested question to bring to the story, not a claim that the essay discusses Alice.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its stated focus directly concerns personal identity over time; the existentialism entry offers a different, more choice-centered lens."
+                  },
+                  {
+                    "candidate_id": "candidate-situated-choices",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cExistentialism\u201d may offer a lens on identity as shaped through situated choices rather than given as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "The entry's description contrasts a fixed definition of identity with identity shaped through situated choices, which could frame Alice's uncertainty as an open question rather than a settled label.",
+                    "meaningful_difference": "This emphasizes self-definition through choices, not whether the same person persists over time.",
+                    "interpretation": "The Stanford Encyclopedia of Philosophy's \u201cExistentialism\u201d is another possible lens: its description presents identity as shaped through situated choices rather than received as a fixed definition. That could help explore whether Alice's uncertainty leaves room for self-definition. The description does not establish that the entry addresses Alice or her story directly.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the personal-identity entry because its stated connection to Alice's uncertainty requires a further interpretive step."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-continuity",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to show this essay recommendation and the question it suggests for reading Alice?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 12.396734250010923,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-continuity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cPersonal Identity\u201d entry could offer a direct lens on Alice's uncertainty by framing it as the question of what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both the suggested lens and Alice's uncertainty concern whether identity persists when a person's experiences or circumstances change.",
+                    "meaningful_difference": "The entry surveys philosophical criteria for personal identity; Alice's uncertainty is a literary episode, and the brief page description does not establish how its arguments map onto that scene.",
+                    "interpretation": "This is the closer recommendation if the reader wants to examine the underlying question\u2014what makes a person remain the same person\u2014without claiming the essay interprets Alice directly.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its stated topic is personal identity itself, a direct fit for uncertainty about who Alice is."
+                  },
+                  {
+                    "candidate_id": "candidate-situated-choice",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cExistentialism\u201d entry may offer a contrasting lens, presenting identity as shaped through situated choices rather than received as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both connect identity with a person's relation to changing circumstances, rather than treating identity as an uncomplicated label.",
+                    "meaningful_difference": "This lens emphasizes identity formed through choices; the accessible description does not show that Alice's uncertainty is resolved by, or centered on, choice.",
+                    "interpretation": "It could be useful if the reader wants to ask whether Alice defines herself through responses to her situation, but that application is tentative and is not established by the page description.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A useful but less direct alternative: it offers an account of how identity may be formed, rather than focusing specifically on persistence of personal identity."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-continuity",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to show the personal-identity essay as the closer lens, or the existentialism entry as a contrasting alternative?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 9.827140416979091,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-existential-choice",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s entry on existentialism could offer a useful lens if Alice\u2019s uncertainty is read not only as a puzzle about who she is, but as a question of how identity takes shape through choices in particular situations.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "The page\u2019s description connects identity to situated choices rather than a fixed definition, offering a way to consider uncertainty as something lived and negotiated in circumstances.",
+                    "meaningful_difference": "This lens emphasizes agency and becoming; it does not settle what makes someone the same person over time.",
+                    "interpretation": "As an outside essay recommendation, this could reframe Alice\u2019s uncertainty from a search for a ready-made definition toward the question of how a person understands herself amid changing situations. The page description is brief, so this is a tentative lens, not a claim that the entry discusses Alice or establishes a full interpretation of her story.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its supplied description directly links identity to situated choices, making it a particularly apt interpretive lens for uncertainty."
+                  },
+                  {
+                    "candidate_id": "candidate-continuity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s personal-identity entry could frame Alice\u2019s uncertainty as a question about what makes a person remain the same person across time or change.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both the cue and this entry\u2019s stated subject concern the question of personal identity.",
+                    "meaningful_difference": "The entry focuses on identity across time, while the available description does not address Alice\u2019s particular uncertainty or the role of changing situations.",
+                    "interpretation": "This is a more analytical, continuity-focused recommendation: it may help formulate what counts as being the same person when a self feels uncertain. The accessible page description supports only that broad framing, not a specific application to Alice.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A plausible runner-up, but its description names the general problem of personal identity without the situated-choice angle that more specifically illuminates uncertainty."
+                  }
+                ],
+                "selected_candidate_id": "candidate-existential-choice",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to share the existentialism essay as a possible lens, or would you prefer the more continuity-focused personal-identity entry?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.416879166994477,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "I found an authoritative overview of personal identity, but its accessible text only says it surveys how a person remains the same over time. That is too general to establish a useful, specific lens on Alice\u2019s uncertainty. I can look for a more focused essay if you\u2019d like."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 13.630717041989556,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible essay description only says it surveys what makes a person the same person over time; it does not establish a more specific lens on Alice's uncertainty. I can look for an essay that directly discusses Alice's identity, if you\u2019d like."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-recommendation-intent-direct-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 0,
+          "pass_at_k": false,
+          "pass_pow_k": false,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "decline"
+          ],
+          "intermittent_failures": [],
+          "mean_latency_seconds": 6.594,
+          "mean_model_requests": 3.0,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.2691004580119625,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The page available here is only a brief description of a self-knowledge entry, not enough to support a specific reading recommendation. I can look for a more directly relevant essay, story, or book about feeling estranged from yourself."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.295408000005409,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available page only briefly describes a philosophical entry on self-knowledge, and I don't have enough accessible detail to make two distinct, well-supported reading recommendations. I could look for a more specific essay or story about estrangement from oneself."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.047617667005397,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available public-page description is too brief to establish a specific reading recommendation for the experience of not recognising yourself. I can look for an essay or book that directly explores that feeling."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.5870367500174325,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened page only provides a brief description of a philosophical overview of self-knowledge, not enough to confidently recommend it as a reading about not recognizing yourself. I can look for a more directly focused essay or personal piece."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 4.768388666008832,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible source description is too brief to support a useful reading recommendation, and it does not establish two distinct, eligible connections. I can look for a more directly relevant essay or book if you\u2019d like."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-animal-farm-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 4,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "proposal",
+            "decline"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 15.357,
+          "mean_model_requests": 4.2,
+          "runs": [
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 18.204441000008956,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-iron-law",
+                    "tentative_claim": "Michels\u2019s \u201ciron law of oligarchy\u201d offers a useful lens: groups that begin with democratic aims can come to be run by a small leadership group, helping frame how revolutionary leaders might take the place of an earlier ruling class.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both the novel\u2019s reversal and Michels\u2019s account concern a collective project that begins against concentrated rule but ends with control gathered among a small leadership group.",
+                    "meaningful_difference": "Michels gives a general account of organizational leadership; the novel dramatizes a particular revolution and its leaders\u2019 eventual imitation of the former rulers. This is a lens, not proof of the novel\u2019s definitive explanation.",
+                    "interpretation": "One outside idea that may help is Robert Michels\u2019s \u201ciron law of oligarchy.\u201d The page summarizes his argument that organizations\u2014even democratic ones\u2014tend to become run by a small leadership group. That suggests one way to read the pigs\u2019 transformation: revolutionary authority can consolidate into a new elite. The theory does not explain every detail of the ending on its own.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "This offers the more general explanation of how leadership may concentrate, so it fits the question more directly than the historical parallel."
+                  },
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed offers a historical parallel: a bureaucracy became a privileged caste benefiting from the revolution it claimed to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both describe a ruling group that emerges from a revolution and comes to enjoy privileges while claiming continuity with its revolutionary cause.",
+                    "meaningful_difference": "This is a specific historical-political critique, whereas the novel is a fictional portrayal. The available page description does not establish direct influence or a one-to-one allegory.",
+                    "interpretation": "A second angle is Trotsky\u2019s The Revolution Betrayed. Its description says that Trotsky argued the Soviet bureaucracy had become a privileged caste living off the revolution it claimed to serve. That is a concrete historical parallel for the pigs\u2019 emergence as a new privileged group, though it does not establish that this is the novel\u2019s definitive explanation.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "This gives a specific historical parallel, but ranks below the iron-law idea because it describes a particular bureaucracy rather than a broader tendency in leadership."
+                  }
+                ],
+                "selected_candidate_id": "candidate-iron-law",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to show you this connection, including the historical parallel as a second angle?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 20.569914249994326,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-oligarchy-institutional",
+                    "tentative_claim": "Robert Michels's 'iron law of oligarchy' offers a useful lens: organizations that begin democratically can come to be run by a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both Michels's summarized argument and the pigs' outcome concern a democratic or revolutionary beginning giving way to concentrated leadership power.",
+                    "meaningful_difference": "Michels proposes a general organizational tendency; Animal Farm dramatizes the new rulers adopting the former rulers' privileges and behavior.",
+                    "interpretation": "This lens suggests the pigs' transformation is not only personal hypocrisy: power concentrates in a leadership group, allowing a new elite to reproduce the old hierarchy. It is a possible explanation, not proof of inevitability or a complete account of Orwell's point.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because Michels's summarized claim directly addresses leadership concentration after democratic beginnings, a close fit for asking how the revolution's rulers become a new ruling class."
+                  },
+                  {
+                    "candidate_id": "candidate-revolutionary-bureaucracy",
+                    "tentative_claim": "Trotsky's The Revolution Betrayed offers a narrower historical parallel: a bureaucracy becomes privileged while claiming to serve a revolution.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both the page's description and the novel's outcome involve a group that claims revolutionary legitimacy while gaining privilege from the revolution.",
+                    "meaningful_difference": "The page summarizes a specific critique of Soviet bureaucracy, while the cue asks about the pigs' broader transformation into farmer-like rulers.",
+                    "interpretation": "This may illuminate the pigs' acquired privilege, but the available description says less about the mechanism of their transformation than Michels's account of leadership concentration.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A relevant alternative, but less direct: the page supports a parallel about revolutionary privilege rather than explaining leadership consolidation."
+                  }
+                ],
+                "selected_candidate_id": "candidate-oligarchy-institutional",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to show how Michels's idea might illuminate the pigs' transformation, while keeping it distinct from Orwell's own explanation?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 13.16823141698842,
+              "model_requests": 4,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened source gives one potentially relevant lens, but there is not enough supported material for the required comparison. If you\u2019d like, I can look for an essay specifically about Animal Farm\u2019s ending or revolutionary elites."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 11.67348908400163,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed offers a close political lens: a revolutionary leadership can become a privileged caste that lives off the revolution it claims to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both the book\u2019s ending and the essay\u2019s stated argument turn on a ruling group adopting the privileges and position of the order it claimed to overthrow, leaving the revolution\u2019s promised transformation unfulfilled.",
+                    "meaningful_difference": "Trotsky\u2019s account, as summarized on the page, concerns a privileged Soviet bureaucracy; the book dramatizes the reversal through pigs becoming indistinguishable from farmers. The source is a lens for the ending, not proof of a single historical explanation.",
+                    "interpretation": "This may explain the pigs\u2019 transformation less as a sudden change of heart than as a revolution captured by a new ruling caste: those who claim to act for the revolution acquire interests and privileges that make them resemble the old rulers. The analogy is useful but bounded; the opened page gives only a concise description of Trotsky\u2019s argument.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its summary specifically describes a privileged caste living off the revolution it claims to serve, closely matching the ending\u2019s reversal."
+                  },
+                  {
+                    "candidate_id": "candidate-iron-law",
+                    "tentative_claim": "Michels\u2019s iron law of oligarchy offers a broader explanation: organizations that begin democratically may come under the control of a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both accounts raise the problem of a small leadership group gaining control after a collective political beginning.",
+                    "meaningful_difference": "The page\u2019s summary emphasizes organizational concentration of leadership, not leaders adopting the former rulers\u2019 way of life or betraying a specific revolution; it explains how power centralizes more directly than why the pigs become like farmers.",
+                    "interpretation": "Michels\u2019s idea can illuminate how a small leadership group might consolidate control, which helps frame the pigs\u2019 rise. It is a less exact fit for the final resemblance to the farmers: the available summary does not itself explain that specific reversal.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below Trotsky because it speaks to leadership concentration generally, while the Trotsky summary directly describes a privileged caste living off a revolution."
+                  }
+                ],
+                "selected_candidate_id": "candidate-revolution-betrayed",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to show this connection, with the caveat that the available page is only a brief summary?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 13.166754665988265,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-iron-law",
+                    "tentative_claim": "Michels\u2019s \u201ciron law of oligarchy\u201d offers a useful outside lens: organizations begun democratically can, in his account, come under the control of a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both this idea and the pigs\u2019 trajectory concern power becoming concentrated in a leadership group after a collective political beginning.",
+                    "meaningful_difference": "Michels\u2019s claim is a general account of organizational leadership; it does not by itself explain the specific choices, mechanisms, or symbolic ending of Orwell\u2019s fable.",
+                    "interpretation": "This may help frame the pigs\u2019 resemblance to the farmers as a warning about revolutionary leadership consolidating power, rather than as a claim that every revolution must end that way. It is a lens, not proof of Orwell\u2019s intended explanation.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because it directly addresses how democratic beginnings can yield concentrated leadership, while making a bounded claim."
+                  },
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed is described as arguing that Soviet bureaucracy became a privileged caste living off the revolution it claimed to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both descriptions involve a leadership or ruling group gaining privileges from a revolution undertaken in the name of collective liberation.",
+                    "meaningful_difference": "The page gives a specific historical-political critique of Soviet bureaucracy, not a general account of why revolutionary leaders become like those they overthrow.",
+                    "interpretation": "This could be a more historically specific comparison: a ruling group may preserve revolutionary language while becoming materially distinct from the people in whose name it governs. The brief page description supports that limited parallel, not a detailed equivalence with the novel.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the iron-law lens because the accessible description supports a narrower historical parallel, rather than a general explanation of the pigs\u2019 transformation."
+                  }
+                ],
+                "selected_candidate_id": "candidate-iron-law",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to share the Michels connection, or the more historically specific Trotsky comparison?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-douglass-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 0,
+          "pass_at_k": false,
+          "pass_pow_k": false,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "decline"
+          ],
+          "intermittent_failures": [
+            "unexpected_search:search_librarian",
+            "wrong_primary_search:search_librarian"
+          ],
+          "mean_latency_seconds": 7.897,
+          "mean_model_requests": 3.4,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 9.834240916999988,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted book search found no supporting passage, and the public result available here is only a brief description\u2014not enough to make a useful, well-supported recommendation. I can try again with a specific public essay or historical source in scope."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.267520166991744,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible public page only confirms that anti-literacy laws criminalized teaching enslaved people to read or write; it does not explain the reasons well enough to support a useful recommendation. A source that directly examines how literacy threatened slavery\u2019s control could answer this more fully."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.3308447080198675,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book search found no supporting passage within the permitted reading boundary, and the accessible public page is only a brief description. A fuller, authoritative historical source could support a careful recommendation about the purpose and enforcement of anti-literacy laws."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.156759083009092,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted public page confirms that laws criminalized teaching enslaved people to read or write, but it does not adequately explain why. A more authoritative historical source or a specific essay would be needed to support a useful recommendation."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 8.897332499996992,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The public result only establishes that anti-literacy laws criminalized teaching enslaved people to read or write; it does not provide enough context to explain why. A focused history source on slaveholders\u2019 fears about literacy, resistance, and control would support a more useful recommendation."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-keller-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 0,
+          "pass_at_k": false,
+          "pass_pow_k": false,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "decline"
+          ],
+          "intermittent_failures": [
+            "wrong_primary_search:search_librarian"
+          ],
+          "mean_latency_seconds": 10.071,
+          "mean_model_requests": 4.4,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 12.692516083014198,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted book search found no relevant passage within the allowed chapters, and the outside source found so far only offers brief background. I can look for a more substantive public source about Sullivan\u2019s preparation if you\u2019d like."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 8.013270041992655,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book search found no supporting passage within the permitted reading boundary, and the public-page lead is too brief to establish a useful outside connection. I can look for one if you allow a broader book range or another public source."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.531763666978804,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book passages available within the permitted reading boundary did not support a comparison, and the public page offers only a brief description. You could broaden the book boundary or provide a more authoritative source about Sullivan\u2019s training."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 9.652297624998027,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book search found no supporting passage within the permitted chapters, and the public-page description alone is too limited to support two distinct, useful interpretations. I can look for a more detailed authoritative source on Sullivan\u2019s training if you\u2019d like."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 8.46508416699362,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The public page gives a brief lead about Sullivan\u2019s training and study of Laura Bridgman, but the book search found no supporting passage within the permitted chapters. A focused biography or primary source about Sullivan\u2019s teaching would be needed to make a grounded connection."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-alice-web-with-distractor-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "capability",
+          "repeats": 5,
+          "passes": 1,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "decline",
+            "proposal"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 12.126,
+          "mean_model_requests": 4.0,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.807678249984747,
+              "model_requests": 4,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened essay description supports a broad personal-identity lens, but there is not enough evidence here to form two distinct, well-supported connection candidates. Consider searching for a literary essay that discusses Alice directly."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 18.28851025001495,
+              "model_requests": 5,
+              "tool_calls": 4,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s overview of personal identity could offer a conceptual lens for Alice\u2019s uncertainty: it frames identity around what makes a person the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both invite the question of whether a person remains the same self as experience and circumstances shift.",
+                    "meaningful_difference": "The encyclopedia surveys philosophical theories of persistence; Alice\u2019s uncertainty is a lived, bewildering question rather than a systematic argument.",
+                    "interpretation": "As a starting point for reflection, this overview may help distinguish continuity over time from the feeling of being unfamiliar to oneself. It is a conceptual companion, not an interpretation of Carroll\u2019s text or evidence about Alice\u2019s character.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because the opened page directly concerns personal identity over time, the closest match to uncertainty about who one is."
+                  },
+                  {
+                    "candidate_id": "candidate-existentialism",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s existentialism overview offers a broader lens in which identity is shaped through situated choices rather than received as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both can be approached through a tension between a settled definition of self and a self formed amid changing circumstances.",
+                    "meaningful_difference": "The page presents identity in relation to choices and existential thought, while the personal-identity overview directly asks what makes someone the same person over time.",
+                    "interpretation": "This could be useful if the reader wants to consider identity as something negotiated rather than simply discovered. The accessible description supports only that broad lens, not a detailed application to Alice.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the personal-identity overview: it offers a potentially useful but broader framing, less directly matched to Alice\u2019s uncertainty."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-identity",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Would you like me to share the personal-identity overview as a possible lens, or look for a more literary essay about Alice specifically?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "no_clear_winner",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 9.969427665986586,
+              "model_requests": 4,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "no_clear_winner",
+                "safe_next_step": "The available evidence supports one plausible lens\u2014the SEP overview of personal identity\u2014but not the two distinct, eligible interpretations required for a recommendation proposal. No connection is needed; a broader search could be made if desired."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "no_clear_winner",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 14.441677832975984,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "no_clear_winner",
+                "safe_next_step": "The permitted pages give brief descriptions of two broad philosophical topics, but neither establishes a distinct, useful lens on Alice's particular uncertainty. I can search for a more directly relevant outside essay if you would like."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.1224574579973705,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened essay is an overview of philosophical questions about personal identity, but its available description does not establish a specific lens on Alice\u2019s uncertainty. I can look for a more directly relevant essay if you\u2019d like."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-douglass-web-with-distractor-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "capability",
+          "repeats": 5,
+          "passes": 0,
+          "pass_at_k": false,
+          "pass_pow_k": false,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "decline"
+          ],
+          "intermittent_failures": [
+            "wrong_primary_search:search_librarian"
+          ],
+          "mean_latency_seconds": 13.779,
+          "mean_model_requests": 4.8,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.762725167005556,
+              "model_requests": 5,
+              "tool_calls": 4,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "I couldn't verify a suitable outside source from the pages available here. A focused search for a historian or primary-source discussion of anti-literacy laws and enslaved people's literacy would be a useful next step."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.941928374988493,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book search found no supporting passage, and the public page available here is only a brief description\u2014not enough to support a useful, evidence-based recommendation about the historical reasons. A fuller authoritative source would be needed."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.086312375002308,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available web result only briefly describes anti-literacy laws and does not explain why they were imposed. I can look for a reliable historical source that directly discusses the motives behind those laws."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "wrong_primary_search:search_librarian",
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 15.126674957980867,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted page only gives a brief summary, not enough detail to make a useful, evidence-supported recommendation about why these prohibitions existed. I can look for an authoritative historical source if you\u2019d like."
+              },
+              "searches": [
+                "book_corpus:search_librarian:no_evidence",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 18.979473000013968,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The book search found no supporting passage within the permitted reading boundary, and the public page available here only briefly describes anti-literacy laws. I can\u2019t make a well-supported recommendation from that evidence; you could widen the permitted book scope or provide a specific public source to assess."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        }
+      ]
+    },
+    "triage-intent": {
+      "schema_version": 2,
+      "experiment": "serendipity-component-reliability",
+      "run_id": "9275cad6398b470d9df2ce6cca032d62",
+      "generated_at": "2026-10-08T12:58:33.165033Z",
+      "model": "openai:gpt-6-luna",
+      "prompt_digests": {
+        "serendipity.connection-discovery": "31d8275b5c846d0e023b4d81e0f9d479f13cb192f7c93370c4357b7fdfdd75c3"
+      },
+      "dataset_digest": "13e0d9e8fc5068a53ff13dd2be89a0e035c5a38d09f686c924445d9f33e7f23b",
+      "concurrency": 2,
+      "summary": {
+        "case_count": 7,
+        "repeats": 5,
+        "total_runs": 35,
+        "total_passes": 15,
+        "run_pass_rate": 0.4286,
+        "cases_pass_pow_k": 1,
+        "cases_unstable": 5,
+        "cases_never_passed": 1,
+        "cases_with_unstable_decision": 5,
+        "suite_pass_pow_k": false
+      },
+      "tiers": {
+        "capability": {
+          "case_count": 2,
+          "repeats": 5,
+          "total_runs": 10,
+          "total_passes": 4,
+          "run_pass_rate": 0.4,
+          "cases_pass_pow_k": 0,
+          "cases_unstable": 2,
+          "cases_never_passed": 0,
+          "cases_with_unstable_decision": 2,
+          "suite_pass_pow_k": false
+        },
+        "regression": {
+          "case_count": 5,
+          "repeats": 5,
+          "total_runs": 25,
+          "total_passes": 11,
+          "run_pass_rate": 0.44,
+          "cases_pass_pow_k": 1,
+          "cases_unstable": 3,
+          "cases_never_passed": 1,
+          "cases_with_unstable_decision": 3,
+          "suite_pass_pow_k": false
+        }
+      },
+      "cases": [
+        {
+          "case_id": "serendipity-route-external-recommendation-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 5,
+          "pass_at_k": true,
+          "pass_pow_k": true,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "proposal"
+          ],
+          "intermittent_failures": [],
+          "mean_latency_seconds": 12.13,
+          "mean_model_requests": 3.0,
+          "runs": [
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 17.451015541999368,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-existentialist-lens",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's overview of existentialism offers a lens for thinking about Alice's identity uncertainty as something not settled by a fixed definition, but shaped through situated choices.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both the cue and the essay description concern identity as unsettled rather than simply given; the essay frames identity as taking shape through choices in particular situations.",
+                    "meaningful_difference": "Alice's uncertainty is the literary question being explored, while the essay supplies a philosophical framework; the available description does not establish how that framework maps onto specific scenes in Alice's story.",
+                    "interpretation": "A useful outside recommendation is the Stanford Encyclopedia of Philosophy entry \u201cExistentialism.\u201d Its concise description specifically frames identity as shaped through situated choices rather than received as a fixed definition, which can make Alice's uncertainty legible as an open process rather than a puzzle with an already fixed answer. This is a lens, not evidence about Alice's text.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its accessible description directly offers a lens on identity as unsettled and shaped through choices, matching the requested uncertainty more specifically than the general survey of personal identity."
+                  },
+                  {
+                    "candidate_id": "candidate-personal-identity-survey",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cPersonal Identity\u201d entry could provide background questions about what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both invite inquiry into what identity consists in, rather than treating the word as self-explanatory.",
+                    "meaningful_difference": "The entry is described as surveying persistence of identity across time; the cue concerns Alice's uncertainty, and the available description does not say how the survey treats subjective uncertainty or Alice specifically.",
+                    "interpretation": "The \u201cPersonal Identity\u201d entry is a possible, more analytical background read: it surveys what makes a person at one time the same person at another. That can sharpen questions about identity, but its accessible description is less directly about felt uncertainty than the existentialist lens.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A relevant alternative, but less direct than the existentialism entry: it centers sameness over time, which requires an extra step to connect to Alice's uncertainty."
+                  }
+                ],
+                "selected_candidate_id": "candidate-existentialist-lens",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a short, spoiler-conscious explanation of how this lens might apply to Alice?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 10.098704415984685,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-existential-choice",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's overview of existentialism could offer a useful lens for Alice's uncertainty: identity may be understood not as a fixed definition she must discover, but as shaped through situated choices.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both the essay's stated account and the cue's concern place identity under pressure as something not simply settled by a ready-made definition.",
+                    "meaningful_difference": "The page frames identity through choices and existentialist thought, while Alice's uncertainty is a fictional experience; this is an interpretive lens, not evidence that the story endorses existentialism.",
+                    "interpretation": "A promising outside essay is the Stanford Encyclopedia of Philosophy entry \u201cExistentialism.\u201d Its description explicitly presents identity as shaped through situated choices rather than received as a fixed definition, which may help frame Alice's uncertainty as an open question about becoming rather than merely finding a label. The accessible page description is concise, so this is a suggested lens rather than a detailed reading of the story.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its stated account of identity as formed through choices directly offers a lens on uncertainty; the other entry gives a broader account of personal identity over time."
+                  },
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy entry on personal identity offers a more analytic lens, asking what makes someone at one time the same person at another.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both the cue and the entry's stated topic concern how identity can be understood when a person's self-conception is in question.",
+                    "meaningful_difference": "This entry focuses on persistence and sameness across time, rather than the existentialist entry's account of identity being shaped through choices.",
+                    "interpretation": "The Stanford Encyclopedia of Philosophy entry \u201cPersonal Identity\u201d could help if you want a more conceptual question: what makes someone the same person over time? The page description only establishes that it surveys this question, so it is less directly tailored to Alice's uncertainty than the existentialist lens.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks second: it supplies a relevant philosophical question, but its stated focus on sameness across time is less specifically connected to uncertainty about identity than the first entry."
+                  }
+                ],
+                "selected_candidate_id": "candidate-existential-choice",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a closer comparison of that existentialist lens with Alice's scenes of identity uncertainty?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 11.132241249986691,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's entry on personal identity could offer a useful conceptual lens for Alice's uncertainty by framing it as a question about what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both the essay's stated topic and Alice's identity uncertainty center on criteria for personal sameness: what, if anything, persists as a person changes.",
+                    "meaningful_difference": "The essay surveys philosophical accounts of persistence, while Alice's uncertainty is encountered as a lived and possibly unsettling question rather than a formal argument.",
+                    "interpretation": "A promising recommendation if the reader wants to make Alice's identity puzzle more precise: the entry opens up the question of what counts as continuity in a person. The accessible page description establishes that it surveys this issue, but does not establish a specific application to Alice, so the connection is a suggested lens rather than a claim about the entry's interpretation of the story.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranked first because it directly addresses the philosophical question of personal sameness that most closely matches uncertainty about identity."
+                  },
+                  {
+                    "candidate_id": "candidate-existentialism",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's entry on existentialism may offer a different lens by treating identity as shaped through situated choices rather than as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both this account and Alice's identity uncertainty can be approached through a tension between a fixed account of who someone is and a self understood through experience.",
+                    "meaningful_difference": "The page description emphasizes choices and situatedness, whereas Alice's uncertainty as specified by the cue concerns identity; the available description does not show how the entry relates that idea to Alice or her particular experiences.",
+                    "interpretation": "This could be useful if the reader is interested less in what persists over time and more in how identity might be formed. The brief accessible description supports that as a possible lens, but gives no detail about the entry's argument or any discussion of Alice.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A reasonable alternative, but the accessible description connects more indirectly to the cue than the personal-identity entry does."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-identity",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a short reading guide to the personal-identity questions in the entry, focused on what might clarify Alice's uncertainty?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 11.142134541994892,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-continuity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cPersonal Identity\u201d entry could offer a focused lens for thinking about Alice's uncertainty: what, across change, makes someone the same person?",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Alice's uncertainty about who she is can be considered alongside the entry's stated question about what makes a person at one time the same person at another.",
+                    "meaningful_difference": "Alice's uncertainty is a character's lived puzzlement; the entry surveys a philosophical problem rather than interpreting Alice or supplying a literary reading.",
+                    "interpretation": "As an outside essay, this is the more direct recommendation if you want to turn Alice's identity uncertainty into a question about continuity of self through change. The available page description establishes that the entry surveys that question, but not how it treats Alice, so this is a lens to bring to the book rather than evidence of the book's meaning.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its described question directly concerns personal identity over time, making it a closer fit than the broader account of identity through choice."
+                  },
+                  {
+                    "candidate_id": "candidate-situated-choices",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's \u201cExistentialism\u201d entry may provide a broader lens: identity shaped through situated choices rather than received as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both the description of Alice's uncertainty and the entry's stated account can prompt reflection on whether identity is fixed or shaped.",
+                    "meaningful_difference": "The entry frames identity through situated choices, while the cue only identifies Alice's uncertainty; the source description does not establish that Alice's uncertainty involves choices.",
+                    "interpretation": "This could be useful if you are interested in identity as something shaped rather than simply given. It is a more interpretive, less direct lens for Alice than the personal-identity entry, since the accessible description does not connect existentialism specifically to her uncertainty.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below candidate-continuity because its choice-based framing requires an extra interpretive step not supported by the brief source description."
+                  }
+                ],
+                "selected_candidate_id": "candidate-continuity",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a more literary essay specifically about Alice, or is a philosophical lens on personal identity what you had in mind?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 10.827120000001742,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-situated-choices",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s entry on existentialism offers a useful outside lens on Alice\u2019s uncertainty by treating identity as something shaped through situated choices, rather than as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both the question of Alice\u2019s identity and the entry\u2019s stated lens concern whether selfhood is a settled definition or something formed amid particular circumstances and choices.",
+                    "meaningful_difference": "The accessible page description gives a general philosophical lens, not an interpretation of Alice or evidence about what she chooses; applying it to her is a reading prompt, not a conclusion established by the page.",
+                    "interpretation": "A useful question to carry into Alice\u2019s scenes is whether her sense of who she is comes from a stable definition or shifts with the situations and choices she encounters. The entry\u2019s brief description makes this a tentative lens, not a full account of its argument.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its description directly offers a lens for thinking about identity as shaped in circumstances, rather than merely surveying the identity question."
+                  },
+                  {
+                    "candidate_id": "candidate-continuity-question",
+                    "tentative_claim": "The Stanford entry on personal identity could frame Alice\u2019s uncertainty as a question about what makes someone remain the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both address the problem of identifying a person across changing moments: the entry surveys what makes a person at one time the same person at another.",
+                    "meaningful_difference": "The source is a broad survey of a philosophical problem, while Alice\u2019s uncertainty is a particular literary situation; the available description does not say how to apply that problem to her.",
+                    "interpretation": "This essay-like reference could help make Alice\u2019s uncertainty more precise: is she unsure of her identity because she changes, or because the grounds for recognizing continuity are unclear? The page description establishes the question, but not an answer about Alice.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the existentialism entry: it supplies a relevant philosophical question, but its description does not as directly present identity as a lens for interpreting change in circumstances."
+                  }
+                ],
+                "selected_candidate_id": "candidate-situated-choices",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Try the existentialism entry as a lens, and ask whether Alice\u2019s identity feels fixed or shaped by the situations she moves through; I can also point you to its relevant overview.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-recommendation-intent-direct-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 1,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "proposal",
+            "decline"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 9.516,
+          "mean_model_requests": 3.4,
+          "runs": [
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 13.898627709015273,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-self-knowledge",
+                    "tentative_claim": "A useful next read is the Stanford Encyclopedia of Philosophy entry \u201cSelf-Knowledge,\u201d which frames knowing yourself as a problem rather than an automatic certainty.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/self-knowledge/"
+                    ],
+                    "shared_structure": "The entry\u2019s stated focus\u2014that knowing one\u2019s own mind is not automatic\u2014connects directly to the experience of not recognising oneself by treating self-understanding as something that can be uncertain or difficult.",
+                    "meaningful_difference": "It approaches the issue as a philosophical question about knowledge of one\u2019s own mind, rather than as a personal or literary account of feeling estranged from oneself.",
+                    "interpretation": "This is the closest fit if you want a conceptual lens on the feeling: the entry asks how people know their own minds and why that knowledge is not automatic. It may help you think about self-recognition, though the available description does not establish that it discusses the specific experience in emotional or narrative terms.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its focus is explicitly self-knowledge, a closer match to not recognising yourself than a broader account of identity over time."
+                  },
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "A second possible read is the Stanford Encyclopedia of Philosophy entry \u201cPersonal Identity,\u201d which asks what makes someone at one time the same person at another.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both the cue and the entry\u2019s stated question concern whether a person can be understood as the same self across time.",
+                    "meaningful_difference": "The entry is specifically about persistence of personal identity over time; the cue could instead mean a present feeling of unfamiliarity with oneself.",
+                    "interpretation": "Consider this if \u201cnot recognising yourself\u201d means feeling unlike the person you used to be. The entry surveys what makes a person at one time the same person at another, but its brief description does not show whether it addresses the lived feeling of estrangement.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the self-knowledge entry because continuity across time is a narrower and less certain interpretation of your wording."
+                  }
+                ],
+                "selected_candidate_id": "candidate-self-knowledge",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "If you meant a more literary or personal account rather than philosophy, I can look for that kind of reading instead.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.04654662500252,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available public result only offers a broad philosophical overview of self-knowledge, not enough support to recommend a particular reading about not recognizing yourself. A search focused on memoir, fiction, or essays about estrangement from oneself could surface a more fitting option."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "no_clear_winner",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 12.326003209018381,
+              "model_requests": 4,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "no_clear_winner",
+                "safe_next_step": "The available pages are brief descriptions, and neither clearly establishes a useful enough match for the experience of not recognising yourself. Try searching for a personal essay or memoir specifically about feeling estranged from oneself; a preferred tone or genre would help narrow it."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 8.38191441699746,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available page is a brief overview of philosophical self-knowledge, not enough to support a specific reading recommendation about feeling unfamiliar to yourself. I can look for a short story, essay, or memoir on that theme."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 5.926825959002599,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available page only briefly describes an essay about how people know their own minds; it does not establish enough about its treatment of not recognizing yourself to make a grounded recommendation. I can look for a more directly relevant essay or book."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-animal-farm-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 4,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "proposal",
+            "decline"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 15.036,
+          "mean_model_requests": 4.0,
+          "runs": [
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 12.42576874999213,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s account in *The Revolution Betrayed* is a close interpretive lens: a new leadership can become a privileged caste living off the revolution it claims to serve, echoing the pigs\u2019 eventual resemblance to the farmers they displaced.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "In both, the revolutionary leadership ends up benefiting from the order it was supposed to replace, so the revolution\u2019s promise is undermined from within by those who claim to represent it.",
+                    "meaningful_difference": "The page describes Trotsky\u2019s argument about a Soviet bureaucracy and its privileged status; it does not establish a one-to-one historical explanation of Orwell\u2019s fictional pigs or the novel\u2019s full meaning.",
+                    "interpretation": "This may help explain the ending as a warning about a revolution whose new rulers preserve its language while acquiring the privileges of the old ruling class. Trotsky\u2019s formulation is especially apt to the pigs\u2019 transformation, though it is a lens for reading the novel rather than proof that one historical account explains it.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because the opened description directly links revolutionary leadership to a privileged caste living off the revolution, closely matching the specific reversal in the question."
+                  },
+                  {
+                    "candidate_id": "candidate-iron-law-oligarchy",
+                    "tentative_claim": "Michels\u2019s \u2018iron law of oligarchy\u2019 offers a more general organizational explanation: even a movement that begins democratically may come under the control of a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both the idea and the novel\u2019s ending concern power concentrating in a small leadership group after an initially democratic project.",
+                    "meaningful_difference": "The page\u2019s summary concerns concentration of organizational control, not specifically leaders adopting the old rulers\u2019 lifestyle or exploiting the revolution\u2019s promised equality.",
+                    "interpretation": "This concept can illuminate how the pigs consolidate authority, but it is less tailored to the ending\u2019s sharper image of the new rulers becoming indistinguishable from the old ones. It is a useful broad companion idea, not a full account of that transformation.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below Trotsky because oligarchic control explains leadership concentration, while the Trotsky summary more specifically addresses a revolutionary bureaucracy becoming privileged."
+                  }
+                ],
+                "selected_candidate_id": "candidate-revolution-betrayed",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a short, spoiler-light summary of Trotsky\u2019s argument and how it might frame the ending?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 12.388121708005201,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-iron-law",
+                    "tentative_claim": "Michels\u2019s \u201ciron law of oligarchy\u201d offers a useful lens: even an organization founded democratically can concentrate control in a small leadership group, helping explain how the pigs acquire the position and habits of the farmers.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both the idea and the question concern a revolution\u2019s democratic beginnings giving way to rule by a small, privileged leadership.",
+                    "meaningful_difference": "Michels\u2019s account is a general claim about organizational leadership and concentration of control; it does not specifically explain the pigs\u2019 imitation of the farmers or establish that Animal Farm illustrates his theory.",
+                    "interpretation": "This is the closer conceptual fit if the question is how a new ruling group can emerge from an uprising: Michels\u2019s idea directs attention to the concentration of leadership itself. It is a lens for thinking about the pigs, not proof of Orwell\u2019s intended explanation.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because it directly addresses how a democratic beginning can produce a small ruling group, the central transition in the question."
+                  },
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed presents a more historically specific parallel: a bureaucracy becomes a privileged caste living off the revolution it claims to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both raise the possibility that a group claiming authority in the name of a revolution ends up enjoying privilege rather than sustaining the revolution\u2019s stated aims.",
+                    "meaningful_difference": "The page describes a particular argument about Soviet bureaucracy, whereas the cue asks why the pigs come to resemble the former farmers; the short description does not explain that transformation in detail.",
+                    "interpretation": "Trotsky\u2019s book could be a suggestive comparison for the gap between revolutionary claims and a new elite\u2019s privileged position. Its emphasis, as described here, is on the bureaucracy\u2019s status and relationship to the revolution, not specifically on leaders adopting their predecessors\u2019 way of life.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below Michels: it offers a relevant historical parallel about a privileged revolutionary elite, but its stated focus is less directly about how a small leadership group takes control."
+                  }
+                ],
+                "selected_candidate_id": "candidate-iron-law",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a brief explanation of Michels\u2019s idea, or a closer comparison with Trotsky\u2019s account of revolutionary bureaucracy?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 18.1099552079977,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-trotsky-privileged-caste",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed gives a closer parallel: a new privileged caste can emerge within a revolution and live off the cause it claims to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both descriptions show revolutionary leadership becoming a privileged ruling stratum, separated from those in whose name it governs.",
+                    "meaningful_difference": "The source describes a bureaucracy living off the revolution; the cue\u2019s image of pigs becoming like farmers specifically emphasizes the new rulers\u2019 resemblance to the former rulers. The parallel illuminates elite formation, not every detail of that resemblance.",
+                    "interpretation": "This is a useful outside lens for the pigs\u2019 transformation: overthrowing the old rulers does not necessarily prevent a new privileged group from arising within the revolution. The accessible description supports that bounded comparison, though it is too brief to establish Trotsky\u2019s fuller argument or explain the pigs\u2019 specific choices.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks above Michels because its post-revolutionary privileged caste is a closer parallel to the cue\u2019s particular image of former revolutionaries becoming a new ruling class."
+                  },
+                  {
+                    "candidate_id": "candidate-michels-oligarchy",
+                    "tentative_claim": "Robert Michels\u2019s \u201ciron law of oligarchy\u201d suggests how a movement that begins democratically can become controlled by a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both concern a leadership group within a democratic project consolidating control rather than remaining accountable to the wider membership.",
+                    "meaningful_difference": "Michels\u2019s account, as summarized here, concerns concentration of organizational control; it does not specifically address a new elite adopting the habits or lifestyle of the old ruling class.",
+                    "interpretation": "Michels offers a broader explanation for how the pigs might consolidate authority, but it speaks less directly to why they come to resemble the farmers. The short description supports it as a general lens, not as a complete explanation of the scene.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks second: it helps explain the concentration of power, but Trotsky\u2019s described privileged post-revolutionary caste is more specific to the cue\u2019s transformation of revolutionary rulers into a new elite."
+                  }
+                ],
+                "selected_candidate_id": "candidate-trotsky-privileged-caste",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "If useful, I can look for a more authoritative accessible source that explains Trotsky\u2019s argument in greater detail.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 16.534828250005376,
+              "model_requests": 5,
+              "tool_calls": 4,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-iron-law",
+                    "tentative_claim": "Robert Michels\u2019s \u201ciron law of oligarchy\u201d offers a useful lens: organizations begun democratically tend to concentrate control in a small leadership group.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                    ],
+                    "shared_structure": "Both the idea and the pigs\u2019 transformation concern power concentrating in a leadership minority after a collective political beginning.",
+                    "meaningful_difference": "Michels\u2019s claim is a general theory about organizational structure; it does not by itself explain the pigs\u2019 deliberate imitation of the farmers or establish that such outcomes are inevitable.",
+                    "interpretation": "This is a useful outside concept for the broad reversal in Animal Farm: the revolution\u2019s leaders become a ruling elite rather than preserving shared power. It illuminates the concentration of authority, while the novel\u2019s ending makes the leaders\u2019 resemblance to their former oppressors especially visible. Treat it as a lens, not a complete explanation of Orwell\u2019s satire.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks above the second candidate because its description directly addresses organizations that start democratically and end under a small leadership group; the alternative focuses more narrowly on a bureaucratic ruling caste."
+                  },
+                  {
+                    "candidate_id": "candidate-revolution-betrayed",
+                    "tentative_claim": "Trotsky\u2019s The Revolution Betrayed argues that a Soviet bureaucracy became a privileged caste living off the revolution it claimed to serve.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                    ],
+                    "shared_structure": "Both accounts describe a leadership stratum gaining privilege in the name of a revolution and separating from the people it purported to represent.",
+                    "meaningful_difference": "The available description concerns a specific historical-political analysis, whereas Animal Farm is a satirical fable; the short description does not establish a direct influence or full equivalence.",
+                    "interpretation": "Trotsky\u2019s book could offer a more historically specific companion lens: it frames a revolutionary ruling group\u2019s privileges as a betrayal of the revolution\u2019s stated purpose. That resonates with the pigs\u2019 reversal, but the available source description is brief, so it supports a comparison of broad structure, not a detailed account of the novel\u2019s meaning.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the iron-law lens because the page\u2019s concise description concerns a particular bureaucracy rather than the broader pattern of democratic organization concentrating power."
+                  }
+                ],
+                "selected_candidate_id": "candidate-iron-law",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a historically focused companion reading as well, or a closer explanation of how Michels\u2019s idea maps onto the ending?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "no_clear_winner",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 15.720923749991925,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "no_clear_winner",
+                "safe_next_step": "The two brief source summaries support related but equally limited lenses, and neither clearly explains why the pigs specifically come to resemble the farmers. A more targeted primary source on political elites or revolutionary bureaucracy could make the comparison clearer."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-douglass-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 1,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "decline",
+            "proposal"
+          ],
+          "intermittent_failures": [
+            "expected_proposal",
+            "unexpected_search:search_librarian"
+          ],
+          "mean_latency_seconds": 18.067,
+          "mean_model_requests": 6.0,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 38.127169541985495,
+              "model_requests": 12,
+              "tool_calls": 10,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The public pages retrieved only identify anti-literacy laws and Frederick Douglass\u2019s reading of The Columbian Orator; they do not substantiate a useful outside explanation of why teaching enslaved people to read was forbidden. A focused source from a historical archive or scholarly institution would be a better basis for a recommendation."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found",
+                "book_corpus:search_librarian:no_evidence",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.106947000022046,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened public page confirms that laws in many slave states criminalized teaching enslaved people to read or write, but its brief description does not establish enough about why. I can't make a well-supported recommendation from it; I could look for a primary historical source or a scholarly account focused on the motives behind these bans."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.371817499981262,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available public page only notes that laws criminalized teaching enslaved people to read or write; it does not explain why. A stronger recommendation would need a source that directly analyzes literacy as a means of control, resistance, or maintaining slavery."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 26.205705917003797,
+              "model_requests": 8,
+              "tool_calls": 5,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible pages offer only brief descriptions, not a supported explanation of why these restrictions were imposed. A more authoritative historical source is needed to answer the causal question."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 12.524028666986851,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-laws-and-control",
+                    "tentative_claim": "A history of anti-literacy laws could explain that prohibiting literacy was a means of maintaining control over enslaved people, not a neutral schooling policy.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Anti-literacy_laws_in_the_United_States"
+                    ],
+                    "shared_structure": "The book asks the reader to see literacy as consequential within slavery; the public source directly describes laws criminalizing the teaching of reading and writing, making prohibition itself a tool of domination.",
+                    "meaningful_difference": "The web page supplies the legal and historical frame, while the book offers Douglass's lived account; this source excerpt alone does not establish the motives or full history behind particular laws.",
+                    "interpretation": "A focused outside starting point is the overview of anti-literacy laws. It gives context for why literacy was restricted, while Douglass's narrative can show what learning to read meant in one person's experience. The accessible page summary is brief, so it is a lead rather than a full explanation of lawmakers' motives.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because it directly addresses the requested prohibition; the page's short description warrants a bounded recommendation, not a detailed causal account."
+                  },
+                  {
+                    "candidate_id": "candidate-columbian-orator",
+                    "tentative_claim": "The history of a book Douglass read could offer a personal-literary lens on why literacy mattered to him, though it is not a direct account of the prohibition.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Columbian_Orator"
+                    ],
+                    "shared_structure": "Both connect reading with Douglass's developing understanding of freedom.",
+                    "meaningful_difference": "This page concerns an influential reading experience, rather than the laws or reasons for forbidding literacy.",
+                    "interpretation": "The Columbian Orator could be a useful follow-up if the reader wants to explore what reading opened up for Douglass personally. The available description does not explain why enslavers or lawmakers prohibited teaching literacy, so it is a complement rather than an answer to the stated question.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the anti-literacy-law overview because it illuminates literacy's significance to Douglass but does not address the reason teaching was forbidden."
+                  }
+                ],
+                "selected_candidate_id": "candidate-laws-and-control",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "If you want, I can look for a more authoritative historical source focused specifically on the motives behind these laws.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-keller-route-external-web-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "regression",
+          "repeats": 5,
+          "passes": 0,
+          "pass_at_k": false,
+          "pass_pow_k": false,
+          "unstable": false,
+          "decision_unstable": false,
+          "observed_statuses": [
+            "decline"
+          ],
+          "intermittent_failures": [
+            "unexpected_search:search_librarian"
+          ],
+          "mean_latency_seconds": 9.971,
+          "mean_model_requests": 3.8,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 13.246078916999977,
+              "model_requests": 4,
+              "tool_calls": 4,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted public pages only briefly mention Sullivan\u2019s preparation and Bridgman\u2019s role, and the searched book passages supplied no support. I can look for a more authoritative biography or historical source if you want."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 14.614061875006882,
+              "model_requests": 4,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The available public summary notes Sullivan\u2019s training and her study of Howe\u2019s work with Laura Bridgman, but it is too brief to support a useful comparison or explain how she learned to teach Helen. A more detailed biography or primary source on Sullivan\u2019s training and methods would be needed."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.804767041001469,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted book search found no supporting passage, and the accessible outside source offers only a brief description, not enough detail to develop a useful, evidence-supported connection. A fuller historical source on Sullivan\u2019s training and methods would be needed."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "no_clear_winner",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.485922374995425,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "no_clear_winner",
+                "safe_next_step": "I found a concise outside lead: the Anne Sullivan page says she learned the manual alphabet at Perkins and studied Samuel Gridley Howe\u2019s reports on Laura Bridgman before teaching Helen. I can\u2019t support two distinct connection readings from that brief page alone; a fuller authoritative biography or primary source could make the comparison more useful."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 7.704470958007732,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The permitted source describes Sullivan\u2019s preparation, but there isn\u2019t enough retrieved evidence to build and compare two distinct, well-supported outside connections. A focused search of authoritative Perkins Institution archives or Sullivan\u2019s correspondence could help."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-alice-web-with-distractor-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "capability",
+          "repeats": 5,
+          "passes": 3,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "decline",
+            "proposal"
+          ],
+          "intermittent_failures": [
+            "expected_proposal"
+          ],
+          "mean_latency_seconds": 12.524,
+          "mean_model_requests": 4.0,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.7500870839867275,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The opened essay gives a potentially relevant lens\u2014identity shaped through situated choices rather than a fixed definition\u2014but there is not enough accessible detail to establish two distinct, well-supported interpretations of how it illuminates Alice's uncertainty. I can look for a more specific essay or passage if you want."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 17.064380291994894,
+              "model_requests": 5,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-continuity-lens",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy essay on personal identity offers a focused conceptual lens on uncertainty about who someone is over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "The essay explicitly asks what makes a person at one time the same person at another, giving a framework for considering uncertainty about identity across change.",
+                    "meaningful_difference": "The source is a philosophical survey, not an interpretation of Alice; it can frame questions but does not explain her literary portrayal.",
+                    "interpretation": "A useful outside starting point is the Stanford Encyclopedia of Philosophy's \u201cPersonal Identity.\u201d Its overview explicitly surveys what makes a person at one time the same person at another, which offers a focused lens for thinking about uncertainty over identity. The available description is brief and does not address Alice directly, so treat it as a conceptual framework rather than a literary reading.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "This is the more focused fit because its described subject is personal identity across time; the other opened essay offers a broader, agency-centered angle."
+                  },
+                  {
+                    "candidate_id": "candidate-choice-and-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy overview of existentialism offers a possible agency-centered lens by describing identity as shaped through situated choices rather than fixed in advance.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Its stated contrast between received definition and identity shaped through situated choices offers a way to ask whether identity is fixed or formed in circumstances.",
+                    "meaningful_difference": "This source emphasizes choice and situatedness rather than persistence of the same person over time, and its brief description does not establish a direct connection to Alice's particular uncertainty.",
+                    "interpretation": "A more indirect alternative is the Stanford Encyclopedia of Philosophy's \u201cExistentialism.\u201d Its description says identity is shaped through situated choices rather than received as a fixed definition, which may prompt an agency-focused question about identity. The available description does not mention Alice, so this is a possible lens, not a direct reading of the character.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the personal-identity essay because the latter's stated focus more directly matches uncertainty about personal identity over time."
+                  }
+                ],
+                "selected_candidate_id": "candidate-continuity-lens",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "If you'd like, I can look for a more literary essay that discusses Alice directly.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 19.220235291984864,
+              "model_requests": 6,
+              "tool_calls": 4,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s \u201cPersonal Identity\u201d entry can frame Alice\u2019s uncertainty as a question about what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both concern whether a person remains the same person through change or uncertainty.",
+                    "meaningful_difference": "The entry treats persistence as a philosophical question; it does not interpret Alice\u2019s scenes or establish their meaning.",
+                    "interpretation": "A useful starting lens is to ask whether Alice\u2019s uncertainty is about continuity of self. The accessible description confirms that the essay surveys what makes someone the same person over time, but offers no Alice-specific analysis.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first as a direct, evidence-grounded fit for identity uncertainty; unlike the other option, it focuses on personal identity over time."
+                  },
+                  {
+                    "candidate_id": "candidate-existentialism",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy\u2019s \u201cExistentialism\u201d entry offers a different lens: identity shaped through situated choices rather than received as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "It frames identity as unsettled and shaped rather than simply given, which can illuminate a question about uncertainty over who one is.",
+                    "meaningful_difference": "This lens emphasizes agency and situated choice, whereas the personal-identity entry emphasizes what makes someone the same person over time; the page description does not connect this framework to Alice specifically.",
+                    "interpretation": "This may be a useful alternative if you want to read Alice\u2019s uncertainty through the possibility that identity is formed rather than fixed. The available description supports that general lens, not a claim about what Carroll intended or what any particular scene proves.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the personal-identity entry: it offers a relevant but more inferential lens, centered on choice and formation rather than the continuity question most directly suggested by uncertainty about identity."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-identity",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "If you\u2019d like, I can also look for an essay that discusses Alice\u2019s identity directly.",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.409883082989836,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible source description is too brief to establish a useful, specific lens on Alice\u2019s uncertainty about identity. I can look for an essay that addresses that question more directly."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 13.174002749990905,
+              "model_requests": 3,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-personal-identity",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's 'Personal Identity' could offer a direct conceptual lens on Alice's uncertainty by framing it as a question of what makes someone the same person over time.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/identity-personal/"
+                    ],
+                    "shared_structure": "Both focus on the problem of whether a person remains the same self across change: the entry explicitly surveys what makes a person at one time the same person at another.",
+                    "meaningful_difference": "The essay frames this as a philosophical problem; Alice encounters identity uncertainty in a fictional, experiential setting. The source offers questions, not an interpretation of Carroll's scenes.",
+                    "interpretation": "A useful starting point would be the entry's question about personal identity across time. It may help you ask whether Alice's uncertainty is about continuity\u2014whether she is still the same person as she changes\u2014or about how others recognize her. The available description supports that broad lens, but not a claim that the essay analyzes Alice specifically.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "high",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because its stated focus on sameness across time closely matches uncertainty about identity, while staying within the accessible description."
+                  },
+                  {
+                    "candidate_id": "candidate-existentialism",
+                    "tentative_claim": "The Stanford Encyclopedia of Philosophy's 'Existentialism' offers a broader lens in which identity is shaped by situated choices rather than received as a fixed definition.",
+                    "evidence_ids": [
+                      "https://plato.stanford.edu/entries/existentialism/"
+                    ],
+                    "shared_structure": "Both can be approached through the tension between a fixed account of who someone is and a self formed amid changing circumstances.",
+                    "meaningful_difference": "This entry emphasizes choices and situation, rather than the question of sameness across time; the accessible description does not connect that account to Alice directly.",
+                    "interpretation": "This could help frame Alice's uncertainty as a question about whether identity is given or something shaped through encounters and choices. It is a broader, less direct recommendation than the personal-identity entry, and the accessible description establishes only that general lens.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "A plausible runner-up, but it centers choice and situatedness rather than the more direct question of whether Alice remains the same person through change."
+                  }
+                ],
+                "selected_candidate_id": "candidate-personal-identity",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a brief guide to the entry's most relevant questions to keep in mind while rereading Alice's identity scenes?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        },
+        {
+          "case_id": "serendipity-douglass-web-with-distractor-v3",
+          "primary_behavior": "route_external_recommendation_to_web",
+          "contrast_group": "source-routing",
+          "tier": "capability",
+          "repeats": 5,
+          "passes": 1,
+          "pass_at_k": true,
+          "pass_pow_k": false,
+          "unstable": true,
+          "decision_unstable": true,
+          "observed_statuses": [
+            "decline",
+            "proposal"
+          ],
+          "intermittent_failures": [
+            "expected_proposal",
+            "unexpected_search:search_librarian"
+          ],
+          "mean_latency_seconds": 11.577,
+          "mean_model_requests": 3.8,
+          "runs": [
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 11.575104082992766,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The search found a brief description of The Columbian Orator, but it does not explain why literacy was forbidden. I don't have enough opened-source evidence to recommend it responsibly; a focused source on anti-literacy laws or slavery-era education would be a better next step."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:web_search:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "unexpected_search:search_librarian",
+                "expected_proposal"
+              ],
+              "latency_seconds": 14.261221332999412,
+              "model_requests": 5,
+              "tool_calls": 4,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "I found a brief page description of The Columbian Orator, which Douglass credited with shaping his views on freedom, but it does not explain why literacy was forbidden. The other accessible result only briefly notes that such laws existed. I can look for an authoritative historical source that explains the motives and context."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "book_corpus:search_librarian:no_evidence",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": true,
+              "status": "proposal",
+              "decline_reason": null,
+              "failures": [],
+              "latency_seconds": 11.962254832993494,
+              "model_requests": 4,
+              "tool_calls": 3,
+              "response": {
+                "status": "proposal",
+                "shortlist": [
+                  {
+                    "candidate_id": "candidate-literacy-as-control",
+                    "tentative_claim": "An outside historical starting point is the overview of anti-literacy laws, which says that slave states criminalized teaching enslaved people to read or write.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/Anti-literacy_laws_in_the_United_States"
+                    ],
+                    "shared_structure": "The page connects prohibitions on literacy with formal legal control: teaching reading was not merely discouraged but made criminal in many slave states.",
+                    "meaningful_difference": "This source describes the laws broadly, whereas the book can show how literacy restrictions were enforced and experienced in a particular life; the page excerpt alone does not establish that detail.",
+                    "interpretation": "This is a directly relevant, though brief and non-specialist, lead for the question of why literacy was forbidden: reading posed a challenge to a system that sought to control enslaved people. The accessible page excerpt establishes criminalization, not the full motives or effects, so it is best used as a starting point rather than a complete explanation.",
+                    "rubric": {
+                      "cue_fit": "direct",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks first because the retrieved page directly concerns laws against literacy; the alternative is relevant to Douglass but less directly explains the prohibition."
+                  },
+                  {
+                    "candidate_id": "candidate-columbian-orator",
+                    "tentative_claim": "A related outside source is the collection Douglass read as a boy, described as shaping his views on freedom.",
+                    "evidence_ids": [
+                      "https://en.wikipedia.org/wiki/The_Columbian_Orator"
+                    ],
+                    "shared_structure": "Both the recommendation and the question point toward literacy as access to ideas about freedom.",
+                    "meaningful_difference": "The page concerns one book's influence on Douglass, not the laws or reasons for restricting literacy, so it offers a personal-literary angle rather than an explanation of the ban.",
+                    "interpretation": "The page offers a possible follow-up about what reading could make available to Douglass, but its short description does not explain why enslavers or lawmakers prohibited teaching literacy. It is therefore a looser companion to the question than the laws overview.",
+                    "rubric": {
+                      "cue_fit": "partial",
+                      "reflective_value": "medium",
+                      "safety": "clear",
+                      "disqualifiers": []
+                    },
+                    "comparison_note": "Ranks below the anti-literacy laws page because it illuminates literacy's possible significance to Douglass but does not directly address why teaching was forbidden."
+                  }
+                ],
+                "selected_candidate_id": "candidate-literacy-as-control",
+                "uncertainty": "medium",
+                "presentation": "direct",
+                "suggested_follow_up": "Would you like a more authoritative source next, such as a museum or university history page that explains the laws and their purposes?",
+                "policy_flags": [
+                  "contains_web_claim"
+                ]
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 6.18059745800565,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The accessible public page is only a brief description of anti-literacy laws, not enough to recommend a substantive source about why literacy was suppressed. I can try again with an authoritative historical source on slaveholders\u2019 fears of literacy, resistance, and emancipation."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            },
+            {
+              "hard_pass": false,
+              "status": "decline",
+              "decline_reason": "insufficient_evidence",
+              "failures": [
+                "expected_proposal"
+              ],
+              "latency_seconds": 13.907331833004719,
+              "model_requests": 3,
+              "tool_calls": 2,
+              "response": {
+                "status": "decline",
+                "reason": "insufficient_evidence",
+                "safe_next_step": "The retrieved public page only says that Frederick Douglass read The Columbian Orator and that it shaped his views on freedom; it does not explain why teaching enslaved people to read was forbidden. I can look for a stronger history source focused on slaveholders\u2019 motives, such as literacy as a threat to control and resistance."
+              },
+              "searches": [
+                "web:web_search:evidence_found",
+                "web:get_page:evidence_found"
+              ],
+              "rate_limit_retries": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

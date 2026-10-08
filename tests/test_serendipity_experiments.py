@@ -5,7 +5,14 @@ from evals.serendipity.harness import load_serendipity_eval_cases
 
 
 def test_triage_intent_changes_only_web_recommendation_cases_sent_as_connections():
-    cases = load_serendipity_eval_cases()
+    # The suite's web cases already carry the triage intent (8 Oct), so build
+    # the as-written form the experiment compared against.
+    cases = tuple(
+        experiments._variant(case, **{"input.intent": "find_connection", "input.presentation": "ask_before_showing",
+                                      "expected.presentation": "ask_before_showing"})
+        if case.primary_behavior == experiments.WEB_RECOMMENDATION else case
+        for case in load_serendipity_eval_cases()
+    )
     variants = experiments.triage_intent_variants(cases)
     assert variants
     for case_id, variant in variants.items():

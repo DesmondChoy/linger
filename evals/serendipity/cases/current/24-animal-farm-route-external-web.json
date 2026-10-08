@@ -5,11 +5,11 @@
   "primary_behavior": "route_external_recommendation_to_web",
   "contrast_group": "source-routing",
   "tier": "regression",
-  "description": "An explicit request for an outside idea, on a second book and a different web source. Every earlier web case used Stanford Encyclopedia pages about Alice. Both supplied pages offer a defensible lens on the pigs' privilege, so the case grades routing and the opened-page chain, not which page is chosen.",
+  "description": "An explicit request for an outside idea, on a second book and a different web source. Every earlier web case used Stanford Encyclopedia pages about Alice. Both supplied pages offer a defensible lens on the pigs' privilege, so the case grades routing and the opened-page chain, not which page is chosen. On 8 Oct the case was given the intent production triage pins for an outside recommendation (get_recommendation, presented directly); it had been written as find_connection, which production no longer sends for this request.",
   "input": {
     "cue": "Is there an idea or essay outside the book that explains why the pigs end up living like the farmers they overthrew?",
-    "intent": "find_connection",
-    "presentation": "ask_before_showing",
+    "intent": "get_recommendation",
+    "presentation": "direct",
     "scope": {
       "allowed_sources": [
         "web"
@@ -44,7 +44,7 @@
   },
   "expected": {
     "status": "proposal",
-    "presentation": "ask_before_showing",
+    "presentation": "direct",
     "semantic_review": {
       "criteria": [
         "Offers a relevant outside lens on how the pigs come to hold privilege",

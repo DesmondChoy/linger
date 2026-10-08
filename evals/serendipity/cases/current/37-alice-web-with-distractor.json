@@ -5,11 +5,11 @@
   "primary_behavior": "route_external_recommendation_to_web",
   "contrast_group": "source-routing",
   "tier": "capability",
-  "description": "Case 08 with an extra search result: the encyclopedia page about the book itself. It is about Alice, but it is not an outside essay offering a lens on identity, so it must not appear on the shortlist.",
+  "description": "Case 08 with an extra search result: the encyclopedia page about the book itself. It is about Alice, but it is not an outside essay offering a lens on identity, so it must not appear on the shortlist. On 8 Oct the case was given the intent production triage pins for an outside recommendation (get_recommendation, presented directly); it had been written as find_connection, which production no longer sends for this request.",
   "input": {
     "cue": "Can you recommend an outside essay that offers a lens on Alice's uncertainty about identity?",
-    "intent": "find_connection",
-    "presentation": "ask_before_showing",
+    "intent": "get_recommendation",
+    "presentation": "direct",
     "scope": {
       "allowed_sources": [
         "web"
@@ -50,7 +50,7 @@
   },
   "expected": {
     "status": "proposal",
-    "presentation": "ask_before_showing",
+    "presentation": "direct",
     "semantic_review": {
       "criteria": [
         "Offers a relevant outside reading lens",

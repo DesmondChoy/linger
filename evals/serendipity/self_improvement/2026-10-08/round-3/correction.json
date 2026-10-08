@@ -1,0 +1,126 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-select-real-semantic-bridge-v3",
+      "note": "In four failed runs, after the librarian returned passages linking Alice's physical changes to her uncertainty about identity, the response declined for insufficient evidence or generic theme instead of proposing the supported connection."
+    },
+    {
+      "case_id": "serendipity-exclude-ineligible-evidence-v3",
+      "note": "In two failed runs, the response declined for insufficient evidence despite the two usable passages supporting the requested link; it did not show the required proposal excluding the unusable record."
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "note": "The failed run returned `no_matching_memory` after a book search for a vague cue, rather than assessing the available book evidence and using a supported decline reason."
+    },
+    {
+      "case_id": "serendipity-expand-to-cross-source-v3",
+      "note": "In two failed runs, both the book passage and the opened public page were available, but the response declined instead of proposing the bounded comparison."
+    },
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "note": "In three failed runs, the relevant opened identity pages were declined as too brief or insufficient to support a recommendation."
+    },
+    {
+      "case_id": "serendipity-recommendation-intent-direct-v3",
+      "note": "All five runs opened a relevant public page about self-knowledge but declined instead of recommending it as a bounded reading option."
+    },
+    {
+      "case_id": "serendipity-granted-url-opened-directly-v3",
+      "note": "In four failed runs, the granted page was opened alongside the book passage, but the response declined rather than offering the tentative comparison."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "In four failed runs, after the unusable record left only one sound passage, the response used `unsupported_cue` rather than a decline reason reflecting insufficient usable evidence."
+    },
+    {
+      "case_id": "serendipity-recall-no-matching-memory-v3",
+      "note": "The failed run returned the rehearsal memory as the closest match even though it did not answer the specific question about starting a new job."
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-external-web-v3",
+      "note": "One run declined for insufficient evidence after opening a relevant outside source about oligarchy, rather than offering it as a bounded lens."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "The first departure in all failed runs was an unnecessary book-corpus search; the cue asked for an outside recommendation and web retrieval was expected as the primary route."
+    },
+    {
+      "case_id": "serendipity-alice-web-with-distractor-v3",
+      "note": "In four failed runs, relevant outside pages were opened but the response declined because their concise descriptions were treated as inadequate for a recommendation."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "The first departure in each failed run was an unnecessary book-corpus search despite the explicit request for an outside recommendation; the expected route was web retrieval."
+    },
+    {
+      "case_id": "serendipity-alice-connect-to-reader-memory-v3",
+      "note": "One run retrieved the matching personal note and book passage but declined for no clear winner instead of proposing the supported, tentative connection."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Outside recommendation misrouted through book search",
+      "definition": "A cue asks for an outside recommendation, but the run searches the book unnecessarily instead of making web retrieval primary.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Relevant public sources declined rather than recommended or compared",
+      "definition": "An opened, relevant public source is treated as too brief or insufficient for a bounded recommendation or comparison, and the response declines.",
+      "case_ids": [
+        "serendipity-expand-to-cross-source-v3",
+        "serendipity-route-external-recommendation-v3",
+        "serendipity-recommendation-intent-direct-v3",
+        "serendipity-granted-url-opened-directly-v3",
+        "serendipity-animal-farm-route-external-web-v3",
+        "serendipity-alice-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Supported book or personal bridge withheld",
+      "definition": "Usable, directly relevant book or memory evidence is retrieved, but the run declines rather than proposing a supported connection.",
+      "case_ids": [
+        "serendipity-select-real-semantic-bridge-v3",
+        "serendipity-exclude-ineligible-evidence-v3",
+        "serendipity-alice-connect-to-reader-memory-v3"
+      ]
+    },
+    {
+      "name": "Decline reason detached from evidence or cue",
+      "definition": "The run chooses a decline reason that does not fit the actual search results or remaining usable evidence.",
+      "case_ids": [
+        "serendipity-rank-tied-top-candidates-v3",
+        "serendipity-unsafe-evidence-leaves-too-little-v3"
+      ]
+    },
+    {
+      "name": "Nearest memory returned without a specific match",
+      "definition": "A record is returned for recall because it is the closest available topic, although it does not answer the reader's particular question.",
+      "case_ids": [
+        "serendipity-recall-no-matching-memory-v3"
+      ]
+    }
+  ],
+  "target_category": "Outside recommendation misrouted through book search",
+  "diagnosis": "The external-recommendation routing bullet names examples such as an essay, public source, or idea outside the book, but does not explicitly classify the common request to “recommend something outside the book” as that route. When the request also names a book-related subject, a run can treat the subject as a book relationship and search the book first or unnecessarily. The edit makes the requested deliverable—not the topic being discussed—decisive, while preserving the separate rule to inspect both sources for an explicit comparison. The larger public-source-decline category is not the target: earlier rounds already tried broadening the concise-source allowance and prompting a second-candidate pass, and both edits were discarded. This routing clarification addresses a different, observable first failure and has not been tried in those rounds.",
+  "edits": [
+    {
+      "find": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.",
+      "replace": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  asks for a recommendation or reading from outside the supplied book or\n  personal context (including “recommend something outside the book,” even if\n  the cue names the book as context), use public-web retrieval as the primary\n  source: open a supplied URL, or search when none is supplied. Do not search\n  the book merely to provide context for an outside recommendation. If web\n  access was not granted, decline rather than substitute the book. When the\n  cue instead explicitly asks to compare a book passage with an outside source,\n  inspect both permitted sources under the explicit-comparison rule.",
+      "reason": "Makes the wording “recommend something outside the book” an unambiguous external-recommendation request and prevents the book-related topic from triggering an unnecessary book search. It preserves the separate rule for explicit cross-source comparison and the existing requirement to decline when the requested source is not granted."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-douglass-route-external-web-v3",
+    "serendipity-douglass-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-route-book-relationship-v3",
+    "serendipity-douglass-route-book-relationship-v3",
+    "serendipity-animal-farm-route-book-relationship-v3",
+    "serendipity-requested-source-not-granted-v3"
+  ],
+  "risks": "The edit could blur the distinction between asking about a book relationship and asking for an outside source, or encourage web retrieval when web is not granted. It explicitly limits the new trigger to outside recommendations, leaves explicit book-versus-outside comparisons under the existing inspect-both rule, and retains the grant boundary and decline requirement. The passing book-relationship cases should therefore remain on the librarian route, and an ungranted outside-source request should still decline."
+}
