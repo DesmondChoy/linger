@@ -227,6 +227,31 @@ async def run_reliability_experiment(
     discovery_skill: RuntimeSkill = CONNECTION_DISCOVERY,
 ) -> ReliabilityReport:
     """Execute every selected case `repeats` times through one shared agent."""
+    reports = await run_paired_reliability(
+        {"only": discovery_skill}, repeats=repeats, cases=cases, case_ids=case_ids,
+        tier=tier, concurrency=concurrency, configure_logfire=configure_logfire,
+    )
+    return reports["only"]
+
+
+async def run_paired_reliability(
+    skills: dict[str, RuntimeSkill],
+    *,
+    repeats: int = 5,
+    cases: tuple[SerendipityEvalCase, ...] | None = None,
+    case_ids: tuple[str, ...] = (),
+    tier: str | None = None,
+    concurrency: int = 1,
+    configure_logfire: bool = True,
+) -> dict[str, ReliabilityReport]:
+    """Score several discovery skills on the same cases in one session.
+
+    Each case's runs alternate between the skills, so drift in the provider's
+    behaviour over the session affects every skill alike, and a difference
+    between them is a difference between the instructions.
+    """
+    if not skills:
+        raise ValueError("at least one skill is required")
     if repeats < 1:
         raise ValueError("repeats must be at least 1")
     if concurrency < 1:
@@ -248,11 +273,11 @@ async def run_reliability_experiment(
         configure_component_evaluation_telemetry(agent)
     limiter = asyncio.Semaphore(concurrency)
 
-    async def one_run(case: SerendipityEvalCase) -> RunOutcome:
+    async def one_run(case: SerendipityEvalCase, skill: RuntimeSkill) -> RunOutcome:
         async with limiter:
             for attempt in range(RATE_LIMIT_ATTEMPTS):
                 try:
-                    report = await run_case(case, agent=agent, discovery_skill=discovery_skill)
+                    report = await run_case(case, agent=agent, discovery_skill=skill)
                 except Exception as error:  # an error is a failure, never a gap
                     if _rate_limited(error) and attempt + 1 < RATE_LIMIT_ATTEMPTS:
                         # A rate-limited request never reached the model, so
@@ -268,35 +293,47 @@ async def run_reliability_experiment(
                 return _outcome_from_report(report).model_copy(update={"rate_limit_retries": attempt})
         raise AssertionError("unreachable")
 
-    results: list[CaseReliability] = []
+    names = tuple(skills)
+    results: dict[str, list[CaseReliability]] = {name: [] for name in names}
     for case in active:
-        outcomes = await asyncio.gather(*(one_run(case) for _ in range(repeats)))
-        summary = _summarise_case(case, tuple(outcomes))
-        results.append(summary)
-        print(_case_line(summary), flush=True)
+        order = [name for _ in range(repeats) for name in names]
+        outcomes = await asyncio.gather(*(one_run(case, skills[name]) for name in order))
+        for name in names:
+            summary = _summarise_case(
+                case, tuple(outcome for label, outcome in zip(order, outcomes) if label == name),
+            )
+            results[name].append(summary)
+            prefix = f"{name}: " if len(names) > 1 else ""
+            print(prefix + _case_line(summary), flush=True)
 
-    digests = {
-        **PROMPT_DIGESTS,
-        CONNECTION_DISCOVERY.skill_id: (
-            PROMPT_FINGERPRINT.digest if discovery_skill is CONNECTION_DISCOVERY
-            else discovery_skill.fingerprint(template_id=PROMPT_FINGERPRINT.template_id).digest
-        ),
-    }
     used = sorted({_skill_for(case).skill_id for case in active})
-    return ReliabilityReport(
-        run_id=uuid4().hex,
-        generated_at=datetime.now(UTC),
-        model=get_settings().linger_model,
-        prompt_digests={skill_id: digests[skill_id] for skill_id in used},
-        dataset_digest=dataset_digest(active),
-        concurrency=concurrency,
-        summary=_summarise(tuple(results), repeats),
-        tiers={
-            name: _summarise(tuple(item for item in results if item.tier == name), repeats)
-            for name in sorted({item.tier for item in results})
-        },
-        cases=tuple(results),
-    )
+    generated_at = datetime.now(UTC)
+    reports = {}
+    for name in names:
+        skill = skills[name]
+        digests = {
+            **PROMPT_DIGESTS,
+            CONNECTION_DISCOVERY.skill_id: (
+                PROMPT_FINGERPRINT.digest if skill is CONNECTION_DISCOVERY
+                else skill.fingerprint(template_id=PROMPT_FINGERPRINT.template_id).digest
+            ),
+        }
+        rows = tuple(results[name])
+        reports[name] = ReliabilityReport(
+            run_id=uuid4().hex,
+            generated_at=generated_at,
+            model=get_settings().linger_model,
+            prompt_digests={skill_id: digests[skill_id] for skill_id in used},
+            dataset_digest=dataset_digest(active),
+            concurrency=concurrency,
+            summary=_summarise(rows, repeats),
+            tiers={
+                tier_name: _summarise(tuple(item for item in rows if item.tier == tier_name), repeats)
+                for tier_name in sorted({item.tier for item in rows})
+            },
+            cases=rows,
+        )
+    return reports
 
 
 def _case_line(case: CaseReliability) -> str:

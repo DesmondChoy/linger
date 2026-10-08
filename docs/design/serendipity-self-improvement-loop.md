@@ -59,6 +59,29 @@ Fixed before round 0 ran and recorded in each run's `protocol.json`.
   self-review run retries in-run when an edit breaks these rules, and makes
   one fresh attempt if the run still fails.
 
+## Protocol version 2 (from 2026-10-08)
+
+The 2026-10-06 run compared a candidate scored on one day with a baseline
+scored on another, and kept its best round. A same-day re-measurement showed
+part of that gain was selection and day-to-day variation (see
+[Same-day re-measurement](#same-day-re-measurement-2026-10-08)). Version 2
+changes how candidates are scored; the split, repeats, and thresholds are
+unchanged.
+
+- **Paired scoring.** Each round scores the candidate and the production skill
+  in one session, alternating their runs within each case
+  (`reliability.run_paired_reliability`). The pass mark compares the two
+  scores from that session.
+- **Confirmation.** A candidate that passes is scored again, paired, on fresh
+  repetitions. It counts only if the confirmation also meets the pass mark.
+- **Held back.** A confirmed candidate and the production skill are scored
+  together on the held-back cases.
+- **Round 0** scores the production skill alone, only to give the review its
+  traces.
+
+`protocol.json` records `design_version: 2`; a directory recorded under
+version 1 cannot be resumed under version 2.
+
 ## Records
 
 Each run writes to `evals/serendipity/self_improvement/<date>/`:

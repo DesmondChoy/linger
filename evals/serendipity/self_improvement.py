@@ -1,13 +1,16 @@
 """Serendipity's supervised self-improvement loop over its component suite.
 
-Round 0 scores the production connection-discovery skill on practice and
-held-back cases. Each later round gives Serendipity's offline self-review skill
-every practice trace from the best state so far; Serendipity names its most
-frequent failure and specifies exact edits to its own instructions. Application
-code applies the edits to a candidate copy, scores practice cases, and judges
-the candidate against the pass mark fixed in `protocol.json` before round 0
-ran. A passing candidate is scored once on the held-back cases. Production is
-never changed here: promotion is an owner decision.
+Round 0 scores the production connection-discovery skill on the practice
+cases, so Serendipity's offline self-review skill has traces to read. Each
+round, Serendipity names its most frequent failure and specifies exact edits to
+its own instructions. Application code applies the edits to a candidate copy
+and scores the candidate and the production skill together in one session,
+alternating their runs, so day-to-day variation cannot pass for a gain. A
+candidate that meets the pass mark fixed in `protocol.json` must meet it again
+in a fresh paired comparison before it counts, because the loop keeps its best
+round and that round's luck. A confirmed candidate is then compared with
+production on the held-back cases. Production is never changed here:
+promotion is an owner decision.
 
     uv run python -m evals.serendipity.self_improvement \\
         --output-dir evals/serendipity/self_improvement/2026-10-06
@@ -50,7 +53,7 @@ from src.linger.orchestration.serendipity_self_review import (
 )
 
 from .harness import SerendipityEvalCase, load_serendipity_eval_cases
-from .reliability import ReliabilityReport, run_reliability_experiment
+from .reliability import ReliabilityReport, run_paired_reliability, run_reliability_experiment
 
 # Pre-registered on 2026-10-06, before round 0 ran. Held-back books test whether
 # a correction generalises to books Serendipity never saw during review.
@@ -81,6 +84,8 @@ class Protocol(StrictModel):
     starting_skill_digest: str
     self_review_digest: str
     pass_mark: PassMark
+    # 2: every comparison is paired in one session, and a pass must be confirmed.
+    design_version: int = 1
     # Changes made after round 0 started. Only the self-review instructions may
     # change; the split, pass mark, model, and scored skill never do.
     amendments: tuple[dict[str, str], ...] = ()
@@ -115,9 +120,11 @@ def pass_mark() -> PassMark:
         max_case_loss=MAX_CASE_LOSS,
         stable_floor=STABLE_FLOOR,
         description=(
-            f"A candidate passes when its practice passes exceed round 0 by at least "
-            f"{MIN_PRACTICE_GAIN}, no practice case loses more than {MAX_CASE_LOSS} passes, "
-            f"and no practice case that passed every round-0 run falls below {STABLE_FLOOR}."
+            f"Scored in the same session as the production skill, a candidate passes when its "
+            f"practice passes exceed production's by at least {MIN_PRACTICE_GAIN}, no practice case "
+            f"loses more than {MAX_CASE_LOSS} passes, and no practice case that passed every "
+            f"production run falls below {STABLE_FLOOR}. A pass counts only if a fresh paired "
+            f"comparison passes again."
         ),
     )
 
@@ -241,6 +248,31 @@ async def _score(
     return report
 
 
+async def _score_pair(
+    directory: Path,
+    name: str,
+    cases: tuple[SerendipityEvalCase, ...],
+    candidate: RuntimeSkill,
+    *,
+    repeats: int,
+    concurrency: int,
+) -> tuple[ReliabilityReport, ReliabilityReport]:
+    """Score production and the candidate in one session, alternating their runs."""
+    paths = (directory / f"{name}-production.json", directory / f"{name}-candidate.json")
+    loaded = tuple(_load_report(path) for path in paths)
+    if all(report is not None for report in loaded):
+        print(f"reusing {directory}/{name}-*", flush=True)
+        return loaded  # type: ignore[return-value]
+    print(f"scoring {len(cases)} cases x {repeats}, production and candidate -> {directory}/{name}-*", flush=True)
+    reports = await run_paired_reliability(
+        {"production": CONNECTION_DISCOVERY, "candidate": candidate},
+        repeats=repeats, cases=cases, concurrency=concurrency,
+    )
+    for path, key in zip(paths, ("production", "candidate")):
+        _write(path, reports[key].model_dump_json(indent=2))
+    return reports["production"], reports["candidate"]
+
+
 async def _review(
     round_dir: Path, task: SelfReviewInput,
 ) -> SkillCorrection | None:
@@ -290,25 +322,32 @@ def _summary_markdown(
         "",
         f"Pass mark: {protocol.pass_mark.description}",
         "",
-        "| Round | Target failure | Practice passes | Gain over round 0 | Decision |",
-        "|---|---|---|---|---|",
-        f"| 0 | (production skill) | {baseline.summary.total_passes} of {baseline.summary.total_runs} | — | baseline |",
+        f"Round 0 (production skill, traces for the review): {baseline.summary.total_passes} of "
+        f"{baseline.summary.total_runs} practice runs.",
+        "",
+        "| Round | Target failure | Production | Candidate | Gain | Decision | Confirmation |",
+        "|---|---|---|---|---|---|---|",
     ]
     for item in rounds:
         decision = item.get("decision")
         if decision is None:
-            lines.append(f"| {item['round']} | — | — | — | {item['outcome']} |")
+            lines.append(f"| {item['round']} | — | — | — | — | {item['outcome']} | — |")
             continue
+        confirm = item.get("confirmation")
+        confirm_text = "—" if confirm is None else (
+            f"{confirm['practice_passes_baseline']} → {confirm['practice_passes_candidate']} "
+            f"({confirm['gain']:+d}): {'confirmed' if confirm['passed'] else 'not confirmed'}"
+        )
         lines.append(
-            f"| {item['round']} | {item['target']} | {decision['practice_passes_candidate']} of "
-            f"{decision['practice_runs']} | {decision['gain']:+d} | "
-            f"{'pass' if decision['passed'] else 'fail: ' + '; '.join(decision['reasons'])} |"
+            f"| {item['round']} | {item['target']} | {decision['practice_passes_baseline']} | "
+            f"{decision['practice_passes_candidate']} | {decision['gain']:+d} | "
+            f"{'pass' if decision['passed'] else 'fail: ' + '; '.join(decision['reasons'])} | {confirm_text} |"
         )
     if held_back:
         lines += [
             "",
-            f"Held-back cases: {held_back['baseline']} of {held_back['runs']} with the production skill, "
-            f"{held_back['candidate']} of {held_back['runs']} with the passing candidate.",
+            f"Held-back cases, same session: {held_back['baseline']} of {held_back['runs']} with the production "
+            f"skill, {held_back['candidate']} of {held_back['runs']} with the confirmed candidate.",
         ]
     return "\n".join(lines) + "\n"
 
@@ -330,6 +369,7 @@ async def run_loop(
         starting_skill_digest=CONNECTION_DISCOVERY.fingerprint().digest,
         self_review_digest=SELF_REVIEW_FINGERPRINT.digest,
         pass_mark=pass_mark(),
+        design_version=2,
     )
     if protocol_path.exists():
         recorded = Protocol.model_validate_json(protocol_path.read_text(encoding="utf-8"))
@@ -359,12 +399,8 @@ async def run_loop(
         output_dir / "round-0" / "practice.json", practice, CONNECTION_DISCOVERY,
         repeats=repeats, concurrency=concurrency,
     )
-    held_back_baseline = await _score(
-        output_dir / "round-0" / "held-back.json", held_back, CONNECTION_DISCOVERY,
-        repeats=repeats, concurrency=concurrency,
-    )
 
-    best_instructions, best_report = CONNECTION_DISCOVERY.instructions, baseline
+    best_instructions, best_report, best_gain = CONNECTION_DISCOVERY.instructions, baseline, 0
     earlier: list[EarlierRound] = []
     rounds: list[dict[str, Any]] = []
     winner: str | None = None
@@ -382,51 +418,63 @@ async def run_loop(
             break
         instructions = apply_edits(best_instructions, correction.edits)
         _write(round_dir / "candidate-SKILL.md", instructions + "\n")
-        report = await _score(
-            round_dir / "practice.json", practice, candidate_skill(instructions),
-            repeats=repeats, concurrency=concurrency,
+        candidate = candidate_skill(instructions)
+        production, scored = await _score_pair(
+            round_dir, "practice", practice, candidate, repeats=repeats, concurrency=concurrency,
         )
-        decision = decide(baseline, report)
+        decision = decide(production, scored)
         _write(round_dir / "decision.json", decision.model_dump_json(indent=2))
-        rounds.append({
+        item: dict[str, Any] = {
             "round": number, "target": correction.target_category,
             "decision": decision.model_dump(mode="json"), "outcome": "pass" if decision.passed else "fail",
-        })
+        }
+        confirmed = False
+        if decision.passed:
+            again_base, again = await _score_pair(
+                round_dir, "confirm", practice, candidate, repeats=repeats, concurrency=concurrency,
+            )
+            confirmation = decide(again_base, again)
+            _write(round_dir / "confirm-decision.json", confirmation.model_dump_json(indent=2))
+            item["confirmation"] = confirmation.model_dump(mode="json")
+            confirmed = confirmation.passed
+            item["outcome"] = "confirmed" if confirmed else "not confirmed"
+        rounds.append(item)
         earlier.append(EarlierRound(
             round=number,
             categories=correction.categories,
             target_category=correction.target_category,
             edits=correction.edits,
             expected_fixes=correction.expected_fixes,
-            practice_passes_before=best_report.summary.total_passes,
-            practice_passes_after=report.summary.total_passes,
-            practice_runs=report.summary.total_runs,
+            practice_passes_before=production.summary.total_passes,
+            practice_passes_after=scored.summary.total_passes,
+            practice_runs=scored.summary.total_runs,
             outcome=(
-                "passed the pass mark" if decision.passed
-                else "kept as the new starting point" if report.summary.total_passes > best_report.summary.total_passes
+                "passed and was confirmed" if confirmed
+                else "passed but was not confirmed in a fresh comparison" if decision.passed
+                else "kept as the new starting point" if decision.gain > best_gain
                 else "discarded; the next round starts from the earlier instructions"
             ),
         ))
-        if report.summary.total_passes > best_report.summary.total_passes:
-            best_instructions, best_report = instructions, report
-        if decision.passed:
+        if decision.gain > best_gain:
+            best_instructions, best_report, best_gain = instructions, scored, decision.gain
+        if confirmed:
             winner = instructions
             break
 
     held_back_result = None
     if winner is not None:
-        held_back_candidate = await _score(
-            output_dir / "final" / "held-back-candidate.json", held_back, candidate_skill(winner),
+        held_base, held_cand = await _score_pair(
+            output_dir / "final", "held-back", held_back, candidate_skill(winner),
             repeats=repeats, concurrency=concurrency,
         )
         _write(output_dir / "final" / "candidate-SKILL.md", winner + "\n")
         held_back_result = {
-            "baseline": held_back_baseline.summary.total_passes,
-            "candidate": held_back_candidate.summary.total_passes,
-            "runs": held_back_candidate.summary.total_runs,
+            "baseline": held_base.summary.total_passes,
+            "candidate": held_cand.summary.total_passes,
+            "runs": held_cand.summary.total_runs,
             "case_changes": {
                 case.case_id: after.passes - case.passes
-                for case, after in zip(held_back_baseline.cases, held_back_candidate.cases)
+                for case, after in zip(held_base.cases, held_cand.cases)
                 if after.passes != case.passes
             },
         }
@@ -436,7 +484,7 @@ async def run_loop(
         "baseline_practice_runs": baseline.summary.total_runs,
         "rounds": rounds,
         "held_back": held_back_result,
-        "promotion": "awaiting owner approval" if winner is not None else "no candidate passed",
+        "promotion": "awaiting owner approval" if winner is not None else "no candidate confirmed",
     }
     _write(output_dir / "summary.json", json.dumps(summary, indent=2))
     _write(output_dir / "summary.md", _summary_markdown(protocol, baseline, rounds, held_back_result))

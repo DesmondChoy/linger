@@ -184,15 +184,21 @@ def test_decision_follows_the_pre_registered_pass_mark(before, after, passed, re
     assert any(reason in item for item in decision.reasons)
 
 
-def test_loop_records_every_step_and_reuses_them(tmp_path: Path, monkeypatch):
+def test_loop_pairs_every_comparison_confirms_a_pass_and_reuses_records(tmp_path: Path, monkeypatch):
     practice, held_back = loop.split_cases(load_serendipity_eval_cases())
-    scored: list[tuple[int, bool]] = []
+    single: list[int] = []
+    paired: list[tuple[int, tuple[str, ...]]] = []
     reviewed: list[SelfReviewInput] = []
 
     async def fake_experiment(*, repeats, cases, concurrency, discovery_skill):
-        candidate = discovery_skill is not CONNECTION_DISCOVERY
-        scored.append((len(cases), candidate))
-        return report(cases, [5 if candidate else 2] * len(cases))
+        assert discovery_skill is CONNECTION_DISCOVERY
+        single.append(len(cases))
+        return report(cases, [2] * len(cases))
+
+    async def fake_paired(skills, *, repeats, cases, concurrency):
+        assert skills["production"] is CONNECTION_DISCOVERY
+        paired.append((len(cases), tuple(skills)))
+        return {"production": report(cases, [2] * len(cases)), "candidate": report(cases, [5] * len(cases))}
 
     async def fake_review(task):
         reviewed.append(task)
@@ -206,27 +212,60 @@ def test_loop_records_every_step_and_reuses_them(tmp_path: Path, monkeypatch):
         )
 
     monkeypatch.setattr(loop, "run_reliability_experiment", fake_experiment)
+    monkeypatch.setattr(loop, "run_paired_reliability", fake_paired)
     monkeypatch.setattr(loop, "propose_skill_correction", fake_review)
     monkeypatch.setattr(loop, "configure_component_evaluation_telemetry", lambda agent: None)
 
     summary = asyncio.run(loop.run_loop(tmp_path))
 
-    assert scored == [(33, False), (13, False), (33, True), (13, True)]
-    assert summary["rounds"][0]["outcome"] == "pass"
-    assert summary["held_back"] == {"baseline": 26, "candidate": 65, "runs": 65,
-                                    "case_changes": {case.case_id: 3 for case in held_back}}
+    assert single == [33]
+    assert paired == [(33, ("production", "candidate"))] * 2 + [(13, ("production", "candidate"))]
+    assert summary["rounds"][0]["outcome"] == "confirmed"
+    assert summary["held_back"]["baseline"] == 26 and summary["held_back"]["candidate"] == 65
     assert {case.case_id for case in reviewed[0].cases} == {case.case_id for case in practice}
-    for name in ("protocol.json", "round-0/practice.json", "round-0/held-back.json",
-                 "round-1/review-input.json", "round-1/correction.json", "round-1/candidate-SKILL.md",
-                 "round-1/practice.json", "round-1/decision.json", "final/held-back-candidate.json",
-                 "summary.md"):
+    assert json.loads((tmp_path / "protocol.json").read_text())["design_version"] == 2
+    for name in ("round-0/practice.json", "round-1/review-input.json", "round-1/correction.json",
+                 "round-1/candidate-SKILL.md", "round-1/practice-production.json",
+                 "round-1/practice-candidate.json", "round-1/decision.json",
+                 "round-1/confirm-production.json", "round-1/confirm-candidate.json",
+                 "round-1/confirm-decision.json", "final/held-back-production.json",
+                 "final/held-back-candidate.json", "summary.md"):
         assert (tmp_path / name).exists(), name
-    assert (tmp_path / "round-1" / "candidate-SKILL.md").read_text().startswith("Changed opening.")
 
-    scored.clear()
-    reviewed.clear()
+    single.clear(); paired.clear(); reviewed.clear()
     asyncio.run(loop.run_loop(tmp_path))
-    assert scored == [] and reviewed == []
+    assert single == [] and paired == [] and reviewed == []
+
+
+def test_an_unconfirmed_pass_does_not_count(tmp_path: Path, monkeypatch):
+    calls = {"pairs": 0}
+
+    async def fake_experiment(*, repeats, cases, concurrency, discovery_skill):
+        return report(cases, [2] * len(cases))
+
+    async def fake_paired(skills, *, repeats, cases, concurrency):
+        calls["pairs"] += 1
+        gain = 5 if calls["pairs"] % 2 == 1 else 2  # passes, then fails to confirm
+        return {"production": report(cases, [2] * len(cases)), "candidate": report(cases, [gain] * len(cases))}
+
+    async def fake_review(task):
+        failing = sorted(case.case_id for case in task.cases if case.passes < case.repeats)
+        return SkillCorrection(
+            notes=tuple({"case_id": case_id, "note": "n"} for case_id in failing),
+            categories=({"name": "c", "definition": "d", "case_ids": failing},),
+            target_category="c", diagnosis="d",
+            edits=(SkillEdit(find=task.current_instructions[:40], replace=f"Opening {len(task.earlier_rounds)}.", reason="r"),),
+            expected_fixes=(failing[0],), risks="r",
+        )
+
+    monkeypatch.setattr(loop, "run_reliability_experiment", fake_experiment)
+    monkeypatch.setattr(loop, "run_paired_reliability", fake_paired)
+    monkeypatch.setattr(loop, "propose_skill_correction", fake_review)
+    monkeypatch.setattr(loop, "configure_component_evaluation_telemetry", lambda agent: None)
+
+    summary = asyncio.run(loop.run_loop(tmp_path, max_rounds=1))
+    assert summary["rounds"][0]["outcome"] == "not confirmed"
+    assert summary["held_back"] is None and summary["promotion"] == "no candidate confirmed"
 
 
 def test_rate_limited_runs_wait_and_run_again_instead_of_failing(monkeypatch):
@@ -282,3 +321,31 @@ def test_only_a_reasoned_self_review_change_may_amend_a_recorded_protocol(tmp_pa
     path.write_text(json.dumps({**amended, "pass_mark": {**amended["pass_mark"], "min_practice_gain": 1}}))
     with pytest.raises(SystemExit, match="different protocol"):
         asyncio.run(loop.run_loop(tmp_path, amendment="anything"))
+
+
+def test_paired_scoring_alternates_skills_within_each_case(monkeypatch):
+    from types import SimpleNamespace
+
+    from evals.serendipity import reliability
+
+    seen: list[str] = []
+    first = loop.candidate_skill(CONNECTION_DISCOVERY.instructions + "\nFirst.")
+    second = loop.candidate_skill(CONNECTION_DISCOVERY.instructions + "\nSecond.")
+
+    async def fake_run_case(case, *, agent, discovery_skill):
+        seen.append("a" if discovery_skill is first else "b")
+        return SimpleNamespace()
+
+    def fake_outcome(report):
+        return RunOutcome(hard_pass=seen[-1] == "a", status="proposal")
+
+    monkeypatch.setattr(reliability, "run_case", fake_run_case)
+    monkeypatch.setattr(reliability, "_outcome_from_report", fake_outcome)
+    monkeypatch.setattr(reliability, "build_serendipity_agent", lambda: None)
+    reports = asyncio.run(reliability.run_paired_reliability(
+        {"a": first, "b": second}, repeats=2, cases=load_serendipity_eval_cases()[:1], configure_logfire=False,
+    ))
+
+    assert seen == ["a", "b", "a", "b"]
+    assert reports["a"].summary.total_passes == 2 and reports["b"].summary.total_passes == 0
+    assert reports["a"].prompt_digests != reports["b"].prompt_digests
