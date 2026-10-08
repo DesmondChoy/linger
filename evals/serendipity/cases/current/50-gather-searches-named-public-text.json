@@ -1,0 +1,84 @@
+{
+  "schema_version": 3,
+  "owner": "serendipity",
+  "primary_behavior": "gather_every_named_source",
+  "contrast_group": "named-sources",
+  "case_id": "serendipity-gather-searches-named-public-text-v3",
+  "tier": "capability",
+  "description": "The reader names a scene and a public reference work, but no URL is supplied. The agent must search for the named text, open only the page that is that text, and leave out the other search result.",
+  "input": {
+    "cue": "Put Alice's talk with the Caterpillar alongside the Stanford Encyclopedia of Philosophy entry on personal identity.",
+    "intent": "gather_sources",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-identity",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        968,
+        982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://plato.stanford.edu/entries/identity-personal/",
+      "title": "Personal Identity",
+      "excerpt": "The source surveys questions about what makes a person at one time the same person at another time."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://plato.stanford.edu/entries/existentialism/",
+      "title": "Existentialism",
+      "excerpt": "The source describes identity as shaped through situated choices rather than received as a fixed definition."
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "The retrieved passages answer the scenes the reader named."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian",
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "search_librarian",
+      "web_search",
+      "get_page"
+    ]
+  },
+  "expected": {
+    "status": "gathered",
+    "required_evidence_ids": [
+      "alice-ch5-identity",
+      "https://plato.stanford.edu/entries/identity-personal/"
+    ],
+    "forbidden_evidence_ids": [
+      "https://plato.stanford.edu/entries/existentialism/"
+    ]
+  }
+}

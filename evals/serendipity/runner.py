@@ -37,7 +37,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING
 from src.linger.agents.skills import RuntimeSkill
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.agents.serendipity.tools import (
@@ -148,7 +148,11 @@ def _skill_for(case: SerendipityEvalCase, discovery: RuntimeSkill = CONNECTION_D
     score a candidate copy of the connection-discovery instructions.
     """
 
-    return MEMORY_RECALL if case.input.intent == "recall_memory" else discovery
+    if case.input.intent == "recall_memory":
+        return MEMORY_RECALL
+    if case.input.intent == "gather_sources":
+        return SOURCE_GATHERING
+    return discovery
 
 
 def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[EvidenceStrengthDecision]]:
@@ -191,8 +195,11 @@ def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[Ev
 class _FixtureExaClient:
     def __init__(self, evidence: tuple[WebConnectionEvidence, ...]) -> None:
         self.evidence = evidence
+        # Every query and URL that passed the privacy gate and left the process.
+        self.outbound: list[str] = []
 
-    async def search(self, *_args: object, **_kwargs: object) -> object:
+    async def search(self, *args: object, **kwargs: object) -> object:
+        self.outbound.append(str(kwargs.get("query", args[0] if args else "")))
         return SimpleNamespace(
             results=[
                 SimpleNamespace(
@@ -209,6 +216,7 @@ class _FixtureExaClient:
 
     async def get_contents(self, urls: object, **_kwargs: object) -> object:
         requested = {urls} if isinstance(urls, str) else set(urls)
+        self.outbound.extend(sorted(requested))
         return SimpleNamespace(
             results=[
                 SimpleNamespace(

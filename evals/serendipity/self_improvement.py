@@ -109,6 +109,9 @@ def is_held_back(case: SerendipityEvalCase) -> bool:
 def split_cases(
     cases: tuple[SerendipityEvalCase, ...],
 ) -> tuple[tuple[SerendipityEvalCase, ...], tuple[SerendipityEvalCase, ...]]:
+    # Source-gathering cases run a skill the loop never edits, so they would add
+    # only noise to its comparison.
+    cases = tuple(case for case in cases if case.input.intent != "gather_sources")
     practice = tuple(case for case in cases if not is_held_back(case))
     held_back = tuple(case for case in cases if is_held_back(case))
     return practice, held_back

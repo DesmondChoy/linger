@@ -19,11 +19,19 @@ from src.linger.agents.serendipity.models import (
     MemoryRecall,
     PresentationMode,
     SerendipityResponse,
+    SourceBundle,
+)
+
+from src.linger.orchestration.connection import (
+    SERENDIPITY_REQUEST_LIMIT,
+    SERENDIPITY_TOOL_CALL_LIMIT,
 )
 
 DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases") / "current"
-MAX_MODEL_REQUESTS = 8
-MAX_TOOL_CALLS = 6
+# The grader enforces the production budget, so a run that production allows
+# is never failed for its length.
+MAX_MODEL_REQUESTS = SERENDIPITY_REQUEST_LIMIT
+MAX_TOOL_CALLS = SERENDIPITY_TOOL_CALL_LIMIT
 
 PrimaryBehavior = Literal[
     "route_book_relationship_to_librarian",
@@ -37,6 +45,7 @@ PrimaryBehavior = Literal[
     "recall_the_readers_own_earlier_record",
     "decline_when_no_memory_matches",
     "route_personal_connection_to_memory",
+    "gather_every_named_source",
 ]
 REQUIRED_BEHAVIORS: frozenset[PrimaryBehavior] = frozenset(
     {
@@ -51,6 +60,7 @@ REQUIRED_BEHAVIORS: frozenset[PrimaryBehavior] = frozenset(
         "recall_the_readers_own_earlier_record",
         "decline_when_no_memory_matches",
         "route_personal_connection_to_memory",
+        "gather_every_named_source",
     }
 )
 SearchOperation = Literal["search_memories", "search_librarian", "web_search", "get_page"]
@@ -153,13 +163,28 @@ class ExpectedRecall(StrictModel):
         return self
 
 
+class ExpectedBundle(StrictModel):
+    """What a `gather_sources` task must return.
+
+    The reader already chose the sources, so there is no ranking to grade:
+    the bundle must hold a record for every named source that exists, leave
+    out records for sources the reader did not name, and say when a named
+    source could not be found.
+    """
+
+    status: Literal["gathered"]
+    required_evidence_ids: tuple[str, ...] = Field(min_length=1)
+    forbidden_evidence_ids: tuple[str, ...] = ()
+    expect_unfound_sources: bool = False
+
+
 class ExpectedDecline(StrictModel):
     status: Literal["decline"]
     allowed_reasons: tuple[DeclineReason, ...] = Field(min_length=1)
 
 
 ExpectedResponse = Annotated[
-    ExpectedProposal | ExpectedRecall | ExpectedDecline,
+    ExpectedProposal | ExpectedRecall | ExpectedBundle | ExpectedDecline,
     Field(discriminator="status"),
 ]
 
@@ -182,10 +207,10 @@ class SerendipityEvalCase(StrictModel):
 
     @model_validator(mode="after")
     def case_contract_is_coherent(self) -> Self:
-        if isinstance(self.expected, ExpectedProposal | ExpectedRecall):
+        if isinstance(self.expected, ExpectedProposal | ExpectedRecall | ExpectedBundle):
             available_ids = {item.evidence_id for item in self.tool_evidence}
             named = set(self.expected.required_evidence_ids) | set(
-                self.expected.acceptable_evidence_ids
+                getattr(self.expected, "acceptable_evidence_ids", ())
             )
             forbidden = set(self.expected.forbidden_evidence_ids) | set(
                 getattr(self.expected, "forbidden_selected_evidence_ids", ())
@@ -210,6 +235,9 @@ class SerendipityEvalCase(StrictModel):
                 raise ValueError("a recall task cannot expect a proposal")
         elif isinstance(self.expected, ExpectedRecall):
             raise ValueError("only a recall task can expect a recall")
+        if (self.input.intent == "gather_sources") != isinstance(self.expected, ExpectedBundle):
+            if not (self.input.intent == "gather_sources" and isinstance(self.expected, ExpectedDecline)):
+                raise ValueError("only a gather_sources task expects a bundle, and it expects a bundle or a decline")
 
         if any(item.source_kind == "book_corpus" for item in self.tool_evidence):
             if self.book_judgement is None:
@@ -406,6 +434,23 @@ def grade_serendipity_run(
                 failures.append("recall_missing_acceptable_evidence")
             for evidence_id in sorted(set(case.expected.forbidden_evidence_ids) & recalled):
                 failures.append(f"recall_cites_forbidden_evidence:{evidence_id}")
+    elif isinstance(case.expected, ExpectedBundle):
+        if not isinstance(parsed, SourceBundle):
+            failures.append("expected_bundle")
+        else:
+            gathered = set(parsed.evidence_ids)
+            if not gathered.issubset(evidence_by_id):
+                failures.append("bundle_references_unknown_evidence")
+            for evidence_id in sorted(set(case.expected.required_evidence_ids) - gathered):
+                failures.append(f"bundle_missing_named_source:{evidence_id}")
+            for evidence_id in sorted(set(case.expected.forbidden_evidence_ids) & gathered):
+                failures.append(f"bundle_includes_unnamed_source:{evidence_id}")
+            if case.expected.expect_unfound_sources and not parsed.unfound_sources:
+                failures.append("bundle_hides_unfound_source")
+            if not case.expected.expect_unfound_sources and parsed.unfound_sources:
+                failures.append("bundle_reports_found_source_as_unfound")
+            if any(evidence_by_id[item].source_kind == "web" for item in gathered if item in evidence_by_id) and "get_page" not in operations:
+                failures.append("web_evidence_not_opened")
     elif not isinstance(parsed, ConnectionProposal):
         failures.append("expected_proposal")
     else:

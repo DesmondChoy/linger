@@ -13,7 +13,10 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_evals.reporting import ReportCaseFailure
 
 from evals.serendipity.harness import (
+    MAX_MODEL_REQUESTS,
+    MAX_TOOL_CALLS,
     REQUIRED_BEHAVIORS,
+    ExpectedBundle,
     ExpectedDecline,
     ExpectedProposal,
     ExpectedRecall,
@@ -47,6 +50,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionProposal,
     MemoryRecall,
+    SourceBundle,
 )
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 from src.linger.agents.serendipity.tools import SerendipityDependencies, search_librarian
@@ -126,6 +130,12 @@ def _observation(case, *, response=None) -> RunObservation:
                 ),
                 relevance_note="The reader's own earlier statement on what the cue asks about.",
             )
+        elif isinstance(case.expected, ExpectedBundle):
+            response = SourceBundle(
+                evidence_ids=case.expected.required_evidence_ids,
+                unfound_sources=("the named source",) if case.expected.expect_unfound_sources else (),
+                relevance_note="Each record answers a source the reader named.",
+            )
         else:
             response = ConnectionDecline(
                 reason=case.expected.allowed_reasons[0],
@@ -199,7 +209,7 @@ class SerendipityEvalContractTests(unittest.TestCase):
             if item.primary_behavior == "route_book_relationship_to_librarian"
         )
         observation = _observation(case).model_copy(
-            update={"searches": (), "tool_calls": 7, "model_requests": 9}
+            update={"searches": (), "tool_calls": MAX_TOOL_CALLS + 1, "model_requests": MAX_MODEL_REQUESTS + 1}
         )
         grade = grade_serendipity_run(case, observation)
         self.assertFalse(grade.hard_pass)
@@ -565,3 +575,41 @@ class CrossSourceObjectiveStageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SourceGatheringCaseTests(unittest.TestCase):
+    """Bundles are graded on which named sources they hold, not on ranking."""
+
+    def setUp(self) -> None:
+        cases = {case.case_id: case for case in load_serendipity_eval_cases()}
+        self.case = cases["serendipity-gather-alice-note-and-essay-v3"]
+        self.unfound = cases["serendipity-gather-reports-unfound-source-v3"]
+
+    def observe(self, case, evidence_ids, unfound=()):
+        return _observation(case, response=SourceBundle(
+            evidence_ids=tuple(evidence_ids), unfound_sources=tuple(unfound),
+            relevance_note="Each record answers a named source.",
+        ))
+
+    def test_a_bundle_with_every_named_source_passes(self) -> None:
+        grade = grade_serendipity_run(self.case, self.observe(self.case, self.case.expected.required_evidence_ids))
+        self.assertTrue(grade.hard_pass, grade.failures)
+
+    def test_a_missing_or_unnamed_source_fails(self) -> None:
+        required = list(self.case.expected.required_evidence_ids)
+        grade = grade_serendipity_run(
+            self.case, self.observe(self.case, required[1:] + list(self.case.expected.forbidden_evidence_ids)),
+        )
+        self.assertIn(f"bundle_missing_named_source:{required[0]}", grade.failures)
+        self.assertIn("bundle_includes_unnamed_source:memory-garden-schedule", grade.failures)
+
+    def test_an_unfound_named_source_must_be_reported(self) -> None:
+        required = self.unfound.expected.required_evidence_ids
+        hidden = grade_serendipity_run(self.unfound, self.observe(self.unfound, required))
+        reported = grade_serendipity_run(self.unfound, self.observe(self.unfound, required, unfound=("Montaigne's essay",)))
+        self.assertIn("bundle_hides_unfound_source", hidden.failures)
+        self.assertTrue(reported.hard_pass, reported.failures)
+
+    def test_gather_cases_run_the_source_gathering_skill(self) -> None:
+        from evals.serendipity.runner import _skill_for
+        self.assertEqual("serendipity.source-gathering", _skill_for(self.case).skill_id)

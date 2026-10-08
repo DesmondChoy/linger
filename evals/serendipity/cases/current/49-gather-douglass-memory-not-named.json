@@ -1,0 +1,91 @@
+{
+  "schema_version": 3,
+  "owner": "serendipity",
+  "primary_behavior": "gather_every_named_source",
+  "contrast_group": "named-sources",
+  "case_id": "serendipity-gather-douglass-memory-not-named-v3",
+  "tier": "regression",
+  "description": "The reader names two passages from the same book. Memory is granted and holds a note on a similar theme, but the reader did not refer to their own writing, so memory must not be searched or gathered. Contrast with the Alice case, where the note is named.",
+  "input": {
+    "cue": "Put Douglass not knowing his own age next to how the introduction praises his testimony.",
+    "intent": "gather_sources",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3",
+          "chapter_max": 4
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "douglass-s4-unknown-age",
+      "source_title": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "work_id": "pg23",
+      "book_version_id": "pg23-vd3f08ac3",
+      "chapter_id": "pg23-vd3f08ac3-s04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+      "source_lines": [
+        10,
+        30
+      ],
+      "excerpt": "Douglass describes not knowing his own age or parentage, a knowledge withheld from him.",
+      "relevance": 0.96
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "douglass-s2-testimony",
+      "source_title": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "work_id": "pg23",
+      "book_version_id": "pg23-vd3f08ac3",
+      "chapter_id": "pg23-vd3f08ac3-s02",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+      "source_lines": [
+        20,
+        44
+      ],
+      "excerpt": "Phillips praises Douglass's testimony and invokes the fable that history is told by the hunters until the lions write.",
+      "relevance": 0.93
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-learning-music",
+      "excerpt": "I taught myself to read music as an adult, one line at a time, and felt ashamed of how slow it was.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "The retrieved passages answer the scenes the reader named."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ]
+  },
+  "expected": {
+    "status": "gathered",
+    "required_evidence_ids": [
+      "douglass-s4-unknown-age",
+      "douglass-s2-testimony"
+    ],
+    "forbidden_evidence_ids": [
+      "memory-learning-music"
+    ]
+  }
+}
