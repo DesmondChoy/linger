@@ -1,9 +1,10 @@
 # Serendipity self-improvement loop
 
-Status: **round 2 passed on 2026-10-07: practice 105 → 126 of 165 runs
-(+21, pass mark +10); held-back 46 → 57 of 65. Paired Scenario replays show no
-end-to-end change on Scenes 08–09 (1 of 3 each). Promoted to production by
-the owner on 2026-10-08.** See [Results](#results).
+Status: **round 2 passed on 2026-10-07 (practice 105 → 126 of 165, held-back
+46 → 57 of 65) and was promoted on 2026-10-08. A same-day re-measurement on
+2026-10-08 confirmed a smaller gain, 151 → 166 of 230, and the held-back gain
+did not reproduce (46 → 47). Paired Scenario replays show no end-to-end change
+on Scenes 08–09 (1 of 3 each).** See [Results](#results).
 
 Serendipity reads its own failing component-suite runs, names its most frequent
 failure, and specifies exact edits to its connection-discovery instructions.
@@ -172,18 +173,44 @@ it). Hard-gate passes per Scene, in repetition order:
 Only Scenes 08 and 09 run the skill the candidate changes; every other Scene
 uses identical Serendipity instructions in both conditions, so its differences
 are run-to-run variation. On Scenes 08 and 09 the conditions tie at 1 of 3
-each. The leading failure in both conditions is `required_source_not_inspected`:
-Serendipity never opened the Hume page, a search decision before the selection
-the candidate changes. No run in either condition released anything outside
+each. The leading cause, traced to the first missing record in each failing run,
+is upstream of Serendipity: in 5 of the 8 failures, across both versions, the
+Librarian's assessment returned no Pinocchio promise passage (only the delay
+window, or no Pinocchio passage), which the grader reports as
+`required_source_not_inspected` (`linger-7etz.8`). Serendipity caused one
+failure each by leaving a retrieved Pinocchio passage out of the winner and by
+not opening the Hume page; one run omitted the memory citation. No run in either condition released anything outside
 the reader's permissions; failures were missing citations, uninspected
 sources, or safe declines. Repetition 3 was interrupted once when the host
 machine slept and was resumed with `caffeinate`.
 
-**Reading.** The candidate's component gain (+21 practice, +11 held-back) is
-real and generalises to unseen books, but three paired replays show no
-end-to-end change on Scenes 08 and 09, whose remaining failure is search
-coverage rather than over-declining. A later loop round could target that
-failure from Scenario traces.
+### Same-day re-measurement (2026-10-08)
+
+The loop kept its best round, and its round-0 and candidate scores came from
+different days, so part of its gain could be selection and day-to-day
+variation. Three cases rerun under all three versions on one day swung by up
+to three passes in five runs on identical instructions. After promotion the
+full suite was scored on the same day under both skills
+(`evals/serendipity/reports/component-reliability-2026-10-08-*.json`).
+
+| Same day, same code | Previous skill | Promoted skill | Change |
+|---|---|---|---|
+| All 46 cases | 151 of 230 | 166 of 230 | +15 |
+| Practice (33) | 105 of 165 | 119 of 165 | +14 |
+| Held back (13) | 46 of 65 | 47 of 65 | +1 |
+| Regression tier | 102 of 165 | 120 of 165 | +18 |
+| Capability tier | 49 of 65 | 46 of 65 | −3 |
+
+Eighteen cases improved, seven got worse, and 21 were unchanged.
+
+**Reading.** The promoted skill is better on the suite as a whole (+15 of 230 on
+the same day), mostly on the practice cases it was derived from. The loop's
+held-back gain did not reproduce, so generalisation to unseen books is not
+shown. Future rounds should score candidate and baseline on the same day and
+re-run a passing candidate on fresh repetitions before it counts. Three paired
+replays show no end-to-end change on Scenes 08 and 09. Those Scenes are limited mostly by the
+Librarian hand-off, not by Serendipity's over-declining, so the Librarian's
+under-selection (`linger-7etz.8`) is the next fix most likely to move them.
 
 **Promotion.** The owner promoted the round-2 candidate on 2026-10-08. The
 production `connection-discovery` skill now holds the candidate's text, word for
