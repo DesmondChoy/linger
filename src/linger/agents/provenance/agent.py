@@ -30,7 +30,7 @@ class CandidateReviewValidation(AbstractCapability[None]):
 def build_provenance_agent(model: Model | None = None) -> Agent[None, Any]:
     """Build the role once; typed task entry points select each run's contract."""
     return Agent[None, Any](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("provenance"),
         name="Provenance",
         instructions=SHARED_INSTRUCTIONS,
         capabilities=[CandidateReviewValidation()],

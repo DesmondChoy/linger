@@ -28,17 +28,34 @@ LUNA_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort="low")
 TRIAGE_MODEL_NAMES = {"openai": "gpt-6-luna", "google": "gemini-2.5-flash"}
 
 
-def build_model() -> Model:
-    """Build the configured provider model."""
+ROLES = ("muse", "librarian", "serendipity", "provenance", "sculptor")
+REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+
+
+def build_model(role: str | None = None) -> Model:
+    """Build the configured provider model, or a role's configured override."""
     settings = get_settings()
-    provider_name, _, model_name = settings.linger_model.partition(":")
+    unknown = (set(settings.linger_role_models) | set(settings.linger_role_reasoning)) - set(ROLES)
+    if unknown:
+        raise RuntimeError(f"Unknown roles in LINGER_ROLE_MODELS or LINGER_ROLE_REASONING: {sorted(unknown)}.")
+    spec = settings.linger_role_models.get(role, settings.linger_model) if role else settings.linger_model
+    if spec == settings.linger_model:
+        _warn_if_nonstandard(settings.linger_model)
+    return model_from_spec(spec, settings.linger_role_reasoning.get(role) if role else None)
+
+
+def model_from_spec(spec: str, reasoning: str | None = None) -> Model:
+    """Build `provider:model`, optionally with an OpenAI reasoning effort."""
+    provider_name, _, model_name = spec.partition(":")
     if provider_name not in SUPPORTED_PROVIDERS or not model_name:
         raise RuntimeError(
-            f"Unsupported LINGER_MODEL, we got {settings.linger_model!r}. "
-            f"Choose one of: {', '.join(SUPPORTED_PROVIDERS)}."
+            f"Unsupported model {spec!r}. Use provider:model with one of: {', '.join(SUPPORTED_PROVIDERS)}."
         )
-    _warn_if_nonstandard(settings.linger_model)
-    return _provider_model(provider_name, model_name)
+    if reasoning is not None and (provider_name != "openai" or reasoning not in REASONING_EFFORTS):
+        raise RuntimeError(
+            f"Reasoning effort {reasoning!r} needs an OpenAI model and one of: {', '.join(REASONING_EFFORTS)}."
+        )
+    return _provider_model(provider_name, model_name, reasoning)
 
 
 def build_triage_model() -> Model:
@@ -61,7 +78,7 @@ def _warn_if_nonstandard(linger_model: str) -> None:
         )
 
 
-def _provider_model(provider_name: str, model_name: str) -> Model:
+def _provider_model(provider_name: str, model_name: str, reasoning: str | None = None) -> Model:
     api_key = get_settings().api_key_for(provider_name)
     match provider_name:
         case "google":
@@ -73,7 +90,10 @@ def _provider_model(provider_name: str, model_name: str) -> Model:
             model = OpenAIResponsesModel(
                 model_name,
                 provider=OpenAIProvider(api_key=api_key),
-                settings=LUNA_SETTINGS if model_name == "gpt-6-luna" else None,
+                settings=(
+                    OpenAIResponsesModelSettings(openai_reasoning_effort=reasoning) if reasoning
+                    else LUNA_SETTINGS if model_name == "gpt-6-luna" else None
+                ),
             )
         case "anthropic":
             model = AnthropicModel(

@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # instead use the project credentials created by `logfire projects use`.
     logfire_token: SecretStr | None = None
     linger_model: str
+    # Optional per-role overrides, as JSON: {"serendipity": "openai:gpt-5.6-luna"}
+    # and {"serendipity": "medium"}. A role without an entry uses LINGER_MODEL and
+    # that model's default reasoning effort.
+    linger_role_models: dict[str, str] = {}
+    linger_role_reasoning: dict[str, str] = {}
     linger_allowed_origins: str = "http://localhost:5173"
     allowed_book_version_ids: tuple[str, ...] = (
         "pg11-v01b38ea4",

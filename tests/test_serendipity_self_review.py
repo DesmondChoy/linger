@@ -349,3 +349,24 @@ def test_paired_scoring_alternates_skills_within_each_case(monkeypatch):
     assert seen == ["a", "b", "a", "b"]
     assert reports["a"].summary.total_passes == 2 and reports["b"].summary.total_passes == 0
     assert reports["a"].prompt_digests != reports["b"].prompt_digests
+
+
+def test_every_case_records_the_digest_of_the_skill_it_ran(monkeypatch):
+    from types import SimpleNamespace
+
+    from evals.serendipity import reliability
+
+    async def fake_run_case(case, *, agent, discovery_skill):
+        return SimpleNamespace()
+
+    monkeypatch.setattr(reliability, "run_case", fake_run_case)
+    monkeypatch.setattr(reliability, "_outcome_from_report", lambda report: RunOutcome(hard_pass=True, status="gathered"))
+    monkeypatch.setattr(reliability, "build_serendipity_agent", lambda: None)
+    cases = load_serendipity_eval_cases()
+    by_intent = {case.input.intent: case for case in cases}
+    result = asyncio.run(reliability.run_reliability_experiment(
+        repeats=1, cases=tuple(by_intent.values()), configure_logfire=False,
+    ))
+    assert set(result.prompt_digests) == {
+        "serendipity.connection-discovery", "serendipity.memory-recall", "serendipity.source-gathering",
+    }

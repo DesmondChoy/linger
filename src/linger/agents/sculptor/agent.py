@@ -48,7 +48,7 @@ class SculptorTaskValidation(AbstractCapability[None]):
 def build_sculptor_agent(model: Model | None = None) -> Agent[None, str]:
     """Build the role for production or injected-model tests and evaluations."""
     return Agent[None, str](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("sculptor"),
         name="Sculptor",
         instructions=SHARED_INSTRUCTIONS,
         capabilities=[SculptorTaskValidation()],

@@ -197,7 +197,7 @@ def build_serendipity_agent(
 ) -> Agent[SerendipityDependencies, SerendipityResponse]:
     """Build Serendipity with bounded internal search and typed outputs."""
     agent = Agent[SerendipityDependencies, SerendipityResponse](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("serendipity"),
         name="Serendipity",
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall, SourceBundle],

@@ -291,7 +291,7 @@ def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
     # A registered output validator would forbid the per-run output contract
     # that turn triage selects, so the candidate checks run as a capability.
     return Agent[None, MuseCandidate](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("muse"),
         instructions=SHARED_INSTRUCTIONS,
         name="Muse",
         output_type=MuseCandidate,

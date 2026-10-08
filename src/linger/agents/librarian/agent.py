@@ -199,7 +199,7 @@ class BoundaryMemoryValidation(AbstractCapability[None]):
 def build_librarian_agent(model: Model | None = None) -> Agent[None, str]:
     """Build the role for production or injected-model tests and evaluations."""
     return Agent[None, str](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("librarian"),
         name="Librarian",
         instructions=SHARED_INSTRUCTIONS,
         capabilities=[
