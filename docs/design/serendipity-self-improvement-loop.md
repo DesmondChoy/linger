@@ -119,6 +119,19 @@ rewording them moves the weakness rather than removing it. Skill v2 scored
 124, 121 and 116 on identical instructions across the day, so a single
 unpaired score could not have judged these candidates.
 
+## Experiments on the web-recommendation weakness (2026-10-08)
+
+The second run's failures pointed at a weakness rewording could not fix, so
+four paired experiments tested where it comes from
+(`evals/serendipity/experiments.py`).
+
+| Experiment | Before → after | Reading |
+|---|---|---|
+| Web cases sent with the intent production triage pins | 8 → 15 of 35 | Partly a test problem; six cases corrected |
+| One-sentence page fixtures → real page text | 19 → 13 of 40 | Not the cause |
+| Serendipity at medium instead of low reasoning | 93 → 119 of 140 | Large gain; one restraint case dips (5 → 2); calls twice as slow |
+| Serendipity on gpt-5.6-luna instead of gpt-6-luna | 96 → 124 of 140 | Web perfect, but the old restraint failures return |
+
 ## Cross-agent impact
 
 - **Serendipity:** gains the offline `self-review` skill. Its output checks

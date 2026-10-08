@@ -554,6 +554,7 @@
       <li><b>Serendipity found and fixed part of this itself.</b> In the self-improvement loop it read its own failing runs and rewrote its rules (Skill v2). Scored on the same day as Skill v1, it passes 166 of 230 runs against 151. <a href="#eval-self-improvement">Loop</a></li>
       <li><b>The gain is on familiar books, not new ones.</b> On the held-back Keller and Pinocchio cases, which the loop never saw, Skill v2 scores 47 of 65 against 46. <a href="#eval-glance">At a glance</a></li>
       <li><b>In full conversations, neither skill wins.</b> Scenes 08 and 09 pass 1 of 3 either way. Most failures happen before Serendipity: the Librarian never hands it the Pinocchio promise passage. <a href="#eval-replay">Replays</a></li>
+      <li><b>Medium reasoning is the strongest lever found.</b> Serendipity alone at medium reasoning passes 119 of 140 weak and restraint runs against 93 at low, with restraint dipping on one case and calls twice as slow. The test intent fix added 8 → 15 of 35 on web cases; real page text did not help. <a href="#eval-experiments">Experiments</a></li>
       <li><b>New measurements hold up.</b> Source gathering passes 17 of 20; memory search finds the cited memory in the top five 95% of the time; no personal identifier left Serendipity in 30 adversarial runs. <a href="#eval-new-measures">New measures</a></li>
     </ol>
 
@@ -592,6 +593,16 @@
       <tr><td class="who">Privacy probe, 6 probes × 5, live</td><td><span class="tag t-ok">0 leaks in 30</span></td><td>No name, employer, address, email, phone number, or detail held only in memory left Serendipity in a web query or URL. Medical diagnoses are outside the project's definition of personal data.</td></tr>
     </tbody></table></div>
     <div class="prose"><p>Reports: <a href="../../evals/serendipity/reports/component-reliability-2026-10-08-source-gathering.json">source gathering</a>, <a href="../../evals/serendipity/reports/memory-recall-at-k-2026-10-08.json">memory recall</a>, <a href="../../evals/serendipity/reports/privacy-probe-2026-10-08.json">privacy probe</a>.</p></div>
+
+    <div class="prose" id="eval-experiments" style="margin-top:28px"><h3>Why is proposing weak? Four experiments (8 Oct)</h3>
+      <p>Each experiment scores two versions of one thing in the same session, alternating runs within each case, with Skill v2. Only the named thing differs.</p></div>
+    <div class="tbl"><table><thead><tr><th>Experiment</th><th>Cases</th><th>Before → after</th><th>What it shows</th></tr></thead><tbody>
+      <tr><td class="who">Intent: send web-recommendation cases as production does</td><td>7 web cases</td><td>8 → <strong>15</strong> of 35</td><td><span class="tag t-ok">partly a test problem</span> Six cases used an intent production no longer sends for this request. The cases are now corrected.</td></tr>
+      <tr><td class="who">Pages: one-sentence descriptions → real page text</td><td>8 web cases</td><td>19 → 13 of 40</td><td><span class="tag t-no">not the cause</span> With a full article, Serendipity declines more, not less.</td></tr>
+      <tr><td class="who">Reasoning: low → medium (Serendipity only)</td><td>28 weak and restraint cases</td><td>93 → <strong>119</strong> of 140</td><td><span class="tag t-ok">large gain</span> Web 12 → 22 of 35, real connections 25 → 38 of 40. Restraint dips on one case (generic bridge 5 → 2). Each call takes about twice as long (9 s → 18 s).</td></tr>
+      <tr><td class="who">Model: gpt-6-luna → gpt-5.6-luna (Serendipity only)</td><td>28 weak and restraint cases</td><td>96 → 124 of 140</td><td><span class="tag t-gap">same trade-off as before</span> Web 35 of 35, but the old restraint failures return: generic bridges 0 of 5, ties slip. About twice as slow.</td></tr>
+    </tbody></table></div>
+    <div class="prose"><p>Reports: <a href="../../evals/serendipity/reports/experiment-intent-2026-10-08.json">intent</a>, <a href="../../evals/serendipity/reports/experiment-pages-2026-10-08.json">pages</a>, <a href="../../evals/serendipity/reports/experiment-reasoning-2026-10-08.json">reasoning</a>, <a href="../../evals/serendipity/reports/experiment-model-2026-10-08.json">model</a>. Runs with a different model or reasoning effort per role use <code>LINGER_ROLE_MODELS</code> and <code>LINGER_ROLE_REASONING</code>.</p></div>
 
     <div class="prose" style="margin-top:28px"><h3>Four layers, four questions</h3><p>Each layer answers one question and leaves the rest alone. The component layer skips Muse, Provenance and release on purpose, so its results say nothing about the whole system.</p></div>
     <div class="tbl"><table><thead><tr><th>Layer</th><th>Question</th><th>Can show</th><th>Can't show</th><th>Current state</th></tr></thead><tbody>
