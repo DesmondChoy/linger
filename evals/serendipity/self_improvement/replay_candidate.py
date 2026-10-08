@@ -1,12 +1,17 @@
-"""Paired Scenario replays of the production skill and a self-improvement candidate.
+"""Paired Scenario replays of two Serendipity conditions through production chat.
 
-Scenario replay runs production chat, which loads the connection-discovery
-skill at import. This driver therefore swaps the skill file between processes,
-alternating production and candidate in each repetition so drift over time
-affects both equally, and restores the committed file however it exits.
+`--compare candidate` (default) compares the committed skill with a
+self-improvement candidate. Scenario replay loads the connection-discovery
+skill at import, so the driver swaps the skill file between processes and
+restores the committed file however it exits. `--compare reasoning` compares
+Serendipity at low and medium reasoning effort through LINGER_ROLE_REASONING.
+Conditions alternate within each repetition so drift over time affects both
+equally.
 
     uv run python evals/serendipity/self_improvement/replay_candidate.py \\
         evals/serendipity/self_improvement/2026-10-06 --repeats 3
+    uv run python evals/serendipity/self_improvement/replay_candidate.py \\
+        evals/serendipity/reports/replay-reasoning-2026-10-08 --compare reasoning
 """
 
 from __future__ import annotations
@@ -48,16 +53,26 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--compare", choices=("candidate", "reasoning"), default="candidate")
     args = parser.parse_args()
-    candidate = (args.run_dir / "final" / "candidate-SKILL.md").read_text(encoding="utf-8")
-    out = args.run_dir / "replay"
-    env = {**os.environ, "LINGER_WEB_SEARCH_ENABLED": "true"}
+    base_env = {**os.environ, "LINGER_WEB_SEARCH_ENABLED": "true"}
+    if args.compare == "candidate":
+        candidate = (args.run_dir / "final" / "candidate-SKILL.md").read_text(encoding="utf-8")
+        out = args.run_dir / "replay"
+        conditions = {"production": (None, {}), "candidate": (candidate, {})}
+    else:
+        out = args.run_dir
+        conditions = {
+            "low": (None, {"LINGER_ROLE_REASONING": '{"serendipity": "low"}'}),
+            "medium": (None, {"LINGER_ROLE_REASONING": '{"serendipity": "medium"}'}),
+        }
     try:
         for rep in range(1, args.repeats + 1):
-            for condition in ("production", "candidate"):
+            for condition, (skill_text, extra_env) in conditions.items():
                 _restore()
-                if condition == "candidate":
-                    SKILL.write_text(candidate, encoding="utf-8")
+                if skill_text is not None:
+                    SKILL.write_text(skill_text, encoding="utf-8")
+                env = {**base_env, **extra_env}
                 for name, (module, scenario, extra) in REPLAYS.items():
                     output = out / condition / f"{name}-rep{rep}.json"
                     if output.exists():

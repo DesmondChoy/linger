@@ -22,9 +22,27 @@ def settings(monkeypatch):
 
 def test_roles_without_an_override_use_the_shared_model(settings):
     settings()
-    model = build.build_model("serendipity")
+    model = build.build_model("muse")
     assert model.model_name == "gpt-6-luna"
     assert model.settings == build.LUNA_SETTINGS
+
+
+def test_serendipity_defaults_to_medium_reasoning_on_openai(settings):
+    settings()
+    model = build.build_model("serendipity")
+    assert model.model_name == "gpt-6-luna"
+    assert model.settings == {"openai_reasoning_effort": "medium"}
+
+
+def test_an_explicit_setting_overrides_the_serendipity_default(settings):
+    settings(LINGER_ROLE_REASONING='{"serendipity": "low"}')
+    assert build.build_model("serendipity").settings == {"openai_reasoning_effort": "low"}
+
+
+def test_the_reasoning_default_is_skipped_for_other_providers(settings):
+    settings(LINGER_MODEL="google:gemini-2.5-flash", GOOGLE_API_KEY="test-key")
+    model = build.build_model("serendipity")
+    assert model.model_name == "gemini-2.5-flash"
 
 
 def test_a_role_override_changes_only_that_role(settings):

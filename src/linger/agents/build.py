@@ -30,6 +30,11 @@ TRIAGE_MODEL_NAMES = {"openai": "gpt-6-luna", "google": "gemini-2.5-flash"}
 
 ROLES = ("muse", "librarian", "serendipity", "provenance", "sculptor")
 REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+# Project defaults for OpenAI models, overridden by LINGER_ROLE_REASONING. On
+# 2026-10-08 Serendipity at medium passed 119 of 140 weak and restraint
+# component runs against 93 at low (evals/serendipity/reports/
+# experiment-reasoning-2026-10-08.json); other roles keep the shared setting.
+DEFAULT_ROLE_REASONING = {"serendipity": "medium"}
 
 
 def build_model(role: str | None = None) -> Model:
@@ -41,7 +46,10 @@ def build_model(role: str | None = None) -> Model:
     spec = settings.linger_role_models.get(role, settings.linger_model) if role else settings.linger_model
     if spec == settings.linger_model:
         _warn_if_nonstandard(settings.linger_model)
-    return model_from_spec(spec, settings.linger_role_reasoning.get(role) if role else None)
+    reasoning = settings.linger_role_reasoning.get(role) if role else None
+    if reasoning is None and role in DEFAULT_ROLE_REASONING and spec.startswith("openai:"):
+        reasoning = DEFAULT_ROLE_REASONING[role]
+    return model_from_spec(spec, reasoning)
 
 
 def model_from_spec(spec: str, reasoning: str | None = None) -> Model:

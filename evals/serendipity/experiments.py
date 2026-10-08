@@ -8,7 +8,8 @@ each case, with the current skill:
   presented directly).
 - `pages`: web fixtures described in one sentence against the real page text
   production would open (`page_snapshots.json`).
-- `reasoning`: Serendipity at the shared low reasoning effort against medium.
+- `reasoning`: Serendipity at low reasoning effort against medium (medium has
+  been Serendipity's default since 2026-10-08).
 - `model`: Serendipity on `gpt-6-luna` against `gpt-5.6-luna`.
 
 `reasoning` and `model` change every case, so they run on the weak behaviours
@@ -97,12 +98,13 @@ def plan(name: str) -> tuple[tuple[SerendipityEvalCase, ...], dict[str, Conditio
     cases = tuple(case for case in discovery if case.primary_behavior in WEAK | RESTRAINT)
     if name == "reasoning":
         return cases, {
-            "low": Condition(),
+            "low": Condition(model=model_from_spec("openai:gpt-6-luna", "low")),
             "medium": Condition(model=model_from_spec("openai:gpt-6-luna", "medium")),
         }
     if name == "model":
+        # Recorded on 2026-10-08 with both arms at the then-shared low effort.
         return cases, {
-            "gpt-6-luna": Condition(),
+            "gpt-6-luna": Condition(model=model_from_spec("openai:gpt-6-luna", "low")),
             "gpt-5.6-luna": Condition(model=model_from_spec("openai:gpt-5.6-luna")),
         }
     raise SystemExit(f"unknown experiment {name!r}")
