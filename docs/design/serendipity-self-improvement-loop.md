@@ -1,8 +1,9 @@
 # Serendipity self-improvement loop
 
 Status: **round 2 passed on 2026-10-07: practice 105 → 126 of 165 runs
-(+21, pass mark +10); held-back 46 → 57 of 65. Awaiting the owner's promotion
-decision.** See [Results](#results).
+(+21, pass mark +10); held-back 46 → 57 of 65. Paired Scenario replays show no
+end-to-end change on Scenes 08–09 (1 of 3 each). Promoted to production by
+the owner on 2026-10-08.** See [Results](#results).
 
 Serendipity reads its own failing component-suite runs, names its most frequent
 failure, and specifies exact edits to its connection-discovery instructions.
@@ -152,7 +153,38 @@ decline still declines.
   affect any recorded result.
 - The candidate was scored against the same round-0 records throughout.
 
-**Promotion.** Not done. Before promotion: replay the cross-source Scenarios
-and five-agent Scenes 06–09, since more proposals change what Muse relays and
-what Provenance reviews; then copy `final/candidate-SKILL.md` into the
-production skill, reflowed to the file's line width.
+### Paired Scenario replays (`2026-10-06/replay/`)
+
+Three repetitions on 7 and 8 October 2026, each running the production skill
+and the round-2 candidate on the same code, through production chat
+(`replay_candidate.py` swaps the skill file between processes and restores
+it). Hard-gate passes per Scene, in repetition order:
+
+| Scenario, Scene | Serendipity skill | Production | Candidate |
+|---|---|---|---|
+| Five-agent Scene 08 | connection-discovery | . . P | P . . |
+| Five-agent Scene 09 | connection-discovery | . . P | P . . |
+| Five-agent Scene 06 | source-gathering | P P . | . . P |
+| Five-agent Scene 07 | source-gathering | . P P | P . P |
+| Cross-source and Roses S1–S2 | source-gathering | 11 of 12 | 9 of 12 |
+| Cross-source and Roses S3 | not called | 0 of 6 | 0 of 6 |
+
+Only Scenes 08 and 09 run the skill the candidate changes; every other Scene
+uses identical Serendipity instructions in both conditions, so its differences
+are run-to-run variation. On Scenes 08 and 09 the conditions tie at 1 of 3
+each. The leading failure in both conditions is `required_source_not_inspected`:
+Serendipity never opened the Hume page, a search decision before the selection
+the candidate changes. No run in either condition released anything outside
+the reader's permissions; failures were missing citations, uninspected
+sources, or safe declines. Repetition 3 was interrupted once when the host
+machine slept and was resumed with `caffeinate`.
+
+**Reading.** The candidate's component gain (+21 practice, +11 held-back) is
+real and generalises to unseen books, but three paired replays show no
+end-to-end change on Scenes 08 and 09, whose remaining failure is search
+coverage rather than over-declining. A later loop round could target that
+failure from Scenario traces.
+
+**Promotion.** The owner promoted the round-2 candidate on 2026-10-08. The
+production `connection-discovery` skill now holds the candidate's text, word for
+word, reflowed to the file's line width.
