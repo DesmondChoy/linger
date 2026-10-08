@@ -132,6 +132,14 @@ four paired experiments tested where it comes from
 | Serendipity at medium instead of low reasoning | 93 → 119 of 140 | Large gain; one restraint case dips (5 → 2); calls twice as slow |
 | Serendipity on gpt-5.6-luna instead of gpt-6-luna | 96 → 124 of 140 | Web perfect, but the old restraint failures return |
 
+Serendipity has run at medium reasoning by default since 2026-10-08. Three
+paired end-to-end replays (low against medium, 30 Scene runs each) passed 14
+and 7 Scenes. In 10 of the 11 paired gathering Scenes Serendipity returned
+identical evidence at both efforts, yet low passed 9 and medium 5, so the gap
+came from Muse and Provenance varying, not from Serendipity. Three repetitions
+cannot detect a Serendipity change end to end; Scenes 08 and 09 stay capped by
+the Librarian hand-off.
+
 ## Cross-agent impact
 
 - **Serendipity:** gains the offline `self-review` skill. Its output checks
