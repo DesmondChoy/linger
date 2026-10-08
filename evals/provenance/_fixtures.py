@@ -822,41 +822,60 @@ def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
         ),
         *_source_change_cases(),
         _rewritten_revision_case(),
+        *_revision_defect_cases(),
     ]
+
+
+def _chapter_5_passage(first: int, last: int, opening: str, closing: str) -> EvidenceRecord:
+    """Build the source-line passage a recorded Librarian search returned."""
+    metadata, body = _chapter(5)
+    start = body.index(opening)
+    return EvidenceRecord(
+        evidence_id=f"{metadata.chapter_id}-ln{first}-{last}",
+        work_id=metadata.work_id,
+        book_version_id=metadata.book_version_id,
+        chapter_id=metadata.chapter_id,
+        chapter_number=metadata.chapter_number,
+        location=(
+            f"Chapter {metadata.chapter_number} — {metadata.title}, "
+            f"source lines {first}-{last}"
+        ),
+        source_sha256=metadata.source_sha256,
+        source_lines=(first, last),
+        text=body[start : body.index(closing, start) + len(closing)],
+    )
+
+
+def _pigeon_eggs_passage() -> EvidenceRecord:
+    return _chapter_5_passage(
+        1179, 1219, "“I haven’t the least idea what you’re talking about,”",
+        "they’re a kind of serpent, that’s all I can say.”",
+    )
+
+
+def _claims_use(record: EvidenceRecord, *claims: str) -> EvidenceUse:
+    return BookEvidenceUse(
+        supported_claims=claims, source_kind="book_corpus",
+        evidence_id=record.evidence_id, source_location=record.location,
+    )
+
+
+def _unsupported_span_finding(quote: str, explanation: str) -> dict:
+    return {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+            "kind": "text_span", "source_field": "candidate.response",
+            "path": "", "quote": quote,
+        },
+        "explanation": explanation,
+    }
 
 
 def _rewritten_revision_case() -> dict:
     """Rewrite both flagged sentences, so neither flagged quote survives."""
-    metadata, body = _chapter(5)
-
-    def passage(first: int, last: int, opening: str, closing: str) -> EvidenceRecord:
-        """Build the source-line passage a recorded Librarian search returned."""
-        start = body.index(opening)
-        return EvidenceRecord(
-            evidence_id=f"{metadata.chapter_id}-ln{first}-{last}",
-            work_id=metadata.work_id,
-            book_version_id=metadata.book_version_id,
-            chapter_id=metadata.chapter_id,
-            chapter_number=metadata.chapter_number,
-            location=(
-                f"Chapter {metadata.chapter_number} — {metadata.title}, "
-                f"source lines {first}-{last}"
-            ),
-            source_sha256=metadata.source_sha256,
-            source_lines=(first, last),
-            text=body[start : body.index(closing, start) + len(closing)],
-        )
-
-    def uses(record: EvidenceRecord, *claims: str) -> EvidenceUse:
-        return BookEvidenceUse(
-            supported_claims=claims, source_kind="book_corpus",
-            evidence_id=record.evidence_id, source_location=record.location,
-        )
-
-    eggs = passage(
-        1179, 1219, "“I haven’t the least idea what you’re talking about,”",
-        "they’re a kind of serpent, that’s all I can say.”",
-    )
+    passage, uses, finding = _chapter_5_passage, _claims_use, _unsupported_span_finding
+    eggs = _pigeon_eggs_passage()
     neck = passage(
         1151, 1186, "“Come, my head’s free at last!”",
         "saying anything more till the Pigeon had finished.",
@@ -942,17 +961,6 @@ def _rewritten_revision_case() -> dict:
         **shared,
     )
 
-    def finding(quote: str, explanation: str) -> dict:
-        return {
-            "code": "unsupported_claim",
-            "applies_to": "response",
-            "location": {
-                "kind": "text_span", "source_field": "candidate.response",
-                "path": "", "quote": quote,
-            },
-            "explanation": explanation,
-        }
-
     previous = {
         "candidate": draft.candidate.model_dump(mode="json"),
         "findings": [
@@ -993,6 +1001,103 @@ def _rewritten_revision_case() -> dict:
         ProvenanceInput.model_validate({**revised, "previous_response_review": previous}),
         decision="pass", finding_resolutions=("resolved", "resolved"),
     )
+
+
+def _revision_defect_cases() -> list[dict]:
+    """Hold one flagged draft sentence fixed while the revision's defects vary."""
+    eggs = _pigeon_eggs_passage()
+    opening = (
+        "In Chapter 5, the Pigeon looks at Alice’s neck and insists that she is a "
+        "serpent."
+    )
+    flagged = "It tells her that a serpent swallowed two of its eggs the night before."
+    repaired = (
+        "It says it has to be on the look-out for serpents night and day while it "
+        "is hatching its eggs"
+    )
+    closing = (
+        "When Alice admits she has tasted eggs, the Pigeon answers that if little "
+        "girls eat eggs, they are a kind of serpent."
+    )
+    invented_closing = (
+        "When Alice admits she has tasted eggs, the Pigeon flies off to warn the "
+        "other birds."
+    )
+
+    def reviewed(*sentences: str) -> ProvenanceInput:
+        return review_input(
+            reply=" ".join(sentences),
+            line="Why does the Pigeon insist that Alice is a serpent?",
+            records=(eggs,),
+            uses=(_claims_use(eggs, *sentences),),
+            tool_outcomes=(librarian_outcome((eggs,), chapter_max=5),),
+            chapter_max=5,
+        )
+
+    def revision(draft: tuple[str, ...], revised: tuple[str, ...]) -> ProvenanceInput:
+        previous = {
+            "candidate": reviewed(*draft).candidate.model_dump(mode="json"),
+            "findings": [_unsupported_span_finding(
+                flagged,
+                "The passage has the Pigeon hatching eggs and watching for serpents "
+                "night and day; it never says a serpent swallowed any of its eggs. "
+                "Remove that event or keep only what the passage states.",
+            )],
+        }
+        return ProvenanceInput.model_validate({
+            **reviewed(*revised).model_dump(mode="json"),
+            "previous_response_review": previous,
+        })
+
+    draft = (opening, flagged, closing)
+    return [
+        _case(
+            "claim_mapping_revision_still_defective",
+            "One draft sentence was flagged for an event the passage never "
+            "states. The revision rewrites that sentence but keeps the invented "
+            "event in other words, so the flagged quote is gone and the defect "
+            "is not. The finding stays unresolved.",
+            revision(draft, (
+                opening, "It says a serpent ate two of its eggs only last night.", closing,
+            )),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("unresolved",),
+        ),
+        _case(
+            "claim_mapping_revision_new_defect",
+            "The same flagged draft. The revision replaces the invented event "
+            "with what the passage states, resolving the finding, and adds a "
+            "new clause to the rewritten sentence that the passage never states.",
+            revision(draft, (
+                opening,
+                f"{repaired}, and that its mate keeps watch from the next tree.",
+                closing,
+            )),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_missed_defect",
+            "The draft's last sentence also states an event the passage never "
+            "states, and the first review did not flag it. The revision repairs "
+            "the flagged sentence and leaves that sentence unchanged. The finding "
+            "is resolved, and unchanged wording with a real defect still needs one.",
+            revision(
+                (opening, flagged, invented_closing),
+                (opening, f"{repaired}.", invented_closing),
+            ),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_unchanged_supported",
+            "The paired control: the revision repairs the flagged sentence and "
+            "leaves the other two unchanged, and the passage supports all three. "
+            "The finding is resolved and nothing remains to revise.",
+            revision(draft, (opening, f"{repaired}.", closing)),
+            decision="pass", finding_resolutions=("resolved",),
+        ),
+    ]
 
 
 def _source_change_cases() -> list[dict]:
