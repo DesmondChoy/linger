@@ -182,9 +182,9 @@ the separate curation-review contract. Offline workflows can invoke that loop
 directly. Interactive capture remains disabled by default.
 
 The [Provenance evaluation guide](../../evals/provenance/README.md) describes an
-eight-case emotional pack, a 55-case candidate-review pack, a nine-case focused
+eight-case emotional pack, a 56-case candidate-review pack, a nine-case focused
 capture pack, a twelve-case curation pack, and a four-case claim-mapping
-diagnostic. The candidate pack includes 37 response cases and 18 capture cases,
+diagnostic. The candidate pack includes 38 response cases and 18 capture cases,
 with source mapping, revision repair, web citations, and private-memory
 attribution checks. Saved reports remain evidence for their recorded case sets,
 providers, and prompt fingerprints. A passing focused pack does not establish a

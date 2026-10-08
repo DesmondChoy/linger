@@ -821,7 +821,178 @@ def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
             repaired, decision="pass", finding_resolutions=("resolved",),
         ),
         *_source_change_cases(),
+        _rewritten_revision_case(),
     ]
+
+
+def _rewritten_revision_case() -> dict:
+    """Rewrite both flagged sentences, so neither flagged quote survives."""
+    metadata, body = _chapter(5)
+
+    def passage(first: int, last: int, opening: str, closing: str) -> EvidenceRecord:
+        """Build the source-line passage a recorded Librarian search returned."""
+        start = body.index(opening)
+        return EvidenceRecord(
+            evidence_id=f"{metadata.chapter_id}-ln{first}-{last}",
+            work_id=metadata.work_id,
+            book_version_id=metadata.book_version_id,
+            chapter_id=metadata.chapter_id,
+            chapter_number=metadata.chapter_number,
+            location=(
+                f"Chapter {metadata.chapter_number} — {metadata.title}, "
+                f"source lines {first}-{last}"
+            ),
+            source_sha256=metadata.source_sha256,
+            source_lines=(first, last),
+            text=body[start : body.index(closing, start) + len(closing)],
+        )
+
+    def uses(record: EvidenceRecord, *claims: str) -> EvidenceUse:
+        return BookEvidenceUse(
+            supported_claims=claims, source_kind="book_corpus",
+            evidence_id=record.evidence_id, source_location=record.location,
+        )
+
+    eggs = passage(
+        1179, 1219, "“I haven’t the least idea what you’re talking about,”",
+        "they’re a kind of serpent, that’s all I can say.”",
+    )
+    neck = passage(
+        1151, 1186, "“Come, my head’s free at last!”",
+        "saying anything more till the Pigeon had finished.",
+    )
+    draft_neck = (
+        "In Chapter 5, the Pigeon mistakes Alice for a serpent because her "
+        "unusually long, bendable neck looks serpent-like, and she seems to have "
+        "come wriggling down from the sky."
+    )
+    draft_eggs = (
+        "The Pigeon is on the lookout for serpents because it fears they’ll eat "
+        "its eggs; when Alice says she has eaten eggs too, it treats that as "
+        "further proof."
+    )
+    revised_neck = (
+        "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her "
+        "appearance from above—as signs that she is a serpent."
+    )
+    revised_eggs = (
+        "It is already on the lookout for serpents while hatching its eggs; when "
+        "Alice admits she has tasted eggs, the Pigeon uses that to reinforce its "
+        "conclusion, arguing that little girls who eat eggs must be a kind of "
+        "serpent too."
+    )
+    unchanged = (
+        "The misunderstanding comes from the Pigeon’s anxious, egg-protecting "
+        "point of view—not from Alice actually being a serpent."
+    )
+    asked = "The question asks why the Pigeon insists Alice is a serpent."
+
+    def searched(request_id: str, strength_reason: str) -> UntrustedToolOutcome:
+        """Keep a recorded search result whole: its stated reason is untrusted text."""
+        scope = {"work_id": WORK_ID, "book_version_id": BOOK_VERSION_ID}
+        return UntrustedToolOutcome(
+            tool_name="librarian_search",
+            outcome="success",
+            args={**scope, "max_final_evidence": 5},
+            content={
+                "kind": "result",
+                "request_id": request_id,
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "strength_reason": strength_reason,
+                "searched_scope": {
+                    **scope, "max_chapter_inclusive": 5, "part_id": "main",
+                    "unit_ids": [],
+                },
+                "evidence": [record.model_dump(mode="json") for record in (eggs, neck)],
+                "limitations": [],
+            },
+        )
+
+    shared = dict(
+        line=(
+            "I'm reading Alice's Adventures in Wonderland, and I've completed "
+            "chapter 5. Why does the Pigeon insist that Alice is a serpent?"
+        ),
+        records=(eggs, neck),
+        tool_outcomes=(
+            searched(
+                "libreq_b8a6f6f0d216456e9498417ec71983b0",
+                f"{asked} {eggs.location} directly gives its reasoning: Alice has "
+                "an unusually long neck, appears to have come wriggling down from "
+                "the sky, and the Pigeon is on the lookout for serpents that "
+                f"threaten its eggs. {neck.location} supplies the immediate visual "
+                "circumstance: Alice’s neck is immense and bends like a serpent.",
+            ),
+            searched(
+                "libreq_8b032a48e5ce4d488979a0cfe5a27665",
+                f"{asked} {eggs.location} directly gives the Pigeon's reasons: "
+                "Alice has an unusually long neck, and the Pigeon believes serpents "
+                "seek its eggs; it also says that because Alice has tasted eggs, "
+                f"little girls must be a kind of serpent. {neck.location} "
+                "establishes that Alice's neck is serpent-like after her size "
+                "change and that she has appeared to the Pigeon from above.",
+            ),
+        ),
+        chapter_max=5,
+    )
+    draft = review_input(
+        reply=f"{draft_neck} {draft_eggs} {unchanged}",
+        uses=(uses(neck, draft_neck), uses(eggs, draft_eggs, unchanged)),
+        **shared,
+    )
+
+    def finding(quote: str, explanation: str) -> dict:
+        return {
+            "code": "unsupported_claim",
+            "applies_to": "response",
+            "location": {
+                "kind": "text_span", "source_field": "candidate.response",
+                "path": "", "quote": quote,
+            },
+            "explanation": explanation,
+        }
+
+    previous = {
+        "candidate": draft.candidate.model_dump(mode="json"),
+        "findings": [
+            finding(
+                draft_neck,
+                "The mapped passage supports the neck resemblance but not the "
+                "Pigeon's apparent descent from the sky. The other canonical "
+                "Chapter 5 record supports that clause but is not declared for "
+                "this claim. Map the full claim to supporting evidence or remove "
+                "the unsupported clause.",
+            ),
+            finding(
+                draft_eggs,
+                "The source establishes the Pigeon's lookout for serpents while "
+                "hatching eggs and its response to Alice's having tasted an egg, "
+                "but does not state that it fears serpents will eat its eggs. "
+                "Revise the causal assertion to stay within what the passage "
+                "establishes.",
+            ),
+        ],
+    }
+    revised = review_input(
+        reply=f"{revised_neck} {revised_eggs} {unchanged}",
+        uses=(uses(neck, revised_neck), uses(eggs, revised_neck, revised_eggs, unchanged)),
+        **shared,
+    ).model_dump(mode="json")
+    # The recorded turn allowed connections; `review_input` derives the flag
+    # from connection records, and this turn retrieved none.
+    revised["context"]["policy"]["allow_connection"] = True
+    return _case(
+        "claim_mapping_revision_rewritten",
+        "Two draft sentences were flagged: one mapped to a passage that lacks "
+        "one of its clauses, one asserting a cause the passage never states. "
+        "The revision rewrites both, adding the second passage to the first "
+        "and dropping the causal clause from the second, so neither flagged "
+        "quote survives; the third sentence is unchanged. Both findings are "
+        "resolved, and wording the reply no longer contains is not a defect.",
+        ProvenanceInput.model_validate({**revised, "previous_response_review": previous}),
+        decision="pass", finding_resolutions=("resolved", "resolved"),
+    )
 
 
 def _source_change_cases() -> list[dict]:

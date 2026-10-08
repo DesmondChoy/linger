@@ -5917,6 +5917,399 @@
     },
     {
       "schema_version": 1,
+      "case_id": "provenance-risk-claim-mapping-revision-rewritten-v1",
+      "owner": "provenance",
+      "primary_behavior": "claim_mapping_revision_rewritten",
+      "description": "Two draft sentences were flagged: one mapped to a passage that lacks one of its clauses, one asserting a cause the passage never states. The revision rewrites both, adding the second passage to the first and dropping the causal clause from the second, so neither flagged quote survives; the third sentence is unchanged. Both findings are resolved, and wording the reply no longer contains is not a defect.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 5,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "self_harm_response_id": "self_harm_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 5,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "connection_book_scopes": [],
+          "required_clarification": null,
+          "override_attempt": "no_attempt"
+        },
+        "canonical_book_evidence": [
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              1179,
+              1219
+            ],
+            "text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+          },
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              1151,
+              1186
+            ],
+            "text": "“Come, my head’s free at last!” said Alice in a tone of delight, which\nchanged into alarm in another moment, when she found that her shoulders\nwere nowhere to be found: all she could see, when she looked down, was\nan immense length of neck, which seemed to rise like a stalk out of a\nsea of green leaves that lay far below her.\n\n“What _can_ all that green stuff be?” said Alice. “And where _have_ my\nshoulders got to? And oh, my poor hands, how is it I can’t see you?”\nShe was moving them about as she spoke, but no result seemed to follow,\nexcept a little shaking among the distant green leaves.\n\nAs there seemed to be no chance of getting her hands up to her head,\nshe tried to get her head down to them, and was delighted to find that\nher neck would bend about easily in any direction, like a serpent. She\nhad just succeeded in curving it down into a graceful zigzag, and was\ngoing to dive in among the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished."
+          }
+        ],
+        "canonical_connection_evidence": [],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "max_final_evidence": 5
+            },
+            "content": {
+              "kind": "result",
+              "request_id": "libreq_b8a6f6f0d216456e9498417ec71983b0",
+              "outcome": "evidence_found",
+              "evidence_strength": "sufficient",
+              "strength_reason": "The question asks why the Pigeon insists Alice is a serpent. Chapter 5 — Advice from a Caterpillar, source lines 1179-1219 directly gives its reasoning: Alice has an unusually long neck, appears to have come wriggling down from the sky, and the Pigeon is on the lookout for serpents that threaten its eggs. Chapter 5 — Advice from a Caterpillar, source lines 1151-1186 supplies the immediate visual circumstance: Alice’s neck is immense and bends like a serpent.",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 5,
+                "part_id": "main",
+                "unit_ids": []
+              },
+              "evidence": [
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    1179,
+                    1219
+                  ],
+                  "text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+                },
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    1151,
+                    1186
+                  ],
+                  "text": "“Come, my head’s free at last!” said Alice in a tone of delight, which\nchanged into alarm in another moment, when she found that her shoulders\nwere nowhere to be found: all she could see, when she looked down, was\nan immense length of neck, which seemed to rise like a stalk out of a\nsea of green leaves that lay far below her.\n\n“What _can_ all that green stuff be?” said Alice. “And where _have_ my\nshoulders got to? And oh, my poor hands, how is it I can’t see you?”\nShe was moving them about as she spoke, but no result seemed to follow,\nexcept a little shaking among the distant green leaves.\n\nAs there seemed to be no chance of getting her hands up to her head,\nshe tried to get her head down to them, and was delighted to find that\nher neck would bend about easily in any direction, like a serpent. She\nhad just succeeded in curving it down into a graceful zigzag, and was\ngoing to dive in among the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished."
+                }
+              ],
+              "limitations": []
+            }
+          },
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "max_final_evidence": 5
+            },
+            "content": {
+              "kind": "result",
+              "request_id": "libreq_8b032a48e5ce4d488979a0cfe5a27665",
+              "outcome": "evidence_found",
+              "evidence_strength": "sufficient",
+              "strength_reason": "The question asks why the Pigeon insists Alice is a serpent. Chapter 5 — Advice from a Caterpillar, source lines 1179-1219 directly gives the Pigeon's reasons: Alice has an unusually long neck, and the Pigeon believes serpents seek its eggs; it also says that because Alice has tasted eggs, little girls must be a kind of serpent. Chapter 5 — Advice from a Caterpillar, source lines 1151-1186 establishes that Alice's neck is serpent-like after her size change and that she has appeared to the Pigeon from above.",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 5,
+                "part_id": "main",
+                "unit_ids": []
+              },
+              "evidence": [
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    1179,
+                    1219
+                  ],
+                  "text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+                },
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch05",
+                  "chapter_number": 5,
+                  "part_id": "main",
+                  "location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    1151,
+                    1186
+                  ],
+                  "text": "“Come, my head’s free at last!” said Alice in a tone of delight, which\nchanged into alarm in another moment, when she found that her shoulders\nwere nowhere to be found: all she could see, when she looked down, was\nan immense length of neck, which seemed to rise like a stalk out of a\nsea of green leaves that lay far below her.\n\n“What _can_ all that green stuff be?” said Alice. “And where _have_ my\nshoulders got to? And oh, my poor hands, how is it I can’t see you?”\nShe was moving them about as she spoke, but no result seemed to follow,\nexcept a little shaking among the distant green leaves.\n\nAs there seemed to be no chance of getting her hands up to her head,\nshe tried to get her head down to them, and was delighted to find that\nher neck would bend about easily in any direction, like a serpent. She\nhad just succeeded in curving it down into a graceful zigzag, and was\ngoing to dive in among the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished."
+                }
+              ],
+              "limitations": []
+            }
+          }
+        ],
+        "candidate": {
+          "response": "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent. It is already on the lookout for serpents while hatching its eggs; when Alice admits she has tasted eggs, the Pigeon uses that to reinforce its conclusion, arguing that little girls who eat eggs must be a kind of serpent too. The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+              "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+              "exact_quote": null
+            },
+            {
+              "supported_claims": [
+                "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent.",
+                "It is already on the lookout for serpents while hatching its eggs; when Alice admits she has tasted eggs, the Pigeon uses that to reinforce its conclusion, arguing that little girls who eat eggs must be a kind of serpent too.",
+                "The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent."
+              ],
+              "limit_claims": [],
+              "source_kind": "book_corpus",
+              "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+              "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "I'm reading Alice's Adventures in Wonderland, and I've completed chapter 5. Why does the Pigeon insist that Alice is a serpent?"
+        },
+        "previous_response_review": {
+          "candidate": {
+            "response": "In Chapter 5, the Pigeon mistakes Alice for a serpent because her unusually long, bendable neck looks serpent-like, and she seems to have come wriggling down from the sky. The Pigeon is on the lookout for serpents because it fears they’ll eat its eggs; when Alice says she has eaten eggs too, it treats that as further proof. The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent.",
+            "evidence_uses": [
+              {
+                "supported_claims": [
+                  "In Chapter 5, the Pigeon mistakes Alice for a serpent because her unusually long, bendable neck looks serpent-like, and she seems to have come wriggling down from the sky."
+                ],
+                "limit_claims": [],
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+                "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+                "exact_quote": null
+              },
+              {
+                "supported_claims": [
+                  "The Pigeon is on the lookout for serpents because it fears they’ll eat its eggs; when Alice says she has eaten eggs too, it treats that as further proof.",
+                  "The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent."
+                ],
+                "limit_claims": [],
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+                "exact_quote": null
+              }
+            ],
+            "memory": {
+              "kind": "no_memory_candidate",
+              "reason_code": "automatic_capture_disabled"
+            }
+          },
+          "findings": [
+            {
+              "code": "unsupported_claim",
+              "applies_to": "response",
+              "location": {
+                "kind": "text_span",
+                "source_field": "candidate.response",
+                "path": "",
+                "quote": "In Chapter 5, the Pigeon mistakes Alice for a serpent because her unusually long, bendable neck looks serpent-like, and she seems to have come wriggling down from the sky."
+              },
+              "explanation": "The mapped passage supports the neck resemblance but not the Pigeon's apparent descent from the sky. The other canonical Chapter 5 record supports that clause but is not declared for this claim. Map the full claim to supporting evidence or remove the unsupported clause."
+            },
+            {
+              "code": "unsupported_claim",
+              "applies_to": "response",
+              "location": {
+                "kind": "text_span",
+                "source_field": "candidate.response",
+                "path": "",
+                "quote": "The Pigeon is on the lookout for serpents because it fears they’ll eat its eggs; when Alice says she has eaten eggs too, it treats that as further proof."
+              },
+              "explanation": "The source establishes the Pigeon's lookout for serpents while hatching eggs and its response to Alice's having tasted an egg, but does not state that it fears serpents will eat its eggs. Revise the causal assertion to stay within what the passage establishes."
+            }
+          ]
+        },
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 124
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 124,
+                    "occurrence_index": 0,
+                    "text": "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent."
+                  }
+                ],
+                "canonical_source_text": "“Come, my head’s free at last!” said Alice in a tone of delight, which\nchanged into alarm in another moment, when she found that her shoulders\nwere nowhere to be found: all she could see, when she looked down, was\nan immense length of neck, which seemed to rise like a stalk out of a\nsea of green leaves that lay far below her.\n\n“What _can_ all that green stuff be?” said Alice. “And where _have_ my\nshoulders got to? And oh, my poor hands, how is it I can’t see you?”\nShe was moving them about as she spoke, but no result seemed to follow,\nexcept a little shaking among the distant green leaves.\n\nAs there seemed to be no chance of getting her hands up to her head,\nshe tried to get her head down to them, and was delighted to find that\nher neck would bend about easily in any direction, like a serpent. She\nhad just succeeded in curving it down into a graceful zigzag, and was\ngoing to dive in among the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished."
+              },
+              {
+                "declaration_index": 1,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 124,
+                    "occurrence_index": 0,
+                    "text": "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her appearance from above—as signs that she is a serpent."
+                  }
+                ],
+                "canonical_source_text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+              }
+            ]
+          },
+          {
+            "group_index": 1,
+            "claim": "It is already on the lookout for serpents while hatching its eggs; when Alice admits she has tasted eggs, the Pigeon uses that to reinforce its conclusion, arguing that little girls who eat eggs must be a kind of serpent too.",
+            "occurrences": [
+              {
+                "start": 125,
+                "end": 350
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 1,
+                "claim_index": 1,
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 125,
+                    "end": 350,
+                    "occurrence_index": 0,
+                    "text": "It is already on the lookout for serpents while hatching its eggs; when Alice admits she has tasted eggs, the Pigeon uses that to reinforce its conclusion, arguing that little girls who eat eggs must be a kind of serpent too."
+                  }
+                ],
+                "canonical_source_text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+              }
+            ]
+          },
+          {
+            "group_index": 2,
+            "claim": "The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent.",
+            "occurrences": [
+              {
+                "start": 351,
+                "end": 474
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 1,
+                "claim_index": 2,
+                "source_kind": "book_corpus",
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 351,
+                    "end": 474,
+                    "occurrence_index": 0,
+                    "text": "The misunderstanding comes from the Pigeon’s anxious, egg-protecting point of view—not from Alice actually being a serpent."
+                  }
+                ],
+                "canonical_source_text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+              }
+            ]
+          }
+        ],
+        "evidence_limit_claims": [],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "pass",
+      "expected_response_codes": [],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": [
+        "resolved",
+        "resolved"
+      ]
+    },
+    {
+      "schema_version": 1,
       "case_id": "provenance-risk-uncited-web-claim-positive-v1",
       "owner": "provenance",
       "primary_behavior": "uncited_web_claim_positive",

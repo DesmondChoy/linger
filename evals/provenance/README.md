@@ -24,8 +24,8 @@ use the configured `LINGER_MODEL` and its provider credentials.
 
 ## Run the live evaluations
 
-Run the candidate-review pack. It covers 55 cases across specification flows
-4.2.1, 4.2.2, and 4.2.3: 37 response cases and 18 capture cases. The pack grades
+Run the candidate-review pack. It covers 56 cases across specification flows
+4.2.1, 4.2.2, and 4.2.3: 38 response cases and 18 capture cases. The pack grades
 the response decision and risk codes separately from the capture decision and
 codes. It also grades the derived sensitive-content flag and required finding
 resolutions. A correct decision with an incorrect required code fails.
