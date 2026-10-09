@@ -1,5 +1,7 @@
 """Provenance's explicit assignments for three independent review tasks."""
 
+from pydantic_ai.models.openai import OpenAIResponsesModelSettings
+
 from src.linger.agents.provenance.curation_models import (
     CurationProvenanceReview,
     CurationReviewInput,
@@ -38,6 +40,9 @@ CANDIDATE_REVIEW = RuntimeSkill(
         "ProvenanceInput.validate_review",
     ),
     output_retries=2,
+    # At the shared low effort this review's verdict on one unchanged input
+    # varies from run to run; medium steadies it.
+    model_settings=OpenAIResponsesModelSettings(openai_reasoning_effort="medium"),
 )
 
 CURATION_REVIEW = RuntimeSkill(

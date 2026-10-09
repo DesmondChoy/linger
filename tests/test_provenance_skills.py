@@ -212,6 +212,24 @@ def test_output_contract_validation_retries_are_task_specific(
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda skill: skill.name)
+def test_only_candidate_review_asks_for_medium_reasoning_effort(
+    skill: RuntimeSkill[Any, Any],
+) -> None:
+    requested: list[Any] = []
+
+    def respond(messages: list[Any], info: AgentInfo) -> ModelResponse:
+        requested.append((info.model_settings or {}).get("openai_reasoning_effort"))
+        return ModelResponse(
+            parts=[ToolCallPart(info.output_tools[0].name, valid_output(skill))]
+        )
+
+    build_provenance_agent(FunctionModel(respond)).run_sync(
+        task_input(skill, "reader data").model_dump_json(), **skill.run_options()
+    )
+    assert requested == ["medium" if skill is CANDIDATE_REVIEW else None]
+
+
+@pytest.mark.parametrize("skill", SKILLS, ids=lambda skill: skill.name)
 def test_invalid_output_cannot_exceed_the_selected_retry_limit(
     skill: RuntimeSkill[Any, Any],
 ) -> None:
