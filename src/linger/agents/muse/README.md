@@ -37,8 +37,10 @@ Turn triage sees only the current reader message and has no tools. It returns
 those labels with tools used in earlier released turns and any required book
 clarification. That result fixes the offered tools for both draft and revision.
 Triage also pins Serendipity's intent when it recognizes recall, named sources,
-open connection discovery, or a recommendation. An override attempt cannot
-unlock tools through the message's claimed needs.
+open connection discovery, or a recommendation. "Does anything I've read
+speak to this?" selects open comparison through `find_connection`; a request
+for an unfamiliar outside work selects `get_recommendation`. An override
+attempt cannot unlock tools through the message's claimed needs.
 
 Chat gives triage 10 seconds and at most two model requests. On failure, it
 offers the book tools and tools used in earlier released turns, and reports
@@ -51,6 +53,27 @@ Muse can call `librarian_route`, `librarian_search`, and `serendipity_explore`
 under application-owned source grants. The model chooses whether and how to
 use those tools. Deterministic code controls identity, reading progress,
 retrieval scope, and storage.
+
+The interactive application keeps explicit completed-chapter progress per
+account and work in `reading_progress.sqlite3`. A released reply or application
+clarification saves the part and ceiling. The latest declaration wins,
+including a lower chapter. Saved progress survives new chats, conversation
+deletion, and backend restarts, but it applies only after the reader or routing
+identifies the work. Librarian inferences, named units, and exact passages are
+absent from the durable store. Session carry and correction rules remain in
+application code; lower or unclear corrections immediately reduce or retract
+the session's carried permission, while higher declarations wait for release.
+An unclear session retraction does not erase saved account progress. Later
+routing or a comparison can reuse its saved chapter until a released explicit
+correction replaces it.
+
+For `find_connection`, the application combines saved progress with any
+current confirmed permission. When that covers at least two books, Muse
+receives independently bounded `connection_book_scopes` instead of one primary reading context.
+The current turn's confirmed permission replaces that book's saved entry.
+Every other saved book keeps its own ceiling. A carried or saved ceiling does
+not force a book lookup for a personal reflection. Synthetic replay supplies
+its own trusted scopes and does not load live account progress.
 
 `serendipity_explore(intent="recall_memory")` retrieves one to three matching
 stored records for a request about the reader's earlier words. A single record
@@ -129,7 +152,7 @@ reflection cases, 32 review cases, six revision fixtures, and a separate
 turn-triage pack. Reflection runs compare the first and current Muse with fixed
 tool results. Revision runs hold the draft and review fixed; blind review
 grades saved reflection replies against each case's semantic rubric.
-Production chat and synthetic reflection, capture, connection, and continuity
+Interactive chat and synthetic reflection, capture, connection, and continuity
 replays exercise the same reflection skill. Component cases and
 synthetic runs remain separate from independently adopted product evaluation
 results. Photograph input remains an unimplemented product target.
@@ -148,4 +171,7 @@ Focused checks include `tests/test_muse_agent.py`,
 `tests/test_muse_reflection_modules.py`, `tests/test_muse_revision_sentences.py`,
 `tests/test_muse_claim_retention.py`, and `tests/test_reflection.py`. Chat and
 synthetic replay tests also cover released history, bounded revision, tool
-permissions, and concurrent request isolation.
+permissions, and concurrent request isolation. `tests/test_reading_progress.py`
+checks session carry, corrections, and evidence exclusion;
+`tests/test_progress_store.py` checks durable progress, account isolation,
+saved-boundary routing, and comparison scopes.

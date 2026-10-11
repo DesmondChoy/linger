@@ -72,25 +72,30 @@ reviews the complete reply, including quotations, attribution, and claim
 support. Bounded repairs check quotation text and retain source mappings for
 unchanged accepted claims before the application checks release.
 An explicit completed chapter carries across follow-ups about the same book
-and part. A correction can lower or retract that permission. The chapter
-ceiling lasts only for the running session; it is not a durable reading log.
+and part. A correction can lower or retract that session's carried permission.
+The chapter the reader explicitly declares also persists per account and book after a
+released turn. A later declaration replaces it, including a lower chapter.
+Inferred boundaries and exact passage permissions stay within the session.
+Saved progress applies when a turn identifies the book and can supply separate
+reading limits for a comparison across books.
+A vague retraction leaves saved progress intact. The
+[book guide](docs/book-registration.md#identity-and-ambiguity) describes its
+reuse and correction limits.
 
 Interactive memory capture is on by default, and the app exposes no
-memory-management actions. Linger also remembers the chapter a reader
-declared for each book, so a later conversation about that book does not ask
-again. Controlled workflows support reviewed capture,
+memory-management actions. Controlled workflows support reviewed capture,
 Sculptor curation, Provenance review, and application of approved derived
 changes while preserving original records. Memory surfacing runs only in
 offline evaluation.
 
 This is a prototype with username and password accounts. Accounts and
-per-account conversation history persist in local SQLite files under `data/`
-and survive restarts. Signing in restores saved chats and continues the latest
-conversation. **New chat** starts another conversation while keeping earlier
-ones in the feed. **Delete** removes a conversation and its saved inspection
-details. Chat content is sent to the configured model provider. Optional backend
-telemetry records
-metadata rather than conversation content. Synthetic evaluations may also
+per-account conversation history and declared reading progress persist in local
+SQLite files under `data/` and survive restarts. Signing in restores saved chats
+and continues the latest conversation. **New chat** starts another conversation
+while keeping earlier ones in the feed. **Delete** removes a conversation and
+its saved inspection details. Chat content is sent to the configured model
+provider. Optional backend telemetry records metadata rather than conversation
+content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
 
 The stack is Python, FastAPI, Pydantic AI, and React.
@@ -159,7 +164,8 @@ docker compose up --build
 
 Open <http://localhost:5173>. The frontend proxies `/api` to the backend, which
 also remains available directly at <http://localhost:8000>. Account and
-transcript databases and account memories are stored in named Docker volumes.
+transcript and reading-progress databases and account memories are stored in
+named Docker volumes.
 Stop the stack with `docker compose down`; add `--volumes` only when you also
 intend to delete that persisted application data.
 
@@ -188,13 +194,37 @@ The default configuration enables these books:
 
 The local frontend includes developer tools alongside the conversation:
 
-- The live map follows agent activity. Select a component or completed turn to
-  inspect its context, outcomes, findings, release decision, and trace reference.
+- The live map follows agent activity. Select a component or handoff for its
+  details, or open **All turns and contracts** for the full Inspector. Turn
+  details include context, outcomes, findings, release decisions, trace
+  references, and captured or cited memory IDs.
 - **Library** opens the canonical Reader by chapter or named section. Browsing
   a book does not set reading progress for chat.
-- The prompt tray offers optional guided conversation paths. Persona replay
-  shows recorded synthetic runs, their answer keys, and review assessments in
-  the same chat and map UI, without invoking agents.
+- **Try a conversation** offers guided paths with book filters and alternative
+  wording. Select a prompt to place it in the composer, then send it. Paths
+  include spoiler boundaries, memory recall, public-web discovery, connections
+  across books, session continuity, declines, and safety.
+- Persona replay shows recorded synthetic runs, their answer keys, and review
+  assessments in the same chat and map UI, without invoking agents.
+
+`LINGER_DEV_INSPECT=true` attaches full agent exchanges and connection events
+to the Inspector and saved account history. These details can contain prompts,
+tool results, rejected outputs, and memory text. Use this setting only for local
+development or demos. It defaults to `false` and does not change the
+metadata-only Logfire policy.
+
+Inspect memory IDs on the server and check the committed persona exports:
+
+```bash
+	uv run python -m apps.backend.show_memories USERNAME
+	uv run python -m apps.backend.show_memories USERNAME MEMORY_ID
+	uv run python apps/frontend/scripts/export_personas.py --check
+```
+
+The memory command reads the repository's `memories/` directory. The persona
+exporter reads saved local evaluation runs. See the
+[frontend guide](apps/frontend/README.md#synthetic-personas) for export requirements
+and the command that writes the snapshots.
 
 These diagnostics are for local development and grant no runtime authority.
 See the [frontend guide](apps/frontend/README.md) for the controls and the
@@ -228,11 +258,16 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs the backend and frontend unit suites for pull requests and
-pushes to `main` and `release-candidate`. Backend tests block model-provider requests; tests marked
-`embeddings` use real local embedding and reranker models. Their first run needs
-the model files in cache or permission to download them. To exclude those tests,
-run `uv run pytest -m "not embeddings"`.
+GitHub Actions runs backend and frontend checks for pull requests and pushes to
+`main` and `release-candidate`. Backend tests block model-provider requests.
+Separate jobs run `uv run pytest -m "not embeddings"` and
+`uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
+`embeddings` use real local embedding and reranker models, which CI caches.
+Their first local run needs the model files in cache or permission to download
+them. Frontend CI also checks the Ground truth reviewer, lint, and the production
+build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
+alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
+for the seven required checks.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they

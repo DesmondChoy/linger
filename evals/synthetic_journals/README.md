@@ -236,6 +236,7 @@ capture and curation together, bounded curation and cross-source connection
 together, continuity,
 longitudinal retrieval, continuity and longitudinal retrieval together,
 the memory curation and recall loop,
+memory retrieval with injection controls, capture with direct Line attacks,
 either book Objective alone, both book Objectives, either connection or
 weak-evidence Objective alone, and their combination. Other selections stop
 after adoption.

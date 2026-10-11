@@ -16,8 +16,9 @@ Pinocchio, Frederick Douglass's Narrative, and The Story of My Life. Routing
 resolves reviewed book identities and catalogue cues, with active session
 selection available for indirect book follow-ups. Private inference supports
 memory-backed chapter ceilings and session-supported exact paragraphs.
-Application code validates every grant before a separate evidence search and
-deterministic release checks.
+Explicit completed-chapter progress persists per account and work, and routing
+can reuse it after identifying the book. Application code validates every
+grant before a separate evidence search and deterministic release checks.
 
 The corpus lifecycle prepares five books, including section-based works.
 Preparation does not register a book for runtime use. The versioned-memory
@@ -490,9 +491,9 @@ work — `resolved_book_identity`, `distinctive_cue`, or `session_selection`.
 
 ### 4.2 Input and output contracts
 
-A routed main-part work without explicit confirmed permission enters private
-boundary inference. Confirmed permission bypasses inference; a selected
-non-main part without explicit permission asks for part/chapter or named-unit
+A routed main-part work without confirmed current, carried, or saved permission
+enters private boundary inference. Confirmed permission bypasses inference.
+A selected non-main part without explicit permission asks for part/chapter or named-unit
 clarification. The private boundary phase receives the current Line,
 a bounded set of strongly routed account-scoped memories, original earlier
 reader statements from the same session, and private main-part candidates.
@@ -642,7 +643,7 @@ The chapter path is:
    release validator rejects a book answer or tool call in its place.
 5. Independent event identification must confirm the proposed stopping occurrence.
 6. A validated candidate enables a new search whose scope is clamped to the
-   inferred ceiling. No boundary is persisted to later requests.
+   inferred ceiling. The inferred boundary is absent from durable account progress.
 
 At chapter granularity:
 
@@ -655,9 +656,9 @@ At chapter granularity:
 During the second phase, post-boundary catalogue entries and chapter bodies
 must not reach the evidence judge, Muse, a bounded index, a reranker, or any
 downstream answer context. The private first-phase Librarian is the sole
-exception and has localization authority, not disclosure authority. Reading
-progress is not durable memory; it is resolved again for each book-related
-request.
+exception and has localization authority, not disclosure authority. Inferred
+permission is resolved within the request. Explicit reader progress follows the
+session and account rules below.
 
 Clarification is a distinct response type, not a weak or empty retrieval
 result:
@@ -684,6 +685,42 @@ General partial-current-chapter ceilings remain unsupported. Exact canonical
 paragraph IDs support the narrower session-passage permission described in
 [Session-supported exact passages](session-passage-design.md), without implying
 completion of the chapter or permission for neighboring text.
+
+#### Explicit session and account progress
+
+The session carries a reader-confirmed chapter through ordinary follow-ups
+about the same work and part. A lower declaration applies immediately, even
+when the turn fails or declines. A higher declaration commits only after a
+released Muse reply or application clarification. An unclear correction
+retracts the carried ceiling and supersedes earlier reader statements.
+Application code excludes prior evidence outside the current ceiling. Changing
+book or part, deleting the session, or restarting the backend clears session
+progress.
+
+The interactive application's `ReadingProgressStore` persists the part and
+completed chapter per account and work in
+`LINGER_STATE_DIR/reading_progress.sqlite3`. After a released reply or
+application clarification, the latest explicit declaration replaces the saved
+record, including a lower chapter. Saved progress survives conversation
+deletion and backend restarts. Loading validates the current registered
+revision, access list, part, and chapter count. The store contains no inferred
+boundaries, named units, or exact-passage grants.
+
+Saved progress never selects a work. Current-turn context preparation applies
+it only to an identified book, behind that session's progress or retraction,
+and withholds it when an unparsed correction speaks to progress. Book routing
+can bind saved progress after identifying a work and matching its part.
+An unclear session retraction leaves the saved account record intact. Later
+routing or a comparison can reuse that saved chapter until a released explicit
+correction replaces it.
+
+For `find_connection`, the application combines saved progress with any current
+confirmed permission. When that covers at least two books, it supplies each
+book at its own ceiling without a primary book. The current permission replaces that book's
+saved entry. Synthetic replay uses trusted supplied scopes and omits live
+account progress. `tests/test_reading_progress.py` covers session corrections;
+`tests/test_progress_store.py` covers durable storage, account isolation, saved
+routing, and comparison scopes.
 
 ### 4.4 Retrieval, fusion, and deduplication
 
@@ -725,7 +762,10 @@ earlier reader statements to `plan_book_request` before retrieval. Each planned
 book need becomes a separate query from its exact reader spans. The plan
 identifies each named event in a requested sequence separately. The original
 current message and earlier reader statements remain fallback queries, including
-when planning fails or omits a need. Queries are split into chunks of at most
+when planning fails or omits a need. Before each query searches a book,
+application code removes its registered author-name words unless they also
+appear in the title or aliases. Reader-span validation and evidence text retain
+the original wording. Queries are split into chunks of at most
 2,000 characters, with at most 16 distinct queries. Exceeding that budget fails
 without widening scope or silently dropping the remaining reader input.
 
@@ -1252,7 +1292,7 @@ No new provider evaluation was performed for this documentation update.
 | Database or index as source of truth | No |
 | Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
 | Retrieval strategy selection | Reranked hybrid won the mandatory five-way comparison |
-| Reading progress | Not persisted; boundary is inferred or clarified per request |
+| Reading progress | Explicit completed chapters persist per account and work; session carry handles corrections; inferred and exact-passage permissions remain outside the durable store |
 | Metadata as evidence | No; only canonical chapter or section bodies are authoritative |
 | Ambiguous boundary | Typed clarification after optional private localization; no answer-evidence search is authorized |
 | Completed retrieval | Typed result with sufficient, weak, or none strength |

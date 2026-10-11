@@ -139,6 +139,36 @@ A live failure creates only a metadata signature; a human must author a
 synthetic or sanitised regression case. Runtime telemetry cannot reconstruct
 the user's content.
 
+### 3.1 Local developer inspection
+
+Completed chat responses carry read-only inspection records independently of
+Logfire. Their ordinary fields include request context, released contract
+details, and memory handles. `inspection.memory` identifies the active memory
+count, captured memory ID, and cited memory IDs. These account-scoped values
+are absent from backend telemetry.
+
+`LINGER_DEV_INSPECT=true` enables a developer or demo content trace for each
+completed turn. `DevTraceSink` reuses transcript hooks to collect agent task
+inputs, returned tool calls and results, retry feedback, typed outputs, and
+Serendipity queries, search records, and decisions. `inspection.memory.texts`
+contains the captured and cited memory text. The setting defaults to `false`
+and remains disabled for deployments used by real readers.
+
+This content travels in `inspection.dev_trace` and the account's saved turn
+in `transcripts.sqlite3`. It is absent from Logfire and the content-free
+progress stream. Disabling the setting stops future trace collection and does
+not redact stored inspection records. History can therefore return a trace
+saved while developer inspection was enabled. The history route can also
+resolve a saved turn's memory handles from the account memory store. A bound
+synthetic evaluation sink takes precedence over `DevTraceSink`.
+
+The local command `uv run python -m apps.backend.show_memories USERNAME
+[MEMORY_ID ...]` resolves memory handles to private source text. It prints
+active originals and their curated retrieval view from the repository-root
+`memories/` directory. It does not use a `LINGER_MEMORY_DIR` override.
+The [application guide](../apps/README.md#chat-and-developer-tools) describes
+these diagnostic tools.
+
 ## 4. Synthetic evaluation transcripts
 
 Synthetic replay runners use the same Logfire project
@@ -178,9 +208,10 @@ provider actually returned; absence does not
 establish that a model performed no internal reasoning.
 
 When an agent invocation fails or is cancelled, `run_agent_traced` retains
-available partial model messages only if a synthetic transcript sink is bound.
-The durable `AgentExchange` records the fixed `failure_category` alongside the
-existing failure code. Calls that end without a result have no typed output or
+available partial model messages only if a transcript sink is bound.
+Synthetic replay and opt-in local developer inspection supply separate sinks.
+The durable synthetic `AgentExchange` records the fixed `failure_category`
+alongside the existing failure code. Calls that end without a result have no typed output or
 completed usage result. Their partial messages can still show attempted tool
 calls, returned tool results, and retry feedback; thinking parts remain omitted.
 
@@ -195,8 +226,9 @@ attempted conversation, which may include the supplied message history.
 Successful calls retain only new messages and leave this flag false.
 `tool_exchanges` excludes earlier history's tool calls in either case, so a
 failed follow-up does not report old tool work as new. An early failure may
-have no captured messages. Production requests never bind this sink and export
-only the permitted failure metadata, without partial messages.
+have no captured messages. Ordinary live requests leave transcript hooks
+unbound. Developer inspection can bind its separate local sink; live Logfire
+export retains only permitted failure metadata in either case.
 
 Book-grounding replay records routing selection, boundary authorization,
 completed retrieval, final permitted citations, and release outcomes. Its

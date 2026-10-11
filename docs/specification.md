@@ -66,7 +66,7 @@ The core journey is:
 |---|---|
 | **Reflect** | Muse drafts responses to text or a photograph and asks a small number of useful follow-up questions. Provenance reviews every complete draft before display, including drafts with no declared factual claims. |
 | **Ground** | Librarian retrieves authorised book passages and memories. Muse drafts a response separating quotations, user statements, and generated interpretation; Provenance checks the complete draft and its claimed support. |
-| **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
+| **Preserve** | Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
 Automatic capture is enabled by default for interactive accounts. Controlled
@@ -84,10 +84,12 @@ about sensitive traits is never captured.
   of selected personal-memory evidence;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
-- reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
+- reviewed automatic memory capture, with a visible notice for any committed capture and account policy that controls whether capture is permitted;
+- saved reader-confirmed chapter progress per account and work, reused only after the work is identified for the current turn;
 - immutable original memories, versioned generated summaries, duplicate links,
   topic groups, reversible retrieval tombstones, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
+- cross-book connections across confirmed books, each bounded by its own reading permission;
 - capture-triggered memory curation in Section 4.2.5, with memory surfacing
   evaluated offline only;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
@@ -99,13 +101,13 @@ about sensitive traits is never captured.
 ### 3.2 Stretch
 
 - voice-note transcription, including audio-borne prompt-injection tests;
-- cross-book, memory-to-memory, and song-to-memory connections;
+- memory-to-memory and song-to-memory connections;
 - comparison of a revisited pairing with an earlier reflection; and
 - a synthetic exercise of an opt-in feedback pipeline.
 
 ### 3.3 Out of scope
 
-- persistent reading-progress tracking;
+- automatic reading-progress measurement or a dedicated reading-progress management interface;
 - live music, photo-library, messaging, or social integrations;
 - the full Project Gutenberg catalogue;
 - copyrighted books, lyrics, or copyrighted-audio analysis without permission;
@@ -454,8 +456,9 @@ frontend does not expose either tool or depend on either tool's state.
 
 Reader is a developer browser for the enabled registered books. Read-only
 `/api/library` endpoints serve validated local canonical text and group chapters
-and named units by literary part. Reader opens at the first main narrative
-chapter. Opening a book, navigating to a unit, or revealing its summary changes
+and named units by literary part. Reader opens at the last unit viewed in this
+browser, or the first main narrative chapter when no location is saved.
+Opening a book, navigating to a unit, or revealing its summary changes
 local diagnostic state only. Summaries remain hidden behind an explicit spoiler
 warning. Navigation and summary reveal never establish reading progress,
 session evidence, or chat retrieval permission. Chat uses only the
@@ -467,21 +470,32 @@ assembled Muse dynamic input, application-recorded agent statuses, direct
 Librarian grounding calls, fixed Serendipity decline metadata, the released
 response, the actual Provenance verdict path, release source, released book
 evidence identifiers, failure stage, capture outcome, the identifiers of the
-memory a turn saved and the memories its reply cited, and server-generated trace
-ID. For a failed stage, Inspect records whether the failure came from application
-code, a model call, or deterministic validation, and whether the failure is
-retryable. This diagnostic detail exists to debug request-scoped contracts and
-hand-offs; it is not end-user content. It does not expose Serendipity proposals,
+memory a turn saved and the memories its reply cited, the number of available
+memories, and server-generated trace ID. The compact observed map shows the
+selected turn's outcome. Component and handoff dialogs show that turn's records
+and the component's standing authority. **All turns and contracts** opens the
+complete Inspect timeline in a separate dialog. For a failed stage, Inspect
+records whether the failure came from application code, a model call, or
+deterministic validation. It also records whether the failure is retryable.
+This diagnostic detail exists to debug request-scoped contracts and hand-offs;
+it is not end-user content. Ordinary turn records exclude Serendipity proposals,
 searches, web or private evidence payloads, rejected draft text, Provenance
-critiques, or memory content, unless the server runs with the developer setting
-`LINGER_DEV_INSPECT=true`. That setting is for local development and demos only
-and must never be enabled for a deployment real readers use. It attaches the
+critiques, and memory content. The developer setting `LINGER_DEV_INSPECT=true`
+enables these content traces for later turns. That setting is for local
+development and demos only and must never be enabled for a deployment real
+readers use. It attaches the
 turn's full content trace to Inspect: each agent's input prompt, tool calls and
 results, and output; Serendipity's queries, search results, and ranked
 decision; and the text behind each memory identifier. The trace reuses the
 evaluation transcript hooks, which observe without changing agent behaviour, and
-it is not sent to telemetry. Without the setting, developers resolve memory
-identifiers to text on the server with `python -m apps.backend.show_memories`. Inspect metadata cannot authorize retrieval,
+it is not sent to telemetry. Content traces persist with saved inspection
+records in `LINGER_STATE_DIR/transcripts.sqlite3`. Disabling the setting stops
+collection for later turns and does not erase previously saved traces.
+Without the setting, developers resolve memory identifiers to text on the
+server with `uv run python -m apps.backend.show_memories USERNAME [MEMORY_ID ...]`.
+The command reads the repository's `memories/` directory and lists active
+originals and the curated retrieval view, restricted to the supplied identifiers
+when present. Inspect metadata cannot authorize retrieval,
 release, capture, or storage, and its trace link follows the metadata-only backend
 telemetry contract in Section 8.1.
 
@@ -492,6 +506,28 @@ ordinary release checks finish. Inspect derives stage durations from paired
 start and completion events and shows per-agent totals and ordered hand-offs.
 An unpaired event leaves its duration unavailable. Progress metadata never
 contains draft text or grants release authority.
+
+The **Try a conversation** tray offers guided live conversations for spoiler
+limits, book grounding, memory recall, public-web connections, cross-book
+connections, safe declines, session continuity, and safety. The book filter and
+alternate wordings help developers exercise the registered corpus. Selecting a
+line fills the editable composer, and only **Send** submits it. A new-chat step
+creates a session. These suggestions have no adopted Ground truth or grading.
+
+**Replay a persona** opens saved synthetic evaluation runs without sign-in or
+model calls. The gallery groups personas by the Objective catalog's menu
+families. A selected run uses the same chat feed, compact map, current-turn
+summary, and Inspect dialogs. Its Backstory, Props, adopted answer key, recorded
+grade, and completed analysis review appear when available. Earlier recorded
+runs are selectable, offline curation Scenes are labelled as tasks, and missing
+contracts remain explicitly unrecorded. Playback reads a gallery index and
+per-persona JSON files in `apps/frontend/src/replay/personas`.
+`uv run python apps/frontend/scripts/export_personas.py` exports completed
+adjacent `scenario-run-*` directories with both `evaluation.json` and
+`summary.json`; `--check` compares those files without writing. Full model
+message transcripts, system instructions, and local paths are excluded from
+the exported snapshot. The separate evaluation explorer uses curated
+architecture Scenes and its own catalog snapshot rather than persona playback.
 
 #### 4.2.5 Capture-triggered curation and offline surfacing
 
@@ -543,10 +579,11 @@ Working context contains only:
   replies in this session, when present;
 - a bounded suffix of released conversation history.
 
-The complete memory archive is never injected into every prompt. Reading
-progress is not stored as durable user state. Apart from the session's
-declared chapter, Librarian resolves a temporary spoiler boundary anew for each
-book-related request.
+The complete memory archive is never injected into every prompt. Explicit
+reader-confirmed chapter progress is also stored per account and work under
+Section 6.1. During initial context resolution, the session's current declaration
+or retraction takes precedence over that saved value. When neither applies,
+Librarian resolves a temporary spoiler boundary for each book-related request.
 
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
@@ -564,10 +601,12 @@ clarifications persist per account in `data/transcripts.sqlite3`, including
 their local inspection records. Boundary replies and safe declines are not
 saved as transcript turns. Restoring a transcript supplies conversational
 context, but excludes its earlier reader statements from boundary inference.
-Reading progress, tool history, and evidence handles remain in-process state.
+Saved chapter progress persists in `LINGER_STATE_DIR/reading_progress.sqlite3`.
+Book selection, inferred boundaries, named-unit and exact-passage permissions,
+tool history, and evidence handles remain in-process state.
 **New chat** selects a fresh session while preserving earlier saved chats.
 Deleting a conversation removes its transcript and live session state while
-preserving account memories.
+preserving account memories and saved chapter progress.
 
 ### 5.2 Memory record
 
@@ -706,8 +745,9 @@ no number, such as "I haven't met…", "don't spoil…", or "a different book",
 and a parser clarification. Quotes do not shield a retraction. Lowering or
 retracting hides earlier reader statements from boundary inference and
 withholds earlier cited passages the ceiling no longer permits. Selecting another book or part, a session reset, or a restart
-clears the ceiling; a restart also hides restored reader statements from
-boundary inference. It is never stored durably. A follow-up that triggers none
+clears the session ceiling; a restart also hides restored reader statements from
+boundary inference. Released explicit chapter declarations also populate the
+account's saved progress, subject to the limits below. A follow-up that triggers none
 of this, stays on the same book and part, and names no other work reuses the
 ceiling; otherwise reading permission is resolved anew for each request.
 Chapter ceilings include only numbered chapters in that part. Prefaces, letters,
@@ -756,10 +796,11 @@ reader clarification. Explicit current-turn progress remains authoritative,
 while a memory-supported candidate is eligible for the provisional confidence
 policy. Librarian then performs a separate
 retrieval bounded to that ceiling, and application code rejects evidence outside
-it before Muse can use it. Linger stores memories of what the person discussed,
-not a durable chapter-progress field; apart from the session's declared
-chapter, the boundary is derived anew for each request. This separation lets
-evaluation compare Librarian's inferred ceiling with event-derived Ground truth
+it before Muse can use it. Memories retain what the person discussed. The
+separate saved-progress record contains only an explicitly confirmed completed
+chapter. An inferred boundary remains temporary and cannot update that record.
+This separation lets evaluation compare Librarian's inferred ceiling with
+event-derived Ground truth
 while preventing private inference access from becoming disclosure authority.
 
 Cached retrieval indexes use the work, revision, part, and chapter ceiling or
@@ -873,18 +914,25 @@ evidence. Explicit reader confirmation remains authoritative and skips
 inference for that request, and a routed inferred ceiling never widens or
 replaces a boundary the reader already confirmed this turn.
 
-**Saved reading progress.** When a released turn carries a chapter the reader
-explicitly declared or confirmed, application code saves that chapter for the
-account and work. The newest declaration replaces the saved value, including a
+**Saved reading progress.** When a released Muse reply or application
+clarification carries a chapter the reader explicitly declared or confirmed,
+application code saves that chapter for the account and work. The newest
+declaration replaces the saved value, including a
 lower chapter. Inferred ceilings, named-unit permissions, and exact-passage
 permissions are never saved. Saved progress never selects a work: it applies
 only after the current message names the work, the work is the session's
-active selection, or `librarian_route` identifies it. It then acts as a
-reader-confirmed boundary with the `saved_progress` authorization basis and
-skips boundary inference. A declaration in the current message outranks it,
-and a saved chapter that no longer fits the registered, permitted work is
-ignored. Trusted evaluation setup and replay do not read or write saved
+active selection, or `librarian_route` identifies it. It then supplies
+reader-confirmed permission and skips boundary inference. Direct context
+restoration records the `saved_progress` authorization basis. During initial
+context resolution, the session's
+declaration or retraction takes precedence for that work. A declaration in the
+current message outranks it. A saved chapter that no longer fits the registered,
+permitted work is ignored. Trusted evaluation setup and replay do not read or write saved
 progress.
+
+A vague retraction affects the carried session ceiling and leaves the durable
+saved record intact. Later `librarian_route` calls or a cross-book comparison
+can reuse that saved chapter until a released explicit correction replaces it.
 
 When turn triage classifies a message as a connection request and the reader
 has confirmed two or more books (saved progress, plus any book confirmed this

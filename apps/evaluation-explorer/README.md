@@ -52,9 +52,17 @@ pnpm refresh-data
 
 Review affected Scene routes against `docs/specification.md` and the maintained implementation after contract changes. The exporter updates catalog text and recorded evidence; it does not infer architecture from telemetry or silently revise the explanations.
 
-Both exporters accept `--check` to compare their checked-in snapshot with current
-repository inputs without writing files. `pnpm refresh-data` regenerates both.
-They read JSON artifacts directly beside a Scenario's source files; nested
-`runs/` directories and reports elsewhere are outside their export scope.
-The checked-in snapshots can retain historical records absent from the Scenario
-directories. Treat displayed History as a snapshot until both checks pass.
+The catalog exporter accepts `--check` to compare its checked-in snapshot with
+current repository inputs without writing files. `pnpm refresh-data` regenerates
+`packages/architecture-map/src/catalog.json`. The exporter reads run JSON
+artifacts directly beside a Scenario's source files. Nested `scenario-run-*`
+directories and reports elsewhere are outside its scope. Treat displayed
+History as a snapshot until the catalog check passes.
+The checked-in snapshot can contain historical run records whose source JSON
+is absent from the local checkout. Restore those records before refreshing if
+the archived History must be preserved.
+
+Recorded synthetic conversations use the chat application's separate
+[persona replay](../frontend/README.md#synthetic-personas). Its exporter reads
+completed `scenario-run-*` directories and writes the frontend's persona files.
+It does not supply this explorer's History panel.

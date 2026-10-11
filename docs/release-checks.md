@@ -16,6 +16,17 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
+Both backend jobs report the 25 slowest tests that take at least one second.
+The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
+The embedding job runs only that marker, caches fastembed models under
+`FASTEMBED_CACHE_PATH`, and has a 25-minute timeout. Run the same selections
+locally:
+
+```bash
+	uv run pytest -m "not embeddings" --durations=25 --durations-min=1.0
+	uv run pytest -m embeddings --durations=25 --durations-min=1.0
+```
+
 CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. A CodeQL error without a numeric security severity also blocks. The gate resolves SARIF rule metadata from the driver or an extension and rejects missing or conflicting rule references. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
 
 The same gates accept saved reports locally:
@@ -138,7 +149,7 @@ Security reports, release evidence, and approval records are retained for 30 day
 
 | Setting | Behavior |
 | --- | --- |
-| `LINGER_STATE_DIR` | Account and transcript database directory; defaults to `data/` on the host |
+| `LINGER_STATE_DIR` | Account, transcript, and declared reading-progress database directory; defaults to `data/` on the host |
 | `LINGER_MEMORY_DIR` | Independent account memory directory; defaults to `memories/` on the host |
 | `compose.release.yaml` storage | Explicitly sets `LINGER_STATE_DIR=/var/lib/linger` and `LINGER_MEMORY_DIR=/var/lib/linger/memories`, keeping both in the persistent state volume |
 | `LINGER_STATIC_DIR` set | Built frontend served after API routes; unknown `/api` routes still return 404 |
@@ -146,6 +157,7 @@ Security reports, release evidence, and approval records are retained for 30 day
 | `/api/ready` | Configuration, storage, corpus, packaged local models, and frontend readiness; no paid inference |
 | `LINGER_IMAGE` | Local build tag or approved immutable registry reference used by `compose.release.yaml` |
 | `LINGER_ENV_FILE` | Private runtime environment file, default `.env`; never copied into the image |
+| `LINGER_DEV_INSPECT` | Defaults to `false`. Local development or demo opt-in for full agent exchanges, connection events, and memory text in account inspection records. Keep disabled for deployments used by real readers. |
 
 The published image targets `linux/amd64`. Apple Silicon hosts use Docker's AMD64 emulation, with a possible performance cost. The release does not include a native ARM64 image.
 
