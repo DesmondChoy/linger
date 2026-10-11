@@ -73,7 +73,7 @@ def test_rules_needed_without_a_tool_load_in_a_tool_free_run(rule):
 def test_the_complete_text_carries_every_module_and_stays_the_prompt_identity():
     assert loaded(REFLECTION.instructions) == set(MARKERS)
     assert REFLECTION.instructions == reflection_instructions(revision=True, tools=None)
-    assert INSTRUCTIONS == f"{SHARED_INSTRUCTIONS}\n{REFLECTION.instructions}"
+    assert INSTRUCTIONS == f"{SHARED_INSTRUCTIONS}\n\n{REFLECTION.instructions}"
     # Fingerprints digest the complete text, so editing any module changes them.
     assert DRAFT_PROMPT_FINGERPRINT == REFLECTION.fingerprint(
         template_id="muse.reflection", input_type=MuseDraftInput
