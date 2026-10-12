@@ -428,6 +428,17 @@ fails or outlasts the limit, or an injected
 strength judge replaced Librarian's own assessment, the result carries an empty
 list. A `none` assessment selects no records and skips the run.
 
+Muse's tool adapter then shapes what the writer is shown. For a `sufficient`
+result, `librarian_search` replaces Librarian's free-text `strength_reason`
+with one fixed application sentence, because that reason is unverified model
+prose that can credit a record with a detail it does not contain, and Muse
+states the reason only for a `weak` result. Evidence, limitations, stated
+answers, scope, and the turn's ledgers are unchanged, and `weak` and `none`
+results, clarifications, and failures pass through as judged. Provenance and
+the turn inspection read Muse's tool result, so they see the same sentence.
+Librarian's recorded evidence-assessment exchange and Serendipity's
+`judgement.strength_reason` keep the model's reason.
+
 A failed listing is still recorded as a failed agent exchange. The live
 progress map reports it under its own `stated_answers` stage, which marks
 Librarian as failed for that turn even though the search succeeded, and a run

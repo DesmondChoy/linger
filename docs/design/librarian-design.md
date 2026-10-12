@@ -890,6 +890,13 @@ authority. A failed run, or one longer than 20 seconds, leaves the judged
 result unchanged with an empty list,
 and Serendipity's `search_librarian` does not run this step.
 
+Muse does not receive Librarian's free-text reason for a `sufficient` result.
+The `librarian_search` adapter replaces `strength_reason` with one fixed
+application sentence and leaves every other field as judged. `weak` and `none`
+results keep the model's reason, which Muse states only for `weak` evidence.
+Provenance reviews the tool result Muse saw; Serendipity and Librarian's own
+recorded assessment keep the full reason.
+
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
 resolution.
@@ -914,7 +921,9 @@ ID.
 ### 4.7 Result contract
 
 When retrieval runs, Librarian returns `kind: result`. This is distinct from a
-clarification. A sufficient result looks like:
+clarification. A sufficient result as grounding judges it looks like this;
+Muse's `librarian_search` shows the fixed sentence from section 4.5 in place of
+this `strength_reason`:
 
 ```json
 {

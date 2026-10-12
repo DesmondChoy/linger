@@ -52,6 +52,11 @@ under application-owned source grants. The model chooses whether and how to
 use those tools. Deterministic code controls identity, reading progress,
 retrieval scope, and storage.
 
+A `sufficient` `librarian_search` result reaches Muse with one fixed
+application sentence as its `strength_reason`, not Librarian's free-text
+reason, which can name details the selected records do not contain. `weak` and
+`none` results keep Librarian's reason and limitations.
+
 `serendipity_explore(intent="recall_memory")` retrieves one to three matching
 stored records for a request about the reader's earlier words. A single record
 can answer that request. `gather_sources` asks Serendipity for the records of
