@@ -21,13 +21,13 @@ from src.linger.agents.muse.skills import REFLECTION
 from src.linger.contracts.connection_evidence import (
     ConnectionSourceEvidence, WebConnectionEvidence, wrap_untrusted_web_excerpt,
 )
-from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.librarian import EvidenceRecord, StatedAnswer
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection, register_connection_evidence, reset_connection_inspection,
 )
 from src.linger.orchestration.turn_context import (
-    ToolExposure, reset_connection_book_scopes, reset_reader_message,
+    ToolExposure, add_turn_stated_answers, reset_connection_book_scopes, reset_reader_message,
     reset_tool_exposure, reset_turn_evidence, set_connection_book_scopes,
     set_reader_message, set_tool_exposure, set_turn_evidence,
 )
@@ -76,12 +76,28 @@ def book_record_from_tool(tool_name: str, source: dict) -> EvidenceRecord | None
     return None
 
 
+def recorded_stated_answers(history: list[dict]) -> tuple[StatedAnswer, ...]:
+    """The answers the captured searches listed, which production registers for the turn."""
+    answers: dict[StatedAnswer, None] = {}
+    for message in history:
+        for part in message["parts"]:
+            if part.get("part_kind") == "tool-return" and part.get("tool_name") == "librarian_search":
+                payload = part.get("content")
+                if isinstance(payload, str):
+                    payload = json.loads(payload)
+                if isinstance(payload, dict):
+                    answers.update((StatedAnswer.model_validate(item), None)
+                                   for item in payload.get("stated_answers", ()))
+    return tuple(answers)
+
+
 @dataclass(frozen=True)
 class CapturedMuseTask:
     prompt: str
     history_json: str
     book_records: tuple[EvidenceRecord, ...]
     connection_records: tuple[ConnectionSourceEvidence, ...]
+    stated_answers: tuple[StatedAnswer, ...]
     stage: str
     agent: Any
 
@@ -89,6 +105,7 @@ class CapturedMuseTask:
         task = _MUSE_INPUT.validate_json(self.prompt)
         history = ModelMessagesTypeAdapter.validate_json(self.history_json)
         books_token = set_turn_evidence(self.book_records)
+        add_turn_stated_answers(self.stated_answers)
         inspection_token = begin_connection_inspection()
         exposure_token = set_tool_exposure(ToolExposure(frozenset()))
         reader_token = set_reader_message(task.muse_turn.user_message)
@@ -192,5 +209,6 @@ def prepare_muse_task(snapshot: CapturedStageSnapshot, *, agent: Any = None) -> 
     return CapturedMuseTask(
         prompt=task.model_dump_json(), history_json=json.dumps(history),
         book_records=tuple(books.values()), connection_records=tuple(connections.values()),
+        stated_answers=recorded_stated_answers(history),
         stage=exchange.stage, agent=agent,
     )

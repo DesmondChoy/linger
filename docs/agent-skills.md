@@ -94,7 +94,36 @@ raw output, before schema validation. `MuseCandidate` itself rejects the label
 stem (`SENTENCE_` followed by a number) and any `{{`/`}}` wrapper, including
 fullwidth and HTML-entity forms, in its reply, claims, quotes and memory text, in
 every mode, so a mangled label is a retry rather than released text. Other
-invented markers that use neither are not detected. `build_triage_model` selects the triage model from the
+invented markers that use neither are not detected.
+
+After a candidate passes those checks, draft or revision, the boundary adds
+mappings from the turn's stated answers without a model call
+(`claim_remap.stated_claim_additions`). A claim mapped only to book records
+gains at most one other book record, which the candidate must already declare.
+The record is that of the first stated answer, in list order, whose verified
+`source_quote` shares a phrase with the claim: two content words in the same
+order with the same function words between them, inside one sentence in both,
+that the text of none of the claim's other declared records contains. The
+answer text is the Librarian's paraphrase and does not count. An answer is used
+only if its quote stands in its record's text in the turn's evidence, ignoring
+whitespace, and a first or last quote word that is a fragment of a longer word
+there is ignored. Content words are casefolded runs of letters, three or more
+long, outside a fixed list of function words, speech verbs, and contraction
+stems, compared without stemming. A known limit: any such phrase, even one as
+plain as "little girl" or "chapter five", is taken as evidence that the claim
+draws on the quoted record. Nothing is added when that
+record already supports the claim or an overlapping claim holding the phrase,
+so reapplying the step changes nothing. The boundary appends the claim to that
+record's first declaration and keeps the addition only if the candidate still
+passes `validate_muse_output`, so a revision's retention rules hold. In a
+revision it never attaches a record that the reviewed draft mapped to a flagged
+sentence, and adds nothing when the findings could not be placed. It never
+removes or alters a mapping, never introduces a record, and leaves claims that
+a memory, public page, or reader line also supports.
+Provenance reviews the added mapping like any other. Sentence labels rebuild the
+reviewed draft with the same additions.
+
+`build_triage_model` selects the triage model from the
 `LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
 and the configured model for Anthropic. Serendipity's fixed schema covers all three of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
@@ -391,7 +420,9 @@ removes them from answer text, so
 `RetrievalResult.stated_answers` names real evidence IDs beside the unchanged
 strength, reason, evidence, and limitations. The list is a reading aid for the
 draft, not evidence or authority: Muse's declared evidence, Provenance, and
-release validation apply as before. The step runs at `medium` reasoning effort
+release validation apply as before. The search also registers the list in the
+turn's evidence ledger, where `MuseSkillBoundary` uses it to complete Muse's
+source mappings as described under Muse's candidate checks. The step runs at `medium` reasoning effort
 under a 20-second limit and cannot fail a search. If the run or its repair
 fails or outlasts the limit, or an injected
 strength judge replaced Librarian's own assessment, the result carries an empty
