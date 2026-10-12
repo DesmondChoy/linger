@@ -141,13 +141,8 @@ One review call returns both decisions, and they are decoupled:
 
 - `response_decision` — `pass`, `revise`, or `reject` for the user-facing text.
   A first `revise` grants exactly one revision, which returns through the same
-  review path. A `revise` on that revision grants no second rewrite: when every
-  open finding is `unsupported_claim`, `unresolved_evidence`, `misattribution`,
-  or `uncited_web_claim` and is placed on sentences of the reply, the
-  application deletes those sentences and requests a third review of the
-  trimmed candidate, which only a `pass` releases. A rejection, an untrimmable
-  revision, or a trimmed candidate that does not pass produces an
-  application-authored safe decline.
+  review path. A rejection or a failed revision produces an application-authored
+  safe decline.
 - `capture_decision` — `allow_capture`, `reject_capture`, or `no_candidate` for
   an automatic memory candidate. Grounds for veto are privacy risk, sensitive
   inference, unsupported provenance, and injection risk.
@@ -173,9 +168,7 @@ validated by exact-substring containment against the resolved source. Shape and 
 faults use an RFC 6901 structural path. Only response findings guide the one
 permitted Muse revision. The next review receives `previous_response_review`
 and returns exactly one `finding_resolutions` entry for each earlier response
-finding. The review of a trimmed revision receives Muse's revision and the
-findings that prompted the trim in the same field, and its capture decision
-is the one that counts. An unresolved finding prevents a pass. Earlier review data grants no
+finding. An unresolved finding prevents a pass. Earlier review data grants no
 additional source or reading authority. The first review inspects the whole
 reply and reports every independent defect it detects. A revision review checks
 the current mappings and finding locations, including removed group members.

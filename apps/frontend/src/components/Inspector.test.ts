@@ -138,41 +138,6 @@ it('surfaces provenance finding codes on a candidate that was corrected and rele
   expect(html).toContain('corrected and released')
 })
 
-it('shows that the application removed sentences before the last review', () => {
-  const turn = exampleTurn()
-  turn.inspection.release = {
-    ...turn.inspection.release!,
-    release_source: 'muse_candidate',
-    provenance_verdicts: ['revise', 'revise', 'pass'],
-    finding_codes: ['unsupported_claim'],
-    revision_count: 1,
-    trimmed_sentence_count: 2,
-  }
-
-  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
-
-  expect(html).toContain('revise → revise → pass')
-  expect(html).toContain('the application removed 2 sentences')
-})
-
-it('counts one removed sentence in the singular and none not at all', () => {
-  const turn = exampleTurn()
-  const release = {
-    ...turn.inspection.release!,
-    release_source: 'muse_candidate' as const,
-    provenance_verdicts: ['revise' as const, 'revise' as const, 'pass' as const],
-    finding_codes: ['unsupported_claim' as const],
-    revision_count: 1,
-  }
-  turn.inspection.release = { ...release, trimmed_sentence_count: 1 }
-  const one = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
-  turn.inspection.release = { ...release, trimmed_sentence_count: 0 }
-  const none = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
-
-  expect(one).toContain('the application removed 1 sentence ')
-  expect(none).not.toContain('the application removed')
-})
-
 it('marks findings as blocking when the candidate was withheld', () => {
   const turn = exampleTurn()
   turn.inspection.release = {

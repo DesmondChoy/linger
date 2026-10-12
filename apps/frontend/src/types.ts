@@ -126,8 +126,6 @@ export type ReleaseInspection = {
   finding_codes: RiskCode[]
   released_evidence_ids: string[]
   revision_count: number
-  // Sentences the application removed from Muse's revision before the last review.
-  trimmed_sentence_count?: number
   failure_stage: 'emotional_boundary_preflight' | 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
   failure_type: 'application' | 'model' | 'validation' | null
   failure_retryable: boolean | null

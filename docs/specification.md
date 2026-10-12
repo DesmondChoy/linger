@@ -89,7 +89,7 @@ approval. Content about sensitive traits is never captured.
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
 - capture-triggered memory curation in Section 4.2.5, with memory surfacing
   evaluated offline only;
-- a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, at most one deterministic sentence trim of that revision, and an application-authored safe decline;
+- a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
 - adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation;
 - offline, owner-reviewed retrieval-improvement experiments, plus proposed
@@ -275,11 +275,10 @@ support attributed personal context, not public factual claims. Unsupported,
 ambiguous, or changed evidence fails closed to the application-authored safe
 decline. This staged contract does not remove the remaining target fields above.
 
-Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path. A rejection produces an application-authored safe decline. When the review of the revision returns `revise` and every finding it leaves open is an evidence finding (`unsupported_claim`, `unresolved_evidence`, `misattribution`, or `uncited_web_claim`) placed on sentences of the reply, and removing them could not change what the rest says, the application removes those whole sentences without a model call, drops the declarations that lay in them, and submits the trimmed candidate for one further review; only a `pass` and the same deterministic validation release it, and the capture decision of that review applies. Any other result, and a revision that cannot be trimmed this way, produces the safe decline. Inspection and telemetry record the number of removed sentences. The [agent runtime skills architecture](agent-skills.md) states the conditions.
+Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
 For that second review, the application adds `previous_response_review` with
-the original candidate and its response findings; the review of a trimmed
-revision receives Muse's revision and the findings that prompted the trim. Provenance returns one
+the original candidate and its response findings. Provenance returns one
 `finding_resolutions` entry per earlier finding, identified by its zero-based
 index, with a resolved or unresolved status and an explanation. Missing,
 duplicate, or unknown indices fail validation; unresolved findings prohibit
@@ -324,9 +323,7 @@ flowchart TD
     V --> M
     P -->|pass| D[Application: deterministic evidence and policy checks]
     D --> U[Application releases reply]
-    P -->|second revise on trimmable evidence findings| T[Application: remove named sentences]
-    T -->|trimmed candidate, reviewed once| P
-    P -->|reject, or a revision that cannot be trimmed or still fails| F[Application safe decline]
+    P -->|reject or exhausted revision| F[Application safe decline]
 ```
 
 Repeated role labels denote runs of the same reusable object. Librarian
@@ -947,7 +944,7 @@ contained in evidence never gain tool authority.
 
 ### 6.5 Verification
 
-Every Muse candidate requires a recorded approving Provenance verdict before release. Provenance may pass, reject, or request one revision; after that revision the application may remove the sentences a second `revise` names and ask for one more review (Section 4.1). A candidate is not released when:
+Every Muse candidate requires a recorded approving Provenance verdict before release. Provenance may pass, reject, or request one revision. A candidate is not released when:
 
 - cited evidence is missing or unresolved;
 - attribution is incorrect;

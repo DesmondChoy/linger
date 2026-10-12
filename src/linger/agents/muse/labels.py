@@ -18,7 +18,7 @@ from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, Tool
 
 from src.linger.agents.muse.claim_remap import stated_claim_additions, with_supported_claim
 from src.linger.agents.muse.claim_repair import (
-    occurrences, _sentence_mappings, sentence_spans, label_sentences,
+    _occurrences, _sentence_mappings, _sentence_spans, label_sentences,
 )
 from src.linger.agents.muse.models import LABEL_TRACE, DraftSentence, MuseCandidate
 
@@ -75,7 +75,7 @@ def reviewed_draft(ctx: Any, sentences: tuple[DraftSentence, ...]) -> MuseCandid
     for index, claim in stated_claim_additions(draft, turn_stated_answers(), turn_evidence()):
         if (index, claim) in reviewed:
             draft = with_supported_claim(draft, index, claim)
-    spans = sentence_spans(draft.reply)
+    spans = _sentence_spans(draft.reply)
     if len(spans) != len(sentences):
         return None
     # Sentence text, flags, labels, and every declaration, field and text a label can carry.
@@ -142,7 +142,7 @@ def _use_texts(uses: list[dict]) -> list[str]:
 
 def _units(draft: MuseCandidate, sentences: tuple[DraftSentence, ...]) -> dict[str, tuple[int, int, int, int]]:
     """Label -> (draft start, draft end, first sentence, last sentence)."""
-    spans = sentence_spans(draft.reply)
+    spans = _sentence_spans(draft.reply)
     units: dict[str, tuple[int, int, int, int]] = {}
     for index, sentence in enumerate(sentences):
         if sentence.label:
@@ -204,7 +204,7 @@ def _carried(
         return []
     from src.linger.orchestration.turn_context import turn_evidence
 
-    spans = sentence_spans(draft.reply)
+    spans = _sentence_spans(draft.reply)
     placed = {label: start - units[label][0] for label, start, _ in placements}  # draft -> reply offset
     owner = {index: label for label, (_, _, first, last) in units.items()
              if label in placed for index in range(first, last + 1)}
@@ -226,7 +226,7 @@ def _carried(
     for use in draft.evidence_uses:
         claims: list[str] = []
         for claim in use.supported_claims:
-            found = occurrences(draft.reply, claim)
+            found = _occurrences(draft.reply, claim)
             for text in [claim] if any(whole(a, b) for a, b in found) else [
                     piece for a, b in found for piece in clips(a, b)]:
                 if text not in claims:
@@ -237,9 +237,9 @@ def _carried(
         data = use.model_dump(mode="json") | {"supported_claims": claims}
         if use.source_kind != "session_line":
             data["limit_claims"] = [text for text in use.limit_claims
-                                    if any(whole(a, b) for a, b in occurrences(draft.reply, text))]
+                                    if any(whole(a, b) for a, b in _occurrences(draft.reply, text))]
             data["exact_quote"] = quote if quote and any(
-                whole(a, b) for a, b in occurrences(draft.reply, quote)) else None
+                whole(a, b) for a, b in _occurrences(draft.reply, quote)) else None
         if use.source_kind == "book_corpus" and (record := turn_evidence().get(use.evidence_id)):
             data["source_location"] = record.location
         carried.append(data)
@@ -285,7 +285,7 @@ def annotate_retry(retry: ModelRetry, expansion: Expansion) -> ModelRetry:
         if isinstance(start, int) and isinstance(end, int):
             spans = [(start, max(end, start + 1))]
         else:
-            spans = occurrences(expansion.reply, value) if isinstance(value, str) and value.strip() else []
+            spans = _occurrences(expansion.reply, value) if isinstance(value, str) and value.strip() else []
         labels = [label for label, a, b in expansion.placements if any(s < b and a < e for s, e in spans)]
         if labels:
             error["from_labels"] = labels

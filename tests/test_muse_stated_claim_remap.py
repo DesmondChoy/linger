@@ -15,7 +15,7 @@ from pydantic_ai.models.function import FunctionModel
 from apps.backend.contracts import ContextResolution, MuseRevisionInput, MuseRevisionReview, MuseTurn, TurnPolicy
 from src.linger.agents.muse.agent import MuseSkillBoundary, build_muse_agent, validate_muse_output
 from src.linger.agents.muse.claim_remap import stated_claim_additions
-from src.linger.agents.muse.claim_repair import _sentence_mappings, sentence_spans, label_sentences
+from src.linger.agents.muse.claim_repair import _sentence_mappings, _sentence_spans, label_sentences
 from src.linger.agents.muse.models import DraftSentence, MuseCandidate
 from src.linger.agents.muse.skills import reflection_run_options
 from src.linger.contracts.librarian import EvidenceRecord, StatedAnswer
@@ -276,11 +276,11 @@ def sentences_for(draft: MuseCandidate, flagged=()) -> tuple[DraftSentence, ...]
     return label_sentences(draft, tuple(
         DraftSentence(text=draft.reply[a:b], flagged=i in flagged, needs_source=False,
                       finding_indexes=(0,) if i in flagged else (), source_mappings=_sentence_mappings(draft, a, b))
-        for i, (a, b) in enumerate(sentence_spans(draft.reply))))
+        for i, (a, b) in enumerate(_sentence_spans(draft.reply))))
 
 
 def revision_prompt(draft: MuseCandidate, flagged_text: str, *, sentences: bool = True) -> str:
-    flagged = [i for i, (a, b) in enumerate(sentence_spans(draft.reply)) if draft.reply[a:b] == flagged_text]
+    flagged = [i for i, (a, b) in enumerate(_sentence_spans(draft.reply)) if draft.reply[a:b] == flagged_text]
     return MuseRevisionInput(
         mode="revision",
         muse_turn=MuseTurn(

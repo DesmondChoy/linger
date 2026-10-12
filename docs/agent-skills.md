@@ -27,7 +27,7 @@ calls or transfer application authority to a model.
 | Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
 | Serendipity | [Source gathering](../src/linger/agents/serendipity/skills/source-gathering/SKILL.md) | `ConnectionDiscoveryInput` → `SourceBundle` or `ConnectionDecline` | `connection_exploration` with the `gather_sources` intent; returns every named source it found without ranking, and every Librarian-judged passage and opened public page must stay in the bundle |
 | [Provenance](../src/linger/agents/provenance/README.md) · [assignment](../src/linger/agents/provenance/skills.py) | [Emotional preflight](../src/linger/agents/provenance/skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` → `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse or its tools |
-| Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, when reviewing a revision or a trimmed revision, the candidate it replaces and the findings to recheck |
+| Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, on revision, the original candidate and findings to recheck |
 | Provenance | [Curation review](../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` → `CurationProvenanceReview` | `review_curation` binds the verdict to the exact proposal and source snapshot |
 
 The Python models define machine-readable schemas. `SKILL.md` describes the
@@ -261,69 +261,6 @@ located, the application omits the sentence restrictions. The second review
 still checks the complete reply within the original evidence authority. Muse
 never releases its own reply.
 
-Muse does not revise twice. When the review of the revision returns `revise`,
-the application's last step before declining is `trim_named_sentences`
-([`sentence_trim.py`](../src/linger/orchestration/sentence_trim.py)), with no
-model call: it deletes every sentence of the revision that a prompting finding
-names and sends the result to Provenance for a third review. The prompting
-findings are that review's response findings and every first-review finding it
-marks unresolved. The step repairs no text; when in doubt it refuses and the
-turn declines. It runs at most
-once per turn, never after the first review, a `reject`, a failed revision, or
-a pending clarification. It applies only when all of these hold; otherwise the
-turn declines as before:
-
-- Every prompting finding has the code `unsupported_claim`, `unresolved_evidence`,
-  `misattribution`, or `uncited_web_claim`. Each says reply text asserts
-  something its declared sources do not establish, resolve, attribute, or
-  cite, so deleting the text removes the defect. Spoiler, emotional, persona,
-  advice, scope, and security findings are never trimmed.
-- Every prompting finding can be placed on sentences of the reply, by the same
-  sentence splitting and finding placement that build `draft_sentences`. A
-  finding about anything other than reply text or its mappings cannot. An
-  earlier finding, which was located on the draft, is placed only by its
-  quoted reply text standing verbatim in the revision.
-- A declared claim, limit, or exact quote is removed whole, with every
-  sentence it touches.
-- Removal could not change what the remainder says. The trim is refused when
-  the reply has list items, a Markdown link or image, or a numbered citation
-  such as `[1]`; when a removed sentence, or the one before it, ends in an
-  initial, a short abbreviation (`Mr.`, `e.g.`, `etc.`), an ellipsis, or a
-  colon, or a removed sentence or the one after it opens in lower case; when any quotation mark, bracket, parenthesis, `**`, `_`, or backtick
-  pair, or single `*` pair, is unmatched or would be cut, since a removed sentence may hold a whole
-  pair but never part of one; when a kept sentence beside a removed one has
-  fewer than four words; and when the kept sentence after a removed one opens
-  with wording that leans on what came before: a connective (`that`, `this`,
-  `these`, `those`, `so`, `then`, `and`, `but`, `or`, `nor`, `yet`, `thus`,
-  `therefore`, `hence`, `however`, `instead`, `otherwise`, `because`, `which`,
-  `such`, `both`, `nevertheless`, `nonetheless`, `there`, `here`, `as a
-  result`, `for example`, `for instance`, `in contrast`, `by contrast`), a
-  pointer such as `the first`, `the second`, `the other`, `the latter`, or
-  `the former`, a third-person pronoun (`he`, `she`, `they`, `him`, `her`,
-  `his`, `their`, `it`) whose antecedent may have been removed, or `also` in
-  its first four words.
-- The remaining reply still has a claim mapped to a book, memory, or web
-  record, and the trimmed candidate passes `MuseCandidate` validation, the
-  mapping checks, and release validation.
-
-Kept sentences, declarations, and the memory nomination are unchanged. Claims,
-limits, and quotations that lay in removed sentences are dropped, a declaration
-left with no supported claim is dropped, and the stronger of the breaks around
-a removed sentence joins its neighbours. The third review's
-`previous_response_review` names Muse's revision and every prompting finding. Only a `pass`, then the unchanged release validation,
-releases the trimmed reply as `muse_candidate`; that review also decides
-capture. A `revise`, `reject`, or emotional-boundary result ends the turn as it
-would after the second review, and a failed third review is a
-`provenance_review` failure. `revision_count` stays 1. The release records
-`trimmed_sentence_count`, which the turn inspection, the `reflection.release`
-span, and the backend log carry as a count without text; the progress stream
-shows the third review as another release review. An unexpected error in the
-step logs a warning without text and leaves the decline. The trim is
-deliberately conservative, and a refused trim declines exactly as before.
-Removing a sentence can still change how the remainder reads in ways only the
-third review can catch: deleting "It would be wrong to say the following."
-leaves the sentence after it standing as an assertion.
-
 Librarian's chapter-boundary decision begins with one explicit assessment per
 supplied memory. Each assessment names canonical passages and explains whether
 they establish earlier knowledge, provide no support, or conflict with the
@@ -413,8 +350,7 @@ the exact question in `context.required_clarification`. Provenance can review
 that question's catalog metadata without demanding book passages. This field
 does not authorize added plot claims or bypass the rest of the review.
 On revision, `previous_response_review` also supplies the original candidate
-and its response findings; for a trimmed revision it supplies Muse's revision
-and the prompting findings. Provenance returns one `finding_resolutions` entry
+and its response findings. Provenance returns one `finding_resolutions` entry
 per earlier finding. Application validation rejects missing, duplicate, or
 unknown indices, and a pass with unresolved findings. Resolution explanations
 remain semantic judgments; the reviewer must also inspect the whole revised

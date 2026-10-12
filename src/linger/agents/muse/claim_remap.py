@@ -14,7 +14,7 @@ when the phrase is as plain as "little girl" or "chapter five".
 import re
 from collections.abc import Mapping
 
-from src.linger.agents.muse.claim_repair import _normalized, occurrences, overlaps, _splits_word
+from src.linger.agents.muse.claim_repair import _normalized, _occurrences, _overlaps, _splits_word
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.contracts.librarian import EvidenceRecord, StatedAnswer
 
@@ -81,10 +81,10 @@ def _shared_phrase(claim: str, quote: str, texts: list[str]) -> tuple[str, ...] 
 
 def _covers(candidate: MuseCandidate, claims: list[str], claim: str, phrase: tuple[str, ...]) -> bool:
     """Whether one of `claims` overlaps `claim` in the reply and already holds the phrase's content words."""
-    found = occurrences(candidate.reply, claim)
+    found = _occurrences(candidate.reply, claim)
     return any(
         {phrase[0], phrase[-1]} <= _content_words(covering)
-        and any(overlaps(a, b, found) for a, b in occurrences(candidate.reply, covering))
+        and any(_overlaps(a, b, found) for a, b in _occurrences(candidate.reply, covering))
         for covering in claims
     )
 

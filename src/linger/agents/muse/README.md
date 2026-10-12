@@ -110,13 +110,7 @@ Provenance's `candidate-review` skill independently reviews each complete Muse
 candidate with its isolated evidence and policy context. If the review requests
 a revision, Muse receives the same reflection skill, released history, draft
 messages, and response-scoped findings. The application allows one such rewrite
-and reviews the rewritten candidate again. Muse is not asked to rewrite twice:
-if that review returns `revise` on evidence findings placed on sentences, the
-application deletes those sentences itself and submits the trimmed candidate
-for one more review, as the
-[agent runtime skills architecture](../../../../docs/agent-skills.md#authority-and-run-context)
-describes. A reply released this way is still `muse_candidate`, with
-`trimmed_sentence_count` recorded.
+and reviews the rewritten candidate again.
 
 The revision envelope includes the earlier review's accepted claims, supporting
 sources, reviewed quotation interiors, verified reader Lines, and draft

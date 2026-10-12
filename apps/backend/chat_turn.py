@@ -1372,7 +1372,7 @@ async def run_chat_turn(
 
     logger.info(
         "Agent run completed elapsed=%.2fs release_source=%s "
-        "provenance_path=%s findings=%s revisions=%d trimmed_sentences=%d failure_stage=%s",
+        "provenance_path=%s findings=%s revisions=%d failure_stage=%s",
         perf_counter() - started,
         release.release_source,
         ",".join(release.provenance_verdicts) or "none",
@@ -1380,7 +1380,6 @@ async def run_chat_turn(
         # content and is intentionally absent from logs and API responses.
         ",".join(release.finding_codes) or "none",
         release.revision_count,
-        release.trimmed_sentence_count,
         release.failure_stage or "none",
     )
     inspection.release = ReleaseInspection(
@@ -1396,27 +1395,19 @@ async def run_chat_turn(
             else ()
         ),
         revision_count=release.revision_count,
-        trimmed_sentence_count=release.trimmed_sentence_count,
         failure_stage=release.failure_stage,
         failure_type=release.failure_type,
         failure_retryable=release.failure_retryable,
         capture=capture.inspection,
     )
     verdict_path = " → ".join(release.provenance_verdicts)
-    trimmed = release.trimmed_sentence_count
-    trim_note = (
-        f" The application removed {trimmed} sentence{'' if trimmed == 1 else 's'} "
-        "that the review of Muse's revision named, before the last review."
-        if trimmed
-        else ""
-    )
     if release.release_source == "muse_candidate":
         inspection.traces[-1] = {
             "agent": "Muse",
             "status": "complete",
             "detail": (
                 "Provenance and deterministic release validation approved the "
-                "candidate that was released." + trim_note
+                "candidate that was released."
             ),
         }
         provenance_status = "complete"
@@ -1510,7 +1501,6 @@ async def run_chat_turn(
                 provenance_status = "declined"
                 provenance_detail = (
                     f"Recorded review path: {verdict_path}; no Muse candidate was released."
-                    + trim_note
                 )
     inspection.traces.append({
         "agent": "Provenance",
