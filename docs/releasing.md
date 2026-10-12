@@ -11,7 +11,7 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
 1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the six CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
+2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
 3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 4. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
 5. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
@@ -94,7 +94,7 @@ For failure and approval notifications, enable Actions notifications in your Git
 
 ## Run an approved image locally
 
-1. Prepare a private environment file from `.env.example`, with the selected provider's key. Keep `LINGER_WEB_SEARCH_ENABLED=false` unless public search is required. Set `LOGFIRE_TOKEN` if deployed telemetry is wanted.
+1. Prepare a private environment file from `.env.example`, with the selected provider's key. Keep `LINGER_WEB_SEARCH_ENABLED=false` unless public search is required. Keep `LINGER_DEV_INSPECT=false` for real readers. Set `LOGFIRE_TOKEN` if deployed telemetry is wanted.
 2. Set `LINGER_IMAGE` to the approved registry digest. Authenticate to GHCR first if the package is private.
 3. Start the image:
 
@@ -112,9 +112,9 @@ The release image targets `linux/amd64`. Docker on Apple Silicon runs this image
 
 To build the combined image locally, `docker compose -f compose.release.yaml build` creates `linger:local`. A local build has not passed the release workflow. The default `compose.yaml` builds the separate backend and frontend services described in the [setup guide](../README.md#start-with-docker-compose).
 
-The release image serves the frontend and backend from one origin and one backend process. Compose explicitly sets `LINGER_STATE_DIR=/var/lib/linger` and `LINGER_MEMORY_DIR=/var/lib/linger/memories`. Accounts, transcripts, and memories live in the named state volume, while corpus and local model files remain inside the image.
+The release image serves the frontend and backend from one origin and one backend process. Compose explicitly sets `LINGER_STATE_DIR=/var/lib/linger` and `LINGER_MEMORY_DIR=/var/lib/linger/memories`. Accounts, transcripts, declared reading progress, and memories live in the named state volume, while corpus and local model files remain inside the image.
 
-Existing host data is not imported automatically. To move host accounts, transcripts, and memories, stop the old process and copy a consistent snapshot into the new state volume with ownership `10001:10001`. Test the snapshot with a disposable volume before using it for real accounts.
+Existing host data is not imported automatically. To move host accounts, transcripts, reading progress, and memories, stop the old process and copy a consistent snapshot into the new state volume with ownership `10001:10001`. Test the snapshot with a disposable volume before using it for real accounts.
 
 ## Check an image locally
 
@@ -137,7 +137,7 @@ Without the second argument, replacement uses the same image and tests persisten
 ## Back up state and roll back
 
 1. Stop new traffic and allow active turns to finish. Stop the service with `docker compose -f compose.release.yaml stop`; Compose allows 60 seconds for shutdown.
-2. Back up the entire state directory while the service is stopped. Include both SQLite databases, any `-wal` and `-shm` files, and all memory Markdown and policy files.
+2. Back up the entire state directory while the service is stopped. Include `accounts.sqlite3`, `transcripts.sqlite3`, `reading_progress.sqlite3`, any `-wal` and `-shm` files, and all memory Markdown and policy files.
 
 ```bash
 	mkdir -p backups

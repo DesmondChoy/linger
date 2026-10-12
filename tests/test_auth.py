@@ -23,7 +23,11 @@ with patch.dict(
     from src.linger.contracts.emotional import EmotionalBoundaryAssessment
     from src.linger.orchestration.progress_context import emit_progress
     from src.linger.orchestration.reflection import ReflectionRelease
-    from src.linger.services.memory import AccountContext, MemoryPolicyService
+    from src.linger.services.memory import (
+        AccountContext,
+        AutomaticMemoryCandidate,
+        MemoryPolicyService,
+    )
 
 
 class AccountStoreTests(unittest.TestCase):
@@ -213,6 +217,26 @@ class SignInTests(unittest.TestCase):
         self.assertEqual("Approved reply", details["response"]["reply"])
         self.assertIn("inspection", details["response"])
         self.assertIn("Muse", [event["agent"] for event in details["progress"]])
+
+    def test_history_names_a_memory_saved_before_inspect_recorded_it(self) -> None:
+        account = AccountContext(auth.account_id_for("alice"))
+        main.transcript_store.append_turn(
+            account.account_id, self.session_id, "turn-before-handles", "I fill silence.", "Reply.",
+            details={"response": {"inspection": {"release": {"capture": {"storage": "committed"}}}}},
+        )
+        main.memory_service.set_capture_enabled(account, True)
+        saved = main.memory_service.save_automatic(account, AutomaticMemoryCandidate(
+            text="I fill silence.", source_event_id="turn-before-handles",
+            review_allows_capture=True, contains_sensitive_content=False,
+        )).record
+
+        memory = self.history(self.alice)[0]["turns"][0]["details"]["response"]["inspection"]["memory"]
+        self.assertEqual(saved.memory_id, memory["captured_memory_id"])
+        self.assertNotIn("texts", memory)
+
+        with patch.object(main.settings, "linger_dev_inspect", True):
+            memory = self.history(self.alice)[0]["turns"][0]["details"]["response"]["inspection"]["memory"]
+        self.assertEqual({saved.memory_id: "I fill silence."}, memory["texts"])
 
     def test_a_saved_conversation_survives_a_restart_for_its_owner_only(self) -> None:
         self.assertEqual(200, self.chat(self.alice).status_code)

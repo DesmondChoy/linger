@@ -113,3 +113,43 @@ describe('edgeDetail', () => {
     expect(JSON.stringify(detail.records[0].value)).toContain('unsupported_claim')
   })
 })
+
+describe('developer trace in component popups', () => {
+  function traced(): TurnRecord {
+    const record = turn()
+    record.inspection.dev_trace = {
+      agent_exchanges: [
+        { role: 'Provenance', stage: 'emotional_boundary_preflight', skill: null, input_prompt: '{"line": "x"}', status: 'success', steps: [], output: { decision: 'continue_reflection' } },
+        { role: 'Muse', stage: 'draft', skill: null, input_prompt: '{"mode": "draft"}', status: 'success', steps: [{ kind: 'tool-call', tool: 'serendipity_explore', args: {} }], output: { reply: 'Draft.' } },
+        { role: 'Serendipity', stage: 'exploration', skill: 'discover', input_prompt: 'find links', status: 'success', steps: [], output: { status: 'proposal' } },
+      ],
+      connection_events: [
+        { kind: 'query', status: 'sent', source: 'web', query: 'homesickness letters' },
+        { kind: 'discovery', status: 'proposal', decision: { shortlist: ['mem_1'] } },
+      ],
+    }
+    return record
+  }
+
+  it('puts Serendipity search, results and ranking first, then its own run', () => {
+    const detail = componentDetail('serendipity', traced())
+    const labels = detail.records.map((record) => record.label)
+    expect(labels[labels.length - 3]).toBe('Search, results and ranked decision, in order')
+    expect(JSON.stringify(detail.records)).toContain('homesickness letters')
+    expect(labels.at(-1)).toContain('exploration (discover) · success — output')
+  })
+
+  it('gives each agent only its own runs, with the prompt parsed', () => {
+    const muse = componentDetail('muse', traced())
+    const input = muse.records.find((record) => record.label.endsWith('— input'))
+    expect(input?.value).toEqual({ mode: 'draft' })
+    expect(muse.records.some((record) => record.label.includes('tool calls'))).toBe(true)
+    const preflight = componentDetail('preflight', traced()).records.map((record) => record.label)
+    expect(preflight.some((label) => label.includes('emotional boundary preflight'))).toBe(true)
+    expect(componentDetail('provenance', traced()).records.some((record) => record.label.includes('preflight'))).toBe(false)
+  })
+
+  it('adds nothing when the server did not record a trace', () => {
+    expect(componentDetail('serendipity', turn()).records.some((record) => record.collapsed)).toBe(false)
+  })
+})

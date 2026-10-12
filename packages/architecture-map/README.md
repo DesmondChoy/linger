@@ -5,10 +5,10 @@ evaluation Scenes, and the detail drawer. Two applications render it.
 
 - [`apps/evaluation-explorer`](../../apps/evaluation-explorer) is the standalone
   explorer. It supplies its own page header, footer, and chrome.
-- [`apps/frontend`](../../apps/frontend) embeds the graph beside chat, maps live
-  turn activity, and uses exported evaluation records for saved playback. Its
-  inspector retains every completed turn and opens components in that turn's
-  context.
+- [`apps/frontend`](../../apps/frontend) embeds a compact graph beside chat,
+  maps live turn activity, and replays exported synthetic personas. Component
+  and handoff details open in dialogs. **All turns and contracts** opens the
+  completed-turn timeline, with each turn's recorded contracts and outcome.
 
 ## Consuming it
 
@@ -25,8 +25,18 @@ import '@linger/architecture-map/src/map.css'
 
 `useScenarioExplorer` owns selection and walkthrough state but no layout, so a
 host arranges `ScenarioSelect`, `ScenarioStage`, and `Inspector` to suit its own
-page. `Graph` renders any `Scene`, which is how the chat panel maps an observed
-run rather than a curated one.
+page. `Graph` renders any `Scene`. The chat panel supplies an observed run,
+while the explorer supplies a curated explanation. These views share the graph
+and component registry, but the chat application's Inspector owns its completed
+turn records and developer content traces.
+The shared `Inspector` describes expected roles, bounded handoffs, and archived
+catalog metadata. It does not load live account records or raw developer traces.
+
+`Scene.layout = 'compact'` arranges the conversation across two rows, places
+specialists above it, and places the deterministic Memory & Policy component
+below release. Without this option, `layoutScene` uses the explorer's wider
+regions. The graph keeps node text readable and uses horizontal scrolling when
+the viewport is narrower than the layout.
 
 ## Styling
 
@@ -46,8 +56,6 @@ through.
 - `scenarios.ts` — the component registry and every curated Objective route.
 - `catalog.json` — generated snapshot of catalog text and archived evaluation
   metadata, read from `synthetic-journal-evaluation/scenarios`.
-- `evaluations.json` and `evaluations.ts` — exported evaluation transcripts,
-  grades, and playback selection. Available playback depends on this snapshot.
 - `layout.ts` — places existing Scene nodes in labelled regions without changing
   their semantics.
 - `Graph.tsx`, `Icon.tsx`, `Inspector.tsx`, `ScenarioExplorer.tsx`, `map.css`.
@@ -62,10 +70,9 @@ pnpm --dir apps/evaluation-explorer test
 pnpm --dir apps/evaluation-explorer lint
 ```
 
-Refresh both data snapshots and check that they match the available source files:
+Refresh the catalog snapshot and check that it matches the available source files:
 
 ```sh
 pnpm --dir apps/evaluation-explorer refresh-data
 uv run python apps/evaluation-explorer/scripts/export_catalog.py --check
-uv run python apps/evaluation-explorer/scripts/export_evaluations.py --check
 ```

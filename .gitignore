@@ -37,3 +37,6 @@ build/
 
 # Accounts and per-account chat transcripts (SQLite, with WAL side files)
 data/*.sqlite3*
+
+# Personal (individual) course report; kept local, not shared with the team
+docs/report/individual-report-serendipity.md

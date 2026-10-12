@@ -165,11 +165,14 @@ offered to the draft and to any revision:
 and `own_earlier_reflections`, `named_sources`, `source_comparison`, and
 `outside_recommendation` pin its `intent` to `recall_memory`, `gather_sources`,
 `find_connection`, and `get_recommendation`.
-`unsure`, or a tool offered only because it ran earlier, leaves the intent open.
+A request such as "Does anything I've read speak to this?" is a
+`source_comparison` and pins `find_connection`. Asking for a new outside work
+pins `get_recommendation`. `unsure`, or a tool offered only because it ran
+earlier, leaves the intent open.
 A pending clarification, or a reading context confirmed in the current turn,
-always adds the book tools; a chapter carried from an earlier turn leaves
-exposure to triage. Only tools that ran in a released turn are remembered, matching the
-session history and evidence handles, so a declined draft cannot widen later
+always adds the book tools; a chapter carried from an earlier turn or restored
+from saved account progress leaves exposure to triage. Only tools that ran in
+a released turn are remembered, matching the session history and evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
 Turn triage also classifies `override_attempt`: whether the reader's own
@@ -204,6 +207,33 @@ it never got to see. A remaining classifier miss is addressed inside turn
 triage itself, not by widening Muse's exposure mid-run.
 
 ## Authority and run context
+
+The interactive application's `ReadingProgressStore` holds explicit
+completed-chapter progress per account and work in
+`LINGER_STATE_DIR/reading_progress.sqlite3`. It stores the part and chapter,
+then validates those values against the currently registered and permitted
+revision when loading them. A released Muse reply or application clarification
+can save a declaration, including a lower ceiling. Inferred boundaries,
+named units, and exact passages are absent from this store. Saved progress
+survives session deletion and backend restarts and never selects a book.
+Routing identifies the work before it can bind a saved ceiling.
+
+Session progress carries through ordinary follow-ups about the same work and
+part. Lower declarations or unclear corrections reduce or retract that carried
+permission immediately, even when a turn fails. Higher declarations commit
+only after a released Muse reply or application clarification. Context
+preparation prefers that session slot over the account's saved progress.
+An unclear retraction does not erase the saved account record. Later routing
+or a comparison can reuse its saved chapter until a released explicit
+correction replaces it. Earlier session statements and evidence outside the
+reduced permission are excluded.
+
+For interactive `find_connection` turns, the application combines saved
+progress with any current confirmed permission. When that covers at least two
+books, the application supplies every book at its own ceiling. The current
+turn's confirmed permission replaces that book's saved entry. The comparison
+has no primary reading context. Trusted replay scopes bypass account progress,
+so a saved live account record cannot widen a synthetic Scene's grant.
 
 Muse receives only application-managed history. Rejected drafts are excluded
 from persistent session history. A first review may request one revision,
@@ -355,9 +385,12 @@ use this check; other Librarian skills are unaffected. `plan_book_request`
 rechecks the result with the same helper before retrieval. Acceptance still
 requires nonempty spans copied exactly from the supplied reader text.
 
-Application code joins the frozen plan's context and question spans into the bounded backend
-search query. The 2,000-character query limit applies after planning, so a long
-reader message can yield a short book query. `assess_book_evidence` then gives
+Application code joins the frozen plan's context and question spans into the
+bounded backend search query. Each book search removes that book's registered
+author-name words from the query, except words retained in its title or aliases.
+This avoids matching family or author references instead of the requested
+scene. The exact reader spans and canonical evidence remain unchanged. The
+2,000-character query limit applies after planning, so a long reader message can yield a short book query. `assess_book_evidence` then gives
 the same plan and permitted canonical passages to a second invocation. Every
 selected record must map to an existing requested part and explain its necessary
 support. A `sufficient` assessment must cover
@@ -429,8 +462,10 @@ connections, because the reader has already chosen them; Muse writes the
 comparison. Open-ended discovery ("anything I've read") keeps
 `find_connection` and its shortlist; because the reader named no books, that
 pinned request searches every granted book (`search_all_granted_books`) rather
-than a subset the model picks. Reviewed automatic capture stays under the
-existing server-controlled evaluation policy.
+than a subset the model picks. Interactive accounts without a stored policy
+permit automatic capture by default; a stored policy takes precedence. Other `MemoryPolicyService` callers
+default to capture disabled unless configured explicitly. Reviewed automatic
+capture stays under the stored account policy and application release checks.
 
 `run_curation_loop` implements reviewed curation as a callable application
 workflow. After an eligible automatic capture, chat selects the captured record

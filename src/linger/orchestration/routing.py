@@ -38,6 +38,7 @@ from src.linger.orchestration.turn_context import (
     confirmed_reading,
     reader_statements,
     routing_context,
+    saved_reading,
     session_id,
 )
 
@@ -101,6 +102,30 @@ async def _route_reader_message(
                 selection_basis=decision.basis,
             )
         selection = sessions.book_selection(session_id()) if session_id() else None
+        saved = saved_reading(scope.work_id) if existing is None else None
+        if saved is not None and (
+            selection is None or selection.book_id != scope.work_id
+            or selection.part_id == saved.part_id
+        ):
+            # Progress the reader stated in an earlier conversation outranks
+            # inference, but only once routing has identified this work.
+            bind_confirmed_reading(saved)
+            current_session = session_id()
+            if current_session is not None:
+                sessions.set_book_selection(current_session, sessions.BookSelection(
+                    book_id=scope.work_id, book_title=scope.title, part_id=saved.part_id,
+                ))
+                sessions.clear_pending_clarification(current_session)
+                sessions.clear_reading_candidate(current_session)
+            span.set_attribute("tool.status", "routed")
+            span.set_attribute("routing.selection_basis", decision.basis)
+            return RoutedWork(
+                kind="routed", request_id=request_id, work_id=scope.work_id,
+                book_version_id=scope.book_version_id, title=scope.title,
+                routing_confidence=decision.confidence,
+                max_chapter_inclusive=saved.chapter_max, part_id=saved.part_id,
+                boundary_confidence=1.0, selection_basis=decision.basis,
+            )
         if existing is None and selection is not None and selection.book_id == scope.work_id and selection.part_id != "main":
             sessions.set_pending_clarification(session_id(), sessions.PendingClarification(
                 book_id=scope.work_id, book_title=scope.title, part_id=selection.part_id,

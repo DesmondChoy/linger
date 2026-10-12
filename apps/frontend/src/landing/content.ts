@@ -30,7 +30,7 @@ export const landing = {
     body:
       'Replay recorded conversations from synthetic readers and see how each agent ' +
       'handled every scene. No sign-in needed.',
-    openLabel: 'Explore saved evaluations',
+    openLabel: 'Replay a persona',
   },
 
   footer: 'A course prototype. Accounts are for testing only; do not enter sensitive information.',

@@ -168,3 +168,17 @@ it('says plainly when a clean release raised no findings', () => {
 
   expect(html).toContain('No findings were raised')
 })
+
+it('names the saved memory by ID and says how to read it, without memory text', () => {
+  const turn = exampleTurn()
+  turn.inspection.release!.capture = {
+    nomination: 'candidate', provenance_decision: 'allow_capture', binding: 'exact',
+    storage: 'committed', reason_code: null,
+  }
+  turn.inspection.memory = { active_count: 2, captured_memory_id: 'mem_abc123', cited_memory_ids: [] }
+  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
+  expect(html).toContain('Muse proposed a memory, Provenance allowed it, and policy saved it.')
+  expect(html).toContain('mem_abc123')
+  expect(html).toContain('apps.backend.show_memories')
+  expect(html).toContain('2 saved memories were available to this turn.')
+})

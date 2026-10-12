@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ProgressEvent } from '../../types'
+import type { CaptureInspection, ProgressEvent, TurnRecord } from '../../types'
 import { buildLiveTurn } from './liveScene'
 
 let sequence = 0
@@ -131,5 +131,40 @@ describe('buildLiveTurn', () => {
     expect(running).toBe(false)
     expect(scene.summary).toBe('Waiting for the first stage of this turn.')
     expect(scene.nodes).toHaveLength(6)
+  })
+})
+
+describe('memory capture on the live map', () => {
+  function turnWithCapture(capture: CaptureInspection): TurnRecord {
+    return {
+      reply: 'Reply.',
+      progress: reflection,
+      memory_capture: null,
+      trace: { trace_id: 'a'.repeat(32) },
+      inspection: {
+        muse_turn: { turn_id: 'turn-capture', user_message: 'I fill silence.' },
+        release: { release_source: 'muse_candidate', provenance_verdicts: ['pass'], finding_codes: [], capture },
+      },
+    } as unknown as TurnRecord
+  }
+
+  it('draws Memory & Policy after Provenance when a memory was saved', () => {
+    const { scene } = buildLiveTurn({
+      events: reflection,
+      userMessage: 'I fill silence.',
+      turn: turnWithCapture({ nomination: 'candidate', provenance_decision: 'allow_capture', binding: 'exact', storage: 'committed', reason_code: null }),
+    })
+    const node = scene.nodes.find((item) => item.id === 'memory_policy')
+    expect(node?.footer?.right).toBe('saved')
+    expect(scene.edges.map((item) => item.id)).toContain('provenance-memory_policy')
+  })
+
+  it('leaves Memory & Policy off when Muse proposed nothing', () => {
+    const { scene } = buildLiveTurn({
+      events: reflection,
+      userMessage: 'I fill silence.',
+      turn: turnWithCapture({ nomination: 'no_candidate', provenance_decision: 'no_candidate', binding: 'not_applicable', storage: 'not_applicable', reason_code: 'not_applicable' }),
+    })
+    expect(scene.nodes.some((item) => item.id === 'memory_policy')).toBe(false)
   })
 })

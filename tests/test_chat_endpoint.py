@@ -35,7 +35,11 @@ with patch.dict(
         reflection_reply as run_reflection_gate,
     )
     from src.linger.orchestration.inspection_context import ConnectionRunInspection
-    from src.linger.services.memory import AccountContext, MemoryPolicyService
+    from src.linger.services.memory import (
+        AccountContext,
+        AutomaticMemoryCandidate,
+        MemoryPolicyService,
+    )
     from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 
 
@@ -666,6 +670,31 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("memory", source.kind)
         self.assertEqual("Your earlier reflection", source.label)
         self.assertNotIn("mem-secret-id", json.dumps(source.model_dump()))
+
+    async def test_inspection_names_the_memory_a_reply_used_without_its_text(self) -> None:
+        self.memory_service.set_capture_enabled(self.memory_context, True)
+        saved = self.memory_service.save_automatic(self.memory_context, AutomaticMemoryCandidate(
+            text="I reread letters when I feel far from home.",
+            source_event_id="fixture-letters",
+            review_allows_capture=True,
+            contains_sensitive_content=False,
+        )).record
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("memory", saved.memory_id), ("memory", saved.memory_id)),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        memory = response.inspection.memory
+        self.assertEqual(1, memory.active_count)
+        self.assertEqual([saved.memory_id], memory.cited_memory_ids)
+        self.assertNotIn("I reread letters", response.model_dump_json())
 
     async def test_duplicate_citations_collapse_to_one_source_each(self) -> None:
         book_id = "pg11-v01b38ea4-ch05-ln0960-1016"

@@ -17,14 +17,19 @@ Released Muse replies and application clarifications are saved per account in
 `data/transcripts.sqlite3`, together with their inspection details. Signing in
 loads these conversations into the feed and continues the latest session.
 Boundary replies and safe declines are absent from the saved transcript.
-A conversation belongs to exactly one account. Automatic memory captures use
-account-scoped Markdown storage under `memories/`. The public API exposes no
-memory CRUD operations.
+A conversation belongs to exactly one account. Explicit completed-chapter
+progress is saved per account and work in `data/reading_progress.sqlite3`.
+Saved progress survives new conversations, conversation deletion, sign-out,
+and backend restarts. It applies after the reader identifies the book.
+Automatic memory capture is enabled for interactive accounts without a stored
+policy; a stored account policy takes precedence. Captures use account-scoped
+Markdown storage under `memories/`. The public API exposes no memory CRUD or
+capture-preference operations.
 
 ## Setup
 
-For a single Docker image with persistent accounts, transcripts, and memories,
-use the [release and deployment guide](../docs/releasing.md).
+For a single Docker image with persistent accounts, transcripts, reading
+progress, and memories, use the [release and deployment guide](../docs/releasing.md).
 
 From the repository root:
 
@@ -46,13 +51,14 @@ The remaining backend settings are:
 | Setting | Purpose | Default |
 |---|---|---|
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
-| `LINGER_STATE_DIR` | Writable account and transcript database directory | `data/` |
+| `LINGER_STATE_DIR` | Writable account, transcript, and reading-progress database directory | `data/` |
 | `LINGER_MEMORY_DIR` | Writable account memory directory | `memories/` |
 | `LINGER_STATIC_DIR` | Built frontend directory served by FastAPI; the release image sets `/app/static` | unset |
 | `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | All five revisions in [`Settings`](backend/config.py) |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
 | `EXA_API_KEY` | Exa credential for Serendipity public-web search and separately invoked Sculptor retrieval research | unset |
 | `LOGFIRE_TOKEN` | Logfire write token for deployed or CI runs | unset |
+| `LINGER_DEV_INSPECT` | Developer or demo content traces and memory text in completed Inspect records; keep disabled for deployments used by real readers | `false` |
 
 Local Logfire credentials can come from `uv run logfire projects use` instead
 of `LOGFIRE_TOKEN`. Backend telemetry is metadata-only under
@@ -98,13 +104,18 @@ is available at <http://127.0.0.1:8000/docs>.
 - **Chat** shares one page with the live collaboration map and turn records. It
   sends one Line through the emotional-boundary preflight, Muse, optional
   Librarian or Serendipity calls, Provenance, and deterministic release
-  validation. The **Try a line** tray groups editable prompts by book. Selecting
-  a prompt fills the composer. **Send** submits it.
-- **New chat** creates a fresh session ID and clears the current progress and
+  validation. The **Try a conversation** tray offers eight guided paths for
+  spoilers, grounding, memory, web, cross-book connections, declines, sessions,
+  and safety. Paths include steps and **Watch for** hints, with an optional book
+  filter and **Try another wording**. A Line step fills the editable composer.
+  **Send** submits it.
+- **New chat** creates a fresh session ID and clears the current activity and
   error display. Earlier conversations and their turn records remain in the feed.
+  Saved reading progress remains available when the reader identifies a book.
 - **Delete** removes the selected conversation's saved transcript, inspection
   details, and in-process session state after confirmation. Deleting the active
-  conversation starts a fresh session. Account-scoped memories persist.
+  conversation starts a fresh session. Account-scoped memories and saved
+  reading progress persist.
 - **Sign out** revokes the current token and clears the browser's remembered
   account. Saved conversations remain available on the next sign-in.
 
@@ -114,25 +125,46 @@ the user-facing frontend contract.
 
 - The **collaboration map** follows the server's content-free progress stream
   while a turn runs. A completed turn combines that stream with released
-  diagnostics. Selecting a component or connection opens the contract it
-  carried on that turn. The turn selector changes the mapped turn while every
-  completed turn remains in the record below it.
-- **Open a saved evaluation** displays recorded synthetic runs from the shared
-  generated snapshot. Select a scenario, run, and Scene to inspect the fixed
-  reader message, seeded memories, recorded route, expected outcomes, grades,
-  and reply. These records do not execute agents. The separate
+  diagnostics. Selecting a component or connection opens its turn contract in
+  a dialog. **All turns and contracts** opens the conversation timeline. Escape,
+  **Close**, and the backdrop dismiss these dialogs.
+- The **synthetic persona gallery** displays checked-in persona JSON snapshots.
+  A persona opens its recorded conversation and turn map, with the latest run
+  selected first and a selector for earlier runs. Each Scene includes its
+  adopted answer key, deterministic grade, and saved review assessment when
+  present. Offline memory-curation records have a separate presentation.
+  These records do not execute agents. The separate
   [evaluation explorer](evaluation-explorer/README.md) describes expected
-  architecture and maintains the shared snapshots.
+  architecture; persona export belongs to the
+  [frontend workflow](frontend/README.md).
 - **Library** opens the Reader drawer with enabled canonical books by chapter
   or named section. Navigation and summary reveal remain local diagnostic
   state and never authorize book retrieval in chat.
 - **Inspect** shows each completed turn's input contract, context resolution,
   agent timing and handoffs, direct Librarian calls, fixed Serendipity outcome,
   release and capture decisions, and server-generated trace ID. Provenance
-  findings include explanations and the review path. **Copy trace query**
-  copies a Logfire filter for that turn.
+  findings include explanations and the review path. Memory details include
+  the active count, captured memory ID, and cited memory IDs. **Copy trace query**
+  copies a Logfire filter for that turn. With `LINGER_DEV_INSPECT=true`, completed
+  records also contain agent task inputs, tool calls and results, outputs,
+  Serendipity search events, and captured or cited memory text. The account's
+  saved turn retains this content. Disabling the setting stops future
+  collection and does not redact earlier saved records.
 
 These developer tools cannot authorize retrieval, release, capture, or storage.
+
+To resolve memory IDs on the server, use the account's lowercase username:
+
+```bash
+	uv run python -m apps.backend.show_memories USERNAME
+	uv run python -m apps.backend.show_memories USERNAME MEMORY_ID [MEMORY_ID ...]
+```
+
+Without IDs, the command prints active original records and the curated
+retrieval view. With IDs, it filters both lists and reports missing records.
+It reads the repository-root `memories/` directory; it does not use a
+`LINGER_MEMORY_DIR` override. The command is a local developer tool and prints
+private memory text.
 
 Muse invokes `librarian_route` when the reader's words depend on a book. An
 active book can resolve an indirect follow-up, but does not require a lookup
@@ -145,13 +177,29 @@ or confirms remains active when a routing tool is uncertain. Naming a different
 book or removing its revision from the permitted scope clears that selection.
 
 The reader's explicit completed chapter carries across ordinary follow-ups
-about the same book and part. A lower declaration applies immediately, including
-when the reply fails. A higher declaration takes effect after a released Muse
-reply or application clarification. An unclear correction retracts the carried
-ceiling and excludes earlier statements and passages that could restore it.
-Changing book or part, deleting the session, or restarting the backend clears
-the ceiling. Saved conversation text can return after a restart, but its earlier
-reader statements do not establish reading permission.
+about the same book and part. A lower declaration applies to the session
+immediately, including when the reply fails. A higher declaration takes effect
+after a released Muse reply or application clarification. An unclear correction
+retracts the session ceiling and excludes earlier statements and passages that
+could restore the carried permission. During context preparation, a session
+declaration or retraction takes precedence over saved progress for that work.
+
+After a released Muse reply or application clarification, the interactive
+application saves explicit completed-chapter progress. The latest saved
+statement wins, including a lower chapter or a different part. Saved progress
+never selects a book, grants a named unit or exact passage, or stores a
+Librarian inference. A failed or declined correction affects the session but
+does not replace the saved account record. An unclear retraction also remains
+local to the session. Later routing or a comparison can reuse the saved
+chapter until a released explicit correction replaces it. Changing book or
+part, deleting the session, or restarting the backend clears session progress; the saved account record remains.
+Saved conversation text does not establish reading permission after a restart.
+
+When triage selects `find_connection`, the application combines saved progress
+with any confirmed permission in the current turn. If that covers at least two
+books, the application supplies every book at its own ceiling, with no single primary book. A confirmed boundary in the current turn
+replaces that book's saved ceiling for the comparison. Ordinary book questions
+and single-book requests retain their focused context.
 
 Muse receives at most eight recent released turns and 16,000 characters of
 conversation history, dropping whole oldest turns. A separate no-tool triage
@@ -179,7 +227,8 @@ books, a named public text, their own earlier note), triage pins
 `gather_sources`. Serendipity inspects each named source and returns one bundle
 with every supporting record and the named sources it could not find; Muse
 writes the comparison. A request that names no sources ("anything I've read")
-uses `find_connection`.
+uses `find_connection`, including "Does anything I've read speak to this?".
+A request for an unfamiliar outside work selects `get_recommendation`.
 
 The application returns whole replies only after release approval. Clear
 first-person disclosures of intense distress receive the fixed application-owned
@@ -289,6 +338,9 @@ apps/
 │   ├── schemas.py    # public request and response bodies
 │   ├── sessions.py   # in-process conversation and reading state
 │   ├── reading_progress.py # reader-declared chapter carry and retraction
+│   ├── progress_store.py # account-scoped explicit reading progress in SQLite
+│   ├── dev_trace.py   # opt-in developer content trace for completed turns
+│   ├── show_memories.py # local memory-ID lookup command
 │   ├── transcripts.py # SQLite released conversations and inspection records
 │   └── telemetry.py  # allowlisted backend and evaluation tracing
 ├── frontend/
@@ -302,6 +354,6 @@ apps/
 
 Both frontends render the shared collaboration map in
 [`../packages/architecture-map`](../packages/architecture-map): the component
-registry, graph rendering, curated Scenes, and the detail drawer. It is
-source-only and resolves through the `@linger/architecture-map` alias, so each
+registry, graph rendering, curated Scenes, and component and handoff details.
+It is source-only and resolves through the `@linger/architecture-map` alias, so each
 app keeps its own lockfile and dev server and needs no extra install.

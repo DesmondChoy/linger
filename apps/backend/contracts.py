@@ -32,6 +32,8 @@ class ContextResolution(StrictModel):
     boundary_source: Literal["reader_confirmed", "librarian_inferred"] | None = None
     boundary_authorization_basis: Literal[
         "explicit_progress",
+        # Progress the reader stated in an earlier conversation, kept per account.
+        "saved_progress",
         "memory_supported",
     ] | None = None
     boundary_confidence: float | None = Field(default=None, ge=0, le=1)
@@ -61,8 +63,8 @@ class ContextResolution(StrictModel):
                     "inferred boundary requires memory authorization and support"
                 )
         elif self.boundary_source == "reader_confirmed":
-            if self.boundary_authorization_basis != "explicit_progress":
-                raise ValueError("reader-confirmed boundary requires explicit progress")
+            if self.boundary_authorization_basis not in ("explicit_progress", "saved_progress"):
+                raise ValueError("reader-confirmed boundary requires explicit or saved progress")
             if (
                 self.boundary_confidence is not None
                 or self.boundary_supporting_memory_ids

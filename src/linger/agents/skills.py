@@ -58,7 +58,7 @@ class RuntimeSkill(Generic[InputT, OutputT]):
 
     @property
     def effective_instructions(self) -> str:
-        return f"{self.shared_instructions}\n{self.instructions}"
+        return f"{self.shared_instructions}\n\n{self.instructions}"
 
     def run_options(self) -> dict[str, Any]:
         """Return fresh per-run options; never mutate a reusable Agent."""

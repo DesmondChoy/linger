@@ -119,6 +119,25 @@ class ConnectionDeclineInspection(BaseModel):
     failure_code: Literal["connection_discovery_failed"] | None = None
 
 
+class MemoryInspection(BaseModel):
+    """Content-free handles for the memories one turn touched.
+
+    Inspect never carries memory text; a developer resolves these IDs on the
+    server with `python -m apps.backend.show_memories`.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Active memories available to retrieval and surfacing this turn.
+    active_count: int = Field(ge=0)
+    # The memory this turn committed, including an idempotent replay.
+    captured_memory_id: str | None = None
+    # Memories the released reply cited as evidence.
+    cited_memory_ids: list[str] = Field(default_factory=list)
+    # Developer inspect only (LINGER_DEV_INSPECT): the text behind each ID above.
+    texts: dict[str, str] | None = None
+
+
 class TurnInspection(BaseModel):
     """Read-only record of the contracts used for one released response."""
 
@@ -130,6 +149,10 @@ class TurnInspection(BaseModel):
     librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)
     # Turn triage result, the tools Muse was offered, and any pinned intent.
     tool_exposure: dict[str, Any] | None = None
+    memory: MemoryInspection | None = None
+    # Developer inspect only (LINGER_DEV_INSPECT): agent prompts, tool calls,
+    # outputs, and Serendipity search events for this turn.
+    dev_trace: dict[str, Any] | None = None
     prompt: str
     release: ReleaseInspection | None = None
 

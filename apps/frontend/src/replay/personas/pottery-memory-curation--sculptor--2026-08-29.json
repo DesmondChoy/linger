@@ -1,0 +1,608 @@
+{
+  "id": "pottery-memory-curation--sculptor--2026-08-29",
+  "title": "Pottery memory curation",
+  "dated": "2026-08-29",
+  "description": "Prove Sculptor can propose curation without changing source records by distinguishing duplicates, schedule updates, related preparations, and irrelevant word overlap.",
+  "family": "conversation_and_memory",
+  "objectiveIds": [
+    "bounded_memory_curation"
+  ],
+  "personId": "person-maya-iqbal",
+  "context": "Maya Iqbal is a hobby potter who keeps practical personal notes while preparing a neighborhood pottery-studio open house. Her memories cover studio routines, event logistics, and unrelated parts of daily life. Each Scene presents a separate bounded selection of existing memories from Maya's evaluation account.",
+  "props": [
+    {
+      "id": "prop-exact-notebook-a",
+      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+    },
+    {
+      "id": "prop-exact-notebook-b",
+      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+    },
+    {
+      "id": "prop-paraphrase-key-a",
+      "text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf."
+    },
+    {
+      "id": "prop-paraphrase-key-b",
+      "text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio."
+    },
+    {
+      "id": "prop-summary-date-original",
+      "text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m."
+    },
+    {
+      "id": "prop-summary-date-moved",
+      "text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21."
+    },
+    {
+      "id": "prop-summary-date-confirmed",
+      "text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m."
+    },
+    {
+      "id": "prop-summary-noise-posters",
+      "text": "For the pottery open house, I chose indigo ink for the posters."
+    },
+    {
+      "id": "prop-summary-noise-tea",
+      "text": "I ordered jasmine tea for the volunteers at the pottery open house."
+    },
+    {
+      "id": "prop-topic-ramp",
+      "text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway."
+    },
+    {
+      "id": "prop-topic-large-print",
+      "text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read."
+    },
+    {
+      "id": "prop-topic-quiet-room",
+      "text": "I reserved the small side room as a quiet break space during the pottery open house."
+    },
+    {
+      "id": "prop-topic-distractor-receipt",
+      "text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder."
+    },
+    {
+      "id": "prop-superficial-rib-tool",
+      "text": "I use a wooden rib tool to smooth clay slabs before trimming them."
+    },
+    {
+      "id": "prop-superficial-rib-stretch",
+      "text": "My physiotherapist recommended rib stretches after rowing practice."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-exact-duplicate",
+      "order": 1,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-exact-notebook-a",
+        "prop-exact-notebook-b"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor returns a curation_proposal with link_duplicates and exactly prop-exact-notebook-a and prop-exact-notebook-b as its source memory identifiers.",
+        "Both supplied Props remain separate, immutable source records with their identifiers and provenance preserved."
+      ],
+      "prohibited": [
+        "Do not rewrite or delete either Prop, cite an unsupplied identifier, derive a new fact, or claim that storage changed."
+      ]
+    },
+    {
+      "id": "scene-paraphrased-duplicate",
+      "order": 2,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-paraphrase-key-a",
+        "prop-paraphrase-key-b"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor returns a curation_proposal with link_duplicates and exactly prop-paraphrase-key-a and prop-paraphrase-key-b as its source memory identifiers.",
+        "The proposal recognizes that both Props express the same durable spare-key location despite their different wording."
+      ],
+      "prohibited": [
+        "Do not treat the paraphrases as separate facts, rewrite either Prop, cite an unsupplied identifier, or claim that storage changed."
+      ]
+    },
+    {
+      "id": "scene-evolving-fact-with-noise",
+      "order": 3,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-summary-date-original",
+        "prop-summary-date-moved",
+        "prop-summary-date-confirmed",
+        "prop-summary-noise-posters",
+        "prop-summary-noise-tea"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor returns a curation_proposal with update_derived_summary and cites only prop-summary-date-original, prop-summary-date-moved, and prop-summary-date-confirmed.",
+        "The derived summary represents the updated open-house date and confirmed time without incorporating the poster or tea records."
+      ],
+      "prohibited": [
+        "Do not cite prop-summary-noise-posters or prop-summary-noise-tea, turn the records into a topic group, rewrite any original, or add an unsupported event detail."
+      ]
+    },
+    {
+      "id": "scene-related-distinct-with-distractor",
+      "order": 4,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-topic-ramp",
+        "prop-topic-large-print",
+        "prop-topic-quiet-room",
+        "prop-topic-distractor-receipt"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor returns a curation_proposal with assign_topic_group and cites only prop-topic-ramp, prop-topic-large-print, and prop-topic-quiet-room.",
+        "The topic label captures the shared visitor-accessibility theme while keeping the three source facts distinct."
+      ],
+      "prohibited": [
+        "Do not cite prop-topic-distractor-receipt, link the records as duplicates, convert them into one evolving-fact summary, rewrite any original, or add an unsupported accessibility claim."
+      ]
+    },
+    {
+      "id": "scene-superficial-similarity",
+      "order": 5,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-superficial-rib-tool",
+        "prop-superficial-rib-stretch"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor returns a no_curation_proposal because the shared word rib refers to unrelated pottery and exercise facts.",
+        "Both supplied Props remain unchanged and independently retrievable."
+      ],
+      "prohibited": [
+        "Do not link, group, or summarize the two Props based only on their superficial wording overlap, and do not claim that storage changed."
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "cf1b3a365fb24e268e6d2e6919073c07",
+      "startedAt": "2026-09-27T14:16:02.652136+08:00",
+      "model": "openai:gpt-6-luna",
+      "systemVariant": null,
+      "passed": 5,
+      "failed": 0,
+      "ungraded": 0,
+      "total": 5,
+      "executionFailures": 0,
+      "logfireUrl": "https://logfire-us.pydantic.dev/jrlyy/linger/evals/bounded_memory_curation/compare?experiment=01a0e181a6bd69123e2baaf4d7b3ded5-b2d88bd227de8d4f",
+      "verdict": "All five curation outcomes behaved as adopted, including the two negative-shaped cases, so Sculptor distinguishes duplicate, evolving, related and superficial records on this set. No correction is indicated.",
+      "scenes": [
+        {
+          "sceneId": "scene-exact-duplicate",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Action, source set and immutability all match the adopted expectation.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-exact-notebook-a",
+                "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+              },
+              {
+                "id": "prop-exact-notebook-b",
+                "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-exact-notebook-a",
+                  "prop-exact-notebook-b"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-exact-notebook-a",
+                "prop-exact-notebook-b"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1801,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-exact-notebook-a\", \"text\": \"My kiln maintenance notebook is in the second drawer beneath the wedging table.\"}, {\"memory_id\": \"prop-exact-notebook-b\", \"text\": \"My kiln maintenance notebook is in the second drawer beneath the wedging table.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-exact-notebook-a\", \"prop-exact-notebook-b\"], \"action\": \"link_duplicates\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1822,
+                "endMs": 3174,
+                "input": "{\"proposal_digest\":\"22fbe39cc2f272f15b56341a4d13bd58e314e06731602030d19aee906c1340ce\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-exact-notebook-a\",\"prop-exact-notebook-b\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-exact-notebook-a\",\"text\":\"My kiln maintenance notebook is in the second drawer beneath the wedging table.\",\"record_sha256\":\"8014d118d52bcd197c3dd4a1637326de71a437597176980a9698bc8ef6383086\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-exact-notebook-b\",\"text\":\"My kiln maintenance notebook is in the second drawer beneath the wedging table.\",\"record_sha256\":\"d4e515ba0390ef7e1a17ecc490fbb111f88bb84ad6f134ce090c28d8dd02bb84\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"22fbe39cc2f272f15b56341a4d13bd58e314e06731602030d19aee906c1340ce\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-paraphrased-duplicate",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Matches the expectation; recognising the pair needs meaning, not string overlap.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-paraphrase-key-a",
+                "text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf."
+              },
+              {
+                "id": "prop-paraphrase-key-b",
+                "text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-paraphrase-key-a",
+                  "prop-paraphrase-key-b"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-paraphrase-key-a",
+                "prop-paraphrase-key-b"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 2386,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-paraphrase-key-a\", \"text\": \"I keep the spare studio key in the blue enamel mug on the top pantry shelf.\"}, {\"memory_id\": \"prop-paraphrase-key-b\", \"text\": \"The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-paraphrase-key-a\", \"prop-paraphrase-key-b\"], \"action\": \"link_duplicates\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 2396,
+                "endMs": 3963,
+                "input": "{\"proposal_digest\":\"491eff1bed4eb37f694a797279ac89724a3814ec42ac1d5d89612931d38434d0\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-paraphrase-key-a\",\"prop-paraphrase-key-b\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-paraphrase-key-a\",\"text\":\"I keep the spare studio key in the blue enamel mug on the top pantry shelf.\",\"record_sha256\":\"75410f0d376d507935d3790c7de67111970b6a885956532e3de95e99688c5447\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-paraphrase-key-b\",\"text\":\"The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.\",\"record_sha256\":\"7eb823a73ee1e8eb6d9ee1140916dead60606098ae652339786d3c00a4e44236\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"491eff1bed4eb37f694a797279ac89724a3814ec42ac1d5d89612931d38434d0\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-evolving-fact-with-noise",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "pass_with_limitations",
+          "analysis": "Hard checks passed. I compared the summary with the three Props: it states the move, keeps the time, adds no detail, and omits the posters and tea.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-summary-date-original",
+                "text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m."
+              },
+              {
+                "id": "prop-summary-date-moved",
+                "text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21."
+              },
+              {
+                "id": "prop-summary-date-confirmed",
+                "text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m."
+              },
+              {
+                "id": "prop-summary-noise-posters",
+                "text": "For the pottery open house, I chose indigo ink for the posters."
+              },
+              {
+                "id": "prop-summary-noise-tea",
+                "text": "I ordered jasmine tea for the volunteers at the pottery open house."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-summary-date-original",
+                  "prop-summary-date-moved",
+                  "prop-summary-date-confirmed"
+                ],
+                "action": "update_derived_summary",
+                "summary": "The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged."
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-summary-date-confirmed",
+                "prop-summary-date-moved",
+                "prop-summary-date-original",
+                "prop-summary-noise-posters",
+                "prop-summary-noise-tea",
+                "summary_5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1732,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-summary-date-original\", \"text\": \"I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.\"}, {\"memory_id\": \"prop-summary-date-moved\", \"text\": \"After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.\"}, {\"memory_id\": \"prop-summary-date-confirmed\", \"text\": \"The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.\"}, {\"memory_id\": \"prop-summary-noise-posters\", \"text\": \"For the pottery open house, I chose indigo ink for the posters.\"}, {\"memory_id\": \"prop-summary-noise-tea\", \"text\": \"I ordered jasmine tea for the volunteers at the pottery open house.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-summary-date-original\", \"prop-summary-date-moved\", \"prop-summary-date-confirmed\"], \"action\": \"update_derived_summary\", \"summary\": \"The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged.\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1742,
+                "endMs": 3311,
+                "input": "{\"proposal_digest\":\"5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-summary-date-original\",\"prop-summary-date-moved\",\"prop-summary-date-confirmed\"],\"action\":\"update_derived_summary\",\"summary\":\"The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged.\"}},\"sources\":[{\"memory_id\":\"prop-summary-date-original\",\"text\":\"I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.\",\"record_sha256\":\"a636c65933c70e9708019b574ae08f5d4da56810b01df0fedde0ad5c4170f16b\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-moved\",\"text\":\"After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.\",\"record_sha256\":\"88d9869560764e0f495db633f8138e7531581c216c2189176f745df5bdda2e9f\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-confirmed\",\"text\":\"The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.\",\"record_sha256\":\"08d10b2e56262910393fcc00eb0a050e75666a03fdef80801778ce4ac4d628a7\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-related-distinct-with-distractor",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "pass_with_limitations",
+          "analysis": "Action and source set match; the label covers all three without collapsing them, and the receipt is excluded.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-topic-ramp",
+                "text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway."
+              },
+              {
+                "id": "prop-topic-large-print",
+                "text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read."
+              },
+              {
+                "id": "prop-topic-quiet-room",
+                "text": "I reserved the small side room as a quiet break space during the pottery open house."
+              },
+              {
+                "id": "prop-topic-distractor-receipt",
+                "text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-topic-ramp",
+                  "prop-topic-large-print",
+                  "prop-topic-quiet-room"
+                ],
+                "action": "assign_topic_group",
+                "topic_label": "Pottery open house accessibility and visitor accommodations"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-topic-distractor-receipt",
+                "prop-topic-large-print",
+                "prop-topic-quiet-room",
+                "prop-topic-ramp",
+                "topic_4353900bcb2e5ae206b052113f4548dad8377231067a2831ff4952e16d183d18"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1371,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-topic-ramp\", \"text\": \"For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.\"}, {\"memory_id\": \"prop-topic-large-print\", \"text\": \"I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.\"}, {\"memory_id\": \"prop-topic-quiet-room\", \"text\": \"I reserved the small side room as a quiet break space during the pottery open house.\"}, {\"memory_id\": \"prop-topic-distractor-receipt\", \"text\": \"I saved the bakery receipt for the pottery open house refreshments in my tax folder.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-topic-ramp\", \"prop-topic-large-print\", \"prop-topic-quiet-room\"], \"action\": \"assign_topic_group\", \"topic_label\": \"Pottery open house accessibility and visitor accommodations\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1383,
+                "endMs": 2856,
+                "input": "{\"proposal_digest\":\"4353900bcb2e5ae206b052113f4548dad8377231067a2831ff4952e16d183d18\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-topic-ramp\",\"prop-topic-large-print\",\"prop-topic-quiet-room\"],\"action\":\"assign_topic_group\",\"topic_label\":\"Pottery open house accessibility and visitor accommodations\"}},\"sources\":[{\"memory_id\":\"prop-topic-ramp\",\"text\":\"For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.\",\"record_sha256\":\"17458c43ca2d00b70986783390b476ccfe60207adf486b83e89f53169fb712c9\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-topic-large-print\",\"text\":\"I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.\",\"record_sha256\":\"1d98257a4ecb516bd4714861be807300a30c531e7c2211a2d2bb16f1c9d917ae\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-topic-quiet-room\",\"text\":\"I reserved the small side room as a quiet break space during the pottery open house.\",\"record_sha256\":\"5859082b2501e35c7f109a0b5c06ea951ff2572cd33eb94b54bf8e71268d4efe\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"4353900bcb2e5ae206b052113f4548dad8377231067a2831ff4952e16d183d18\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-superficial-similarity",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Matches the no-change expectation.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-superficial-rib-tool",
+                "text": "I use a wooden rib tool to smooth clay slabs before trimming them."
+              },
+              {
+                "id": "prop-superficial-rib-stretch",
+                "text": "My physiotherapist recommended rib stretches after rowing practice."
+              }
+            ],
+            "response": {
+              "kind": "no_curation_proposal",
+              "reason": "These memories describe unrelated facts that only share the word “rib”; grouping them would not improve retrieval."
+            },
+            "outcome": {
+              "provenance_decision": "not_reviewed",
+              "status": "no_change",
+              "application_created": false,
+              "audit_verified": false,
+              "retrieval_memory_ids": [
+                "prop-superficial-rib-stretch",
+                "prop-superficial-rib-tool"
+              ]
+            },
+            "status": "no_change",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1413,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-superficial-rib-tool\", \"text\": \"I use a wooden rib tool to smooth clay slabs before trimming them.\"}, {\"memory_id\": \"prop-superficial-rib-stretch\", \"text\": \"My physiotherapist recommended rib stretches after rowing practice.\"}]}",
+                "output": "{\"kind\": \"no_curation_proposal\", \"reason\": \"These memories describe unrelated facts that only share the word “rib”; grouping them would not improve retrieval.\"}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_NoCurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

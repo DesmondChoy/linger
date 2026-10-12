@@ -76,7 +76,7 @@ export function MessageList({ messages, pending, progress, onDeleteConversation 
         return (
           <Fragment key={`${sessionId}-start`}>
             <div className="conversation-divider">
-              <span>{message.createdAt ? dividerDate.format(new Date(message.createdAt)) : 'Conversation'}</span>
+              <span>{message.dividerLabel ?? (message.createdAt ? dividerDate.format(new Date(message.createdAt)) : 'Conversation')}</span>
               {onDeleteConversation && sessionId && !pending && (
                 <button
                   type="button"
