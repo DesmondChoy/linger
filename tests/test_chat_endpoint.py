@@ -226,6 +226,44 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("did not call", serendipity_trace["detail"])
         self.assertEqual("skipped", librarian_trace["status"])
 
+    async def test_inspection_shows_sentences_the_application_removed(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("revise", "revise", "pass"),
+            revision_count=1,
+            trimmed_sentence_count=2,
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(ChatRequest(session_id=self.session_id, message="Hello"))
+
+        release = response.inspection.release
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertEqual(2, release.trimmed_sentence_count)
+        self.assertEqual(1, release.revision_count)
+        self.assertEqual(("revise", "revise", "pass"), release.provenance_verdicts)
+        muse_trace = next(trace for trace in response.inspection.traces if trace["agent"] == "Muse")
+        self.assertIn("application removed 2 sentences", muse_trace["detail"])
+
+    async def test_inspection_counts_a_single_removed_sentence_on_a_decline(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Declined",
+            release_source="application_safe_decline",
+            provenance_verdicts=("revise", "revise", "revise"),
+            revision_count=1,
+            trimmed_sentence_count=1,
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(ChatRequest(session_id=self.session_id, message="Hello"))
+
+        self.assertEqual(1, response.inspection.release.trimmed_sentence_count)
+        provenance_trace = next(
+            trace for trace in response.inspection.traces if trace["agent"] == "Provenance"
+        )
+        self.assertIn("application removed 1 sentence that", provenance_trace["detail"])
+
     async def test_muse_receives_bounded_history_not_the_full_session(self) -> None:
         for number in range(9):
             sessions.append_turn(
@@ -820,6 +858,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 "finding_codes",
                 "released_evidence_ids",
                 "revision_count",
+                "trimmed_sentence_count",
                 "failure_stage",
                 "failure_type",
                 "failure_retryable",

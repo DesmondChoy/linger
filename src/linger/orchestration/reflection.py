@@ -4,6 +4,7 @@ from src.linger.contracts.reading import permits_scope, contains_scope, scope_fi
 
 import asyncio
 import json
+import logging
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
@@ -87,6 +88,7 @@ from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
+from src.linger.orchestration.sentence_trim import SentenceTrim, TrimRefused, trim_named_sentences
 from src.linger.orchestration.turn_context import (
     active_memories,
     connection_book_scopes,
@@ -194,6 +196,8 @@ class ReflectionRelease:
     boundary_origin: BoundaryOrigin | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...] = ()
     revision_count: int = 0
+    # Sentences the application removed from Muse's revision before the last review.
+    trimmed_sentence_count: int = 0
     failure_stage: FailureStage | None = None
     failure_type: FailureType | None = None
     failure_retryable: bool | None = None
@@ -349,6 +353,7 @@ def _safe_decline(
     *,
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
     revision_count: int = 0,
+    trimmed_sentence_count: int = 0,
     failure_stage: FailureStage | None = None,
     failure_type: FailureType | None = None,
     failure_retryable: bool | None = None,
@@ -372,6 +377,7 @@ def _safe_decline(
         release_source="application_safe_decline",
         provenance_verdicts=verdicts,
         revision_count=revision_count,
+        trimmed_sentence_count=trimmed_sentence_count,
         failure_stage=failure_stage,
         failure_type=failure_type,
         failure_retryable=failure_retryable,
@@ -393,6 +399,7 @@ def emotional_boundary_release(
     review_path: tuple[ProvenanceReview, ...] = (),
     candidate: MuseCandidate | None = None,
     tool_results: list[dict[str, object]] | None = None,
+    trimmed_sentence_count: int = 0,
 ) -> ReflectionRelease:
     """Return the canonical boundary with content-free audit metadata."""
     if origin == "preflight" and (review_path or candidate is not None):
@@ -401,8 +408,10 @@ def emotional_boundary_release(
         raise ValueError(
             "a candidate-review boundary requires its candidate and review path"
         )
-    if len(review_path) > 2:
-        raise ValueError("an emotional boundary can follow at most one revision")
+    if len(review_path) > 3:
+        raise ValueError(
+            "an emotional boundary can follow at most one revision and one sentence trim"
+        )
     tool_results = tool_results or []
     return ReflectionRelease(
         reply=boundary_response(decision),
@@ -411,7 +420,9 @@ def emotional_boundary_release(
         provenance_verdicts=tuple(
             review.response_decision for review in review_path
         ),
-        revision_count=max(0, len(review_path) - 1),
+        # Muse revises at most once; a third review follows the application's trim.
+        revision_count=min(1, len(review_path) - 1) if review_path else 0,
+        trimmed_sentence_count=trimmed_sentence_count,
         finding_codes=_codes(*review_path),
         capture_nomination=_nomination(candidate) if candidate is not None else None,
         capture_decision=(review_path[-1].capture_decision if review_path else None),
@@ -992,6 +1003,151 @@ def _reviewed_capture(
     return bound, None
 
 
+def _sentence_trim(
+    candidate: MuseCandidate,
+    review: ProvenanceReview,
+    earlier_review: ProvenanceReview,
+    tool_results: list[dict[str, object]],
+    release_scope: ReleaseScope | PassageScope | None,
+    previously_released_evidence_ids: frozenset[str],
+    released_user_lines: tuple[str, ...],
+) -> SentenceTrim | None:
+    """The revision without the sentences its review names, when that alone could release it."""
+    try:
+        trim = trim_named_sentences(candidate, review, earlier_review.response_findings)
+        # A candidate release validation would refuse is not worth another review.
+        _validate_release(
+            trim.candidate,
+            tool_results,
+            release_scope,
+            previously_released_evidence_ids,
+            released_user_lines=released_user_lines,
+        )
+    except (TrimRefused, ReleaseValidationError):
+        return None
+    except Exception as error:
+        # The trim is optional: a fault in it must leave today's decline, not fail the turn.
+        logging.getLogger("linger.backend").warning(
+            "Sentence trim failed closed error_type=%s", type(error).__name__
+        )
+        return None
+    return trim
+
+
+async def _release_trimmed(
+    trim: SentenceTrim,
+    revised_candidate: MuseCandidate,
+    reviews: tuple[ProvenanceReview, ProvenanceReview],
+    provenance: Agent[None, ProvenanceReview],
+    *,
+    review_context: Mapping[str, object],
+    tool_results: list[dict[str, object]],
+    release_scope: ReleaseScope | PassageScope | None,
+    previously_released_evidence_ids: frozenset[str],
+    capture_source_text: str,
+    source_event_id: str,
+    released_user_lines: tuple[str, ...],
+) -> ReflectionRelease:
+    """Review the trimmed revision once; only a pass and release validation release it."""
+    candidate = trim.candidate
+    revised_review = reviews[-1]
+    shared: dict[str, Any] = {
+        "revision_count": 1,
+        "trimmed_sentence_count": len(trim.removed),
+        "capture_nomination": _nomination(candidate),
+        "librarian_grounding_calls": _librarian_grounding(tool_results),
+        "evidence_ids": _evidence_ids(candidate),
+    }
+    try:
+        review, _ = await _review(
+            candidate,
+            provenance,
+            review_context,
+            tool_results,
+            capture_source_text,
+            released_user_lines,
+            # The candidate this one replaces is Muse's revision, and the
+            # findings to recheck are all those the removed sentences answered.
+            previous_response_review=PreviousResponseReview(
+                candidate=CandidateUnderReview(
+                    response=revised_candidate.reply,
+                    evidence_uses=revised_candidate.evidence_uses,
+                    memory=revised_candidate.memory,
+                ),
+                findings=trim.findings,
+            ),
+        )
+    except Exception as error:
+        validation = isinstance(error, ReleaseValidationError)
+        return _safe_decline(
+            verdicts=("revise", "revise"),
+            failure_stage="provenance_review",
+            failure_type="validation" if validation else "model",
+            failure_retryable=not validation,
+            finding_codes=_codes(*reviews),
+            response_codes=_response_codes(revised_review),
+            capture_decision=revised_review.capture_decision,
+            review_finding_codes=_review_codes(*reviews),
+            **shared,
+        )
+    if _review_requires_emotional_boundary(review):
+        return emotional_boundary_release(
+            origin="candidate_review",
+            review_path=(*reviews, review),
+            candidate=candidate,
+            tool_results=tool_results,
+            trimmed_sentence_count=len(trim.removed),
+        )
+    # The review that decides release also decides capture.
+    capture, capture_failure = _reviewed_capture(
+        candidate,
+        review,
+        capture_source_text=capture_source_text,
+        source_event_id=source_event_id,
+        tool_results=tool_results,
+        release_scope=release_scope,
+        previously_released_evidence_ids=previously_released_evidence_ids,
+    )
+    shared.update(
+        finding_codes=_codes(*reviews, review),
+        capture_decision=review.capture_decision,
+        automatic_capture_candidate=capture,
+        capture_failure=capture_failure,
+        review_finding_codes=_review_codes(*reviews, review),
+    )
+    verdicts = ("revise", "revise", review.response_decision)
+    if review.response_decision != "pass":
+        return _safe_decline(
+            verdicts=verdicts, response_codes=_response_codes(review), **shared,
+        )
+    try:
+        _validate_release(
+            candidate,
+            tool_results,
+            release_scope,
+            previously_released_evidence_ids,
+            released_user_lines=released_user_lines,
+        )
+    except ReleaseValidationError:
+        return _safe_decline(
+            verdicts=verdicts,
+            failure_stage="deterministic_validation",
+            failure_type="validation",
+            failure_retryable=False,
+            response_codes=_response_codes(review),
+            **shared,
+        )
+    return ReflectionRelease(
+        reply=candidate.reply,
+        release_source="muse_candidate",
+        provenance_verdicts=verdicts,
+        released_evidence_ids=_candidate_citation_ids(candidate),
+        released_citations=_candidate_citations(candidate),
+        tool_names=_tool_names(tool_results),
+        **shared,
+    )
+
+
 async def reflection_reply(
     message: str,
     history: list[ModelMessage],
@@ -1065,6 +1221,7 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
             ),
             "release.source": release.release_source,
             "release.revision_count": release.revision_count,
+            "release.trimmed_sentence_count": release.trimmed_sentence_count,
             "provenance.finding_codes": list(release.finding_codes),
             "validation.outcome": (
                 "passed"
@@ -1556,6 +1713,35 @@ async def _reflection_reply(
                 released_evidence_ids=_candidate_citation_ids(revised_candidate) if revised_clarification is None else (),
                 released_citations=_candidate_citations(revised_candidate) if revised_clarification is None else (),
                 tool_names=_tool_names(revised_tool_results),
+            ),
+        )
+    # Last step before declining: Muse does not revise twice, so the application
+    # removes the sentences this review names and asks for one more review.
+    trimmable = revised_review.response_decision == "revise" and revised_clarification is None
+    trim = None if not trimmable else _sentence_trim(
+        revised_candidate,
+        revised_review,
+        review,
+        revised_tool_results,
+        revised_release_scope,
+        previously_released_evidence_ids,
+        released_user_lines,
+    )
+    if trim is not None:
+        return _record_release(
+            span,
+            await _release_trimmed(
+                trim,
+                revised_candidate,
+                (review, revised_review),
+                provenance,
+                review_context=revised_review_context,
+                tool_results=revised_tool_results,
+                release_scope=revised_release_scope,
+                previously_released_evidence_ids=previously_released_evidence_ids,
+                capture_source_text=capture_source_text,
+                source_event_id=source_event_id,
+                released_user_lines=released_user_lines,
             ),
         )
     return _record_release(

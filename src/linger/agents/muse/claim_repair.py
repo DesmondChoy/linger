@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     )
 
 
-def _occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
+def occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
     intervals = []
     start = text.find(fragment)
     while start >= 0:
@@ -60,10 +60,10 @@ def _finding_affects_claim(location, reply: str, claim: str, members: set[tuple[
     if location.source_field == "candidate.response":
         if location.kind != "text_span" or location.path:
             return True
-        found = _occurrences(reply, location.quote)
+        found = occurrences(reply, location.quote)
         if not found:
             return True
-        return any(a < d and c < b for a, b in found for c, d in _occurrences(reply, claim))
+        return any(a < d and c < b for a, b in found for c, d in occurrences(reply, claim))
     if location.source_field != "candidate.evidence_uses":
         return True
     parts = location.path.split("/")[1:]
@@ -82,11 +82,11 @@ def retained_claim_errors(
     covered = bytearray(len(candidate.reply))
     for use in candidate.evidence_uses:
         for claim in use.supported_claims:
-            for start, end in _occurrences(candidate.reply, claim):
+            for start, end in occurrences(candidate.reply, claim):
                 covered[start:end] = b"\1" * (end - start)
     errors = []
     for claim in previously_accepted_claims:
-        for start, end in _occurrences(candidate.reply, claim):
+        for start, end in occurrences(candidate.reply, claim):
             if any(not covered[index] and not candidate.reply[index].isspace()
                    for index in range(start, end)):
                 errors.append({
@@ -176,7 +176,7 @@ _MIN_KEPT_RUN = 5
 _MIN_KEPT_SHARE = 0.7
 
 
-def _sentence_spans(text: str) -> list[tuple[int, int]]:
+def sentence_spans(text: str) -> list[tuple[int, int]]:
     spans, start = [], 0
     for match in _SENTENCE_BREAK.finditer(text):
         spans.append((start, match.end()))
@@ -195,11 +195,11 @@ def _normalized(text: str) -> str:
     return " ".join(text.split())
 
 
-def _overlaps(start: int, end: int, intervals: list[tuple[int, int]]) -> bool:
+def overlaps(start: int, end: int, intervals: list[tuple[int, int]]) -> bool:
     return any(a < end and start < b for a, b in intervals)
 
 
-def _finding_intervals(location: FindingLocation, candidate: MuseCandidate) -> list[tuple[int, int]] | None:
+def finding_intervals(location: FindingLocation, candidate: MuseCandidate) -> list[tuple[int, int]] | None:
     """Reply text a finding names, or None when it could concern any sentence."""
     reply = candidate.reply
     if location.source_field == "candidate.response":
@@ -219,7 +219,7 @@ def _finding_intervals(location: FindingLocation, candidate: MuseCandidate) -> l
     else:
         quote = getattr(use, "exact_quote", None)
         texts = (*use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ()))
-    return [interval for text in texts for interval in _occurrences(reply, text)] or None
+    return [interval for text in texts for interval in occurrences(reply, text)] or None
 
 
 def draft_sentences_for_revision(
@@ -231,7 +231,7 @@ def draft_sentences_for_revision(
         return ()
     placed: list[list[tuple[int, int]]] = []
     for finding in review.response_findings:
-        intervals = _finding_intervals(finding.location, candidate)
+        intervals = finding_intervals(finding.location, candidate)
         if intervals is None:
             return ()
         placed.append(intervals)
@@ -241,24 +241,24 @@ def draft_sentences_for_revision(
                     if span.span_index in source_dependent]
     reply = candidate.reply
     sentences = []
-    for start, end in _sentence_spans(reply):
+    for start, end in sentence_spans(reply):
         # Indexes into `response_findings`, the revision's `review.findings`.
-        findings = tuple(index for index, intervals in enumerate(placed) if _overlaps(start, end, intervals))
+        findings = tuple(index for index, intervals in enumerate(placed) if overlaps(start, end, intervals))
         sentences.append(DraftSentence(
             text=reply[start:end],
             flagged=bool(findings),
-            needs_source=_overlaps(start, end, needs_source),
+            needs_source=overlaps(start, end, needs_source),
             finding_indexes=findings,
             source_mappings=_sentence_mappings(candidate, start, end),
         ))
     return label_sentences(candidate, tuple(sentences))
 
 
-def _label_units(reply: str) -> list[list[int]]:
+def label_units(reply: str) -> list[list[int]]:
     """Runs of sentence indexes joined by a quotation the splitter cut; every other sentence alone."""
     from src.linger.agents.provenance.quotation_audit import quoted_response_spans
 
-    spans = _sentence_spans(reply)
+    spans = sentence_spans(reply)
     quotes = [(quote.start, quote.end) for quote in quoted_response_spans(reply)]
     units: list[list[int]] = []
     for index, (start, _) in enumerate(spans):
@@ -273,9 +273,9 @@ def label_sentences(
     candidate: MuseCandidate, sentences: tuple[DraftSentence, ...],
 ) -> tuple[DraftSentence, ...]:
     """Label each unit of unflagged sentences whose text and declarations the revision can carry whole."""
-    spans = _sentence_spans(candidate.reply)
+    spans = sentence_spans(candidate.reply)
     labels: dict[int, str] = {}
-    for unit in _label_units(candidate.reply):
+    for unit in label_units(candidate.reply):
         start, end = spans[unit[0]][0], spans[unit[-1]][1]
         if any(sentences[i].flagged or sentences[i].needs_source for i in unit):
             continue
@@ -291,14 +291,14 @@ def _carried_without_loss(candidate: MuseCandidate, start: int, end: int) -> boo
     for use in candidate.evidence_uses:
         quote = getattr(use, "exact_quote", None)
         touching = [found for text in (*limit_claim_texts(use), *((quote,) if quote else ()))
-                    for found in _occurrences(reply, text) if _overlaps(start, end, [found])]
+                    for found in occurrences(reply, text) if overlaps(start, end, [found])]
         if not touching:
             continue
         if any(a < start or end < b for a, b in touching):
             return False
         if not any(_WORD.search(reply[max(a, start):min(b, end)])
-                   for claim in use.supported_claims for a, b in _occurrences(reply, claim)
-                   if _overlaps(start, end, [(a, b)])):
+                   for claim in use.supported_claims for a, b in occurrences(reply, claim)
+                   if overlaps(start, end, [(a, b)])):
             return False
     return True
 
@@ -315,7 +315,7 @@ def _sentence_mappings(candidate: MuseCandidate, start: int, end: int) -> tuple[
             mappings += [
                 SentenceMapping(source_kind=use.source_kind, evidence_id=source, mapped_text=text,
                                 declaration_index=index, field=field)
-                for text in texts if _overlaps(start, end, _occurrences(reply, text))
+                for text in texts if overlaps(start, end, occurrences(reply, text))
             ]
     return tuple(mappings)
 
@@ -334,7 +334,7 @@ def _unmapped_words(candidate: MuseCandidate, start: int, end: int) -> int:
     for use in candidate.evidence_uses:
         quote = getattr(use, "exact_quote", None)
         for text in (*use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ())):
-            for a, b in _occurrences(reply, text):
+            for a, b in occurrences(reply, text):
                 covered[a:b] = b"\1" * (b - a)
     unmapped = "".join(" " if covered[index] else reply[index] for index in range(start, end))
     return len(_WORD.findall(_MARKDOWN_LINK.sub(" ", unmapped)))
@@ -346,7 +346,7 @@ def _splits_word(text: str, position: int) -> bool:
 
 def _quote_occurrences(text: str, fragment: str) -> list[tuple[int, int]]:
     """Where a finding's quote stands as whole words; every occurrence when it never does."""
-    found = _occurrences(text, fragment)
+    found = occurrences(text, fragment)
     return [(a, b) for a, b in found if not _splits_word(text, a) and not _splits_word(text, b)] or found
 
 
@@ -379,9 +379,9 @@ def added_source_errors(
                 if a < offset + len(text) and offset < b)
         for mapping in sentence.source_mappings:
             mapped.extend((a, b, (mapping.source_kind, mapping.evidence_id))
-                          for a, b in _occurrences(draft, _normalized(mapping.mapped_text)))
+                          for a, b in occurrences(draft, _normalized(mapping.mapped_text)))
         offset += len(text) + 1
-    touched = [(a, b, key) for a, b, key in mapped if _overlaps(a, b, disputed)]
+    touched = [(a, b, key) for a, b, key in mapped if overlaps(a, b, disputed)]
     # Draft words with their character spans; case, punctuation and link targets do not count.
     spans = [match.span() for match in _WORD.finditer(_MARKDOWN_LINK.sub(lambda m: " " * len(m[0]), draft))]
     words = [draft[a:b].lower().strip("_") for a, b in spans]
@@ -401,8 +401,8 @@ def added_source_errors(
             # A draft mapping a finding touches is disputed as a whole, with the same source's mappings
             # inside it in the sentences findings name: the next review judges its new sources. Kept
             # wording is free when every draft mapping under it is disputed, or the draft left it unmapped.
-            under = [(a, b, key) for a, b, key in mapped if _overlaps(a, b, found)]
-            if all(_overlaps(a, b, named) and any(k == key and ta <= a and b <= tb for ta, tb, k in touched)
+            under = [(a, b, key) for a, b, key in mapped if overlaps(a, b, found)]
+            if all(overlaps(a, b, named) and any(k == key and ta <= a and b <= tb for ta, tb, k in touched)
                    for a, b, key in under):
                 continue
             before = {key for _, _, key in under}
@@ -432,7 +432,7 @@ def draft_sentence_errors(
     if not draft_sentences:
         return []
     reply = candidate.reply
-    spans = _sentence_spans(reply)
+    spans = sentence_spans(reply)
     revised = [_normalized(reply[start:end]) for start, end in spans]
     drafted = [_normalized(sentence.text) for sentence in draft_sentences]
     errors: list[dict[str, object]] = []

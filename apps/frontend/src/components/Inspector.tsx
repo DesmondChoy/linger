@@ -176,6 +176,7 @@ const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
 
 function ReviewFindings({ release }: { release: ReleaseInspection }) {
   const verdicts = release.provenance_verdicts
+  const trimmed = release.trimmed_sentence_count ?? 0
   const survived = release.release_source === 'muse_candidate'
 
   if (!release.finding_codes.length) {
@@ -191,6 +192,7 @@ function ReviewFindings({ release }: { release: ReleaseInspection }) {
       <p className="muted">
         Review path: {verdicts.join(' → ') || 'unavailable'}
         {release.revision_count > 0 && ` · ${release.revision_count} revision${release.revision_count === 1 ? '' : 's'}`}
+        {trimmed > 0 && ` · the application removed ${trimmed} sentence${trimmed === 1 ? '' : 's'}`}
         {survived
           ? ' · the candidate was corrected and released.'
           : ' · the candidate was withheld.'}

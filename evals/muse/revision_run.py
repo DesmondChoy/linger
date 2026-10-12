@@ -262,7 +262,7 @@ def _candidate(data: dict[str, Any]):
 
 
 def _sentence_spans(text: str) -> list[tuple[int, int]]:
-    from src.linger.agents.muse.claim_repair import _sentence_spans as production
+    from src.linger.agents.muse.claim_repair import sentence_spans as production
 
     return production(text)
 
@@ -270,20 +270,20 @@ def _sentence_spans(text: str) -> list[tuple[int, int]]:
 def draft_sentences(case: RevisionCase):
     """Production placement (`draft_sentences_for_revision`) for the fixture's findings."""
     from src.linger.agents.muse.claim_repair import (
-        _finding_intervals, _overlaps, _sentence_mappings, label_sentences,
+        finding_intervals, overlaps, _sentence_mappings, label_sentences,
     )
     from src.linger.agents.muse.models import DraftSentence
 
     draft = _candidate(case.draft)
     placed: list[list[tuple[int, int]]] = []
     for finding in findings(case):
-        intervals = _finding_intervals(finding.location, draft)
+        intervals = finding_intervals(finding.location, draft)
         if intervals is None:
             raise ValueError(f"{case.case_id}: a finding cannot be placed; production would send no sentences")
         placed.append(intervals)
     sentences = []
     for index, (start, end) in enumerate(_sentence_spans(draft.reply)):
-        named = tuple(i for i, intervals in enumerate(placed) if _overlaps(start, end, intervals))
+        named = tuple(i for i, intervals in enumerate(placed) if overlaps(start, end, intervals))
         sentences.append(DraftSentence(
             text=draft.reply[start:end], flagged=bool(named),
             needs_source=index in case.review.needs_source_sentences,

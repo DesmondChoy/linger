@@ -20,7 +20,7 @@ from evals.muse.revision_run import (
     RevisionCase, draft_messages, draft_sentences, load_revision_cases, measure,
 )
 from src.linger.agents.muse.agent import build_muse_agent, validate_muse_output
-from src.linger.agents.muse.claim_repair import _sentence_mappings, _sentence_spans, label_sentences
+from src.linger.agents.muse.claim_repair import _sentence_mappings, sentence_spans, label_sentences
 from src.linger.agents.muse.labels import Expansion, accepted_output_call, annotate_retry, expand_labels
 from src.linger.agents.muse.models import DraftSentence, MuseCandidate
 from src.linger.agents.muse.skills import reflection_run_options
@@ -89,7 +89,7 @@ def sentences_for(draft: MuseCandidate, flagged=(), needs_source=()) -> tuple[Dr
         DraftSentence(text=draft.reply[a:b], flagged=i in flagged, needs_source=i in needs_source,
                       finding_indexes=(0,) if i in flagged else (),
                       source_mappings=_sentence_mappings(draft, a, b))
-        for i, (a, b) in enumerate(_sentence_spans(draft.reply)))
+        for i, (a, b) in enumerate(sentence_spans(draft.reply)))
     return label_sentences(draft, sentences)
 
 
@@ -193,7 +193,7 @@ def test_sentences_sharing_a_quotation_form_one_unit_kept_or_dropped_together():
     assert labels_of(sentences) == ["{{SENTENCE_1}}", "{{SENTENCE_2}}", "{{SENTENCE_2}}",
                                     "{{SENTENCE_4}}", "{{SENTENCE_5}}"]
     expanded, _ = expand(accepted(PIGEON), sentences, raw("{{SENTENCE_2}}"))
-    spans = _sentence_spans(draft.reply)
+    spans = sentence_spans(draft.reply)
     assert expanded.reply == draft.reply[spans[1][0]:spans[2][1]]
     assert expanded.evidence_uses[0].exact_quote == PIGEON_QUOTE
 

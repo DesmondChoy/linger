@@ -37,7 +37,7 @@ the exported-payload test are updated together.
 | Agent and model | Agent role, selected skill, and stage; selected Muse reflection modules; the provider and name of the model that actually executed the run; its effective decoding settings; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
 | Turn triage | Fixed book-content, memory-need, and override labels; triage failure flag; registered tools offered to Muse; pinned Serendipity intent |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
-| Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
+| Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; count of sentences the application removed from a revision; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Objective ID, case ID, dataset version, run ID, system variant, Ground truth status, expected and actual fixed labels, proposal comparison or adopted-label pass/fail, aggregate counts and metrics, latency, tokens, and cost |
 

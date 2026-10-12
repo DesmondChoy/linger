@@ -77,6 +77,9 @@ class ReleaseInspection(BaseModel):
     # Empty whenever nothing was released or the reply made no book claim.
     released_evidence_ids: tuple[str, ...] = ()
     revision_count: int = Field(ge=0, le=1)
+    # Sentences the application removed from Muse's revision, without a model
+    # call, before the last review. A count only: the removed text is not kept.
+    trimmed_sentence_count: int = Field(default=0, ge=0)
     failure_stage: Literal[
         "emotional_boundary_preflight",
         "muse_draft",
