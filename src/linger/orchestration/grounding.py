@@ -46,7 +46,6 @@ from src.linger.orchestration.evidence_strength import (
 )
 from src.linger.orchestration.turn_context import (
     add_turn_evidence,
-    add_turn_stated_answers,
     confirmed_reading,
     passage_grant,
     routing_context,
@@ -349,7 +348,6 @@ async def _judged_result(
         stated_answers=await _stated_answers(selected_records, request_plan, original_request),
     )
     add_turn_evidence(response.evidence)
-    add_turn_stated_answers(response.stated_answers)
     return response
 
 

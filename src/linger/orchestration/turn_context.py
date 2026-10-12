@@ -9,9 +9,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.librarian import (
-    EvidenceRecord, LibrarianRoutingResponse, PassageGrant, StatedAnswer,
-)
+from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.triage import OverrideSignal
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -32,17 +30,7 @@ _session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "session_id", default=None
 )
 _EMPTY_EVIDENCE: Mapping[str, EvidenceRecord] = MappingProxyType({})
-
-
-@dataclass
-class _EvidenceLedger:
-    """One turn's canonical records and the answers the Librarian listed from them."""
-
-    records: dict[str, EvidenceRecord]
-    stated_answers: list[StatedAnswer] = field(default_factory=list)
-
-
-_turn_evidence: contextvars.ContextVar[_EvidenceLedger | None] = (
+_turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
     contextvars.ContextVar("turn_evidence", default=None)
 )
 
@@ -199,23 +187,22 @@ def _evidence_index(records: Iterable[EvidenceRecord]) -> Mapping[str, EvidenceR
 
 def set_turn_evidence(
     records: Iterable[EvidenceRecord],
-) -> contextvars.Token[_EvidenceLedger | None]:
+) -> contextvars.Token[dict[str, EvidenceRecord] | None]:
     """Start one isolated evidence ledger for the current turn."""
-    return _turn_evidence.set(_EvidenceLedger(dict(_evidence_index(records))))
+    return _turn_evidence.set(dict(_evidence_index(records)))
 
 
 def turn_evidence() -> Mapping[str, EvidenceRecord]:
     """Return the current turn's read-only canonical evidence index."""
-    ledger = _turn_evidence.get()
-    return MappingProxyType(dict(ledger.records)) if ledger is not None else _EMPTY_EVIDENCE
+    current = _turn_evidence.get()
+    return MappingProxyType(dict(current)) if current is not None else _EMPTY_EVIDENCE
 
 
 def add_turn_evidence(records: Iterable[EvidenceRecord]) -> None:
     """Add frozen records to the request ledger shared with nested tool tasks."""
-    ledger = _turn_evidence.get()
-    if ledger is None:
+    current = _turn_evidence.get()
+    if current is None:
         return
-    current = ledger.records
     incoming = _evidence_index(records)
     for evidence_id, record in incoming.items():
         existing = current.get(evidence_id)
@@ -224,24 +211,8 @@ def add_turn_evidence(records: Iterable[EvidenceRecord]) -> None:
     current.update(incoming)
 
 
-def add_turn_stated_answers(answers: Iterable[StatedAnswer]) -> None:
-    """Keep the answers a judged search listed, each already bound to a quote of its record."""
-    ledger = _turn_evidence.get()
-    if ledger is None:
-        return
-    for answer in answers:
-        if answer not in ledger.stated_answers:
-            ledger.stated_answers.append(answer)
-
-
-def turn_stated_answers() -> tuple[StatedAnswer, ...]:
-    """Return every answer the current turn's searches listed."""
-    ledger = _turn_evidence.get()
-    return tuple(ledger.stated_answers) if ledger is not None else ()
-
-
 def reset_turn_evidence(
-    token: contextvars.Token[_EvidenceLedger | None],
+    token: contextvars.Token[dict[str, EvidenceRecord] | None],
 ) -> None:
     """Restore the previous evidence index after the request finishes."""
     _turn_evidence.reset(token)

@@ -36,12 +36,11 @@ from src.linger.agents.muse.quote_repair import (
 from src.linger.agents.muse.claim_repair import (
     added_source_errors, draft_sentence_errors, retained_claim_errors, retained_source_errors,
 )
-from src.linger.agents.muse.claim_remap import stated_claim_additions, with_supported_claim
 from src.linger.agents.muse.labels import Expansion, annotate_retry, expand_labels
 from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS, SKILLS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.orchestration.turn_context import tool_exposure, turn_evidence, turn_stated_answers
+from src.linger.orchestration.turn_context import tool_exposure, turn_evidence
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.agents.provenance.quotation_audit import quote_is_bound
 
@@ -263,28 +262,6 @@ def validate_muse_output(
     return output
 
 
-def with_stated_claims(ctx: RunContext[None], output: MuseCandidate) -> MuseCandidate:
-    """Add each stated-answer mapping a valid candidate stays valid with; the review judges its support."""
-    additions = stated_claim_additions(output, turn_stated_answers(), turn_evidence())
-    revision = _revision_input(ctx) if additions else None
-    reviewed: set[str] = set()
-    if revision is not None:
-        if not revision.review.draft_sentences:
-            # The findings could not be placed, so any record may be one the review rejected.
-            return output
-        # A record the review saw on a sentence it flagged is not attached again.
-        reviewed = {mapping.evidence_id for sentence in revision.review.draft_sentences if sentence.flagged
-                    for mapping in sentence.source_mappings}
-    for index, claim in additions:
-        if output.evidence_uses[index].evidence_id in reviewed:
-            continue
-        try:
-            output = validate_muse_output(ctx, with_supported_claim(output, index, claim))
-        except ModelRetry:
-            continue
-    return output
-
-
 def _pin_intent(tool: ToolDefinition, intent: str | None) -> ToolDefinition:
     """Show only the pinned intent; `serendipity_explore` enforces it at call time."""
     if intent is None or tool.name != "serendipity_explore":
@@ -334,8 +311,7 @@ class MuseSkillBoundary(AbstractCapability[None]):
         if not isinstance(output, MuseCandidate):
             return output
         try:
-            # Validated first, so an invalid candidate's retry never waits on, or cites, an addition.
-            return with_stated_claims(ctx, validate_muse_output(ctx, output))
+            return validate_muse_output(ctx, output)
         except ModelRetry as retry:
             if (expansion := _EXPANSION.get()) is None:
                 raise

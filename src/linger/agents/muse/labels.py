@@ -16,7 +16,6 @@ from pydantic import ValidationError
 from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
-from src.linger.agents.muse.claim_remap import stated_claim_additions, with_supported_claim
 from src.linger.agents.muse.claim_repair import (
     _occurrences, _sentence_mappings, _sentence_spans, label_sentences,
 )
@@ -67,14 +66,6 @@ def reviewed_draft(ctx: Any, sentences: tuple[DraftSentence, ...]) -> MuseCandid
         draft = MuseCandidate.model_validate(call.args_as_dict())
     except (ValidationError, ValueError):
         return None
-    from src.linger.orchestration.turn_context import turn_evidence, turn_stated_answers
-
-    # The review saw the draft with its stated-answer mappings, which the output call does not hold.
-    reviewed = {(mapping.declaration_index, mapping.mapped_text) for sentence in sentences
-                for mapping in sentence.source_mappings if mapping.field == "supported_claims"}
-    for index, claim in stated_claim_additions(draft, turn_stated_answers(), turn_evidence()):
-        if (index, claim) in reviewed:
-            draft = with_supported_claim(draft, index, claim)
     spans = _sentence_spans(draft.reply)
     if len(spans) != len(sentences):
         return None

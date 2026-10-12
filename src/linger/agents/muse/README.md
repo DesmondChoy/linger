@@ -93,17 +93,6 @@ needs an `exact_quote` declaration. Book, memory, and web declarations may also
 carry `limit_claims`: exact spans that only say what that record does not
 establish. Limits count as declared coverage and receive their own review.
 
-Once a candidate passes these checks, the boundary completes its book mappings
-from the stated answers the turn's searches listed (`claim_remap.py`). When a
-claim is mapped only to other book records, and the verified quote of a stated
-answer of a record the candidate already declares shares a phrase with it (two
-content words with the same function words between them, inside one sentence,
-that none of those records' text contains), the
-claim is also mapped to that record, at most one per claim. Additions never
-remove a mapping or introduce a record, are kept only while the candidate still
-validates, and are reviewed by Provenance like any other mapping. A revision
-never regains a record the reviewed draft mapped to a flagged sentence.
-
 ## Review and release
 
 Provenance's `candidate-review` skill independently reviews each complete Muse
