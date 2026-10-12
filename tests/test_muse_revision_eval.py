@@ -315,3 +315,79 @@ def test_corrected_speaker_grading_follows_the_speaker_and_source_not_one_phrasi
 def test_unknown_case_id_is_rejected():
     with pytest.raises(ValueError, match="unknown case"):
         revision_run.select_cases(CASES, ["muse-revision-missing-v1"])
+
+
+# Recorded 12 Oct 2026 (gpt-6-luna, two live passes of `muse-revision-unflagged-repeat-v1`): the
+# output calls exactly as Muse wrote them. Both typed the same repair of the flagged sentence.
+# The passes came from a local run of `evals.muse.revision_run` whose report is not stored under
+# `evals/muse/reports`. The replays below pin today's accepted behaviour and the grader's verdict
+# on it; they do not depend on any change to revision validation.
+_RECORDED_REPAIR = "The harbour master says he will ask the council to close the harbour at dusk."
+_REPEATED_DEFECT = "With the harbour closed each evening, the fishing families have to change their routines."
+
+
+def _recorded(reply):
+    return {
+        "reply": reply,
+        "evidence_uses": [{
+            "source_kind": "book_corpus", "evidence_id": "lowmere-c2-meeting",
+            "source_location": "Chapter 2, passage 2", "supported_claims": [_RECORDED_REPAIR],
+        }],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    }
+
+
+def _replay(output):
+    case = by_id("muse-revision-unflagged-repeat-v1")
+    model, _ = _revision_model(output)
+    report = asyncio.run(measure(model, runs=1, case_ids=[case.case_id]))
+    return report["per_case"][case.case_id]["runs"][0]
+
+
+def test_recorded_revision_that_deletes_the_unflagged_repeat_passes_validation_and_the_grader():
+    run = _replay(_recorded(f"{_RECORDED_REPAIR} {{{{SENTENCE_2}}}}"))
+    assert run["retries"] == 0 and run["hard_pass"] is True and run["failures"] == []
+    assert run["reply"] == f"{_RECORDED_REPAIR} He also wants every boat home before the lamps are lit."
+
+
+@pytest.mark.parametrize("typed", [False, True], ids=["by-label", "typed-out"])
+def test_recorded_revision_that_keeps_the_unflagged_repeat_is_caught_by_the_grader_not_by_validation(typed):
+    """The recorded failing pass. No finding names the third draft sentence, so revision validation
+    lets Muse keep it word for word with its draft mapping, by label or typed out; whether it
+    repeats the flagged claim is a judgement left to the second review, and here to the grader."""
+    case = by_id("muse-revision-unflagged-repeat-v1")
+    kept = [sentence.text for sentence in draft_sentences(case)[1:]]
+    assert kept[1] == _REPEATED_DEFECT and not draft_sentences(case)[2].flagged
+    output = _recorded(f"{_RECORDED_REPAIR} {{{{SENTENCE_2}}}} {{{{SENTENCE_3}}}} {{{{SENTENCE_4}}}}")
+    if typed:
+        output["reply"] = " ".join([_RECORDED_REPAIR, *kept])
+        output["evidence_uses"][0]["supported_claims"] += kept[:2]
+    run = _replay(output)
+    assert run["retries"] == 0 and run["retry_categories"] == []
+    assert run["reply"] == " ".join([_RECORDED_REPAIR, *kept])
+    # The kept sentences come back with the draft's mapping, the repeated claim included.
+    assert [use["supported_claims"] for use in run["evidence_uses"]] == [[_RECORDED_REPAIR, *kept[:2]]]
+    assert run["hard_pass"] is False
+    assert run["failures"] == [
+        "deleted: unflagged sentence 2 kept or reworded instead of deleted",
+        "forbidden_present: 'harbour closed'",
+        "forbidden_present: 'fishing families'",
+    ]
+
+
+def test_rewording_the_unflagged_repeat_instead_of_deleting_it_is_retried_by_validation(bound):
+    from pydantic_ai import ModelRetry
+    from pydantic_ai.messages import ModelRequest, RetryPromptPart
+
+    case = by_id("muse-revision-unflagged-repeat-v1")
+    bound(case)
+    softened = "If the harbour closes each evening, the fishing families will have to change their routines."
+    data = _recorded(f"{_RECORDED_REPAIR} {softened}")
+    data["evidence_uses"][0]["supported_claims"].append(softened)
+    context = SimpleNamespace(prompt=revision_input(case).model_dump_json())
+    with pytest.raises(ModelRetry) as caught:
+        validate_muse_output(context, MuseCandidate.model_validate(data))
+    errors = json.loads(str(caught.value))["errors"]
+    assert [error.get("draft_sentence") for error in errors] == [_REPEATED_DEFECT]
+    message = ModelRequest(parts=[RetryPromptPart(content=str(caught.value))])
+    assert retry_categories([message]) == [["unflagged_rewrite"]]

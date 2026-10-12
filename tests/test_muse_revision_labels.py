@@ -622,3 +622,21 @@ def test_from_labels_follows_positions_not_text_that_also_occurs_in_a_label():
     ]}))
     errors = json.loads(annotate_retry(retry, expansion).message)["errors"]
     assert [error.get("from_labels") for error in errors] == [None, ["{{SENTENCE_1}}"]]
+
+
+def test_labels_of_a_repeated_sentence_each_restore_their_own_place_and_the_shared_mapping():
+    lamp, broken, late, ask = "The lamp goes out.", "Pinocchio breaks his promise.", "Pinocchio is late.", "Why?"
+    data = raw(f"{lamp} {broken} {lamp} {ask}", book("ch01-a", lamp), book("ch01-b", broken))
+    sentences = sentences_for(MuseCandidate.model_validate(data), flagged={1})
+    assert labels_of(sentences) == ["{{SENTENCE_1}}", None, "{{SENTENCE_3}}", "{{SENTENCE_4}}"]
+    for reply, expanded, placed in [
+        (f"{{{{SENTENCE_1}}}} {late} {{{{SENTENCE_3}}}} {{{{SENTENCE_4}}}}", f"{lamp} {late} {lamp} {ask}", [0, 38, 57]),
+        (f"{late} {{{{SENTENCE_3}}}} {{{{SENTENCE_4}}}}", f"{late} {lamp} {ask}", [19, 38]),
+        (f"{{{{SENTENCE_1}}}} {late} {{{{SENTENCE_4}}}}", f"{lamp} {late} {ask}", [0, 38]),
+    ]:
+        candidate, expansion = expand(accepted(data), sentences, raw(reply, book("ch01-b", late)))
+        assert candidate.reply == expanded
+        assert [start for _, start, _ in expansion.placements] == placed
+        # The repeated claim is declared once, under its draft source, however many copies are kept.
+        assert sorted((use.evidence_id, use.supported_claims) for use in candidate.evidence_uses) == [
+            ("ch01-a", (lamp,)), ("ch01-b", (late,))]

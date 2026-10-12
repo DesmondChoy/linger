@@ -810,3 +810,89 @@ def test_a_finding_quote_found_only_inside_longer_words_names_and_disputes_them(
     assert [mark.text for mark in marks if mark.flagged] == [PIGEONS_SCOLD]
     revised = mapped(f"{IDENTITY} {PIGEONS_SCOLD} {QUESTION}", (TWO, (IDENTITY,)), (THREE, (PIGEONS_SCOLD,)))
     assert added_source_errors(revised, marks, review(quoted("Pigeon")).response_findings) == []
+
+
+# --- a sentence whose text occurs more than once ------------------------------------
+
+LAMP = "The lamp goes out."
+REPEATED = f"{LAMP} {FLAGGED} {LAMP} {QUESTION}"
+
+
+@pytest.mark.parametrize("revised", [
+    f"{LAMP} Pinocchio is late. {LAMP} {QUESTION}",
+    f"Pinocchio is late. {LAMP} {QUESTION}",
+    f"{LAMP} Pinocchio is late. {QUESTION}",
+    f"Pinocchio is late. {QUESTION}",
+], ids=["both", "second", "first", "neither"])
+def test_an_unflagged_sentence_the_draft_repeats_may_be_kept_at_either_place_or_deleted(revised):
+    marks = placed(candidate(REPEATED, claims=(LAMP,)))
+    assert [mark.flagged for mark in marks] == [False, True, False, False]
+    assert draft_sentence_errors(candidate(revised, claims=(LAMP,) if LAMP in revised else ()), marks) == []
+
+
+@pytest.mark.parametrize("revised", [
+    f"The lamp goes dark. Pinocchio is late. {LAMP} {QUESTION}",
+    f"{LAMP} Pinocchio is late. The lamp goes dark. {QUESTION}",
+], ids=["first", "second"])
+def test_rewording_either_copy_of_a_repeated_unflagged_sentence_names_the_draft_sentence(revised):
+    errors = draft_sentence_errors(candidate(revised), placed(candidate(REPEATED)))
+    assert [(error["value"], error["draft_sentence"]) for error in errors] == [("The lamp goes dark.", LAMP)]
+
+
+def test_a_finding_on_a_repeated_sentence_is_addressed_by_repairing_one_copy_and_not_by_restoring_both():
+    twice = f"{FLAGGED} {KEPT} {FLAGGED} {QUESTION}"
+    marks = placed(candidate(twice, claims=(FLAGGED,)))
+    assert [mark.flagged for mark in marks] == [True, False, True, False]
+    repaired = candidate(f"Pinocchio is late. {KEPT} {FLAGGED} {QUESTION}", claims=(FLAGGED,))
+    assert draft_sentence_errors(repaired, marks) == []
+    restored = draft_sentence_errors(candidate(twice, claims=(FLAGGED,)), marks)
+    assert [error["draft_sentence"] for error in restored] == [FLAGGED, FLAGGED]
+
+
+def test_a_moved_flagged_sentence_is_not_taken_for_an_unflagged_sentence_with_the_same_text():
+    # The finding's quote crosses a sentence boundary, so it names only the second "lamp" sentence.
+    draft = candidate(f"{LAMP} {KEPT} {FLAGGED} {LAMP} {QUESTION}")
+    marks = placed(draft, f"{FLAGGED} {LAMP}")
+    assert [mark.flagged for mark in marks] == [False, False, True, True, False]
+    swapped = candidate(f"{LAMP} {KEPT} {LAMP} {FLAGGED} {QUESTION}")
+    errors = draft_sentence_errors(swapped, marks)
+    assert [(error["draft_sentence"], error["response_start"]) for error in errors] == [
+        (LAMP, swapped.reply.rindex(LAMP)), (FLAGGED, swapped.reply.index(FLAGGED))]
+    assert all("no sentence it names was repaired" in error["error"] for error in errors)
+    # Deleting the flagged copy, or repairing its neighbour, still addresses the finding.
+    for repaired in (f"{LAMP} {KEPT} {FLAGGED} {QUESTION}", f"{LAMP} {KEPT} {LAMP} Pinocchio is late. {QUESTION}"):
+        assert draft_sentence_errors(candidate(repaired), marks) == []
+
+
+def copies(draft, flagged, revised, needs_source=()):
+    """Errors for sentence texts given by letter; one finding names the draft positions in `flagged`."""
+    text = {"A": LAMP, "B": FLAGGED, "C": KEPT, "N": "Pinocchio is late."}
+    marks = tuple(DraftSentence(text=text[letter], flagged=i in flagged, needs_source=i in needs_source,
+                                finding_indexes=(0,) if i in flagged else ())
+                  for i, letter in enumerate(draft))
+    reply = " ".join(text[letter] for letter in revised)
+    return [(error.get("draft_sentence"), error["response_start"])
+            for error in draft_sentence_errors(candidate(reply), marks)]
+
+
+@pytest.mark.parametrize("draft, flagged, revised", [
+    ("ABAA", {2}, "AAB"), ("ABAA", {3}, "AAB"), ("ABB", {2}, "BA"), ("ABB", {1}, "BA"), ("AABC", {0}, "BCA"),
+])
+def test_deleting_one_copy_of_a_sentence_flagged_in_one_place_addresses_the_finding(draft, flagged, revised):
+    # A copy is gone and the kept ones are no more than the unflagged copies: the flagged one may be the one deleted.
+    assert copies(draft, flagged, revised) == []
+
+
+@pytest.mark.parametrize("draft, flagged, revised, restored", [
+    ("AABB", {3}, "BBAA", [(FLAGGED, 30)]),
+    ("AAB", {0}, "ABA", [(LAMP, 49)]),
+    ("ABA", {2}, "AAB", [(LAMP, 0)]),
+])
+def test_reordering_every_copy_of_a_sentence_flagged_in_one_place_repairs_nothing(draft, flagged, revised, restored):
+    # Each moved copy takes a draft copy of its own, so once the unflagged ones are used the flagged one is kept.
+    assert copies(draft, flagged, revised) == restored
+
+
+def test_a_copy_the_revision_adds_beyond_the_drafts_is_read_as_the_first_draft_copy():
+    # Both draft copies are matched in place; the third typed copy is not the source-dependent one again.
+    assert copies("ABA", {1}, "ANAA", needs_source={2}) == [(None, 38)]

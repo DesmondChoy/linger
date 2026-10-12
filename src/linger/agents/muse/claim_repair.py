@@ -439,13 +439,20 @@ def draft_sentence_errors(
     # Flagged draft sentences that changed nothing: their revised span, or None
     # when the needs_source error already reports them.
     kept: dict[int, tuple[int, int] | None] = {}
-    for tag, i1, i2, j1, j2 in SequenceMatcher(None, drafted, revised, autojunk=False).get_opcodes():
+    opcodes = SequenceMatcher(None, drafted, revised, autojunk=False).get_opcodes()
+    # Draft sentences already accounted for. A moved sentence is a copy not yet matched: an
+    # unflagged one while any remains, so a flagged copy counts as kept only when it must be.
+    matched = {i for tag, i1, i2, _, _ in opcodes if tag == "equal" for i in range(i1, i2)}
+    for tag, i1, i2, j1, j2 in opcodes:
         for j in range(j1, j2):
             start, end = spans[j]
             if tag == "equal":
                 index, unchanged = i1 + j - j1, True
             elif revised[j] in drafted:
-                index, unchanged = drafted.index(revised[j]), True
+                copies = [i for i, text in enumerate(drafted) if text == revised[j]]
+                free = sorted((i for i in copies if i not in matched), key=lambda i: draft_sentences[i].flagged)
+                index, unchanged = (free or copies)[0], True
+                matched.add(index)
             elif tag == "insert":
                 neighbours = [draft_sentences[i] for i in (i1 - 1, i1) if 0 <= i < len(drafted)]
                 if not any(sentence.flagged for sentence in neighbours):
