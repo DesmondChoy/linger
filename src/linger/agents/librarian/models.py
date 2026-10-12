@@ -10,7 +10,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from src.linger.contracts.base import StrictModel
-from src.linger.contracts.librarian import EvidenceRecord, StatedAnswer
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.session import ReaderStatement
 
 
@@ -277,56 +277,6 @@ def evidence_assessment_errors(
             "path": "support", "missing_part_indices": missing,
             "error": "Sufficient evidence must support every requested part.",
         })
-    return errors
-
-
-class SelectedRecord(StrictModel):
-    """One selected record under the short label the listing must copy."""
-
-    evidence_id: str
-    location: str
-    text: str
-
-
-class StatedAnswersInput(StrictModel):
-    """The reader's book question and only the records selected to answer it."""
-
-    book_question: str
-    records: tuple[SelectedRecord, ...] = Field(min_length=1)
-
-
-class StatedAnswers(StrictModel):
-    """Every distinct answer the selected records state to the book question."""
-
-    answers: tuple[StatedAnswer, ...] = Field(max_length=8)
-
-
-# A shorter quote, or a blank one, is contained in almost any record.
-MIN_SOURCE_QUOTE_LENGTH = 10
-
-
-def stated_answer_errors(output: StatedAnswers, request: StatedAnswersInput) -> list[dict[str, object]]:
-    """Bind each item to a supplied record that contains its quote; whitespace may differ."""
-    records = {record.evidence_id: record for record in request.records}
-    errors: list[dict[str, object]] = []
-    for index, item in enumerate(output.answers):
-        record = records.get(item.evidence_id)
-        quote = " ".join(item.source_quote.split())
-        if record is None:
-            errors.append({
-                "index": index, "evidence_id": item.evidence_id,
-                "error": "evidence_id is not one of the supplied records.",
-            })
-        elif len(quote) < MIN_SOURCE_QUOTE_LENGTH:
-            errors.append({
-                "index": index, "evidence_id": item.evidence_id, "source_quote": item.source_quote,
-                "error": f"source_quote is shorter than {MIN_SOURCE_QUOTE_LENGTH} characters.",
-            })
-        elif quote not in " ".join(record.text.split()):
-            errors.append({
-                "index": index, "evidence_id": item.evidence_id, "source_quote": item.source_quote,
-                "error": "source_quote is not a contiguous span of this record's text.",
-            })
     return errors
 
 

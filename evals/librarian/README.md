@@ -7,10 +7,10 @@ spoiler-bounded retrieval configurations. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
-Librarian owns one reusable Agent with five application-selected skills:
+Librarian owns one reusable Agent with four application-selected skills:
 [book request planning](../../src/linger/agents/librarian/skills/book-request/SKILL.md),
 [boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md),
-[independent event identification](../../src/linger/agents/librarian/skills/event-identification/SKILL.md), [evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md), and [stated answers](../../src/linger/agents/librarian/skills/stated-answers/SKILL.md).
+[independent event identification](../../src/linger/agents/librarian/skills/event-identification/SKILL.md), and [evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md).
 All have typed inputs and per-run outputs and expose no model tools. Retrieval,
 scope filtering, fusion, and reranking remain application code. The retrieval
 benchmark exercises a known boundary; production routing and book replay can

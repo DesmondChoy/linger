@@ -29,7 +29,6 @@ const STAGE_COMPONENTS: Record<string, ComponentId[]> = {
   emotional_boundary_preflight: ['preflight'],
   boundary_inference: ['librarian'],
   evidence_strength: ['librarian'],
-  stated_answers: ['librarian'],
   draft: ['muse'],
   revision: ['muse'],
   review: ['provenance'],

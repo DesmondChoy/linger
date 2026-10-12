@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import re
 from typing import Any, Literal, Protocol
@@ -19,24 +18,17 @@ from src.linger.agents.librarian.models import (
     evidence_assessment_errors,
     LibrarianBookRequestInput,
     LibrarianEvidenceStrengthInput,
-    SelectedRecord,
-    StatedAnswers,
-    StatedAnswersInput,
 )
-from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT, STATED_ANSWERS_PROMPT_FINGERPRINT
-from src.linger.agents.librarian.skills import BOOK_REQUEST, EVIDENCE_ASSESSMENT, STATED_ANSWERS
-from src.linger.contracts.librarian import EvidenceRecord, StatedAnswer
+from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
+from src.linger.agents.librarian.skills import BOOK_REQUEST, EVIDENCE_ASSESSMENT
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.session import ReaderStatement
 
-# No tools reach any of these runs; the limits bound their own structured-output
-# repair attempts. A model that answers with calls to tools it was never given
-# would otherwise keep earning fresh retry prompts.
+# No tools reach either judgment; these bound their own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
 BOOK_REQUEST_REQUEST_LIMIT = BOOK_REQUEST.output_retries + 1
 EVIDENCE_ASSESSMENT_REQUEST_LIMIT = EVIDENCE_ASSESSMENT.output_retries + 1
-STATED_ANSWERS_REQUEST_LIMIT = STATED_ANSWERS.output_retries + 1
-# The listing is a reading aid added after the search is already judged, so the
-# reader never waits longer than this for it.
-STATED_ANSWERS_TIMEOUT_SECONDS = 20.0
 
 
 class StrengthJudge(Protocol):
@@ -90,14 +82,6 @@ async def plan_book_request(
 
 
 _LABEL = re.compile(r"\bE\d+\b")
-# A whole bracketed citation such as "(E1)" or "[E1, E2]", or a leading "E1:".
-_LABEL_CITATION = re.compile(r"\((?:E\d+[\s,&]*)+\)|\[(?:E\d+[\s,&]*)+\]|^\s*E\d+\s*[:\-]")
-
-
-def _labelled(evidence: tuple[EvidenceRecord, ...]) -> dict[str, EvidenceRecord]:
-    """Short labels replace long, near-identical corpus IDs that the model
-    otherwise miscopies; application code maps them back after validation."""
-    return {f"E{index}": record for index, record in enumerate(evidence, start=1)}
 
 
 async def assess_book_evidence(
@@ -113,7 +97,9 @@ async def assess_book_evidence(
         from src.linger.agents.librarian.agent import librarian_agent
 
         agent = librarian_agent
-    labelled = _labelled(evidence)
+    # Short labels replace long, near-identical corpus IDs that the model
+    # otherwise miscopies; application code maps them back after validation.
+    labelled = {f"E{index}": record for index, record in enumerate(evidence, start=1)}
     task = LibrarianEvidenceStrengthInput(
         original_request=original_request,
         request=plan,
@@ -153,76 +139,6 @@ async def assess_book_evidence(
         "strength_reason": unlabel(decision.strength_reason),
         "limitations": tuple(unlabel(item) for item in decision.limitations),
     })
-
-
-def book_question(plan: BookRequestPlan, original_request: LibrarianBookRequestInput) -> str:
-    """The reader's own wording of the planned book request.
-
-    Every planned part's reader spans, in plan order; a plan without parts
-    leaves the reader's whole current line, as it does for the assessment.
-    """
-    spans = dict.fromkeys(span for part in plan.parts for span in part.reader_spans)
-    return " ".join(spans) if spans else original_request.current_line
-
-
-async def list_stated_answers(
-    plan: BookRequestPlan,
-    selected: tuple[EvidenceRecord, ...],
-    *,
-    original_request: LibrarianBookRequestInput,
-    agent: Agent[None, Any] | None = None,
-) -> tuple[StatedAnswer, ...]:
-    """List each distinct answer the selected records state to the assessed request.
-
-    Every item names the real evidence ID of the record that contains its
-    quote. Raises when the run fails, its repair is exhausted, or it outlasts
-    its time limit; the caller decides what a missing list means.
-    """
-    if agent is None:
-        from src.linger.agents.librarian.agent import librarian_agent
-
-        agent = librarian_agent
-    labelled = _labelled(selected)
-    task = StatedAnswersInput(
-        book_question=book_question(plan, original_request),
-        records=tuple(
-            SelectedRecord(evidence_id=label, location=record.location, text=record.text)
-            for label, record in labelled.items()
-        ),
-    )
-    async with asyncio.timeout(STATED_ANSWERS_TIMEOUT_SECONDS):
-        result = await run_agent_traced(
-            agent,
-            task.model_dump_json(),
-            span_name="librarian.stated_answers",
-            role="Librarian",
-            stage="stated_answers",
-            input_contract="StatedAnswersInput.v1",
-            output_contract="src.linger.agents.librarian.models.StatedAnswers",
-            prompt_template_id=STATED_ANSWERS_PROMPT_FINGERPRINT.template_id,
-            prompt_digest=STATED_ANSWERS_PROMPT_FINGERPRINT.digest,
-            failure_code="stated_answers_model_failed",
-            usage_limits=UsageLimits(request_limit=STATED_ANSWERS_REQUEST_LIMIT),
-            **STATED_ANSWERS.run_options(),
-        )
-    # The run's output function has already bound every quote to its record.
-    listed = StatedAnswers.model_validate(result.output.model_dump(mode="json"))
-
-    def supplied(text: str) -> bool:
-        return any(label in labelled for label in _LABEL.findall(text))
-
-    def unlabel(text: str) -> str:
-        """Remove citations of the run's own record labels, which mean nothing
-        to the writer. An answer that still leans on a label is dropped."""
-        kept = _LABEL_CITATION.sub(lambda match: "" if supplied(match[0]) else match[0], text)
-        kept = re.sub(r"\s+([.,;:])", r"\1", " ".join(kept.split()))
-        return "" if supplied(kept) else kept
-
-    answers = ((unlabel(item.answer), item) for item in listed.answers)
-    return tuple(
-        item.model_copy(update={"answer": answer, "evidence_id": labelled[item.evidence_id].evidence_id})
-        for answer, item in answers if answer
-    )
 
 
 async def judge_evidence_strength(

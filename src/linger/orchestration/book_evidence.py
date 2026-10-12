@@ -45,10 +45,6 @@ ROUTING_MARGIN = 10.0
 class JudgedBookEvidence:
     items: tuple[EvidenceItem, ...]
     judgement: EvidenceStrengthDecision
-    # The request Librarian's own assessment judged; absent when no scope was
-    # searched or an injected judge replaced that assessment.
-    request_plan: BookRequestPlan | None = None
-    original_request: LibrarianBookRequestInput | None = None
 
 
 def evidence_record_from_item(item: EvidenceItem) -> EvidenceRecord:
@@ -270,18 +266,6 @@ def gather_book_candidates(
     return _merge_candidates(list(merged), book_scopes)
 
 
-async def plan_or_fallback(original: LibrarianBookRequestInput) -> BookRequestPlan:
-    """Plan the book request; an unavailable plan leaves the original reader text."""
-    try:
-        return await plan_book_request(
-            original.current_line,
-            prior_reader_statements=original.prior_reader_statements,
-        )
-    except Exception:
-        logfire.warning("librarian.book_request_fallback", reason="planning_unavailable")
-        return BookRequestPlan(parts=())
-
-
 async def retrieve_book_evidence(
     reader_question: str,
     *,
@@ -301,7 +285,16 @@ async def retrieve_book_evidence(
     original = LibrarianBookRequestInput(
         current_line=reader_question, prior_reader_statements=prior_reader_statements,
     )
-    plan = await plan_or_fallback(original) if strength_judge is None else None
+    plan = None
+    if strength_judge is None:
+        try:
+            plan = await plan_book_request(
+                reader_question,
+                prior_reader_statements=prior_reader_statements,
+            )
+        except Exception:
+            logfire.warning("librarian.book_request_fallback", reason="planning_unavailable")
+            plan = BookRequestPlan(parts=())
     items = gather_book_candidates(
         plan or BookRequestPlan(parts=()), original,
         book_scopes=book_scopes, librarian=librarian, purpose=purpose,
@@ -319,6 +312,4 @@ async def retrieve_book_evidence(
     return JudgedBookEvidence(
         items=tuple(item for item in items if item.evidence_id in selected),
         judgement=decision,
-        request_plan=plan,
-        original_request=original if plan is not None else None,
     )

@@ -23,7 +23,6 @@ from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.serendipity.models import ConnectionDecline, ConnectionExplorationResult
-from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration import reflection as reflection_module
 from src.linger.orchestration.boundary import (
     BOUNDARY_INFERENCE_REQUEST_LIMIT,
@@ -34,9 +33,7 @@ from src.linger.orchestration.boundary import (
 from src.linger.orchestration.evidence_strength import (
     BOOK_REQUEST_REQUEST_LIMIT,
     EVIDENCE_ASSESSMENT_REQUEST_LIMIT,
-    STATED_ANSWERS_REQUEST_LIMIT,
     assess_book_evidence,
-    list_stated_answers,
     plan_book_request,
 )
 from src.linger.orchestration.reflection import (
@@ -268,11 +265,6 @@ def test_nested_serendipity_agent_run_does_not_share_the_drafts_budget(monkeypat
 
 
 BOOK_REQUEST_INPUT = LibrarianBookRequestInput(current_line=CUE, prior_reader_statements=())
-SELECTED_RECORD = EvidenceRecord(
-    evidence_id="selected", work_id="work", book_version_id="work-v1", chapter_id="work-v1-ch1",
-    chapter_number=1, location="Chapter 1", source_sha256="a" * 64, source_lines=(1, 1),
-    text="A selected passage.",
-)
 LIBRARIAN_RUNS = {
     "boundary_inference": (
         BOUNDARY_INFERENCE_REQUEST_LIMIT,
@@ -295,12 +287,6 @@ LIBRARIAN_RUNS = {
         EVIDENCE_ASSESSMENT_REQUEST_LIMIT,
         lambda agent: assess_book_evidence(
             BookRequestPlan(parts=()), (), original_request=BOOK_REQUEST_INPUT, agent=agent,
-        ),
-    ),
-    "stated_answers": (
-        STATED_ANSWERS_REQUEST_LIMIT,
-        lambda agent: list_stated_answers(
-            BookRequestPlan(parts=()), (SELECTED_RECORD,), original_request=BOOK_REQUEST_INPUT, agent=agent,
         ),
     ),
 }

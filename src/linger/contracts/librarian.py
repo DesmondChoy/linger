@@ -224,23 +224,6 @@ class BoundaryUncertain(StrictModel):
 BoundaryInferenceResult = BoundaryCandidate | BoundaryPassages | BoundaryUncertain
 
 
-# The field descriptions are the model-facing schema of the stated-answers
-# skill, so this class carries no docstring of its own.
-class StatedAnswer(StrictModel):
-    answer: str = Field(
-        min_length=1, max_length=300,
-        description="One distinct answer the record states to the book question, as one short plain clause.",
-    )
-    evidence_id: str = Field(description="The supplied record that states this answer, copied exactly.")
-    source_quote: str = Field(
-        min_length=1, max_length=600,
-        description=(
-            "Short contiguous quote copied from this evidence_id's supplied text, containing the "
-            "words that state this answer. Only whitespace may differ."
-        ),
-    )
-
-
 class RetrievalResult(StrictModel):
     kind: Literal["result"]
     request_id: str
@@ -250,9 +233,6 @@ class RetrievalResult(StrictModel):
     searched_scope: SearchedScope | PassageScope
     evidence: tuple[EvidenceRecord, ...] = ()
     limitations: tuple[str, ...] = ()
-    # Each distinct answer the selected records state, quoted from the record
-    # named by its real evidence ID. Empty when none was listed.
-    stated_answers: tuple[StatedAnswer, ...] = ()
 
 
 class RetrievalFailure(StrictModel):
