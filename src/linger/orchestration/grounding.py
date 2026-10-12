@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from functools import partial
 from uuid import uuid4
 
 import logfire
@@ -14,11 +13,16 @@ from apps.backend.contracts import BookScope
 from apps.backend.librarian import Librarian
 from apps.backend.hybrid_librarian import HybridLibrarian
 from apps.backend.telemetry import record_failure, set_span_attrs
-from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.models import (
+    BookRequestPlan,
+    EvidenceStrengthDecision,
+    LibrarianBookRequestInput,
+)
 from src.linger.orchestration.book_evidence import (
     EvidenceJudgementError,
     evidence_record_from_item,
     judge_records,
+    plan_or_fallback,
     retrieve_book_evidence,
 )
 from src.linger.contracts.librarian import (
@@ -33,11 +37,12 @@ from src.linger.contracts.librarian import (
     RetrievalOptions,
     RetrievalResult,
     SearchedScope,
+    StatedAnswer,
 )
 from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
-    judge_evidence_strength,
+    list_stated_answers,
 )
 from src.linger.orchestration.turn_context import (
     add_turn_evidence,
@@ -248,7 +253,10 @@ async def _grounding_evidence(
         return failure
 
     records = tuple(evidence_record_from_item(item) for item in judged.items)
-    return _judged_result(request, records, searched_scope, judged.judgement)
+    return await _judged_result(
+        request, records, searched_scope, judged.judgement,
+        request_plan=judged.request_plan, original_request=judged.original_request,
+    )
 
 
 async def _finish_retrieval(
@@ -258,17 +266,21 @@ async def _finish_retrieval(
     strength_judge: StrengthJudge | None,
 ) -> LibrarianResponse:
     """Judge exact granted passages without broadening their retrieval scope."""
+    plan = original = None
+    if strength_judge is None:
+        original = LibrarianBookRequestInput(
+            current_line=reader_message() if reader_message() is not None else request.query,
+            prior_reader_statements=reader_statements(),
+        )
+        plan = await plan_or_fallback(original)
     try:
         decision = await judge_records(
             request.query,
             records,
-            strength_judge=strength_judge or partial(
-                judge_evidence_strength,
-                max_evidence_records=request.options.max_final_evidence,
-                reader_question=reader_message(),
-                prior_reader_statements=reader_statements(),
-            ),
+            strength_judge=strength_judge,
             max_evidence_records=request.options.max_final_evidence,
+            request_plan=plan,
+            original_request=original,
         )
     except EvidenceJudgementError:
         return RetrievalFailure(
@@ -277,14 +289,35 @@ async def _finish_retrieval(
             error_code="evidence_judgement_unavailable",
             retryable=True,
         )
-    return _judged_result(request, records, searched_scope, decision)
+    return await _judged_result(
+        request, records, searched_scope, decision,
+        request_plan=plan, original_request=original,
+    )
 
 
-def _judged_result(
+async def _stated_answers(
+    selected: tuple[EvidenceRecord, ...],
+    request_plan: BookRequestPlan | None,
+    original_request: LibrarianBookRequestInput | None,
+) -> tuple[StatedAnswer, ...]:
+    """List what the selected records state; this step can never fail a search."""
+    if not selected or request_plan is None or original_request is None:
+        return ()
+    try:
+        return await list_stated_answers(request_plan, selected, original_request=original_request)
+    except Exception:
+        logfire.warning("librarian.stated_answers_unavailable")
+        return ()
+
+
+async def _judged_result(
     request: LibrarianRequest,
     records: tuple[EvidenceRecord, ...],
     searched_scope: SearchedScope | PassageScope,
     decision: EvidenceStrengthDecision,
+    *,
+    request_plan: BookRequestPlan | None,
+    original_request: LibrarianBookRequestInput | None,
 ) -> RetrievalResult:
     """Register only the judge's selected records for direct grounding."""
     selected_ids = set(decision.relevant_evidence_ids)
@@ -312,6 +345,7 @@ def _judged_result(
         searched_scope=searched_scope,
         evidence=selected_records,
         limitations=decision.limitations,
+        stated_answers=await _stated_answers(selected_records, request_plan, original_request),
     )
     add_turn_evidence(response.evidence)
     return response

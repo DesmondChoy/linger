@@ -32,6 +32,7 @@ SAFE_STAGE_LABELS = {
     "search_rank_select": "Serendipity search and comparison",
     "memory_recall": "Serendipity memory recall",
     "evidence_strength": "Librarian evidence review",
+    "stated_answers": "Librarian stated-answer listing",
     "curation": "Memory curation proposal",
     "curation_review": "Memory curation review",
     "surfacing": "Memory surfacing",

@@ -266,6 +266,8 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
         assert len(prompts) == 1
         payload = json.loads(prompts[0])
         model_inputs.append(payload)
+        if "records" in payload:
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {"answers": []})])
         if "current_line" in payload:
             assert not retrieval_inputs
         else:
@@ -330,7 +332,16 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
             assert injected_calls[0][2] == 2
         else:
             assert not injected_calls
-            assert len(model_inputs) == 2
+            # Only Muse's search goes on to list what the selected passage states.
+            assert len(model_inputs) == (3 if route == "muse" else 2)
+            if route == "muse":
+                assert model_inputs[2] == {
+                    "book_question": QUESTION,
+                    "records": [{
+                        "evidence_id": "E1", "location": bundle.items[0].location,
+                        "text": bundle.items[0].excerpt,
+                    }],
+                }
             assert model_inputs[0] == {"current_line": original_reader, "prior_reader_statements": [], "search_target": "book_evidence"}
             assessment = model_inputs[1]
             assert set(assessment) == {"original_request", "request", "evidence", "max_evidence_records"}
@@ -373,6 +384,8 @@ def test_muse_clarification_answer_keeps_prior_reader_question_without_expanded_
         assert len(prompts) == 1
         payload = json.loads(prompts[0])
         model_inputs.append(payload)
+        if "records" in payload:
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {"answers": []})])
         label = None if "current_line" in payload else next(
             record["evidence_id"] for record in payload["evidence"] if record["text"] == bundle.items[0].excerpt
         )
@@ -408,11 +421,14 @@ def test_muse_clarification_answer_keeps_prior_reader_question_without_expanded_
         assert [record.evidence_id for record in result.evidence] == [selected_id]
         assert [call.args[0].query for call in retrieve.call_args_list] == [original_question, current_answer]
         assert all(call.args[0].book_scopes == [scope] for call in retrieve.call_args_list)
-        assert len(model_inputs) == 2
+        assert len(model_inputs) == 3
         assert model_inputs[0] == {
             "current_line": current_answer, "prior_reader_statements": [prior.model_dump()],
             "search_target": "book_evidence",
         }
+        # The listing asks the prior question the plan carried, not the bare chapter answer.
+        assert model_inputs[2]["book_question"] == original_question
+        assert [record["text"] for record in model_inputs[2]["records"]] == [bundle.items[0].excerpt]
         assert set(model_inputs[1]) == {"original_request", "request", "evidence", "max_evidence_records"}
         assert model_inputs[1]["request"] == BookRequestPlan.model_validate(plan).model_dump(mode="json")
         assert bundle.items[0].excerpt in {record["text"] for record in model_inputs[1]["evidence"]}

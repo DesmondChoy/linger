@@ -1,6 +1,6 @@
 # Librarian
 
-Librarian owns one reusable PydanticAI object, `librarian_agent`, with four
+Librarian owns one reusable PydanticAI object, `librarian_agent`, with five
 application-selected skills. Each invocation is a model run with the selected
 instructions and output contract. The assignment is explicit in
 [`skills.py`](skills.py).
@@ -11,6 +11,7 @@ instructions and output contract. The assignment is explicit in
 | [Event identification](skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` independently checks the stopping event before application code accepts a chapter candidate. |
 | [Book request](skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts separate book needs or reading-progress locators, selected by the application. |
 | [Evidence assessment](skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks scoped records against the plan and original reader context. Application checks return `EvidenceStrengthDecision`. |
+| [Stated answers](skills/stated-answers/SKILL.md) | `StatedAnswersInput` → `StatedAnswers` | `list_stated_answers` lists each distinct answer the selected records state, with a checked quote, for Muse's `librarian_search` result. |
 
 Boundary inference receives the current Line, original reader statements,
 projected account memories, and private full-work candidates. It distinguishes
@@ -55,6 +56,24 @@ Planning failures are recorded and use original-text retrieval as a fallback.
 An empty authorized plan also gets that recovery path; no authorized scope
 means no search. Exact-passage grants still assess only the granted records.
 
+After a `sufficient` or `weak` assessment, Muse's `librarian_search` runs the
+stated-answers skill on the selected records only. Its question is the planned
+request's reader spans, joined in plan order, or the reader's current line when
+the plan has no parts. Each returned item gives one answer, the record that
+states it, and a short quote. The run sees only the selected records, relabelled
+`E1`, `E2`, … in selection order; these are not the assessment's labels. The
+quote must be a contiguous span of the named record, ignoring whitespace, and at
+least 10 characters long after whitespace is collapsed. An answer is at most 300
+characters and a quote at most 600. A violation goes back for the single output
+retry. Application code then restores real evidence IDs in
+`RetrievalResult.stated_answers`, removes any of the run's record labels from
+answer text, and drops an answer that still refers to one. A failed run, a failed
+repair, an exceeded request budget, or a run longer than 20 seconds leaves the
+judged result unchanged with an empty list.
+Serendipity's book search does not run this skill. The list can still omit an
+answer or split one differently from a reader; the quote check proves only that
+the quoted words are in the named record.
+
 Progress search uses focused event locators plus the original progress query,
 then interleaves those candidates with memory searches under a private
 20-record boundary budget. The boundary judge receives the original reader
@@ -73,7 +92,8 @@ separate validation; a high retrieval score does not establish safety.
 An irrelevant passage can also score highly, so evidence assessment must check
 what it actually supports instead of relying on the score to reject it.
 
-All four skills have no tools and retain one output retry. Shared instructions in
+All five skills have no tools and retain one output retry. Stated answers runs
+at `medium` reasoning effort; the others use the role's model defaults. Shared instructions in
 `agents.librarian` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain only common trust and authority rules. Each run adds its selected
 `SKILL.md`; no run adds another task's instructions or conversation history.

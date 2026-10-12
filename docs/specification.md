@@ -169,7 +169,7 @@ owns release and storage decisions regardless of the model selection.
 | Role | Assigned runtime skills | Current consumers |
 |---|---|---|
 | Muse | Reflection; turn triage | Drafts and one permitted revision return `MuseCandidate`. The no-tool triage call returns `TurnNeeds` for application-selected tool exposure. |
-| Librarian | Boundary inference; event identification; book request; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
+| Librarian | Boundary inference; event identification; book request; evidence assessment; stated answers | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
 | Sculptor | Memory curation; memory surfacing; chapter cues; retrieval error analysis; retrieval research | Reviewed curation, offline surfacing, and owner-reviewed retrieval experiments. Chat never invokes surfacing or research. |
 | Serendipity | Connection discovery; memory recall; source gathering | Muse's `serendipity_explore` tool, which selects recall with the `recall_memory` intent and gathering with the `gather_sources` intent, and component evaluation of connection discovery. |
 | Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
@@ -314,7 +314,8 @@ flowchart TD
     B --> I[Librarian Agent: identify event for a chapter candidate]
     I --> R[Application: validate boundary and retrieve within scope]
     R --> E[Librarian Agent: evidence assessment]
-    E --> M
+    E --> W[Librarian Agent: stated answers when evidence is selected]
+    W --> M
     M -->|optional model-selected tool| S[Serendipity Agent: connection discovery, recall, or source gathering]
     S -->|validated selected evidence| M
     M -->|candidate only| P[Provenance Agent: candidate review]

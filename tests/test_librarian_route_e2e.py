@@ -77,6 +77,13 @@ def _librarian_book_model(messages, info):
         requested = BOOK_REQUEST_MESSAGE if BOOK_REQUEST_MESSAGE in reader_texts else payload["current_line"]
         purpose = "progress" if payload["search_target"] == "reading_progress" else "answer"
         output = {"parts": [{"context_spans": [], "purpose": purpose, "reader_spans": [requested]}]}
+    elif "records" in payload:
+        # One stated answer per selected record, quoted from that record's own text.
+        output = {"answers": [{
+            "answer": f"The answer stated in {record['location']}",
+            "evidence_id": record["evidence_id"],
+            "source_quote": " ".join(record["text"].split())[:60],
+        } for record in payload["records"]]}
     else:
         records = payload["evidence"][:payload["max_evidence_records"]]
         output = {
@@ -594,6 +601,46 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
             trace for trace in response.inspection.traces if trace["agent"] == "Librarian"
         )
         self.assertEqual("complete", librarian_trace["status"])
+
+    async def test_stated_answers_reach_muse_and_provenance_and_the_turn_still_releases(self) -> None:
+        muse_captured: list = []
+        provenance_captured: list = []
+        request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)
+
+        with patch(
+            "src.linger.orchestration.boundary.judge_spoiler_boundary",
+            side_effect=_confident_judge,
+        ):
+            with muse_chat_agent.override(
+                model=FunctionModel(_muse_routes_then_searches(muse_captured))
+            ):
+                with provenance_agent.override(
+                    model=FunctionModel(_provenance_pass_capturing(provenance_captured))
+                ):
+                    response = await main.chat(request, self.service, self.account)
+
+        release = response.inspection.release
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertIsNone(release.failure_stage)
+        search_result = muse_captured[1]
+        texts = {record["evidence_id"]: record["text"] for record in search_result["evidence"]}
+        stated = search_result["stated_answers"]
+        # Muse's tool result names real records, each quoted from its own text.
+        self.assertEqual(list(texts), [item["evidence_id"] for item in stated])
+        for item in stated:
+            self.assertIn(item["source_quote"], " ".join(texts[item["evidence_id"]].split()))
+        self.assertIn(search_result["evidence"][0]["evidence_id"], release.released_evidence_ids)
+        # Provenance reviews, and the inspection records, that same tool result.
+        reviewed, = (
+            outcome for outcome in provenance_captured[0]["untrusted_tool_outcomes"]
+            if outcome["tool_name"] == "librarian_search"
+        )
+        self.assertEqual(stated, reviewed["content"]["stated_answers"])
+        inspected = [
+            call["response"] for call in response.inspection.librarian_grounding
+            if call["response"].get("kind") == "result"
+        ]
+        self.assertEqual([stated], [result["stated_answers"] for result in inspected])
 
     @pytest.mark.embeddings
     async def test_provenance_sees_the_routed_authority_not_stale_pre_muse_context(

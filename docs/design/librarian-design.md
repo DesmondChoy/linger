@@ -37,7 +37,7 @@ evidence recall, 100% citation precision, and zero spoiler exposure.
 
 The Librarian subsystem contains one reusable production PydanticAI object,
 `librarian_agent`. Its explicit assignment in
-[`skills.py`](../../src/linger/agents/librarian/skills.py) contains four skills:
+[`skills.py`](../../src/linger/agents/librarian/skills.py) contains five skills:
 
 | Skill | Contract | Current consumer |
 |---|---|---|
@@ -45,6 +45,7 @@ The Librarian subsystem contains one reusable production PydanticAI object,
 | [Event identification](../../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | An independent run checks the stopping occurrence before the application accepts a proposed chapter grant. |
 | [Book request](../../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | Muse and Serendipity supply reader context without candidate passages to identify the requested book parts. |
 | [Evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | A frozen request plan and scoped canonical evidence support selection and answerability judgment. Application checks return `EvidenceStrengthDecision`. |
+| [Stated answers](../../src/linger/agents/librarian/skills/stated-answers/SKILL.md) | `StatedAnswersInput` → `StatedAnswers` | After a `sufficient` or `weak` assessment, Muse's `librarian_search` lists each distinct answer the selected records state, each with a quote checked against its record. |
 
 Application code selects one skill before each model run. All runs use the
 same Agent object with shared trust rules, task-specific instructions, and a
@@ -185,7 +186,7 @@ truth, and non-selected indexes need not remain in the production path.
 | Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
 | Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
 | Application boundary | Supplies the original reader message and access scope, resolves identity, validates chapter or exact-passage scope, and enforces reply release |
-| Librarian agent | Runs one of four assigned skills: boundary inference, independent event identification, request planning, or evidence assessment |
+| Librarian agent | Runs one of five assigned skills: boundary inference, independent event identification, request planning, evidence assessment, or stated answers |
 | Retrieval and reranker services | Localize events privately in main-part numbered chapters, or search inside a granted answer scope; they are not model tools granted to Librarian |
 | Sculptor | Has implemented curation and offline surfacing skills. Semantic corpus-metadata proposals remain an unimplemented target; deterministic tooling builds the catalogue |
 | Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
@@ -875,6 +876,20 @@ scope, source identities, or the caller's evidence authority. Exact passage
 grants use the same planner and assessor over their fixed records. They never
 trigger broader retrieval.
 
+For Muse's `librarian_search`, a `sufficient` or `weak` assessment is followed
+by `list_stated_answers`. This separate run receives only the selected records
+and the planned request's reader spans, or the reader's current line when the
+plan has no parts. It returns each distinct answer the records state, the
+record that states it, and a short `source_quote`. The run's output function
+requires every quote to be a contiguous span of its named record, ignoring
+whitespace, and at least 10 characters long, within one output retry;
+application code replaces the short record labels with real evidence IDs and
+removes them from answer text. The items reach Muse
+as `RetrievalResult.stated_answers`. They add no evidence, scope, or release
+authority. A failed run, or one longer than 20 seconds, leaves the judged
+result unchanged with an empty list,
+and Serendipity's `search_librarian` does not run this step.
+
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
 resolution.
@@ -984,7 +999,8 @@ The response is a discriminated union:
 ```text
 LibrarianResponse
 ├── ClarificationRequest   kind = clarification; no answer evidence is released
-├── RetrievalResult       kind = result; completed with sufficient/weak/none
+├── RetrievalResult       kind = result; completed with sufficient/weak/none,
+│                         plus any stated answers for the selected records
 └── RetrievalFailure      kind = failure; system could not complete safely
 ```
 
@@ -999,7 +1015,9 @@ validated. The current grounding path returns `retrieval_unavailable` for
 retrieval failures and `evidence_judgement_unavailable` for assessment failures.
 It does not automatically fall back to direct chapter reads or retry the whole
 retrieval. Serendipity returns an unavailable internal search result on failure.
-Planning alone has an original-text fallback. The grounding failure includes a
+Planning alone has an original-text fallback. A failed stated-answers run is
+not a retrieval failure: the result keeps its judgment and evidence and carries
+an empty `stated_answers` list. The grounding failure includes a
 stable error code and retryability flag, but no unvalidated excerpt; retryability
 does not schedule a retry.
 

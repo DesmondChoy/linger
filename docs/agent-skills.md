@@ -17,6 +17,7 @@ calls or transfer application authority to a model.
 | Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` checks a proposed chapter boundary independently; receives no proposed grant or memories |
 | Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
+| Librarian | [Stated answers](../src/linger/agents/librarian/skills/stated-answers/SKILL.md) | `StatedAnswersInput` → `StatedAnswers` | `list_stated_answers` lists each distinct answer the selected records state to the assessed request, each with a quote checked against its record; Muse's `librarian_search` runs it after a `sufficient` or `weak` assessment |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
 | Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`, offline only; account identity is excluded and decision validation follows |
 | Sculptor | [Retrieval error analysis](../src/linger/agents/sculptor/skills/retrieval-error-analysis/SKILL.md) | `ErrorAnalysisInput` → `ErrorAnalysis` | `propose_error_analysis`, offline only; one note per practice trace and categories covering every failure are retried in-run |
@@ -48,6 +49,7 @@ flowchart LR
     Librarian --> Identify[Event identification]
     Librarian --> Request[Book request]
     Librarian --> Strength[Evidence assessment]
+    Librarian --> Stated[Stated answers]
     Sculptor --> Curation[Memory curation]
     Sculptor --> Surfacing[Memory surfacing]
     Sculptor --> Cues[Chapter cues]
@@ -99,7 +101,9 @@ validator pairs each result with the task's intent: a `recall_memory` task
 returns `MemoryRecall` or a decline, a `gather_sources` task returns
 `SourceBundle` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
-schemas per run. The Provenance candidate-review run also binds its typed input
+schemas per run. Librarian's stated-answers skill selects its output through
+`RuntimeSkill.output_validator`, so the quote check runs as that run's output
+function and a failed check is one output retry. The Provenance candidate-review run also binds its typed input
 in a request-scoped context so its skill-selected output validator can retry
 finding-location, quotation-binding, and coverage-audit errors within the
 skill's two output retries. No run modifies a shared Agent's configuration. Requests keep their existing dependencies,
@@ -148,6 +152,10 @@ output retries. `ResearchSearch` validates the research specification against
 the approved failure categories and the pages that the run opened. Each
 application entry point repeats its checks before returning the result. Error
 analysis and research use `openai_reasoning_effort="high"` for those runs.
+Provenance candidate review and Librarian stated answers each select
+`openai_reasoning_effort="medium"` through `RuntimeSkill.model_settings`, which
+is merged over the role's model defaults for that run and included in that
+skill's fingerprint only.
 
 ## Muse tool exposure
 
@@ -362,11 +370,39 @@ the same plan and permitted canonical passages to a second invocation. Every
 selected record must map to an existing requested part and explain its necessary
 support. A `sufficient` assessment must cover
 all requested parts. Application code validates those mappings, evidence IDs,
-and the selection budget, then returns the unchanged `EvidenceStrengthDecision`
-contract to the caller. The two skills use the same reusable Librarian Agent
+and the selection budget, then returns the `EvidenceStrengthDecision` contract
+to the caller. The skills use the same reusable Librarian Agent
 with separate inputs and no shared conversation history. Neither the plan nor
 its reader spans grant reading permission. Exact passage grants use the same
 planner and assessor over only their fixed records, without a broader search.
+
+Muse's `librarian_search` then adds one step that Serendipity's
+`search_librarian` does not run. When that assessment is `sufficient` or
+`weak`, `list_stated_answers` gives a third invocation the selected records
+only and the planned request's reader spans as `book_question`, or the
+reader's current line when the plan has no parts. It returns each distinct
+answer those records state as an `answer`, the record's `evidence_id`, and a
+`source_quote`. The run sees the selected records relabelled `E1`, `E2`, …;
+its output function requires each quote to be a contiguous span of the named
+record, ignoring whitespace, and at least 10 characters long, and returns a
+violation for the skill's single output retry. The schema caps an answer at 300
+characters and a quote at 600. Application code maps the labels back and
+removes them from answer text, so
+`RetrievalResult.stated_answers` names real evidence IDs beside the unchanged
+strength, reason, evidence, and limitations. The list is a reading aid for the
+draft, not evidence or authority: Muse's declared evidence, Provenance, and
+release validation apply as before. The step runs at `medium` reasoning effort
+under a 20-second limit and cannot fail a search. If the run or its repair
+fails or outlasts the limit, or an injected
+strength judge replaced Librarian's own assessment, the result carries an empty
+list. A `none` assessment selects no records and skips the run.
+
+A failed listing is still recorded as a failed agent exchange. The live
+progress map reports it under its own `stated_answers` stage, which marks
+Librarian as failed for that turn even though the search succeeded, and a run
+cut off by the time limit is recorded as `request_cancelled`. The release gate
+fails any replay whose transcript contains a failed exchange, so a listing
+failure can fail a release replay whose reply was released correctly.
 
 ```mermaid
 flowchart TD
@@ -402,8 +438,8 @@ candidate or stored curation, and deterministic application checks still apply.
 ## Runtime, evaluation, and targets
 
 Chat uses Muse reflection, Librarian boundary inference, independent event
-identification, book-request planning, and evidence assessment when needed,
-optional Serendipity connection discovery, memory recall, or source gathering,
+identification, book-request planning, evidence assessment, and stated answers
+when needed, optional Serendipity connection discovery, memory recall, or source gathering,
 and the two Provenance conversation skills. Plain personal recall is Serendipity's separate
 memory-recall skill: when Muse passes `intent="recall_memory"` and the account
 has active memories, it searches only the curated retrieval view and returns
