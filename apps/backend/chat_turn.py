@@ -19,6 +19,15 @@ from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.security_validation import (
+    INJECTION_BLOCK_MESSAGE,
+    USER_INPUT_INJECTION_RULES,
+    ValidationBoundary,
+    ValidationCategory,
+    ValidationDisposition,
+    validate_user_input,
+    validate_untrusted_span,
+)
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.contracts.reading import scope_fields
 from apps.backend.contracts import BookScope
@@ -694,6 +703,45 @@ def _commit_automatic_capture(
     )
 
 
+def _credential_block_response(
+    request: ChatRequest,
+    trace: TraceReference,
+    message: str,
+) -> ChatResponse:
+    """Build a content-free decline without persisting a blocked turn."""
+    turn_id = request.turn_id or str(uuid4())
+    capture = CaptureInspection(
+        nomination="unavailable",
+        provenance_decision=None,
+        binding="not_applicable",
+        storage="not_applicable",
+        reason_code="security_validation_blocked",
+    )
+    inspection = TurnInspection(
+        muse_turn={"turn_id": turn_id, "user_message": ""},
+        context_resolution={
+            "status": "unknown",
+            "explanation": "The request was blocked before agent processing.",
+        },
+        traces=[{
+            "agent": "Application",
+            "status": "declined",
+            "detail": "The request contained a credential.",
+        }],
+        prompt="",
+        release=ReleaseInspection(
+            release_source="application_safe_decline",
+            provenance_verdicts=(),
+            finding_codes=(),
+            revision_count=0,
+            failure_stage=None,
+            security_block_category="credential",
+            capture=capture,
+        ),
+    )
+    return ChatResponse(reply=message, inspection=inspection, trace=trace)
+
+
 def _replace_trace(
     inspection: TurnInspection,
     agent: str,
@@ -1174,6 +1222,7 @@ async def _run_chat_pipeline(
     initial_reading: ReleaseScope | None = None,
     connection_book_scopes: tuple[ReleaseScope, ...] | None = None,
     public_source_urls: tuple[str, ...] | None = None,
+    span: object | None = None,
     progress_store: ReadingProgressStore | None = None,
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
@@ -1212,26 +1261,56 @@ async def _run_chat_pipeline(
     if language_verdict is not None:
         release = language_boundary_release()
     else:
-        try:
-            boundary = await assess_emotional_boundary(
-                request.message,
-                EmotionalContentPolicy(),
-                provenance=provenance_agent,
+        injection_check = validate_untrusted_span(
+            request.message,
+            injection_rules=USER_INPUT_INJECTION_RULES,
+            boundary=ValidationBoundary.USER_INPUT,
+        )
+        injection_findings = tuple(
+            finding for finding in injection_check.findings
+            if finding.category is ValidationCategory.PROMPT_INJECTION
+        )
+        if injection_findings:
+            pattern_ids = tuple(dict.fromkeys(
+                finding.pattern_id for finding in injection_findings
+                if finding.pattern_id is not None
+            ))
+            if span is not None:
+                set_span_attrs(span, {
+                    "security.category": ValidationCategory.PROMPT_INJECTION.value,
+                    "security.boundary": ValidationBoundary.USER_INPUT.value,
+                    "security.detector": "linger_injection_rules",
+                    "security.detector_version": "1",
+                    "security.disposition": ValidationDisposition.BLOCK.value,
+                    "security.pattern_ids": ",".join(pattern_ids),
+                })
+            release = ReflectionRelease(
+                reply=injection_check.user_message or INJECTION_BLOCK_MESSAGE,
+                release_source="application_safe_decline",
+                security_block_category=ValidationCategory.PROMPT_INJECTION.value,
+                security_pattern_ids=pattern_ids,
             )
-        except asyncio.CancelledError:
-            raise
-        except EmotionalBoundaryValidationError:
-            release = emotional_preflight_safe_decline(
-                failure_type="validation",
-                retryable=False,
-            )
-        except Exception:
-            release = emotional_preflight_safe_decline()
         else:
-            if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
-                release = emotional_boundary_release(
-                    origin="preflight", decision=boundary.decision
+            try:
+                boundary = await assess_emotional_boundary(
+                    request.message,
+                    EmotionalContentPolicy(),
+                    provenance=provenance_agent,
                 )
+            except asyncio.CancelledError:
+                raise
+            except EmotionalBoundaryValidationError:
+                release = emotional_preflight_safe_decline(
+                    failure_type="validation",
+                    retryable=False,
+                )
+            except Exception:
+                release = emotional_preflight_safe_decline()
+            else:
+                if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
+                    release = emotional_boundary_release(
+                        origin="preflight", decision=boundary.decision
+                    )
 
     active_memories: tuple[CuratedMemory, ...] = ()
     if release is None:
@@ -1401,17 +1480,20 @@ async def _run_chat_pipeline(
             if settings.linger_dev_inspect else None
         ),
     )
-    sessions.append_turn(
-        request.session_id,
-        request.message,
-        release.reply,
-        turn_id=inspection.muse_turn["turn_id"],
-        release_source=release.release_source,
-        evidence_ids=release.evidence_ids,
-        review_finding_codes=release.review_finding_codes,
-        tool_names=release.tool_names,
-    )
-    reading_progress.commit(request.session_id, pending_progress, release.release_source)
+    if release.security_block_category is None:
+        sessions.append_turn(
+            request.session_id,
+            request.message,
+            release.reply,
+            turn_id=inspection.muse_turn["turn_id"],
+            release_source=release.release_source,
+            evidence_ids=release.evidence_ids,
+            review_finding_codes=release.review_finding_codes,
+            tool_names=release.tool_names,
+        )
+        reading_progress.commit(
+            request.session_id, pending_progress, release.release_source
+        )
     return inspection, release, capture
 
 
@@ -1469,6 +1551,21 @@ async def run_chat_turn(
             else None
         )
         try:
+            request_privacy = validate_user_input(request.message)
+            if request_privacy.blocked:
+                set_span_attrs(
+                    span,
+                    {
+                        "security.category": "credential",
+                        "security.boundary": "user_input",
+                        "security.disposition": "block",
+                    },
+                )
+                return _credential_block_response(
+                    request, trace, request_privacy.user_message or
+                    "This request was blocked because it contains a credential."
+                )
+            request = request.model_copy(update={"message": request_privacy.text})
             with bind_evaluation_transcript_sink(dev_trace) if dev_trace else nullcontext():
                 inspection, release, capture = await _run_chat_pipeline(
                     request,
@@ -1478,6 +1575,7 @@ async def run_chat_turn(
                     initial_reading=initial_reading,
                     connection_book_scopes=connection_book_scopes,
                     public_source_urls=public_source_urls,
+                    span=span,
                     progress_store=progress_store,
                 )
             if dev_trace is not None:
@@ -1575,6 +1673,8 @@ async def run_chat_turn(
         failure_stage=release.failure_stage,
         failure_type=release.failure_type,
         failure_retryable=release.failure_retryable,
+        security_block_category=release.security_block_category,
+        security_pattern_ids=release.security_pattern_ids,
         capture=capture.inspection,
     )
     verdict_path = " → ".join(release.provenance_verdicts)
@@ -1623,6 +1723,16 @@ async def run_chat_turn(
                 f"boundary; recorded review path: {verdict_path}."
             )
         provenance_status = "complete"
+    elif release.security_block_category == "prompt_injection":
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "skipped",
+            "detail": "The user-input injection rule blocked the turn before any agent ran.",
+        }
+        provenance_status = "skipped"
+        provenance_detail = (
+            "The user-input injection rule blocked the turn before the emotional-boundary check."
+        )
     elif release.release_source == "application_language_boundary":
         inspection.traces[-1] = {
             "agent": "Muse",

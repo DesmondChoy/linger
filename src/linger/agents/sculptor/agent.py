@@ -9,6 +9,7 @@ from pydantic_ai.models import Model
 from pydantic_ai.output import OutputContext
 
 from src.linger.agents.build import build_model
+from src.linger.agents.security import ProviderCredentialGuard
 from src.linger.agents.sculptor.chapter_cue_models import (
     ChapterCueRevision,
     ChapterCueRevisionInput,
@@ -51,7 +52,7 @@ def build_sculptor_agent(model: Model | None = None) -> Agent[None, str]:
         model if model is not None else build_model(),
         name="Sculptor",
         instructions=SHARED_INSTRUCTIONS,
-        capabilities=[SculptorTaskValidation()],
+        capabilities=[SculptorTaskValidation(), ProviderCredentialGuard()],
     )
 
 

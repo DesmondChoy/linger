@@ -460,24 +460,23 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             response.inspection.release.capture.reason_code,
         )
 
-    async def test_shaped_personal_data_is_vetoed_without_suppressing_reply(self) -> None:
+    async def test_shaped_personal_data_is_redacted_before_capture(self) -> None:
         self.service.set_capture_enabled(self.account, True)
         self.addCleanup(sessions.clear, "capture-personal-data")
         source = "Email me at jane.doe@example.com about the ending."
+        redacted_source = "Email me at [EMAIL_1] about the ending."
         response, _ = await self.run_chat(
             ChatRequest(session_id="capture-personal-data", message=source),
-            muse_candidate(source, nominated=source),
+            muse_candidate(redacted_source, nominated=redacted_source),
             review("allow_capture"),
         )
 
         self.assertEqual("A reviewed reply.", response.reply)
-        self.assertEqual([], self.service.list_active(self.account))
-        self.assertEqual("refused", response.inspection.release.capture.storage)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed",
-            response.inspection.release.capture.reason_code,
-        )
-        self.assertIsNone(response.memory_capture)
+        self.assertEqual([redacted_source], [
+            record.text for record in self.service.list_active(self.account)
+        ])
+        self.assertEqual("committed", response.inspection.release.capture.storage)
+        self.assertEqual("Saved to your memories.", response.memory_capture.notice)
 
     async def test_inspection_keeps_muse_nomination_separate_from_bad_review(self) -> None:
         self.service.set_capture_enabled(self.account, True)

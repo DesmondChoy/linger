@@ -18,6 +18,7 @@ dependencies = [
     "urllib3>=2.8.0",
     "uvicorn[standard]>=0.52.1",
     "fast-langdetect>=1.0.1",
+    "datafog==4.9.0",
 ]
 
 [dependency-groups]

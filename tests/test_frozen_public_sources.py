@@ -61,15 +61,15 @@ def test_frozen_page_is_exact_and_search_still_uses_the_client():
     assert client.calls == [("search", "literary imagery")]
 
 
-@pytest.mark.parametrize("operation,args,match", [
-    ("get_page", {"url": URL}, "returned by web_search"),
-    ("get_page", {"url": "https://example.com/unapproved"}, "outside this request"),
-    ("web_search", {"query": "reader@example.com literary imagery"}, "privacy checks"),
-    ("web_search", {"query": "+44 20 7946 0958 literary imagery"}, "privacy checks"),
+@pytest.mark.parametrize("operation,args,match,cue", [
+    ("get_page", {"url": URL}, "returned by web_search", "."),
+    ("get_page", {"url": "https://example.com/unapproved"}, "outside this request", "."),
+    ("web_search", {"query": "sk-proj-1234567890123456789012345678901234567890 literary imagery"}, "privacy checks", "."),
+    ("web_search", {"query": "private divorce literary imagery"}, "privacy checks", "My private divorce"),
 ])
-def test_frozen_page_cannot_bypass_production_guards(operation, args, match):
+def test_frozen_page_cannot_bypass_production_guards(operation, args, match, cue):
     client = FakeExaClient()
-    ctx = context(urls=None if match == "returned by web_search" else (URL,))
+    ctx = context(urls=None if match == "returned by web_search" else (URL,), cue=cue)
 
     async def exercise():
         async with FrozenPublicSourceSearch(client=client, snapshots=(snapshot(),)).get_toolset() as toolset:
