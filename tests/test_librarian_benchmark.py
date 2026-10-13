@@ -220,9 +220,16 @@ class LibrarianBenchmarkFixtureTests(unittest.TestCase):
             "It also suspects Alice wants eggs; when she admits she has tasted them, "
             "the Pigeon treats that as further proof.",
             "The Pigeon asks about eggs, and Alice says girls eat them too.",
+            "Because both little girls and serpents eat eggs, it decides they must be a kind of serpent.",
+            "It reasons that serpents and little girls eat eggs alike.",
+            "The Pigeon argues that if little girls eat eggs too, they must be a kind of serpent.",
         ]
         unstated = [
             "It suspects she wants to eat its eggs.",
+            "The Pigeon sees Alice’s long neck and believes she wants to eat eggs.",
+            "Alice has a long neck. The Pigeon asks whether she has tasted eggs.",
+            "The Pigeon asks if she has ever tasted an egg.",
+            "Neither girls nor serpents eat eggs, Alice claims; girls and serpents never eat eggs.",
             "The Pigeon fears serpents will eat its eggs.",
             "It is hatching its eggs and on the look-out for serpents night and day.",
             "Alice says she is a little girl but the Pigeon knows serpents eat eggs.",

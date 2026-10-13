@@ -278,6 +278,25 @@ SPEAKER_REPAIRS = {
         ["repaired", "missing_declaration", "forbidden_declaration", "required_missing", "forbidden_present"],
     ),
     "pigeon-not-the-caterpillar": (_SWAPPED, [_KEPT], ..., ["forbidden_present"]),
+    "it-is-the-pigeon-not-the-caterpillar": (
+        "It is the Pigeon who tells Alice to repeat the verses about old Father William, not the Caterpillar.",
+        [_KEPT], ..., ["forbidden_present", "forbidden_present"],
+    ),
+    "caterpillar-does-not": (
+        "The Caterpillar does not tell Alice to repeat the verses about old Father William.",
+        [_KEPT], ..., ["forbidden_present"],
+    ),
+    "caterpillar-never": (
+        "The Caterpillar never asks Alice to recite the poem.", [_KEPT], ..., ["forbidden_present"],
+    ),
+    "caterpillar-not-the-pigeon-who": (
+        "It is the Caterpillar, not the Pigeon who tells Alice to repeat the verses about old Father William.",
+        [_KEPT], ..., [],
+    ),
+    "caterpillar-rather-than-the-pigeon": (
+        "The Caterpillar, rather than the Pigeon, asks Alice to recite the poem about Father William.",
+        [_KEPT], ..., [],
+    ),
     "corrected-claim-left-on-the-pigeon-passage": (
         _CORRECTED, [_KEPT, _CORRECTED], [], ["missing_declaration", "forbidden_declaration"],
     ),

@@ -64,7 +64,11 @@
   "expect": {
     "flagged_sentences": [1],
     "repaired_sentences": [1],
-    "forbidden_patterns": ["\\bPigeon(?:,? (?:and |but )?(?:not|rather than) the Caterpillar,?)? (?:(?:then|also|later|next|soon) )?(?:(?:tells|told|asks|asked|orders|ordered|instructs|instructed|commands|commanded|bids|bade|directs|directed|urges|urged|wants|wanted)|(?:has|had|makes|made|gets|got) (?:Alice|her))\\b(?:(?!\\bCaterpillar\\b)[^.?!])*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)"],
+    "forbidden_patterns": [
+      "(?<!\\bnot the )(?<!\\bthan the )(?<!\\binstead of the )\\bPigeon(?:,? (?:and |but )?(?:not|rather than) the Caterpillar,?)? (?:(?:who|that) )?(?:(?:then|also|later|next|soon) )?(?:(?:tells|told|asks|asked|orders|ordered|instructs|instructed|commands|commanded|bids|bade|directs|directed|urges|urged|wants|wanted)|(?:has|had|makes|made|gets|got) (?:Alice|her))\\b(?:(?!\\bCaterpillar\\b)[^.?!])*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)",
+      "\\bCaterpillar\\b(?:(?!\\bPigeon\\b)[^.?!])*?\\b(?:(?:does|did) not|(?:does|did)n['’]t|never|(?:is|was) not the one|(?:is|was)n['’]t the one)\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)",
+      "\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)\\b[^.?!]*\\b(?:not|rather than|instead of) the Caterpillar\\b"
+    ],
     "required_patterns": ["\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"],
     "required_declarations": [
       {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"},
