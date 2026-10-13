@@ -14,6 +14,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from src.linger.contracts.security_validation import check_storage_credentials
+
 PREVIEW_MAX_CHARS = 80
 
 _SCHEMA = """
@@ -113,6 +115,11 @@ class TranscriptStore:
         details: dict[str, Any] | None = None,
     ) -> None:
         """Record a turn; replaying an identical turn is a no-op."""
+        user_message = check_storage_credentials(user_message)
+        assistant_message = check_storage_credentials(assistant_message)
+        details = check_storage_credentials(details)
+        assert isinstance(user_message, str) and isinstance(assistant_message, str)
+        assert details is None or isinstance(details, dict)
         now = _now()
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")

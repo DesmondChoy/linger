@@ -239,9 +239,9 @@ def test_public_source_request_must_use_exact_reader_words(requested_as):
         validate_serendipity_output(SimpleNamespace(deps=deps), bundle(NOTE.memory_id, public_checks=checks))
 
 
-def test_privacy_block_does_not_count_as_a_page_open_attempt():
+def test_credential_block_does_not_count_as_a_page_open_attempt():
     deps = public_dependencies()
-    private_url = "https://example.org/reader@example.com"
+    private_url = "https://example.org/sk-proj-1234567890123456789012345678901234567890"
     deps.task = deps.task.model_copy(update={"scope": ConnectionScope(
         allowed_sources=("memory", "web"), web_source_urls=(private_url,),
     )})
