@@ -148,6 +148,8 @@ output retries. `ResearchSearch` validates the research specification against
 the approved failure categories and the pages that the run opened. Each
 application entry point repeats its checks before returning the result. Error
 analysis and research use `openai_reasoning_effort="high"` for those runs.
+Muse's reflection draft and revision, and Provenance's candidate review, use
+`openai_reasoning_effort="medium"`; every other run keeps the shared low effort.
 
 ## Muse tool exposure
 
