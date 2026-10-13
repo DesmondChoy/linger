@@ -141,6 +141,9 @@ class RevisionExpectation(StrictModel):
     required_patterns: tuple[str, ...] = ()
     required_declarations: tuple[DeclarationExpectation, ...] = ()
     forbidden_declarations: tuple[DeclarationExpectation, ...] = ()
+    # Mapped wording matching `claim_pattern` states what this source establishes, so it must lie
+    # inside a claim mapped to this source, whichever other sources its claim is also mapped to.
+    claim_sources: tuple[DeclarationExpectation, ...] = ()
     # Words that mark source-dependent content: in a new sentence they must sit
     # inside a mapped span.
     source_terms: tuple[str, ...] = ()
@@ -514,6 +517,19 @@ def grade_revision(case: RevisionCase, output) -> dict[str, Any]:
     for unwanted in expect.forbidden_declarations:
         if any(_declaration_matches(use, unwanted) for use in output.evidence_uses):
             failures.append(f"forbidden_declaration: {unwanted.model_dump(exclude_none=True)}")
+
+    for wanted in expect.claim_sources:
+        held = _mapped_mask(output.model_copy(update={"evidence_uses": [
+            use for use in output.evidence_uses if _declaration_matches(use, wanted.model_copy(update={"claim_pattern": None}))
+        ]}))
+        missing = {
+            claim for use in output.evidence_uses
+            for claim in (*use.supported_claims, *getattr(use, "limit_claims", ()))
+            for match in re.finditer(wanted.claim_pattern or "", claim, re.IGNORECASE)
+            for start in [reply.find(claim)] if start >= 0 and match.end() > match.start()
+            if not all(held[start + match.start():start + match.end()])
+        }
+        failures.extend(f"claim_source_missing: {wanted.evidence_id} for {claim!r}" for claim in sorted(missing))
 
     for pattern in expect.required_patterns:
         if not re.search(pattern, reply, re.IGNORECASE):

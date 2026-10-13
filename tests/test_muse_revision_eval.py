@@ -410,3 +410,29 @@ def test_rewording_the_unflagged_repeat_instead_of_deleting_it_is_retried_by_val
     assert [error.get("draft_sentence") for error in errors] == [_REPEATED_DEFECT]
     message = ModelRequest(parts=[RetryPromptPart(content=str(caught.value))])
     assert retry_categories([message]) == [["unflagged_rewrite"]]
+
+
+# Recorded 13 Oct 2026 (gpt-6-luna, PR 95 review of `muse-revision-source-mapping-v1`): the revised
+# second sentence as Muse wrote it, mapped to the letter passage alone.
+_PROMISE = "In Chapter 1, Ines promises her brother she will write to him every week, even when there is nothing to tell."
+_STEP = ("In Chapter 2, she begins her first letter while the ferry is still an hour from the far shore, "
+         "which is an early step toward keeping the weekly promise.")
+
+
+def _promise_and_step(letter_claims, promise_claims=(_PROMISE,)):
+    case = by_id("muse-revision-source-mapping-v1")
+    promise, letter = case.reference_revision["evidence_uses"]
+    question = case.reference_revision["reply"].rsplit(". ", 1)[1]
+    return case, MuseCandidate.model_validate(case.reference_revision | {
+        "reply": f"{_PROMISE} {_STEP} {question}",
+        "evidence_uses": [promise | {"supported_claims": list(promise_claims)},
+                          letter | {"supported_claims": list(letter_claims)}],
+    })
+
+
+def test_a_claim_that_draws_on_the_promise_passage_must_be_mapped_to_it():
+    case, recorded = _promise_and_step([_STEP])
+    assert grade_revision(case, recorded)["failures"] == [f"claim_source_missing: lowmere-c1-promise for {_STEP!r}"]
+    for promise_claims in ((_PROMISE, _STEP), (_PROMISE, "keeping the weekly promise")):
+        case, joint = _promise_and_step([_STEP], promise_claims)
+        assert grade_revision(case, joint) == {"hard_pass": True, "failures": []}
