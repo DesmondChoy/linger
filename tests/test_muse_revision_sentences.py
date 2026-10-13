@@ -604,6 +604,45 @@ def test_a_claim_whose_disputed_subject_is_corrected_may_take_the_source_for_the
     assert draft_sentence_errors(revised, marks) == []
 
 
+RECITE = "asks Alice to recite the poem beginning with Father William."
+
+
+def jointly_mapped_recital():
+    """The disputed sentence, with a second source on the wording the finding leaves alone."""
+    return mapped(f"{IDENTITY} {PIGEON_ASKS} {QUESTION}", (ONE, (IDENTITY,)), (TWO, (PIGEON_ASKS,)), (THREE, (RECITE,)))
+
+
+FOUR = "https://example.org/four"
+
+
+def test_a_corrected_claim_takes_its_source_while_an_undisputed_mapping_inside_it_is_kept():
+    corrected = f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}"
+    revised = mapped(corrected, (ONE, (IDENTITY,)), (FOUR, (CATERPILLAR_ASKS,)), (THREE, (RECITE,)))
+    assert added_to(jointly_mapped_recital(), quoted("Pigeon"), revised) == []
+    marks = draft_sentences_for_revision(jointly_mapped_recital(), review(quoted("Pigeon")), ())
+    assert draft_sentence_errors(revised, marks) == []
+
+
+def test_a_corrected_claim_that_drops_an_undisputed_mapping_inside_it_is_told_to_keep_that_mapping():
+    corrected = f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}"
+    revised = mapped(corrected, (ONE, (IDENTITY,)), (FOUR, (CATERPILLAR_ASKS,)))
+    marks = draft_sentences_for_revision(jointly_mapped_recital(), review(quoted("Pigeon")), ())
+    [error] = added_source_errors(revised, marks, review(quoted("Pigeon")).response_findings)
+    assert (error["value"], error["evidence_id"]) == (CATERPILLAR_ASKS, FOUR)
+    assert f'map "{RECITE}" to "{THREE}" as the draft did' in error["error"]
+    # The source the finding disputes is not one to restore.
+    assert TWO not in error["error"]
+    reworded = mapped(corrected, (ONE, (IDENTITY,)), (FOUR, (CATERPILLAR_ASKS,)),
+                      (THREE, ("recite the poem beginning with Father William.",)))
+    assert added_to(jointly_mapped_recital(), quoted("Pigeon"), reworded) == [(CATERPILLAR_ASKS, FOUR)]
+
+
+def test_keeping_an_undisputed_claim_does_not_let_wording_beside_a_disputed_one_gain_a_source():
+    borrowed = f"{SHRINKS_TO} and"
+    revised = mapped(f"{SHRINKS_TO} {CALLS} {QUESTION}", (ONE, (SHRINKS_TO,)), (THREE, (borrowed,)), (TWO, (CALLS,)))
+    assert added_to(two_claim_draft(), quoted("Pigeon"), revised) == [(borrowed, THREE)]
+
+
 def test_a_finding_on_one_claim_leaves_another_claims_kept_wording_on_its_draft_sources():
     revised = mapped(f"{IDENTITY} {CATERPILLAR_ASKS} {QUESTION}",
                      (ONE, (IDENTITY,)), (THREE, (IDENTITY, CATERPILLAR_ASKS)))

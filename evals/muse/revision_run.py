@@ -561,6 +561,7 @@ _RETRY_CATEGORIES = (
     ("unmapped content source-dependent", "needs_source_unmapped"),
     ("no longer declares it", "retained_source_dropped"),
     ("kept from the draft and no finding disputes it", "added_source"),
+    ("the revision dropped or reworded that mapping", "added_source"),
     ("had accepted source mappings", "accepted_claim_unmapped"),
     ("identified this retained text as a source quotation", "retained_quote_unbound"),
     ("reads as a source quotation", "unbound_quote"),

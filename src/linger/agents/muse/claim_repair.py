@@ -385,6 +385,14 @@ def added_source_errors(
     # Draft words with their character spans; case, punctuation and link targets do not count.
     spans = [match.span() for match in _WORD.finditer(_MARKDOWN_LINK.sub(lambda m: " " * len(m[0]), draft))]
     words = [draft[a:b].lower().strip("_") for a, b in spans]
+    # What the revision declares for each source, to tell a draft mapping it kept from one it dropped.
+    declared: dict[tuple[str, str], list[str]] = {}
+    for use in candidate.evidence_uses:
+        quote = getattr(use, "exact_quote", None)
+        declared.setdefault(
+            (use.source_kind, use.quote if use.source_kind == "session_line" else use.evidence_id), [],
+        ).extend(_normalized(text) for text in (
+            *use.supported_claims, *limit_claim_texts(use), *((quote,) if quote else ())))
     errors = []
     for use in candidate.evidence_uses:
         source = (use.source_kind, use.quote if use.source_kind == "session_line" else use.evidence_id)
@@ -402,25 +410,48 @@ def added_source_errors(
             # inside it in the sentences findings name: the next review judges its new sources. Kept
             # wording is free when every draft mapping under it is disputed, or the draft left it unmapped.
             under = [(a, b, key) for a, b, key in mapped if _overlaps(a, b, found)]
-            if all(_overlaps(a, b, named) and any(k == key and ta <= a and b <= tb for ta, tb, k in touched)
-                   for a, b, key in under):
+            settled = [(a, b, key) for a, b, key in under
+                       if not (_overlaps(a, b, named)
+                               and any(k == key and ta <= a and b <= tb for ta, tb, k in touched))]
+            if not settled:
+                continue
+            # Wording inside a disputed mapping is free too while the revision keeps, word for word and
+            # in a sentence a finding names, each mapping under it that no finding disputes.
+            inside = any(a <= fa and fb <= b for a, b, key in under if (a, b, key) not in settled
+                         for fa, fb in found)
+            dropped = [(a, b, key) for a, b, key in settled
+                       if not (_overlaps(a, b, named) and any(draft[a:b] in text for text in declared.get(key, ())))]
+            if inside and not dropped:
                 continue
             before = {key for _, _, key in under}
-            if source not in before:
-                start = candidate.reply.find(claim)
+            if source in before:
+                continue
+            start = candidate.reply.find(claim)
+            if inside:
+                kept = "; ".join(
+                    f"{json.dumps(draft[a:b], ensure_ascii=False)} to {json.dumps(key[1], ensure_ascii=False)}"
+                    for a, b, key in dropped)
+                message = (
+                    "A finding disputes the draft claim this wording comes from, so the corrected claim "
+                    "may cite this source, but the draft also mapped wording inside it to a source no "
+                    f"finding disputes, and the revision dropped or reworded that mapping. Keep it: map {kept} "
+                    "as the draft did, alongside this source."
+                )
+            else:
                 draft_sources = ", ".join(sorted(json.dumps(item, ensure_ascii=False) for _, item in before))
-                errors.append({
-                    "path": "evidence_uses", "value": claim,
-                    "response_start": start, "response_end": start + len(claim),
-                    "source_kind": use.source_kind, "evidence_id": source[1],
-                    "error": (
-                        "This wording was kept from the draft and no finding disputes it or its sources, "
-                        f"so it must keep the draft's sources: map it to {draft_sources} as the draft did, and "
-                        "remove this added source from it. If a retained source now has no claim, "
-                        "rewrite the flagged claim to state what that source establishes rather than "
-                        "attaching the source to other text."
-                    ),
-                })
+                message = (
+                    "This wording was kept from the draft and no finding disputes it or its sources, "
+                    f"so it must keep the draft's sources: map it to {draft_sources} as the draft did, and "
+                    "remove this added source from it. If a retained source now has no claim, "
+                    "rewrite the flagged claim to state what that source establishes rather than "
+                    "attaching the source to other text."
+                )
+            errors.append({
+                "path": "evidence_uses", "value": claim,
+                "response_start": start, "response_end": start + len(claim),
+                "source_kind": use.source_kind, "evidence_id": source[1],
+                "error": message,
+            })
     return errors
 
 
