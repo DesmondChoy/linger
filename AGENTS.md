@@ -50,6 +50,18 @@ A fix for one agent must not silently break another.
 
 Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
 
+## Report Writing
+
+Applies to the course reports in `docs/report/`.
+
+- The group report describes the final state of the agents. Development history and comparison experiments belong in the individual reports.
+- Organising a section around an argument is fine, provided the structure stays clean and easy to follow.
+- Avoid dense prose. Give one step or claim per sentence or line, and open each subsection with a plain sentence that says what it covers.
+- Cut philosophical framing that tells the reader nothing about the system.
+- Present results as comparison tables with a key-learning column, not as narrative accounts of individual runs.
+- Next to each design claim, name the code file that implements it and the section that tests it.
+- Show worked examples, such as an input and what happens to it, for mechanisms that are hard to explain in prose.
+
 ## GitHub CLI
 
 - Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
