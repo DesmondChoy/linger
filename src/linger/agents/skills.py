@@ -9,13 +9,14 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.resources import files
 from typing import Any, Generic, TypeVar
 
 from pydantic import TypeAdapter
 from pydantic_ai import AgentRetries, ToolOutput
 from pydantic_ai.output import OutputSpec
+from pydantic_ai.settings import ModelSettings
 
 from src.linger.agents.contracts import PromptFingerprint
 
@@ -47,6 +48,9 @@ class RuntimeSkill(Generic[InputT, OutputT]):
     validators: tuple[str, ...] = ()
     output_retries: int = 1
     tool_retries: int = 1
+    # Settings this task needs beyond its role's model defaults, such as a
+    # reasoning effort. Merged over the model's own settings for the run.
+    model_settings: ModelSettings | None = field(default=None, hash=False)
 
     @property
     def skill_id(self) -> str:
@@ -73,6 +77,8 @@ class RuntimeSkill(Generic[InputT, OutputT]):
                 if self.output_validator is not None
                 else self.output_type
             )
+        if self.model_settings is not None:
+            options["model_settings"] = ModelSettings(**self.model_settings)
         return options
 
     def fingerprint(
@@ -99,6 +105,10 @@ class RuntimeSkill(Generic[InputT, OutputT]):
             "output_retries": self.output_retries,
             "tool_retries": self.tool_retries,
         }
+        # Only a skill with its own settings names them, so every other
+        # skill keeps the identity it had before settings were selectable.
+        if self.model_settings is not None:
+            artifact["model_settings"] = self.model_settings
         digest = hashlib.sha256(
             json.dumps(artifact, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             .encode("utf-8")

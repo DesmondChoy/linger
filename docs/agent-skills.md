@@ -87,7 +87,12 @@ its registered output validator. Muse's candidate checks run in its
 `MuseSkillBoundary` capability, which applies `validate_muse_output` to every
 `MuseCandidate` and limits each run to the selected skill's tools, because a
 registered validator would forbid the `TurnNeeds` contract that turn triage
-selects per run. `build_triage_model` selects the triage model from the
+selects per run. In a revision the boundary first expands sentence labels in the
+raw output, before schema validation. `MuseCandidate` itself rejects the label
+stem (`SENTENCE_` followed by a number) and any `{{`/`}}` wrapper, including
+fullwidth and HTML-entity forms, in its reply, claims, quotes and memory text, in
+every mode, so a mangled label is a retry rather than released text. Other
+invented markers that use neither are not detected. `build_triage_model` selects the triage model from the
 `LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
 and the configured model for Anthropic. Serendipity's fixed schema covers all three of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
@@ -143,6 +148,8 @@ output retries. `ResearchSearch` validates the research specification against
 the approved failure categories and the pages that the run opened. Each
 application entry point repeats its checks before returning the result. Error
 analysis and research use `openai_reasoning_effort="high"` for those runs.
+Muse's reflection draft and revision, and Provenance's candidate review, use
+`openai_reasoning_effort="medium"`; every other run keeps the shared low effort.
 
 ## Muse tool exposure
 
@@ -237,7 +244,13 @@ whose context remains bounded by the original turn's authority. The stable
 quotation copies, and missing visible links for declared public sources before
 application review. The revision input marks the draft sentences that each
 response finding names. Muse can rewrite those sentences and delete sentences;
-it preserves the wording of unflagged sentences it retains. Source-dependent
+it preserves the wording of unflagged sentences it retains. Each unflagged unit
+that can be carried losslessly has a label such as `{{SENTENCE_2}}`: Muse keeps
+it by copying the label, and the application inserts the draft text and its
+draft declarations, shaped as a typed revision would declare them. The draft is
+the output call pydantic-ai accepted in the revision's message history; if that
+call cannot be identified, or does not rebuild the listed sentences and
+mappings exactly, no label is usable. Source-dependent
 sentences require complete source mappings or deletion. If a finding cannot be
 located, the application omits the sentence restrictions. The second review
 still checks the complete reply within the original evidence authority. Muse
@@ -389,6 +402,17 @@ contract to the caller. The two skills use the same reusable Librarian Agent
 with separate inputs and no shared conversation history. Neither the plan nor
 its reader spans grant reading permission. Exact passage grants use the same
 planner and assessor over only their fixed records, without a broader search.
+
+Muse's tool adapter then shapes what the writer is shown. For a `sufficient`
+result, `librarian_search` replaces Librarian's free-text `strength_reason`
+with one fixed application sentence, because that reason is unverified model
+prose that can credit a record with a detail it does not contain, and Muse
+states the reason only for a `weak` result. Evidence, limitations, scope, and
+the turn's ledgers are unchanged, and `weak` and `none` results,
+clarifications, and failures pass through as judged. Provenance and the turn
+inspection read Muse's tool result, so they see the same sentence.
+Librarian's recorded evidence-assessment exchange and Serendipity's
+`judgement.strength_reason` keep the model's reason.
 
 ```mermaid
 flowchart TD

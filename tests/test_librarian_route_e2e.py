@@ -595,6 +595,43 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual("complete", librarian_trace["status"])
 
+    async def test_provenance_and_inspection_see_the_sufficient_result_muse_saw(self) -> None:
+        from src.linger.agents.muse.tools import SUFFICIENT_STRENGTH_REASON
+
+        muse_captured: list = []
+        provenance_captured: list = []
+        request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)
+
+        with patch(
+            "src.linger.orchestration.boundary.judge_spoiler_boundary",
+            side_effect=_confident_judge,
+        ):
+            with muse_chat_agent.override(
+                model=FunctionModel(_muse_routes_then_searches(muse_captured))
+            ):
+                with provenance_agent.override(
+                    model=FunctionModel(_provenance_pass_capturing(provenance_captured))
+                ):
+                    response = await main.chat(request, self.service, self.account)
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        search_result = muse_captured[1]
+        self.assertEqual("sufficient", search_result["evidence_strength"])
+        self.assertEqual(SUFFICIENT_STRENGTH_REASON, search_result["strength_reason"])
+        reviewed, = (
+            outcome for outcome in provenance_captured[0]["untrusted_tool_outcomes"]
+            if outcome["tool_name"] == "librarian_search"
+        )
+        self.assertEqual(search_result, reviewed["content"])
+        inspected = [
+            call["response"] for call in response.inspection.librarian_grounding
+            if call["response"].get("kind") == "result"
+        ]
+        self.assertEqual([search_result], inspected)
+        # Librarian's own reason reaches neither the reviewer nor the inspection.
+        self.assertNotIn("controlled passages answer", json.dumps(provenance_captured[0]))
+        self.assertNotIn("controlled passages answer", json.dumps(inspected))
+
     @pytest.mark.embeddings
     async def test_provenance_sees_the_routed_authority_not_stale_pre_muse_context(
         self,

@@ -3,6 +3,8 @@
 from collections.abc import Collection
 from typing import Any
 
+from pydantic_ai.models.openai import OpenAIResponsesModelSettings
+
 from apps.backend.contracts import MuseDraftInput, MuseRevisionInput
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.skills import RuntimeSkill, load_instructions
@@ -55,6 +57,9 @@ REFLECTION: RuntimeSkill[MuseDraftInput | MuseRevisionInput, MuseCandidate] = Ru
     validators=("validate_muse_output",),
     output_retries=3,
     tool_retries=1,
+    # At the shared low effort a grounded draft often stops at the first reason
+    # its passages state; medium reads the whole exchange before answering.
+    model_settings=OpenAIResponsesModelSettings(openai_reasoning_effort="medium"),
 )
 
 

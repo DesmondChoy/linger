@@ -65,6 +65,10 @@
       {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-promise"},
       {"source_kind": "book_corpus", "evidence_id": "lowmere-c2-letter", "claim_pattern": "letter"}
     ],
+    "claim_sources": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-promise", "claim_pattern": "\\bpromis\\w*|\\bevery week\\b|\\bweekly\\b"},
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c2-letter", "claim_pattern": "\\bletter\\b|\\btimetable\\b|\\bpurser\\b"}
+    ],
     "source_terms": ["Ines", "letter", "ferry", "timetable", "purser", "promise", "promised", "brother", "shore"]
   },
   "reference_revision": {

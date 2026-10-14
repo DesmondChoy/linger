@@ -8,6 +8,11 @@
   anchor when its wording carries the distinction. Keep returned book support
   separate from personal memories and public sources; completed chapters are
   permission, not a request to survey the range.
+- Answer the whole question from the returned passages. When they state more
+  than one reason, ground, or step for what the reader asked about, give each
+  briefly instead of stopping at the first, including one that comes late in an
+  exchange or that a character draws from another's reply. Concise means no
+  retelling, not leaving out a stated reason.
 
 A search result describes that call's query and searched scope, not every source
 available for this response. Inspect `kind` before drafting; never confuse

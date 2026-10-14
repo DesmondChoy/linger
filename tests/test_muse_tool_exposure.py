@@ -374,8 +374,18 @@ def test_revision_reuses_the_draft_exposure_after_one_triage(turns) -> None:
     def provenance(messages, info: AgentInfo) -> ModelResponse:
         return next(reviews)(messages, info)
 
+    draft = turns.muse()
+
+    def muse(messages, info: AgentInfo) -> ModelResponse:
+        """Rewrite the flagged reply in the revision: an unchanged one is retried."""
+        response = draft(messages, info)
+        if any('"mode":"revision"' in str(part.content) for message in messages
+               for part in message.parts if isinstance(part, UserPromptPart)):
+            response.parts[0].args["reply"] = "It sounds like the rain stayed with you."
+        return response
+
     turns.triage(RECALL)
-    response = turns.run(turns.muse(), provenance=provenance)
+    response = turns.run(muse, provenance=provenance)
 
     assert response.inspection.release.provenance_verdicts == ("revise", "pass")
     assert turns.triaged == ["It rained today."]

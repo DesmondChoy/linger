@@ -54,6 +54,11 @@ under application-owned source grants. The model chooses whether and how to
 use those tools. Deterministic code controls identity, reading progress,
 retrieval scope, and storage.
 
+A `sufficient` `librarian_search` result reaches Muse with one fixed
+application sentence as its `strength_reason`, not Librarian's free-text
+reason, which can name details the selected records do not contain. `weak` and
+`none` results keep Librarian's reason and limitations.
+
 The interactive application keeps explicit completed-chapter progress per
 account and work in `reading_progress.sqlite3`. A released reply or application
 clarification saves the part and ceiling. The latest declaration wins,
@@ -148,7 +153,7 @@ context. There is no direct Muse-to-storage or Muse-to-reader bypass.
 ## Evaluation and supported scope
 
 The [Muse evaluations](../../../../evals/muse/README.md) contain 19 main
-reflection cases, 32 review cases, six revision fixtures, and a separate
+reflection cases, 32 review cases, eight revision fixtures, and a separate
 turn-triage pack. Reflection runs compare the first and current Muse with fixed
 tool results. Revision runs hold the draft and review fixed; blind review
 grades saved reflection replies against each case's semantic rubric.

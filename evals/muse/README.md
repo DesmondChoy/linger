@@ -31,7 +31,7 @@ reasoning.
 | --- | --- | --- |
 | [`cases/main/`](cases/main/) | 19 reflection-behaviour cases, one per behaviour | `harness.py` hard gates, `baseline_run.py` live runs |
 | [`cases/review/`](cases/review/) | 32 additive reflection cases; several may share a behaviour | `baseline_run.py --pack review` (or `all`), plus additive gates |
-| [`cases/revision/`](cases/revision/) | 6 revision fixtures, each a flawed draft and its review block | `revision_run.py` |
+| [`cases/revision/`](cases/revision/) | 8 revision fixtures, each a flawed draft and its review block | `revision_run.py` |
 | [`cases/triage/`](cases/triage/) | `turn_triage_cases.json` and `dialect_fairness_cases.json`: single reader messages screened before a draft | `turn_triage.py`, `tests/test_dialect_fairness.py` |
 
 The main cases fall into three groups:
