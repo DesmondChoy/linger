@@ -69,8 +69,22 @@ Librarian breaks book questions into focused searches and assesses the evidence
 against the full request. Reading permission comes from explicit progress or
 validated inference from reader statements and eligible memories. Provenance
 reviews the complete reply, including quotations, attribution, and claim
-support. Bounded repairs check quotation text and retain source mappings for
-unchanged accepted claims before the application checks release.
+support. Muse's grounding instructions call for every reason or step the
+selected passages state in answer to the question. On a sufficient search,
+Muse receives the passages with a fixed status message; the Librarian's
+free-text assessment reason stays outside Muse's drafting context.
+
+A reply can receive one revision. Muse can preserve unflagged draft sentences
+by label, which carries their exact wording and source mappings into the
+revised candidate. Validation checks changes against the original findings,
+retains accepted mappings, and allows corrected claims to cite their supporting
+sources. Provenance reviews the complete revision and resolves every earlier
+response finding before the application checks release. Muse reflection and
+Provenance candidate review use medium reasoning effort for OpenAI Responses
+models; other calls use their configured settings. See the
+[Muse guide](src/linger/agents/muse/README.md) for the repair constraints and
+their limits.
+
 An explicit completed chapter carries across follow-ups about the same book
 and part. A correction can lower or retract that session's carried permission.
 The chapter the reader explicitly declares also persists per account and book after a
@@ -97,6 +111,13 @@ its saved inspection details. Chat content is sent to the configured model
 provider. Optional backend telemetry records metadata rather than conversation
 content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
+
+The chat entry point redacts detected email addresses and phone numbers before
+agent processing and conversation storage. Credential checks block detected
+secrets in incoming messages, agent context, generated replies, and storage
+writes. Three fixed instruction-override patterns can also stop a reader message
+before any agent runs. These checks supplement Provenance's semantic review.
+See the [app security checks](apps/README.md#security-checks) for the exact scope.
 
 The stack is Python, FastAPI, Pydantic AI, and React.
 
@@ -128,7 +149,8 @@ Edit `.env` to set `LINGER_MODEL` and the matching API key. The example selects
 `openai:gpt-6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
 prefix use `GOOGLE_API_KEY`; models with `anthropic:` use `ANTHROPIC_API_KEY`.
 Only the selected provider's key is needed. The standard OpenAI model uses low
-reasoning effort. Turn triage uses the provider's configured small model, as
+reasoning effort, with medium effort for Muse reflection and Provenance
+candidate review. Turn triage uses the provider's configured small model, as
 described in the [app guide](apps/README.md#setup).
 
 Public-web discovery is optional and requires both `EXA_API_KEY` and
@@ -297,7 +319,12 @@ Individual agent evaluation guides cover [Muse](evals/muse/README.md),
 [Librarian](evals/librarian/README.md), [Provenance](evals/provenance/README.md),
 [Serendipity](evals/serendipity/README.md), and [Sculptor](evals/sculptor/README.md).
 The Provenance guide includes candidate risk-code, curation risk-code, and claim
-mapping commands. Live evaluation commands use the configured model provider.
+mapping commands. Candidate risk-code cases include second-review obligations
+for revised replies. Muse revision grading checks required answer content and
+its declared sources alongside structural validity. Librarian reports include
+`reply_fact_recall` for released answers when a case supplies `required_facts`;
+it remains separate from the retrieval acceptance result. Live evaluation
+commands use the configured model provider.
 
 The component and offline guides document these evaluation entry points:
 
@@ -310,6 +337,15 @@ The component and offline guides document these evaluation entry points:
 | Run Sculptor's retrieval analysis and research stages | `uv run python -m evals.librarian.research_loop --help` | [Librarian evaluations](evals/librarian/README.md) |
 | Compare recall before and after reviewed curation | `uv run python -m evals.synthetic_journals.memory_loop_replay --help` | [Synthetic evaluations](evals/synthetic_journals/README.md) |
 | Inspect release evidence checks and suite execution | `uv run python -m evals.release --help` | [Release checks](docs/release-checks.md) |
+
+To run selected Muse revision cases, repeat `--case` for each fixture:
+
+```bash
+	uv run python -m evals.muse.revision_run \
+		--case muse-revision-added-source-v1 \
+		--case muse-revision-misattributed-speaker-v1 \
+		--runs 3 --output /tmp/muse-revisions.json
+```
 
 Sculptor's retrieval experiments use fixed practice and held-back requests.
 Owners review each input and approve analyses and specifications before
