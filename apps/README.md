@@ -42,7 +42,9 @@ pnpm install --dir apps/frontend
 Set `LINGER_MODEL` and the matching provider key in `.env`. The checked-in
 default is `openai:gpt-6-luna` with `OPENAI_API_KEY`; `google` models use
 `GOOGLE_API_KEY`, and `anthropic` models use `ANTHROPIC_API_KEY`.
-The standard OpenAI model uses low reasoning effort. Muse turn triage uses
+The standard OpenAI model defaults to low reasoning effort. Muse uses medium
+effort for drafting and revision. Provenance uses medium effort for candidate
+review. Muse turn triage uses
 `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google, and `LINGER_MODEL` for
 Anthropic. It needs no separate credential or model setting.
 
@@ -276,9 +278,9 @@ Both chat endpoints accept `session_id`, optional `turn_id`, and `message`.
 Session and turn IDs contain 1 to 200 characters and reject control characters.
 Messages contain 1 to 8000 characters after normalisation. The API strips
 surrounding whitespace, normalises line endings and Unicode, removes hidden
-control characters, and rejects unexpected fields. Capture offsets and later
-checks use this same normalised message. The server supplies account identity
-and all authority-bearing policy state.
+control characters, and rejects unexpected fields. The server supplies account
+identity and all authority-bearing policy state. The [security checks](#security-checks)
+describe redaction before agent processing and storage.
 
 The two chat endpoints share a limit of 10 requests per rolling 60 seconds per
 authenticated account. Exceeding it returns `429` with `Retry-After` before a
@@ -304,6 +306,30 @@ inspection records can contain request and source content.
 
 Synthetic replay calls the same `run_chat_turn` application boundary directly,
 without constructing an HTTP request or translating a FastAPI exception.
+
+## Security checks
+
+At chat entry, DataFog's local regex detector replaces email addresses and
+phone numbers with placeholders such as `[EMAIL_1]` and `[PHONE_1]`. Agents,
+saved conversation text, inspection, and automatic-capture offsets use that
+redacted message. This detector leaves names, addresses, employers, and health
+conditions unchanged. DataFog telemetry is disabled by the application.
+
+Detected credentials receive a fixed safe decline before any agent runs.
+The user-input injection check also blocks three fixed patterns: requests to
+ignore application instructions, disclose hidden prompts or instructions, or
+follow replacement instructions. It runs before the emotional-boundary agent
+when the language guard permits the message. Security blocks do not enter
+conversation history or commit reading progress or memories.
+`inspection.release.security_block_category` identifies `credential` or
+`prompt_injection`; `security_pattern_ids` lists matched injection rules.
+These regex rules cover their stated patterns and do not establish resistance
+to other attack wording.
+
+All five reusable agents check messages, tool history, and request schemas for
+credentials before each provider request. Generated Muse replies and memory
+nominations, curation text, and conversation and memory storage also reject
+detected credentials. These internal checks preserve other personal text.
 
 ## Validation
 

@@ -28,6 +28,14 @@ after the backend approves release. Draft replies never stream to the browser.
 Replies render Markdown, quotations, and source links. Other raw HTML is
 discarded. Source details belong to the released reply.
 
+The backend replaces detected email addresses and phone numbers in incoming
+chat with placeholders before agent processing and persistence. Inspect and
+reloaded history use that redacted text. The current browser feed retains the
+reader's submitted wording until history reloads. Detected credentials and
+the application's fixed instruction patterns receive a safe decline
+without a saved conversation turn or automatic memory capture. See the
+[security checks](../README.md#security-checks) for the checks and their scope.
+
 The compact collaboration map follows the turn while it runs and shows the
 selected turn's outcome beneath it. Select a component or connection to open a
 dialog with the contract it carried, its general role, and its authority. The

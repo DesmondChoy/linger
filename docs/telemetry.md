@@ -38,6 +38,7 @@ the exported-payload test are updated together.
 | Turn triage | Fixed book-content, memory-need, and override labels; triage failure flag; registered tools offered to Muse; pinned Serendipity intent |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
+| Security blocks | Fixed category (`credential` or `prompt_injection`), boundary (`user_input`), and disposition (`block`); injection detector ID, ruleset version, and matched application-owned pattern IDs |
 | Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Objective ID, case ID, dataset version, run ID, system variant, Ground truth status, expected and actual fixed labels, proposal comparison or adopted-label pass/fail, aggregate counts and metrics, latency, tokens, and cost |
 
@@ -114,6 +115,15 @@ whether the reader completed a chapter. `search.allowed_sources` and
 Recording a memory search never permits
 memory IDs or excerpts in backend telemetry. `serendipity.shortlist_size`
 records only the number of shortlisted candidates.
+
+On `chat.turn`, a blocked credential records `security.category`,
+`security.boundary`, and `security.disposition`. A matched user-input injection
+rule also records `security.detector=linger_injection_rules`,
+`security.detector_version=1`, and comma-separated `security.pattern_ids`.
+These fields contain no matched text or source offsets. Incoming chat email
+addresses and phone numbers are redacted locally before agent processing.
+DataFog's own telemetry is disabled, and backend spans contain neither the
+original values nor the redacted message.
 
 ## 3. What the backend service does not record
 
@@ -214,6 +224,14 @@ The durable synthetic `AgentExchange` records the fixed `failure_category`
 alongside the existing failure code. Calls that end without a result have no typed output or
 completed usage result. Their partial messages can still show attempted tool
 calls, returned tool results, and retry feedback; thinking parts remain omitted.
+
+Transcript recording checks agent inputs, outputs, and captured model messages
+for credentials. Credential-bearing input is replaced with empty text.
+Credential-bearing outputs or captured message histories are omitted while
+exchange metadata remains available. These checks preserve other personal text
+in synthetic and developer records. Email and phone redaction applies at
+incoming chat entry, so it does not anonymize an independently supplied
+component prompt or retrieved source.
 
 Synthetic exchanges also record `provider_error_kind` as `http`, `timeout`,
 `connection`, or `other` for recognised provider errors. `provider_status_code`

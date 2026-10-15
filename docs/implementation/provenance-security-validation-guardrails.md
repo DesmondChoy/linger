@@ -2,9 +2,10 @@
 
 ## Focus
 
-Apply DataFog's default regex PII redaction once to the incoming chat message,
-before Muse receives it. Block credentials in that message and at model and
-storage boundaries. Check the current user message for adopted injection
+Apply DataFog's regex redaction for email addresses and phone numbers once to
+the incoming chat message before Muse receives it. Block credentials in that
+message and at model and storage boundaries. Check the current user message
+for adopted injection
 patterns before Provenance's emotional-boundary preflight. An injection match
 blocks the turn with a standard message and a value-free reason.
 
@@ -24,7 +25,7 @@ The synthetic evaluation UI displays expectations; it is not a runtime check.
 - Safe telemetry, focused detector tests, and representative false-positive
   evaluation for enabled rules and before expanding them.
 
-## Out of scope for the first implementation
+## Out of scope
 
 - Replacing Provenance's semantic review of prompt injection, harmful content,
   or whether an agent followed malicious text.
@@ -57,8 +58,8 @@ The synthetic evaluation UI displays expectations; it is not a runtime check.
 - `.agents/skills/review-synthetic-ground-truth/ui/src/InjectionExpectation.jsx`
   displays synthetic attack expectations and review criteria. It is not
   imported by the production reader UI and does not inspect or block runtime
-  attacks. `chat_turn.py` now has a separate, narrow check on current user
-  input before Provenance's emotional-boundary preflight. `evals/synthetic_journals/` and
+  attacks. `chat_turn.py` checks current user input before Provenance's
+  emotional-boundary preflight. `evals/synthetic_journals/` and
   `tests/test_memory_injection_replay.py` provide evaluation coverage, not a
   runtime security boundary.
 
@@ -72,7 +73,7 @@ The synthetic evaluation UI displays expectations; it is not a runtime check.
 | Before release and storage | Credentials in generated replies, nominations, curation text, session history, and transcripts | Block credentials. Do not run DataFog on these fields |
 | Before Exa requests | Credentials and copied private reader or memory wording | Block the external request. Do not run DataFog on Exa parameters |
 
-## Policy contract for step 1
+## Runtime policy
 
 The chat entry point calls `validate_user_input` on `ChatRequest.message` once.
 It passes the redacted value to Muse and to later agents. It persists that
@@ -81,12 +82,13 @@ PII-redacted by this guardrail.
 
 | Data | PII action | Credential action |
 | --- | --- | --- |
-| Current user message | Redact with DataFog's default regex engine before Muse | Block before the pipeline |
+| Current user message | Redact `EMAIL` and `PHONE` matches with DataFog's regex engine before Muse | Block before the pipeline |
 | Assembled model requests and generated output | No additional PII scan | Block before dispatch or release |
 | Session, transcript, and derived-memory writes | Persist the already-redacted incoming message; do not rescan other fields | Block the write |
 
 Use DataFog's regex engine with `EMAIL` and `PHONE` entities for this minimal
-PII check. Use the existing maintained secret detector for credentials.
+PII check. Names, addresses, employers, and health conditions remain unchanged.
+Use the existing maintained secret detector for credentials.
 Replace each PII match with DataFog's entity-labelled redaction token. Do not
 rewrite canonical book corpora, retrieved records, or historical memories.
 
@@ -123,7 +125,7 @@ response. An injection detector match does not add or trigger a Provenance
 review. When a match blocks a turn before generation, no candidate reaches
 Provenance. Keep the instruction-leak release check active.
 
-## Implementation sequence
+## Runtime checks
 
 1. **Set the policy contract.** Use typed, value-free validation results for
    PII, credentials, and adopted injection rules. DataFog applies only to the
