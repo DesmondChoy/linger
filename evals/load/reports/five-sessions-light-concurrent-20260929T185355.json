@@ -1,0 +1,384 @@
+{
+  "run_at": "2026-09-29T10:53:55+00:00",
+  "model": "openai:gpt-6-luna",
+  "readers": 5,
+  "scenario": "light",
+  "turns_per_reader": 3,
+  "mode": "concurrent",
+  "server": "one uvicorn process, one worker, SQLite stores in a scratch directory",
+  "wall_clock_s": 99.6,
+  "outcomes": {
+    "declined": 10,
+    "answered": 5
+  },
+  "release_sources": {
+    "application_safe_decline": 10,
+    "muse_candidate": 5
+  },
+  "failures": {
+    "Muse/draft: provider_error (muse_model_failed)": 8,
+    "Provenance/emotional_boundary_preflight: provider_error (emotional_boundary_preflight_failed)": 1,
+    "Provenance/review: provider_error (provenance_model_failed)": 1,
+    "reflection.release/muse_draft: model (muse_draft_failed)": 8,
+    "reflection.release/provenance_review: model (provenance_review_failed)": 1
+  },
+  "provider_http_statuses": {
+    "api.exa.ai 200": 3,
+    "api.openai.com 200": 70,
+    "api.openai.com 429": 51
+  },
+  "latency_s": {
+    "p50": 11.41,
+    "p95": 51.79,
+    "max": 51.79,
+    "answered_p50": 11.41,
+    "answered_p95": 51.79,
+    "first_progress_p50": 0.02
+  },
+  "tokens": {
+    "input": 317053,
+    "output": 5485,
+    "agent_runs": 43,
+    "by_role": {
+      "Muse": {
+        "input": 184411,
+        "output": 2748,
+        "runs": 20
+      },
+      "Provenance": {
+        "input": 67295,
+        "output": 1025,
+        "runs": 19
+      },
+      "Serendipity": {
+        "input": 65347,
+        "output": 1712,
+        "runs": 4
+      }
+    }
+  },
+  "cost_usd": 0.0344,
+  "cost_basis": "supplied per-million rates",
+  "isolation": {
+    "passed": true,
+    "history": {
+      "load-691652-0": {
+        "sessions": [
+          "load-691652-0-conversation"
+        ],
+        "saved_turns": 1,
+        "expected_saved_turns": 1,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-691652-1": {
+        "sessions": [
+          "load-691652-1-conversation"
+        ],
+        "saved_turns": 2,
+        "expected_saved_turns": 2,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-691652-2": {
+        "sessions": [
+          "load-691652-2-conversation"
+        ],
+        "saved_turns": 1,
+        "expected_saved_turns": 1,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-691652-3": {
+        "sessions": [
+          "load-691652-3-conversation"
+        ],
+        "saved_turns": 1,
+        "expected_saved_turns": 1,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-691652-4": {
+        "sessions": [],
+        "saved_turns": 0,
+        "expected_saved_turns": 0,
+        "only_own_session": true,
+        "only_own_lines": true
+      }
+    },
+    "cross_account": [
+      {
+        "reader": "load-691652-0",
+        "target": "load-691652-1",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-691652-1",
+        "target": "load-691652-2",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-691652-2",
+        "target": "load-691652-3",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-691652-3",
+        "target": "load-691652-4",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-691652-4",
+        "target": "load-691652-0",
+        "continue_status": 404,
+        "delete_status": 404
+      }
+    ],
+    "anonymous_history_status": 401
+  },
+  "turns": [
+    {
+      "reader": "load-691652-0",
+      "index": 0,
+      "outcome": "declined",
+      "started_s": 0.0,
+      "latency_s": 24.14,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccb353fa19753fec5515804ce13",
+      "release_source": "application_safe_decline",
+      "input_tokens": 9480,
+      "output_tokens": 132,
+      "agent_runs": 3,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-0",
+      "index": 1,
+      "outcome": "answered",
+      "started_s": 24.14,
+      "latency_s": 15.61,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccb938145507c60058a107d53e2",
+      "release_source": "muse_candidate",
+      "input_tokens": 23232,
+      "output_tokens": 345,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-691652-0",
+      "index": 2,
+      "outcome": "declined",
+      "started_s": 39.75,
+      "latency_s": 2.74,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccbd077e81cdf82177ad04592be",
+      "release_source": "application_safe_decline",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "agent_runs": 0,
+      "failures": [
+        "Provenance/emotional_boundary_preflight: provider_error (emotional_boundary_preflight_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-1",
+      "index": 0,
+      "outcome": "answered",
+      "started_s": 0.0,
+      "latency_s": 9.46,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccb353199594a169d1820c2ef5a",
+      "release_source": "muse_candidate",
+      "input_tokens": 23190,
+      "output_tokens": 356,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-691652-1",
+      "index": 1,
+      "outcome": "answered",
+      "started_s": 9.46,
+      "latency_s": 11.41,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccb5a2298928ee0ca8c35f74e22",
+      "release_source": "muse_candidate",
+      "input_tokens": 38464,
+      "output_tokens": 376,
+      "agent_runs": 5,
+      "failures": []
+    },
+    {
+      "reader": "load-691652-1",
+      "index": 2,
+      "outcome": "declined",
+      "started_s": 20.87,
+      "latency_s": 8.7,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccb86c30b8c0bbd6071154c57be",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2551,
+      "output_tokens": 49,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-2",
+      "index": 0,
+      "outcome": "answered",
+      "started_s": 0.0,
+      "latency_s": 10.46,
+      "first_progress_s": 0.04,
+      "trace_id": "01a0eccb354c739b4ac261b45ca9d530",
+      "release_source": "muse_candidate",
+      "input_tokens": 23245,
+      "output_tokens": 474,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-691652-2",
+      "index": 1,
+      "outcome": "declined",
+      "started_s": 10.46,
+      "latency_s": 10.41,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccb5e07ac9b6f1f451fa6e75063",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2559,
+      "output_tokens": 49,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-2",
+      "index": 2,
+      "outcome": "declined",
+      "started_s": 20.86,
+      "latency_s": 7.16,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccb86b9d35e99f80f3798b4bed1",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2549,
+      "output_tokens": 50,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-3",
+      "index": 0,
+      "outcome": "declined",
+      "started_s": 0.0,
+      "latency_s": 24.16,
+      "first_progress_s": 0.03,
+      "trace_id": "01a0eccb3543ce3038c10e7184753301",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2545,
+      "output_tokens": 49,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-3",
+      "index": 1,
+      "outcome": "declined",
+      "started_s": 24.16,
+      "latency_s": 23.68,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccb939430657b1646f220aa1268",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2557,
+      "output_tokens": 54,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-3",
+      "index": 2,
+      "outcome": "answered",
+      "started_s": 47.84,
+      "latency_s": 51.79,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccbf015e2286b75165a7866380a",
+      "release_source": "muse_candidate",
+      "input_tokens": 129843,
+      "output_tokens": 2976,
+      "agent_runs": 5,
+      "failures": []
+    },
+    {
+      "reader": "load-691652-4",
+      "index": 0,
+      "outcome": "declined",
+      "started_s": 0.0,
+      "latency_s": 21.73,
+      "first_progress_s": 0.03,
+      "trace_id": "01a0eccb35470c072eedaf7efea5baf0",
+      "release_source": "application_safe_decline",
+      "input_tokens": 5995,
+      "output_tokens": 114,
+      "agent_runs": 3,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-4",
+      "index": 1,
+      "outcome": "declined",
+      "started_s": 21.73,
+      "latency_s": 7.79,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccb8a110810f7f555dc7d9a4771",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2549,
+      "output_tokens": 50,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-691652-4",
+      "index": 2,
+      "outcome": "declined",
+      "started_s": 29.52,
+      "latency_s": 37.0,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccba882d8d60111afcc6b3a25e5",
+      "release_source": "application_safe_decline",
+      "input_tokens": 48294,
+      "output_tokens": 411,
+      "agent_runs": 3,
+      "failures": [
+        "Provenance/review: provider_error (provenance_model_failed)",
+        "reflection.release/provenance_review: model (provenance_review_failed)"
+      ]
+    }
+  ]
+}
