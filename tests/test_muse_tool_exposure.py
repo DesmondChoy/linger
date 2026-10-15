@@ -167,6 +167,7 @@ def test_no_book_need_withholds_the_book_tools_and_blocks_a_call_to_them(turns) 
     assert response.inspection.tool_exposure == {
         "triage": {"book_content": "no", "memory": "none", "override_attempt": "no_attempt"},
         "triage_failed": False, "tools": [], "pinned_intent": None,
+        "book_override": False, "carried_tools": [],
     }
 
 

@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Graph, Icon } from '@linger/architecture-map'
 import type { ComponentId } from '@linger/architecture-map'
 import type { ProgressEvent, TurnRecord } from '../../types'
-import { Inspector, TurnSummary } from '../Inspector'
+import { Inspector, MemoryTable, ReadingStateTable, TurnSummary } from '../Inspector'
 import { Modal } from '../Modal'
 import { buildLiveTurn } from './liveScene'
+import { MapResizer } from './MapResizer'
+import { storedMapHeight } from './mapHeight'
 import { detailFor, type ComponentDetail } from './turnDetail'
 
 type Props = {
@@ -27,6 +29,11 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
         <button type="button" className="quiet-button" onClick={onClear}>Close</button>
       </div>
       <p className="detail-did">{detail.did}</p>
+      {detail.story && (
+        <ol className="detail-story" aria-label="What happened, step by step">
+          {detail.story.map((step, position) => <li key={position}>{step}</li>)}
+        </ol>
+      )}
 
       {detail.records.map((record) => {
         const body = <pre>{typeof record.value === 'string' ? record.value : JSON.stringify(record.value, null, 2)}</pre>
@@ -70,7 +77,10 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
 export function Architecture({ timeline, progress, pendingMessage }: Props) {
   const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
-  const [fullView, setFullView] = useState(false)
+  const [fullView, setFullView] = useState<'turns' | 'memories' | 'reading' | null>(null)
+  const [mapHeight, setMapHeight] = useState(storedMapHeight)
+  const panel = useRef<HTMLDivElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
 
   const live = pendingMessage !== null
   const index = live ? null : Math.min(selectedTurn ?? timeline.length - 1, timeline.length - 1)
@@ -105,17 +115,28 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
   }
 
   return (
-    <div className="architecture-map architecture-panel">
-      <div className="map-sticky">
+    <div ref={panel} className="architecture-map architecture-panel">
+      <div
+        className="map-sticky"
+        style={mapHeight === null ? undefined : { '--map-max-height': `${mapHeight}px` } as CSSProperties}
+      >
         <div className="live-bar">
           <span className={`live-status ${running ? 'is-running' : 'is-settled'}`}>
             <span className="live-dot" />
             {running ? 'Turn in progress' : 'Observed run'}
           </span>
           {timeline.length > 0 && (
-            <button type="button" className="quiet-button full-view-button" onClick={() => setFullView(true)}>
-              All turns and contracts
-            </button>
+            <>
+              <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('turns')}>
+                All turns and contracts
+              </button>
+              <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('memories')}>
+                Memories
+              </button>
+              <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('reading')}>
+                Reading progress
+              </button>
+            </>
           )}
           {!live && timeline.length > 1 && (
             <label className="turn-picker">
@@ -136,7 +157,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
 
         <div className="scene-caption"><p>{scene.summary}</p></div>
         <p className="map-hint">Click any component or connection to see the contract it carried on this turn.</p>
-        <div className="map-stage">
+        <div ref={stage} className="map-stage">
           <Graph
             key={scene.id}
             scene={scene}
@@ -148,6 +169,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
           />
         </div>
       </div>
+      <MapResizer height={mapHeight} onChange={setMapHeight} stage={stage} panel={panel} />
 
       <div className="analysis-detail">
         {turn && index !== null && <TurnSummary turn={turn} position={index} />}
@@ -159,11 +181,31 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
         </Modal>
       )}
 
-      {fullView && (
-        <Modal label="All turns and contracts" className="full-view-modal" onClose={() => setFullView(false)}>
+      {fullView === 'memories' && (
+        <Modal label="Memories" className="full-view-modal" onClose={() => setFullView(null)}>
+          <div className="full-view-head">
+            <h2>Memories</h2>
+            <button type="button" className="quiet-button" onClick={() => setFullView(null)}>Close</button>
+          </div>
+          <MemoryTable timeline={timeline} />
+        </Modal>
+      )}
+
+      {fullView === 'reading' && (
+        <Modal label="Reading progress" className="full-view-modal" onClose={() => setFullView(null)}>
+          <div className="full-view-head">
+            <h2>Reading progress</h2>
+            <button type="button" className="quiet-button" onClick={() => setFullView(null)}>Close</button>
+          </div>
+          <ReadingStateTable timeline={timeline} />
+        </Modal>
+      )}
+
+      {fullView === 'turns' && (
+        <Modal label="All turns and contracts" className="full-view-modal" onClose={() => setFullView(null)}>
           <div className="full-view-head">
             <h2>All turns and contracts</h2>
-            <button type="button" className="quiet-button" onClick={() => setFullView(false)}>Close</button>
+            <button type="button" className="quiet-button" onClick={() => setFullView(null)}>Close</button>
           </div>
           <Inspector
             timeline={timeline}

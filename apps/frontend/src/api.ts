@@ -2,6 +2,7 @@ import type {
   ChatResult,
   ProgressEvent,
   Conversation,
+  StoredMemory,
   TraceReference,
 } from './types'
 
@@ -206,4 +207,17 @@ export async function deleteSession(sessionId: string): Promise<void> {
   if (!response.ok) {
     throw new Error(`Delete failed (${response.status})`)
   }
+}
+
+/** The signed-in reader's saved and curated memories, newest first. */
+export async function listMemories(): Promise<StoredMemory[]> {
+  const response = await accountFetch(`${BASE_URL}/api/memories`)
+  if (!response.ok) throw new Error(`Could not load memories (${response.status})`)
+  return response.json() as Promise<StoredMemory[]>
+}
+
+/** Forget one saved memory, and every summary or topic group built over it. */
+export async function forgetMemory(memoryId: string): Promise<void> {
+  const response = await accountFetch(`${BASE_URL}/api/memories/${encodeURIComponent(memoryId)}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error(`Forget failed (${response.status})`)
 }

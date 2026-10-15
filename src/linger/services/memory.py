@@ -402,6 +402,26 @@ class MemoryPolicyService:
             state = _materialize_curation(events)
             return _retrieval_view(records, state)
 
+    def forget(self, context: AccountContext, memory_id: str) -> bool:
+        """Delete one original and every curation built over it; False when absent.
+
+        Curated summaries and topic groups carry their sources' content, so a
+        forgotten memory must not survive inside them.
+        """
+
+        with self._lock:
+            record = self._records_by_id(context).get(memory_id)
+            if record is None:
+                return False
+            curation_dir = self._curation_dir(context)
+            if curation_dir.exists():
+                for path in curation_dir.glob("cur_*.json"):
+                    event = _read_curation_event(path)
+                    if any(item.memory_id == memory_id for item in event.source_snapshots):
+                        path.unlink()
+            (self._account_dir(context) / f"{record.idempotency_key}.md").unlink()
+            return True
+
     def _save(
         self,
         context: AccountContext,

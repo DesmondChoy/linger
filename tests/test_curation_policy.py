@@ -86,6 +86,47 @@ class CurationPolicyTests(unittest.TestCase):
             ),
         )
 
+    def test_forgetting_a_memory_removes_it_and_every_curation_over_it(self) -> None:
+        first, second, third = self.seed(
+            "I am planning a balcony herb garden.",
+            "I decided to start with rosemary and thyme.",
+            "Evening tea helps me transition out of work.",
+        )
+        summary = self.approve(
+            (first, second),
+            DerivedSummary(
+                action="update_derived_summary",
+                source_memory_ids=(first.memory_id, second.memory_id),
+                summary="The balcony herb garden will begin with rosemary and thyme.",
+            ),
+        )
+        self.assertTrue(self.service.apply_curation(self.alice, summary).created)
+        topic = self.approve(
+            (first, third),
+            TopicGroup(
+                action="assign_topic_group",
+                source_memory_ids=(first.memory_id, third.memory_id),
+                topic_label="Restorative home routines",
+            ),
+        )
+        self.assertTrue(self.service.apply_curation(self.alice, topic).created)
+
+        self.assertFalse(self.service.forget(self.bob, second.memory_id))
+        self.assertTrue(self.service.forget(self.alice, second.memory_id))
+        self.assertFalse(self.service.forget(self.alice, second.memory_id))
+
+        self.assertEqual(
+            [first.memory_id, third.memory_id],
+            [record.memory_id for record in self.service.list_active(self.alice)],
+        )
+        view = self.service.list_for_retrieval(self.alice)
+        self.assertEqual([], [item for item in view if item.kind == "derived_summary"])
+        self.assertNotIn("rosemary", json.dumps([item.model_dump() for item in view]))
+        self.assertEqual(
+            ["Restorative home routines"],
+            [item.text for item in view if item.kind == "topic_group"],
+        )
+
     def test_summaries_and_topics_are_versioned_retrieval_items(self) -> None:
         first, second, third = self.seed(
             "I am planning a balcony herb garden.",

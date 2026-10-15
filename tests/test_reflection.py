@@ -1762,3 +1762,26 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(SPOILER_DECLINE, release.reply)
         self.assertEqual(("revise", "reject"), release.provenance_verdicts)
         self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)
+
+
+class FailureLoggingTests(unittest.TestCase):
+    """A failed stage logs why, never the reader's words or the draft."""
+
+    def test_logs_the_fixed_reason_without_the_model_body(self) -> None:
+        from pydantic_ai.exceptions import UnexpectedModelBehavior
+
+        from src.linger.orchestration.reflection import _log_failure
+
+        error = UnexpectedModelBehavior(
+            "Tool 'serendipity_explore' exceeded max retries count of 1",
+            body='{"reply": "I read before bed every night"}',
+        )
+        with self.assertLogs("linger.reflection", level="WARNING") as logs:
+            _log_failure("muse_draft", error)
+            _log_failure("muse_revision", ValueError("I read before bed every night"))
+
+        self.assertEqual([
+            "WARNING:linger.reflection:Stage failed stage=muse_draft error=UnexpectedModelBehavior "
+            "reason=Tool 'serendipity_explore' exceeded max retries count of 1",
+            "WARNING:linger.reflection:Stage failed stage=muse_revision error=ValueError reason=detail withheld",
+        ], logs.output)

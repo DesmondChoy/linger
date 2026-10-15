@@ -4,7 +4,7 @@ import { ANY_BOOK, DEMO_BOOKS, DEMO_PATHS, variantsFor } from './demoPrompts'
 describe('guided conversation paths', () => {
   it('covers each route a demo needs to show', () => {
     expect(DEMO_PATHS.map((path) => path.id)).toEqual(
-      expect.arrayContaining(['spoilers', 'grounded', 'memory', 'web', 'cross-book', 'decline', 'session', 'safety']),
+      expect.arrayContaining(['spoilers', 'grounded', 'memory', 'web', 'cross-book', 'decline', 'session', 'safety', 'curation']),
     )
     expect(new Set(DEMO_PATHS.map((path) => path.id)).size).toBe(DEMO_PATHS.length)
   })

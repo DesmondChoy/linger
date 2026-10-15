@@ -69,17 +69,16 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
 
-    def test_direct_memory_controls_are_not_exposed(self) -> None:
+    def test_readers_cannot_write_memories_directly(self) -> None:
+        # Only reviewed capture writes memories; a reader may list and forget them.
         with TestClient(main.app) as client:
             requests = (
-                client.get("/api/memories"),
                 client.put("/api/memory-capture-preference", json={"enabled": True}),
                 client.post("/api/memories", json={"text": "Save this"}),
                 client.put("/api/memories/mem-1", json={"text": "Correct this"}),
-                client.delete("/api/memories/mem-1"),
             )
 
-        self.assertTrue(all(response.status_code == 404 for response in requests))
+        self.assertTrue(all(response.status_code in (404, 405) for response in requests))
 
     def test_http_and_file_telemetry_exclude_request_content(self) -> None:
         exporter = TestExporter()
@@ -694,6 +693,10 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         memory = response.inspection.memory
         self.assertEqual(1, memory.active_count)
         self.assertEqual([saved.memory_id], memory.cited_memory_ids)
+        self.assertEqual(
+            [(saved.memory_id, "original", [saved.memory_id])],
+            [(item.memory_id, item.kind, item.source_memory_ids) for item in memory.available_memories],
+        )
         self.assertNotIn("I reread letters", response.model_dump_json())
 
     async def test_duplicate_citations_collapse_to_one_source_each(self) -> None:
