@@ -174,6 +174,31 @@ class SignInTests(unittest.TestCase):
         self.assertEqual(history, sessions.history(self.session_id))
         self.assertEqual(200, self.chat(self.alice, turn_id="turn-2").status_code)
 
+    def test_only_the_owner_can_list_and_forget_a_memory(self) -> None:
+        main.memory_service.set_capture_enabled(AccountContext("user:alice"), True)
+        saved = main.memory_service.save_automatic(
+            AccountContext("user:alice"),
+            AutomaticMemoryCandidate(
+                text="I reread letters when I feel far from home.",
+                source_event_id="turn-letters",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        ).record
+
+        listed = self.client.get("/api/memories", headers=self.alice).json()
+        self.assertEqual(
+            [(saved.memory_id, "original", "turn-letters", True)],
+            [(row["memory_id"], row["kind"], row["source_turn_id"], row["searchable"]) for row in listed],
+        )
+        self.assertEqual([], self.client.get("/api/memories", headers=self.bob).json())
+        url = f"/api/memories/{saved.memory_id}"
+        self.assertEqual(404, self.client.delete(url, headers=self.bob).status_code)
+        self.assertEqual(401, self.client.delete(url).status_code)
+        self.assertEqual(204, self.client.delete(url, headers=self.alice).status_code)
+        self.assertEqual([], self.client.get("/api/memories", headers=self.alice).json())
+        self.assertEqual(404, self.client.delete(url, headers=self.alice).status_code)
+
     def history(self, headers: dict[str, str]) -> list[dict]:
         response = self.client.get("/api/history", headers=headers)
         self.assertEqual(200, response.status_code)

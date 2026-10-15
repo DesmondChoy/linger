@@ -120,13 +120,68 @@ export type CaptureInspection = {
   curation_status?: string | null
 }
 
+export type AvailableMemory = {
+  memory_id: string
+  kind: 'original' | 'derived_summary' | 'topic_group'
+  source_memory_ids: string[]
+}
+
+/** One row of the reader's memory table, read live from the store. */
+export type StoredMemory = {
+  memory_id: string
+  kind: 'original' | 'derived_summary' | 'topic_group'
+  created_at: string
+  /** The turn whose reply saved it; null for a curated item. */
+  source_turn_id: string | null
+  source_memory_ids: string[]
+  /** False for an original that curation retired from search. */
+  searchable: boolean
+  /** Developer inspect only. */
+  text: string | null
+  topic_labels: string[]
+}
+
 /** Content-free memory handles for one turn; absent on turns saved before it existed. */
 export type MemoryInspection = {
   active_count: number
   captured_memory_id: string | null
   cited_memory_ids: string[]
+  /** The curated retrieval view the turn could search; absent on older turns. */
+  available_memories?: AvailableMemory[]
   /** Developer inspect only: the text behind each ID. */
   texts?: Record<string, string> | null
+}
+
+/** Turn triage and the tools Muse was offered; absent when no model ran. */
+export type ToolExposureInspection = {
+  triage: {
+    book_content: 'yes' | 'no' | 'unsure'
+    memory: 'own_earlier_reflections' | 'named_sources' | 'source_comparison' | 'outside_recommendation' | 'none' | 'unsure'
+    override_attempt: 'no_attempt' | 'attempted'
+  } | null
+  triage_failed: boolean
+  tools: string[]
+  pinned_intent: string | null
+  /** A reading boundary or pending reading question; absent on older turns. */
+  book_override?: boolean
+  /** Tools offered because an earlier turn used them; absent on older turns. */
+  carried_tools?: string[]
+}
+
+export type ReadingProgressEntry = {
+  work_id: string
+  title: string | null
+  part_id: string
+  /** Null marks a retracted ceiling: no chapter is granted. */
+  chapter_max: number | null
+}
+
+/** Stored reading progress once a turn finished; kept apart from memories. */
+export type ReadingStateInspection = {
+  /** This conversation's progress slot, which holds one book at a time. */
+  session: ReadingProgressEntry | null
+  /** The account's progress kept across conversations; null when the turn ran without the store. */
+  saved: ReadingProgressEntry[] | null
 }
 
 /** One agent run, recorded only under developer inspect. */
@@ -170,7 +225,10 @@ export type TurnInspection = {
   traces: AgentTrace[]
   connection_decline: ConnectionDecline | null
   librarian_grounding: LibrarianGroundingCall[]
+  tool_exposure?: ToolExposureInspection | null
   memory?: MemoryInspection | null
+  /** Absent on turns saved before it existed. */
+  reading_state?: ReadingStateInspection | null
   dev_trace?: DevTrace | null
   prompt: string
   release: ReleaseInspection | null

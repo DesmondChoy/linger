@@ -107,7 +107,7 @@ class BuildModelTests(unittest.TestCase):
                     "src.linger.agents.build.get_settings",
                     return_value=settings,
                 ):
-                    with self.assertRaisesRegex(RuntimeError, "Unsupported LINGER_MODEL"):
+                    with self.assertRaisesRegex(RuntimeError, "Unsupported model"):
                         build_model()
 
 

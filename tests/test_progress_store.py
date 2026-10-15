@@ -305,6 +305,11 @@ class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
             [(r["kind"], r["work_id"], r["max_chapter_inclusive"]) for r in ROUTE_RESULTS],
         )
         self.assertEqual(ALICE, sessions.book_selection("progress-day-two").book_id)
+        alice = {"work_id": ALICE, "title": "Alice's Adventures in Wonderland", "part_id": "main", "chapter_max": 2}
+        # Inspect shows both stores. Routing grants the saved chapter for one turn
+        # without writing the new conversation's slot.
+        self.assertEqual({"session": alice, "saved": [alice]}, first.inspection.reading_state.model_dump())
+        self.assertEqual({"session": None, "saved": [alice]}, second.inspection.reading_state.model_dump())
 
     async def test_another_account_does_not_inherit_progress(self) -> None:
         self.store.record("reader", SavedProgress(ALICE, "main", 2))

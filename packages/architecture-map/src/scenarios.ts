@@ -84,14 +84,14 @@ export const components: Record<ComponentId, ComponentDefinition> = {
     summary: 'Searches permitted sources, compares eligible candidates, and returns one supported tentative connection or a decline.',
     receives: ['Reader cue, intent, and source grants'],
     returns: ['Validated connection proposal with exact evidence', 'Or a typed decline and safe next step'],
-    authority: 'Book-only proposals may enter current chat release. Web-backed release and stored-memory evidence remain unsupported.',
+    authority: 'Proposes only. Book, memory and web records it selects can be cited in a reply only after they resolve to the exact records it retrieved and pass Provenance and the release checks.',
   },
   web: {
     id: 'web', label: 'Public web', role: 'Exa evidence', kind: 'source',
-    summary: 'Optional public search and page retrieval under guarded source permissions. A search lead is not yet citable evidence.',
+    summary: 'Optional public search and page retrieval under guarded source permissions. A search result is only a lead; a page becomes citable once it is opened.',
     receives: ['Permitted generalized queries without private wording'],
     returns: ['Opened public pages and resolvable URLs'],
-    authority: 'Web evidence does not currently enter the trusted chat release index; web-backed proposals fail closed.',
+    authority: 'Queries must be general and free of private wording. An opened page enters the turn\'s connection evidence, and a reply may cite it only after Provenance and the release checks pass.',
   },
   session: {
     id: 'session', label: 'Session state', role: 'Working context', kind: 'service',

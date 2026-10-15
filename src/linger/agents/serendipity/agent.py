@@ -1,6 +1,10 @@
 """Search-and-rank Serendipity agent over bounded Librarian and Exa tools."""
 
+from typing import Any
+
 from pydantic_ai import Agent, ModelRetry, RunContext, Tool
+from pydantic_ai.capabilities import AbstractCapability
+from pydantic_ai.output import OutputContext
 from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.models import Model
 
@@ -14,6 +18,7 @@ from src.linger.agents.serendipity.models import (
     SourceBundle,
     public_source_check_errors,
 )
+from src.linger.agents.serendipity.self_review_models import SkillCorrection
 from src.linger.agents.serendipity.skills import SHARED_INSTRUCTIONS
 from src.linger.agents.serendipity.tools import (
     SerendipityDependencies,
@@ -28,6 +33,8 @@ def _prepare_memory_search(
     definition: ToolDefinition,
 ) -> ToolDefinition | None:
     """Expose memory search only when application code granted active records."""
+    if ctx.deps is None:  # offline self-review has no discovery task and no tools
+        return None
     return definition if "memory" in ctx.deps.task.scope.allowed_sources else None
 
 
@@ -170,24 +177,39 @@ def validate_serendipity_output(
     return output
 
 
+class SerendipityOutputValidation(AbstractCapability[SerendipityDependencies | None]):
+    """Validate discovery, recall, and gathering results against this run's task.
+
+    A capability rather than a registered output validator, so the offline
+    self-review skill can select its own output type on the same Agent; its
+    correction is checked by that skill's output function instead.
+    """
+
+    async def after_output_validate(
+        self, ctx: RunContext[Any], *, output_context: OutputContext, output: Any,
+    ) -> Any:
+        if isinstance(output, SkillCorrection):
+            return output
+        return validate_serendipity_output(ctx, output)
+
+
 def build_serendipity_agent(
     model: Model | None = None,
 ) -> Agent[SerendipityDependencies, SerendipityResponse]:
     """Build Serendipity with bounded internal search and typed outputs."""
     agent = Agent[SerendipityDependencies, SerendipityResponse](
-        model if model is not None else build_model(),
+        model if model is not None else build_model("serendipity"),
         name="Serendipity",
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall, SourceBundle],
         instructions=SHARED_INSTRUCTIONS,
-        capabilities=[ProviderCredentialGuard()],
+        capabilities=[SerendipityOutputValidation(), ProviderCredentialGuard()],
         tools=[
             Tool(search_librarian, max_retries=1, prepare=prepare_librarian_search),
             Tool(search_memories, max_retries=1, prepare=_prepare_memory_search),
         ],
         retries=2,
     )
-    agent.output_validator(validate_serendipity_output)
     return agent
 
 

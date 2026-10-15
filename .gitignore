@@ -40,3 +40,8 @@ data/*.sqlite3*
 
 # Personal (individual) course report; kept local, not shared with the team
 docs/report/individual-report-serendipity.md
+
+# Local tool state
+node_modules/
+.vite/
+.claude/settings.local.json

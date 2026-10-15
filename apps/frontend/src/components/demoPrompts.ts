@@ -75,6 +75,8 @@ const ASKS_WITHIN = 'Librarian stays within your chapter; ask about something la
 const SAVES = 'Watch for "Saved to your memories" and the Memory & Policy box on the map.'
 const SEARCHES_MEMORY = 'Serendipity should search Memory for your earlier reflection. Provenance still checks the link, so a stretch gets withheld rather than stated.'
 const RECALLS = 'A recall request: Serendipity searches Memory only, with no books or web.'
+const CURATES = 'Saved, and it shares words with your earlier memory, so Sculptor runs. Under Memory, see what Sculptor did; if it applied a summary, the Memories table shows a Summary row.'
+const RECALLS_LATEST = 'Linger should give the latest version of the habit, not the one you started with.'
 const SEARCHES_WEB = 'Serendipity may search the web and cite a page, or decline if nothing clears its checks.'
 const CROSS_BOOK = 'Serendipity searches both books, each only up to the chapter you gave, then offers a tentative connection or declines if the evidence is thin.'
 const UNRELATED = 'Gives Linger something about you, but nothing about the topic you will ask about next.'
@@ -269,6 +271,40 @@ export const DEMO_PATHS: DemoPath[] = [
           newChat(FRESH_SESSION),
           line('Looks for a link to themselves', "Douglass teaches himself to read in secret. Does that connect to anything I've shared before?", SEARCHES_MEMORY),
           line('Asks what was said', 'What did I tell you about my Saturday mornings?', RECALLS),
+        ],
+      },
+    ],
+  },
+  {
+    id: 'curation',
+    label: 'Tidying memories',
+    shows: 'A habit that changes over time, so Sculptor can fold the saved versions into one summary.',
+    variants: [
+      {
+        steps: [
+          line('Shares a habit', "I've started running three mornings a week before work.", SAVES),
+          line('Says it changed', "I've moved my running to the evenings now; the mornings were too rushed.", CURATES),
+          line('Adds how it feels', 'Running in the evenings has become the part of the day I look forward to most.', CURATES),
+          newChat(FRESH_SESSION),
+          line('Asks what is true now', 'When do I go running these days?', RECALLS_LATEST),
+        ],
+      },
+      {
+        steps: [
+          line('Shares a habit', 'I read before bed every night, usually for about half an hour.', SAVES),
+          line('Says it changed', "I don't read before bed any more; I read on my lunch break because I kept falling asleep.", CURATES),
+          line('Adds how it feels', 'Reading on my lunch break has made it the calmest part of my workday.', CURATES),
+          newChat(FRESH_SESSION),
+          line('Asks what is true now', 'When do I usually read these days?', RECALLS_LATEST),
+        ],
+      },
+      {
+        steps: [
+          line('Shares a habit', "I'm learning Spanish with an app for ten minutes every day.", SAVES),
+          line('Says it changed', "I've stopped using the app and now learn Spanish in a weekly conversation class.", CURATES),
+          line('Adds how it feels', 'The Spanish conversation class has turned out to be the highlight of my week.', CURATES),
+          newChat(FRESH_SESSION),
+          line('Asks what is true now', 'How am I learning Spanish at the moment?', RECALLS_LATEST),
         ],
       },
     ],
