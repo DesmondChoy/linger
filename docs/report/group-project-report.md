@@ -90,11 +90,11 @@ Linger is built for a reader who wants to think through what they are reading al
 
 Behind the uses above, five design decisions distinguish the solution:
 
-- **Five agents, one deterministic writer.** Muse, Librarian, Serendipity, Provenance, and Sculptor are arranged around one deterministic Memory and Policy Service, which is the only component that writes. No model may release its own output or widen its own authority.
+- **Five agents, one deterministic memory writer.** Muse, Librarian, Serendipity, Provenance, and Sculptor are arranged around one deterministic Memory and Policy Service, which alone writes personal memories and curation records. Separate application stores persist accounts, transcripts, and reading progress. No model may release its own output or widen its own authority.
 - **Independent review before every release.** Every reply is drafted as a typed candidate, reviewed by a Provenance agent that has no tools and no conversation history, and validated by application code against a request-scoped evidence index before any text reaches the reader. Any failure becomes a fixed, application-authored decline.
-- **Spoiler-safe retrieval.** The reader's reading position is resolved from their own words and applied before any search runs, so text beyond it never reaches a model.
+- **Bounded book retrieval.** The application restricts answer-facing retrieval to the resolved reading position. Private boundary inference may inspect the full work, but its candidates do not become answer evidence without a validated grant. The measured retrieval runs had no spoiler exposures; handling retracted saved progress remains an open defect (Section 7.8).
 - **Typed, application-mediated hand-offs.** Agents never call one another. Every hand-off is a typed envelope carrying only what the next step needs, and every model run carries a fingerprint of its exact configuration.
-- **Evaluation and release pipeline.** Contract tests, component evaluations, and replay of synthetic conversations with human-adopted expected outcomes; CI with security scanning; and a release gate that requires live evaluation evidence and human approval.
+- **Evaluation and release pipeline.** Contract tests, component evaluations, and replay of synthetic conversations use human-adopted expected outcomes. CI runs tests and security scanning. A release workflow implements evidence and approval gates, but live release checks are disabled and the required hosted protections remain to be configured (Section 6.2).
 
 ### 1.3 Constraints and assumptions
 
@@ -131,7 +131,7 @@ Linger has two layers. The **application layer** is deterministic code: it decid
 | `run_chat_turn` (`apps/backend/chat_turn.py`) | Application | Runs one turn: controls, tool grants, agent order, release, and capture policy |
 | Release checks and evidence index (`src/linger/orchestration/turn_context.py`) | Application | Bind every quotation and citation to evidence retrieved in this request |
 | Retrieval (`apps/backend/librarian.py`) | Application | Searches the corpus only up to the reader's position |
-| Memory and Policy Service (`src/linger/services/memory.py`) | Application | The only component that writes to storage |
+| Memory and Policy Service (`src/linger/services/memory.py`) | Application | The only component that writes personal memories and curation records |
 | Muse | Agent | Holds the conversation and drafts every reply |
 | Librarian | Agent | Works out how far the reader has read and judges whether passages support the request |
 | Serendipity | Agent | Suggests one connection to another book, an earlier reflection, or a web page, or recalls the reader's own words |
@@ -167,7 +167,7 @@ For release, Docker builds one image:
 - One Linux AMD64 image on Ubuntu 24.04, running one non-root Uvicorn worker that also serves the built front end.
 - The image holds the corpus, the skills and prompts, and the local retrieval models with their file hashes. It excludes provider keys, account databases, private memories, and raw evaluation reports.
 - Health and readiness endpoints check configuration, storage, corpus, and models without making a paid model call.
-- An approved image is published to the GitHub Container Registry. Deploying it is a separate operator step.
+- The release workflow can publish an approved image to the GitHub Container Registry. Publication is currently disabled; deployment would be a separate operator step.
 - Not provided: multi-user capacity, shared session storage across processes, and zero-downtime deployment.
 
 ### 2.4 Data and state
@@ -195,11 +195,11 @@ Table 4 lists each technology and why it was chosen over the obvious alternative
 | Orchestration | Plain Python in `run_chat_turn` | Sequencing, tool grants, and release stay in one function that is easy to read and unit-test. Agent-graph frameworks such as LangGraph or CrewAI make agent-to-agent calls easy, which this design forbids |
 | Agent framework | Pydantic AI | Typed inputs and outputs with validation retries, per-run instructions, provider abstraction, Logfire instrumentation, and a maintained Exa capability |
 | Agent structure | One agent per role; skill chosen per run | Each role's tools and validators stay in one place, while each task's instructions and schema are versioned separately |
-| Models | OpenAI `gpt-6-luna` by default, configurable per role; Google and Anthropic supported | All reported live results use OpenAI models |
+| Models | Shared `LINGER_MODEL`; team standard OpenAI `gpt-6-luna`; Google and Anthropic supported | All reported live results use OpenAI models; selected skills override reasoning effort (Section 3) |
 | Retrieval | Hybrid BM25 and dense retrieval with cross-encoder reranking, in application code | Highest evidence recall with the least evidence volume, at a p95 of 0.46 seconds (Section 7.4). Spoiler safety cannot depend on a model's judgment |
 | Web search | Exa, off unless enabled | Public-web connections only when policy and credentials allow |
 | Backend | FastAPI on Uvicorn, Python 3.12 | Thin transport and authentication layer over `run_chat_turn` |
-| Front end | React 19 with Vite | Chat, Library, and Inspect views |
+| Front end | React 19 with Vite | Account and chat views; Library and Inspect are local developer diagnostics |
 | Storage | SQLite for accounts and transcripts; content-hashed Markdown for the corpus and memories | Enough for a single-process prototype. Hashed, immutable records are easy to audit |
 | Observability | Logfire under a written data contract | Traces without reader content, enforced by a typed projection and an exported-payload test (Section 6.3) |
 | Packaging | Docker; GitHub Container Registry | One tested image moves from CI to release unchanged |
@@ -208,13 +208,13 @@ Table 4 lists each technology and why it was chosen over the obvious alternative
 
 ### 2.6 User interface
 
-The web interface has a reader side and an evaluation side. Table 5 lists each view; Figures 4 to 8 show them. Elsewhere, the report shows the recorded data itself rather than screenshots.
+The product interface provides account access and chat. The local development interface also exposes corpus, inspection, and evaluation views. Table 5 distinguishes these uses; Figures 4 to 8 show development and review screens.
 
 | View | Who uses it | What it shows |
 |---|---|---|
-| Chat with agent map | Reader | The conversation, with a live map of which components ran for each reply |
-| Inspect | Reader or developer | For each reply: the route taken, each agent's outcome, the review verdict, and the recorded hand-offs |
-| Library | Reader | The five books, readable in the app |
+| Chat with agent map | Reader; map used for development inspection | The conversation, with a local diagnostic map of which components ran for each reply |
+| Inspect | Developer, local interface only | For each reply: the route taken, each agent's outcome, the review verdict, and the recorded hand-offs |
+| Library / Reader | Developer, local interface only | The registered books and their corpus text for testing and inspection |
 | Saved evaluation | Developer | A replayed Scenario: the synthetic reader, the memory placed beforehand, the test message, and the route the build took |
 | Ground-truth review | Reviewer | Each proposed expected outcome beside its inputs, with Approve and Needs changes |
 
@@ -222,15 +222,15 @@ The web interface has a reader side and an evaluation side. Table 5 lists each v
 
 ![Chat reply about Alice changing size, beside the live agent map](images/ui-02-grounded-reply.png)
 
-**Figure 4.** Chat with the agent map. The reply is grounded in chapter 2, which the reader confirmed reaching.
+**Figure 4.** Chat with the local diagnostic agent map. The reply is grounded in chapter 2, which the reader confirmed reaching.
 
 ![Inspect view showing the route through Muse, Provenance, and release checks](images/ui-05-inspector-card.png)
 
-**Figure 5.** The Inspect view for one turn: the route through Muse, Provenance, and the release checks, and each component that ran, in order.
+**Figure 5.** The developer-only Inspect view for one local turn: the route through Muse, Provenance, and the release checks, and each component that ran, in order.
 
 ![Library panel listing the five books](images/ui-06-library-reader.png)
 
-**Figure 6.** The Library.
+**Figure 6.** The local developer Library / Reader view.
 
 ![Saved evaluation view with the persona's Backstory, the Prop, the fixed Line, and the route taken](images/ui-07-saved-evaluation.png)
 
@@ -244,7 +244,7 @@ The web interface has a reader side and an evaluation side. Table 5 lists each v
 
 ## 3. Agent Roles and Design
 
-All five agents use the configured model, `LINGER_MODEL`, which defaults to OpenAI's `gpt-6-luna` at low reasoning effort; earlier evaluations used `gpt-5.6-luna`. Table 6 summarises each role. Each agent's internal design is described only to the depth needed to understand the system.
+All five agents use the shared configured model, `LINGER_MODEL`; the team standard is OpenAI's `gpt-6-luna`. Shared OpenAI reasoning effort is low (`src/linger/agents/build.py`). Muse reflection and Provenance candidate review override it to medium in `src/linger/agents/muse/skills.py` and `src/linger/agents/provenance/skills.py`; Serendipity retains the shared low setting. Earlier evaluations used `gpt-5.6-luna`. Table 6 summarises each role. Dated evaluation results describe the configuration measured at the time, which may differ from the current implementation.
 
 Agents never call one another, and no agent can release text or write to storage. Sections 3.2 to 3.5 describe the four boundaries where the application constrains the agents. Each lists what the application enforces and what the agents decide.
 
@@ -257,15 +257,15 @@ Agents never call one another, and no agent can release text or write to storage
 | Serendipity | Looks for one tentative, evidence-supported connection between a reflection and a permitted book passage, memory, or web page, or returns a typed decline; under a separate intent, recalls the reader's earlier words | Configured model | None. Holds no account identity | Book search through Librarian's path, account memory search, and Exa web search with page retrieval, each granted per request |
 | Provenance | Classifies each Line for the emotional boundary, reviews every complete Muse candidate and memory nomination, and reviews every Sculptor curation proposal against its exact sources | Configured model | None. Every review starts from a fresh typed input | None |
 | Sculptor | Proposes bounded curation over supplied memory records while preserving originals; judges memory surfacing offline; runs offline retrieval-improvement experiments | Configured model | None. Receives only a bounded record set, with account identity excluded | None, except web search and page retrieval in offline research tasks |
-| Memory and Policy Service | Deterministic application code, not an agent. The only component that writes | None | Owns the account-scoped store: immutable originals, curation layer, audit log | Not applicable |
+| Memory and Policy Service | Deterministic application code, not an agent. The only writer of personal-memory and curation records | None | Owns the account-scoped memory store: immutable originals, curation layer, audit log | Not applicable |
 
 **Table 6.** Agent roles.
 
 Muse is the only role that writes reader-facing prose or sees conversation history, and it can neither release its own words nor write durable memory. Its tools are thin adapters that the application grants and executes: the model supplies an intent, and the application supplies the reader's exact wording, so Muse cannot substitute a paraphrase of its own as a search query.
 
-Librarian's significance lies in the order of its work. The reading boundary is derived from the reader's words and applied before any search runs, so passages beyond the boundary never reach the evidence judge, the drafting model, or the reranker. Only an explicitly declared chapter persists; inferred boundaries are resolved afresh on every request, so a boundary established in one turn cannot silently authorise disclosure in a later one.
+Private boundary inference may inspect full-work candidates to identify an event the reader describes (`src/linger/orchestration/boundary.py`). Those candidates do not become answer evidence without a validated reading grant. The application applies the resolved boundary to answer-facing retrieval and assessment before supplying evidence to Muse. Only an explicitly declared chapter persists; inferred boundaries are resolved afresh on each request. Saved-progress reuse must also respect session corrections and retractions, an unresolved edge case described in Section 7.8.
 
-Serendipity is a separate role because finding connections requires search, comparison, and a genuine willingness to say no, and a drafting agent that also hunts for connections has a standing incentive to find one. It filters candidates for eligibility before ranking them, and a tie between the top two candidates produces a decline rather than an arbitrary choice. Its runs are capped at eight model requests and six tool calls.
+Serendipity filters candidates for eligibility before ranking them. Equal declared top ratings produce a decline; whether the model recognises a semantic tie correctly remains an evaluation question. Its runs are capped at eight model requests and six tool calls (`src/linger/agents/serendipity/tools.py`; component results in Section 7.4).
 
 Provenance is the reason the rest of the design can afford model initiative elsewhere. Its review input is organised by trust level, separating policy and reading scope from frozen evidence and from untrusted tool outcomes. A finding of `spoiler` or `prompt_injection` forces outright rejection with no revision. A Provenance approval is necessary but never sufficient for release or for a write. Figure 9 shows a review that sent a draft back once before passing it.
 
@@ -287,22 +287,23 @@ Section 7.4 reports each agent's component evaluation, and Section 7.3 the scena
 
 ### 3.2 Input boundary: controls before any model
 
-Every Line passes the checks in Table 7, in the order listed. Each check either lets the Line continue or ends the turn with a fixed reply. Section 7.6 reports the contract tests for these checks.
+Table 7 groups transport preprocessing and the subsequent checks in `run_chat_turn`. A check may transform the input, let it continue, or end the turn. Section 7.6 reports their contract tests.
 
-**Application enforces:** the rate limit, hidden-character removal, the self-harm check, the English check, and every fixed reply. The self-harm check runs before the English check, so a self-harm statement written partly in another language still receives the self-harm reply.
+**Application enforces:** request normalization, rate limits, inbound privacy and credential checks, language routing, injection rules, and fixed boundary replies. A detected first-person self-harm phrase skips the English guard. The injection filter runs before the fixed self-harm response, so a message matching both can receive the security decline.
 
-**Agents decide:** only the emotional preflight. Provenance, with no tools, classifies the Line as `continue_reflection` or `apply_boundary`. The application then chooses the reply.
+**Agents decide:** only the emotional preflight. If earlier checks allow the turn to continue, tool-less Provenance classifies it as `continue_reflection` or `apply_boundary`. The application chooses the response.
 
 | Check | Example Line | What happens | Code | Tests |
 |---|---|---|---|---|
-| 1. Rate limit | An 11th message from the same account within one minute | Refused with "Too many requests. Please wait a moment and try again." No agent runs | `apps/backend/rate_limit.py` | `tests/test_chat_rate_limit.py` |
-| 2. Hidden-character removal | "Chapter 2 felt strange", with "ignore your rules" hidden after it in invisible Unicode characters | The invisible characters are removed. Only the reader's visible words go forward, unchanged | `apps/backend/message_normalization.py` | `tests/test_message_normalization.py` |
-| 3. Self-harm check | "I want to hurt myself" | A fixed reply pointing the reader to someone they trust, a doctor, or a crisis line. No model runs, and the English check is skipped | `src/linger/orchestration/self_harm_detection.py` | `tests/test_self_harm_detection.py` |
-| 4. English check | A message written mostly in French | "Linger can only read and reply in English right now. Could you rephrase your message in English?" | `src/linger/orchestration/language_guard.py` | `tests/test_language_guard.py`, `tests/test_chat_language_boundary.py` |
-| 5. Emotional preflight (Provenance, no tools) | A distressing disclosure, such as grief that is still raw | If classified `apply_boundary`, a fixed reply: "That sounds deeply distressing. I don't want to keep probing…" No search or memory capture runs | `src/linger/orchestration/emotional.py` | `tests/test_emotional_boundary.py`; live suite in Section 7.4 |
+| Transport preprocessing | An 11th message from the same account within one minute, or invisible Unicode characters in a message | HTTP requests are rate-limited; request-schema normalization removes hidden characters before downstream use | `apps/backend/rate_limit.py`, `apps/backend/schemas.py`, `apps/backend/message_normalization.py` | `tests/test_chat_rate_limit.py`, `tests/test_message_normalization.py` |
+| 1. Inbound privacy and credentials | An email address, phone number, or detected credential | DataFog redacts detected emails and phone numbers; detected credentials block the turn | `src/linger/contracts/security_validation.py`, `apps/backend/chat_turn.py` | `tests/test_security_validation.py` |
+| 2. Language routing | A message detected as non-English | A fixed language reply, unless a detected first-person self-harm phrase exempts it from this guard | `src/linger/orchestration/language_guard.py`, `apps/backend/chat_turn.py` | `tests/test_language_guard.py`, `tests/test_chat_language_boundary.py` |
+| 3. Injection rules | A request matching an adopted override or disclosure rule | A fixed security decline before emotional preflight | `src/linger/contracts/security_validation.py`, `apps/backend/chat_turn.py` | `tests/test_security_validation.py` |
+| 4. Self-harm boundary | "I want to hurt myself", if no earlier check ended the turn | A fixed boundary reply without a model call | `src/linger/orchestration/emotional.py`, `src/linger/orchestration/self_harm_detection.py` | `tests/test_self_harm_detection.py`, `tests/test_emotional_boundary.py` |
+| 5. Emotional preflight (Provenance, no tools) | A distressing disclosure, such as grief that is still raw | If classified `apply_boundary`, a fixed reply; no search or memory capture runs | `src/linger/orchestration/emotional.py` | `tests/test_emotional_boundary.py`; live suite in Section 7.4 |
 | None of the above | "I've finished Chapter 2 of Alice. Her changes in size made me feel out of place." | Continues to Muse (Section 3.3) | `apps/backend/chat_turn.py` | |
 
-**Table 7.** Input controls, in order.
+**Table 7.** Transport preprocessing and turn-level input controls. The inbound detector covers emails and phone numbers; it is not a complete detector of all project-defined PII.
 
 ### 3.3 Reasoning boundary: typed hand-offs
 
@@ -319,7 +320,7 @@ Agents reach one another only through the application (Figure 1). Muse calls Lib
 
 - **Tool grants.** Muse gets only the tools the triage result and reading context allow.
 - **Exact wording.** Book searches use the reader's exact words, never a model's paraphrase.
-- **Scope.** The reading position is applied before any search runs, so text beyond it never reaches a model.
+- **Scope.** Answer-facing retrieval uses the resolved reading position. Private full-work boundary-inference candidates cannot enter Muse's evidence without a validated grant.
 - **Typed hand-offs.** Every hand-off is a typed Pydantic object carrying only the fields the next step needs (Table 8). Full transcripts are never passed.
 - **Permission in the input.** Each agent receives a scope saying what it may search. It returns identifiers that the application looks up again, so no agent can claim a permission it was not given.
 
@@ -397,7 +398,7 @@ Agents hold no state of their own: every agent run starts from a fresh typed inp
 
 **Application enforces:**
 
-- **Commit rules.** The Memory and Policy Service commits a nomination only if the turn was released, capture is enabled, Provenance allowed it, and the span holds no sensitive content. The reader sees a notice for every commit (`src/linger/orchestration/capture.py`).
+- **Commit rules.** The Memory and Policy Service commits a nomination only if the turn was released, capture is enabled, and Provenance marked the nomination permitted and nonsensitive. Deterministic policy and exact-span checks must also pass. The reader sees a notice for every commit (`src/linger/orchestration/capture.py`). These checks do not eliminate the unresolved identity and offset limits in Section 7.8.
 - **Curation rules.** An approved proposal is applied only if the records are unchanged since Sculptor read them. Originals are never edited, and every change is logged (`src/linger/orchestration/curation.py`).
 
 Memory surfacing, where Sculptor judges whether stored history could help a later conversation, runs only in offline evaluation.
@@ -420,13 +421,13 @@ Responsible AI practice is distributed across the lifecycle rather than concentr
 
 ### 4.2 Explainability and traceability
 
-Every turn is inspectable in the local application. The Inspect view and live agent map show the resolved context, each agent's outcome, the Provenance verdict and finding codes, the deterministic validation results, the release source, and the Logfire trace identifier. Explainability is a property of the recorded decision path rather than a narrative the model writes about itself, because a model's account of its own reasoning is another output that would need verification. Figure 5 in Section 2.6 shows the Inspect view.
+Developers can inspect turns in the local diagnostic interface. Inspect and the agent map show the resolved context, each agent's outcome, the Provenance verdict and finding codes, the deterministic validation results, the release source, and the Logfire trace identifier. These diagnostics are excluded from the product-facing interface. The recorded decision path explains which controls ran; it does not establish that a model's semantic judgment was correct. Figure 5 in Section 2.6 shows the local Inspect view.
 
 Evidence is separated from interpretation within the reply. Book quotations are verbatim and located, claims drawn from a web page carry an exact visible citation, and memory evidence is attributed as the reader's own words rather than as public fact. Every model span records the role, skill, configuration digest, hand-off origin and receiver, verdicts, retries, tokens, latency, and cost. Declines explain themselves through a fixed enumeration of causes rather than generated prose, which keeps the reason for a refusal auditable.
 
 ### 4.3 Fairness and bias mitigation
 
-The corpus is small and old and contains dated cultural perspectives. The mitigation is architectural: Linger surfaces book text as quoted evidence attributed to the work and never restates it as the system's own claim, which limits how far the corpus's perspective can be laundered into apparently neutral prose. Provenance detects sensitive inferences whether or not Muse declared them, and content about sensitive traits is never captured. The emotional-content policy is a request-local interaction boundary rather than a label or score attached to the person.
+The corpus is small and old and contains dated cultural perspectives. Book claims must be attributed to their sources, and Provenance checks the complete reply for sensitive inferences, including those Muse did not declare. Capture requires its separate approval and deterministic policy checks. These controls reduce risk but do not establish perfect semantic detection. The emotional-content policy is a request-local interaction boundary rather than a label or score attached to the person.
 
 The project has not run a persona-diversity evaluation testing whether equivalent reflections receive comparable treatment across readers of different backgrounds, and it makes no claim about fairness across reader populations.
 
@@ -434,8 +435,8 @@ The project has not run a persona-diversity evaluation testing whether equivalen
 
 | Model AI Governance Framework heading | Linger practice |
 |---|---|
-| Internal governance structures | Written system specification and telemetry contract, issue tracking of decisions, human review of every prompt change, protected release environment with a required human reviewer |
-| Level of human involvement | Human-in-the-loop for Ground truth adoption, prompt changes, capture-policy changes, self-improvement proposals, and release approval; human-out-of-the-loop only for bounded, reviewed, reversible runtime decisions |
+| Internal governance structures | Written system specification and telemetry contract, issue tracking of decisions, and human review of prompt changes; protected branches and release-environment reviewers are specified but remain unconfigured |
+| Level of human involvement | Human review for Ground truth adoption, prompt changes, capture-policy changes, and self-improvement proposals; the release workflow requires reviewer setup before publication can be enabled |
 | Operations management | Source audits and content hashing, automatic configuration digests, repeatable scenario replay, a fixed failure taxonomy, and release evidence bound to a commit and image identity |
 | Stakeholder interaction and communication | A visible notice for every committed capture, and consistent separation of the reader's words, source text, and the system's interpretation in every reply |
 
@@ -452,41 +453,43 @@ Sixteen risks were identified using the OWASP Top 10 for LLM Applications. They 
 | ID | Risk | Likelihood | Impact | OWASP category | Principal control | Evidence status |
 |---|---|---|---|---|---|---|
 | R1 | Indirect prompt injection through retrieved content or the Line | High | High | LLM01 | Message normalisation, untrusted labelling, application-owned grants, forced rejection on `prompt_injection` | Injection class blocked in both gate runs; triage flagged every override attempt in its completed runs; release-suite attack datasets adopted, live runs deferred |
-| R2 | Fabricated or altered quotations and citations | High | High | LLM09 | Muse output validator, verbatim quotation checks, request-scoped evidence index | Citation precision 1.00; one uncited web claim passed review in the latest gate run |
-| R3 | Spoiler leakage beyond the reading boundary | Medium | High | LLM02 | Boundary resolved per request, scope applied before search, forced rejection on `spoiler` | Zero exposures in the retrieval benchmark and a 23-Scene audit |
-| R4 | Private wording leaking into web queries | Medium | High | LLM02 | Serendipity privacy gate on queries and URLs | Contract tests only |
+| R2 | Fabricated or altered quotations and citations | High | High | LLM09 | Muse output validator, verbatim quotation checks, request-scoped evidence index | Citation precision 1.00 in the 17 August Librarian live suite; one uncited web claim passed the 27 September Provenance gate |
+| R3 | Spoiler leakage beyond the reading boundary | Medium | High | LLM02 | Boundary resolved per request, scope applied to answer-facing retrieval, forced rejection on `spoiler` | Zero exposures in the retrieval benchmark and a 23-Scene audit; saved-progress retractions remain unresolved |
+| R4 | Private wording leaking into web queries | Medium | High | LLM02 | Entry-point email/phone redaction, outbound credential checks, and a wording-overlap gate on queries and URLs | Offline checks exist; outbound protection for stored-memory and model-composed PII remains under review (`linger-lmt7`) |
 | R5 | Cross-account memory exposure | Low | High | LLM02 | Account scope from the authenticated token only | Contract and API authorisation tests |
-| R6 | Unsafe automatic memory capture | Medium | High | LLM02 | Independent capture veto, deterministic policy, sensitive content never captured | Capture-veto recall 1.00 in both gate runs |
+| R6 | Unsafe automatic memory capture | Medium | High | LLM02 | Independent capture veto and deterministic capture policy | Capture-veto recall 1.00 in both historical gate runs; durable event identity and nomination offsets remain unresolved |
 | R7 | Over-reach on distressing disclosures | Medium | High | Not applicable | Deterministic self-harm check, tool-less preflight, fixed boundary reply | 8 of 8 preflight cases correct, single run |
 | R8 | Output-gate bypass | Low | High | LLM05, LLM06 | Single application-owned release path; rejected drafts excluded from history | Contract tests and turn inspection |
 | R9 | Over-refusal degrading usefulness | Medium | Medium | Not applicable | One bounded revision before decline; over-refusal reported as a first-class metric | Measured: 0.12 to 0.18 on responses, 0.11 to 0.33 on captures |
 | R10 | Telemetry leaking reader content | Low | High | LLM02 | Telemetry contract, typed projection, exported-payload test | Contract tests |
 | R11 | Prompt drift | Medium | Medium | Not applicable | SHA-256 configuration fingerprint on every span; reviewed prompt changes | Contract tests |
-| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Enforced on every pull request |
-| R13 | Secrets exposure | Low | High | LLM02, LLM07 | Environment file excluded from version control and the image; release keys held in protected environments | No dedicated secret scanning |
+| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Scanners run on pull requests and pushes; branch rules do not yet require successful checks before merge |
+| R13 | Secrets exposure | Low | High | LLM02, LLM07 | Environment file excluded from version control and the image; dedicated protected release environments specified | Release environments remain unconfigured; no dedicated secret scanning |
 | R14 | Cost and latency abuse | Low | Medium | LLM10 | Ten requests per minute per account; per-role request and tool budgets | Contract tests; counters are per process |
 | R15 | Developer environment leaking into tests | Medium | Low | Not applicable | CI generates its own offline environment file | Observed once; tests should pin policy explicitly |
 | R16 | Account compromise | Low | High | LLM02 | Salted scrypt password hashes; bearer tokens; account derived from the token on every route | API tests; no password reset or verification |
 
 **Table 10.** AI security risk register. Likelihood and impact are the team's qualitative ratings. Evidence comes from Section 7.
 
-Every risk except R13 has some committed evidence, but its strength varies. R1 to R3, R6, R7, and R9 have live-model evidence. R4, R5, R10, R11, R14, and R16 carry contract-test evidence only, which shows the application enforces the control on whatever a model produces but not how often a live model attempts to violate it. R12 is enforced by CI on every change. R13 has no dedicated secret scanning. R2 now has a live counter-example: in the latest release-gate run the reviewer passed an uncited web claim that it should have sent back, which is the class of error Section 8.1 discusses. R15 was discovered rather than anticipated: running the tests with a developer's environment file, which granted web search, produced failures in tests that assert the connection tool is not granted, because the tests inherited policy from the environment instead of pinning it.
+The evidence varies by risk and evaluated configuration. R1 to R3, R6, R7, and R9 have historical live-model evidence. R4, R5, R10, R11, R14, and R16 have offline contract evidence, which covers the tested cases rather than every possible model output. R4 also has an unresolved privacy-policy change in current main. R12 is checked by CI, but branch protection does not yet make successful CI a merge requirement. R13 has no dedicated secret scanning. R2 has a live counter-example: a release-gate run passed an uncited web claim that the reviewer should have sent back. R15 was discovered when tests inherited web-search policy from a developer's environment file. Section 7.8 records remaining implementation and evidence limits.
 
 ---
 
 ## 6. LLMSecOps Pipeline
 
-The pipeline is a loop that begins with a change and ends with an approved, tested image or a reviewed proposal for the next change. Figure 11 shows it.
+The implemented workflows define a path from a change to a tested image and reviewed publication. Figure 11 shows the intended path; hosted setup and live release execution remain incomplete.
 
 ![LLMSecOps loop: change, pull request, CI, merge, promotion, CI on candidate, release checks, human approval, publish to GHCR, and operator deployment, with Logfire evidence feeding human review and proposals back to the next change](images/figure-llmsecops-loop.svg)
 
-**Figure 11.** The LLMSecOps loop. The release checks are built but currently switched off in the release configuration, so release runs skip the image build, live evaluation, and publication.
+**Figure 11.** Intended LLMSecOps flow. Branch protections and release environments remain unconfigured. Release checks are implemented but switched off, so release runs skip their image build, live evaluation, and publication. Ordinary CI still builds and scans an image.
 
 ### 6.1 Change control and continuous integration
 
-All changes reach `main` through pull requests with human review and required CI checks. Batches of changes are promoted from `main` to a protected `release-candidate` branch by a further pull request, and the resulting commit is the candidate's identity. Prompt and skill changes follow exactly the same path as code. Development was specification-first: a single system specification records the product scope, the authority model, the output release contract, the safeguards, and the acceptance criteria, and a separate telemetry contract is the sole authority on what may be logged. The system was grown in layers, so that a working end-to-end slice existed before each capability was added: reflection with independent review first, then book grounding, then connection discovery, then reviewed capture and curation, and finally accounts, persistence, and the release pipeline.
+The documented workflow uses reviewed pull requests for code, prompt, and skill changes. It promotes a reviewed batch from `main` to `release-candidate`, whose resulting commit identifies the candidate (`docs/releasing.md`). These are workflow requirements, but GitHub did not enforce them on 15 October 2026: both branches were unprotected and the `protect-main` ruleset was disabled. Branch and environment setup remains tracked in `linger-t1aw`; promotion of the current implementation remains tracked in `linger-bjog`.
 
-Continuous integration runs seven required checks on every pull request and push to either branch, without paid model calls or provider secrets.
+A maintained system specification records product scope, authority, release contracts, safeguards, and acceptance criteria. The separate telemetry contract defines what may be logged. Implementation proceeded through working slices: reviewed reflection, book grounding, connection discovery, capture and curation, then accounts, persistence, and release tooling.
+
+Continuous integration defines seven checks for pull requests and pushes to either branch, without paid model calls or provider secrets. All seven passed for `main` commit `9a5c074` on 14 October 2026 ([CI run 38540172735](https://github.com/DesmondChoy/linger/actions/runs/38540172735)). They are not yet configured as mandatory branch-protection checks.
 
 | Check | Evidence |
 |---|---|
@@ -497,15 +500,17 @@ Continuous integration runs seven required checks on every pull request and push
 | Dependency security | Trivy scan of dependency locks; HIGH or CRITICAL findings block |
 | Image (amd64) | Container build, offline startup and persistence smoke test, image vulnerability scan |
 
-**Table 11.** Required CI checks.
+**Table 11.** Configured CI checks.
 
-The AI-specific security tests are part of the contract suite: release-gate and curation risk-code grading, the emotional-boundary and privacy-gate tests, and injected-content cases. Live-model evaluations are not run on every push, because that would make CI non-deterministic and costly. They run in the release checks, and component evaluations are run manually with their reports committed alongside the date, model, and prompt digest, so staleness is visible.
+The AI-specific security tests are part of the contract suite: release-gate and curation risk-code grading, emotional-boundary and privacy checks, and injected-content cases. Live-model evaluations run manually or through enabled release checks. The retained component reports identify their date, model, and prompt digest; they measure those configurations rather than every later commit.
 
 ### 6.2 Versioning and release
 
 Code is versioned in Git, and dependencies are locked in `uv.lock` and `pnpm-lock.yaml`. Corpus revisions are content-hashed, so a citation binds to an exact revision of an exact work. Every prompt and skill configuration carries a SHA-256 digest computed over its instructions, input and output schemas, tool permissions, validators, and retry limits, so any change to these alters the digest without anyone remembering to bump a version. Evaluation reports record the dataset digest, run identifier, model, and Git revision, adopted Ground truth records a hash of the approved bytes, and release evidence records the candidate commit and Docker image identity.
 
-When live evaluations are enabled, a successful candidate CI run triggers a release run that builds a fresh image at the candidate commit, scans it, proves offline startup and persistence, runs the 22-Scene behavioural suite against a live model, and makes two live HTTP turns against the image. Security failures, invalid adoption, missing observations, and missing evidence block publication outright, and only listed behavioural shortfalls can proceed to human review. With automatic publication off, every eligible candidate waits for a human reviewer, who publishes the same tested image to the registry without rebuilding it. Live evaluations and publication are currently disabled in the release configuration until the team is ready to pay for them.
+The release workflow is implemented in `.github/workflows/` and described in `docs/release-checks.md`. Once its hosted environments are configured and live evaluations enabled, successful candidate CI can trigger a run that builds and scans a fresh image, proves offline startup and persistence, runs the 22-Scene behavioural suite, and makes live HTTP checks. Security failures, invalid adoption, missing observations, and missing evidence block publication. With automatic publication off, an eligible candidate requires human approval before the same tested image is published.
+
+This path has not completed for the current implementation. On 15 October 2026, `release-candidate` remained at `8b141992`; its only hosted CI run had failed. Only the `github-pages` environment existed, so neither `linger-release` nor `linger-evaluations` was configured. Both `live_evaluations_enabled` and `auto_publish_enabled` remain false in `.github/release-config.json`. No current-candidate release or deployment is claimed.
 
 ### 6.3 Monitoring and audit logging
 
@@ -515,11 +520,13 @@ Logfire provides three views. The Live view shows the trace hierarchy and per-ro
 
 **Figure 12.** A Sculptor run in Logfire's Live view during an evaluation run: its input memories (1) and its typed output, a decision not to curate (2). Content is visible only because evaluation runs use synthetic data under a separate evaluation identity.
 
-Runtime spans are metadata-only, and an exported-payload test inspects what actually leaves the process rather than what the code intends to send. A separate evaluation identity may record synthetic content only. Every applied curation produces an immutable audit event, so the memory store carries its own modification history. Release approvals record the publication route, registry digest, tested image, and CI run.
+Runtime spans are metadata-only, and an exported-payload test inspects what actually leaves the process rather than what the code intends to send. A separate evaluation identity may record synthetic content only. Every applied curation produces an immutable audit event, so the memory store carries its own modification history. The release tooling defines an approval record containing the publication route, registry digest, tested image, and CI run; this record format does not establish that a current release has completed.
 
 ### 6.4 Feeding failures back into development
 
-Two loops are specified to reduce development effort while keeping humans in control. In failure-to-eval promotion, rejections, blocked injections, and failed checks emit permitted metadata signatures that identify candidate regression gaps; turning a signature into a synthetic scenario remains a human-reviewed step. In the Sculptor-curated playbook, Sculptor proposes pull requests that deduplicate and prune a versioned playbook of operational lessons, gated by CI and human review like any other change. Both loops run outside conversations and add no runtime authority.
+One supervised retrieval-research loop has completed. Sculptor analysed recorded retrieval misses, researched a remedy, and proposed a specification. The owner approved its inputs and proposal; a developer implemented the change behind an evaluation-only option and measured it against the fixed pass mark. Section 7.4 reports the result and its cost. The agents gained no authority to change code, prompts, policy, or production settings.
+
+Two operational loops remain specified future work: human-reviewed promotion of failure metadata into regression cases, and scheduled Sculptor proposals to curate a system playbook through pull requests. The scheduled playbook task is a proposal in `docs/specification.md`, not a running service.
 
 ---
 
@@ -527,9 +534,7 @@ Two loops are specified to reduce development effort while keeping humans in con
 
 This section answers two questions. The main one is whether the agents make good decisions (Sections 7.1 to 7.5). The supporting one is whether the application code enforces its rules (Section 7.6).
 
-In short:
-
-- **Safety held.** No test released a spoiler, an invented quotation, or a memory that had not been reviewed.
+- **Measured boundary checks held in the retained replay batch.** It recorded no spoiler exposure, invented quotation, or unreviewed memory write. These results do not resolve the semantic counter-examples or outstanding boundary defects in Section 7.8.
 - **54 of 69 test messages were handled correctly** in the latest full replay. Of the other 15, 5 were wrong decisions by an agent; the rest were provider or software errors that failed safely, plus one grading mistake.
 - **The system is slow and does not yet handle several readers at once** (Section 7.7).
 
@@ -560,7 +565,7 @@ Results are measured as follows. Appendix A defines every metric.
 - **Safety:** the share of unsafe drafts blocked (block recall), against the share of safe drafts wrongly blocked (over-refusal).
 - **Evidence:** the share of required passages that reach the reply (evidence recall), against the share of citations that are relevant (citation precision).
 - **Repeats:** live models vary from run to run, so component cases run 3 to 5 times. A case passes "pass^k" only if every repeat passes.
-- **Protocol:** each measurement names its commit, model, and adopted Ground truth; the pass mark is written down before the run; improvement loops see a practice set, and a sealed set is run once at the end; a person approves each model prompt before it runs.
+- **Protocol:** retained results identify their evaluated configuration and adopted Ground truth. Later experiments fixed their pass mark and stop rule before scoring, with human approval of improvement-task prompts. Held-back exposure is reported per experiment: the completed Sculptor retrieval-research experiment reused a set already evaluated in Experiment 3, so it was not an untouched final test.
 
 ### 7.2 Scenarios and Ground truth
 
@@ -576,7 +581,7 @@ A Scenario is one synthetic reader with a history, a few test messages, and the 
 
 **Table 13.** Two test messages from the *Alice* reading-position Scenario.
 
-The two tests are a matched pair: the same reader asks the same kind of question, and only the stored memory differs. A system that always answers, or always asks, fails one of them.
+The two tests use the same reader and related book questions, but vary both memory clarity and the corresponding message. They check whether the system answers when progress is supported and clarifies when it is ambiguous. They are not a controlled comparison in which only memory changes.
 
 Section 1.4 defines the Scenario terms used below.
 
@@ -631,11 +636,11 @@ The five wrong decisions were:
 3. **Memory.** Muse marked slightly the wrong part of the reader's message to save, so the saved text did not match the message exactly and was not stored.
 4. **Memory.** When a fact changed over time, Sculptor grouped the old and new notes instead of summarising the current fact.
 
-Two things are not covered by this batch. The Scenario that uses all five agents in one conversation stalled and produced no result. Changes made after 28 September, including shorter Muse instructions and higher reasoning effort for Serendipity, are not reflected.
+The all-five-agent Scenario stalled during this September batch and produced no completed batch result. Separate targeted runs supplied the stage-level analysis in Section 7.5; they are not additional observations in Table 14. The table also predates later Muse revision and security changes. Serendipity's self-improvement instructions and role-specific medium-reasoning change remain on a separate branch, so their results do not measure the current main configuration.
 
 ### 7.4 Component results
 
-Each agent was also evaluated on its own, with fixed inputs. Table 15 gives the latest result for each.
+Each agent was also evaluated on its own, with fixed inputs. Table 15 summarises retained component measurements by date and configuration. It is not a fresh benchmark of current main.
 
 | Agent | Suite, date, model | Headline result |
 |---|---|---|
@@ -643,16 +648,27 @@ Each agent was also evaluated on its own, with fixed inputs. Table 15 gives the 
 | Provenance | Curation gate (12 cases), emotional preflight (8), claim mapping (4), 22 Sep | All targets met |
 | Librarian | Retrieval benchmark, 12 queries, no language model | Reranked hybrid: evidence recall 0.92, citation precision 0.83; zero spoiler exposures in all five configurations |
 | Librarian | Live run, 12 cases, 17 Aug, `gpt-5.6-luna` | Evidence recall 0.92, citation precision 1.00, zero spoiler exposures |
-| Serendipity | Component suite, 46 cases × 5, 9 Oct, `gpt-6-luna` at medium reasoning | Run pass rate 0.93; 39 of 46 cases pass all five repeats |
+| Serendipity | Retained component suite, 46 cases × 5, 24 Sep, `gpt-5.6-luna`, skill digest `3cf0760f…` | 210/230 runs pass (0.913); 38 of 46 cases pass all five repeats |
 | Muse | Reflection, 51 cases × 3, 30 Sep, `gpt-6-luna` | Hard-gate pass rate 0.94; no leaks |
 | Muse | Turn triage, 92 cases × 3, 26 Sep, `gpt-6-luna` | Acceptable classification 0.99 to 1.00 |
 | Sculptor | No committed component suite | Evaluated through the Scenarios (Section 7.3) |
 
-**Table 15.** Latest component result for each agent. The Librarian live run predates two of its current skills.
+**Table 15.** Retained component measurements. The Librarian live run predates two current skills. Serendipity's source is `evals/serendipity/reports/component-reliability-2026-09-24-prompt-3cf0760f.json`; its model differs from current main. The later 9 October score noted in Beads is excluded because its supporting artifact could not be recovered.
+
+The completed Sculptor retrieval-research experiment is a separate offline comparison. Its owner approved the analysis, researched specification, and evaluation-only implementation before scoring (`docs/evaluation/retrieval-research-experiment-4-2026-10-01.md`).
+
+| Condition | Practice needs with selected evidence | Reused held-back needs with selected evidence | Key learning |
+|---|---|---|---|
+| Stage 2 chapter-tag baseline | 17/20 | 16/20 | The initial candidate cutoff omitted useful passages |
+| Approved round 1, 20 candidates per planned part | 20/20 | 20/20 | The fixed pass mark was met with no losses, at higher reading cost |
+
+**Table 16.** Completed offline Sculptor retrieval-research comparison, 1 October 2026. The held-back set was reused.
+
+The comparison used the same Librarian model and prompt, with one selection call per need per condition. Practice evidence volume rose from 1,278 to 4,837 words per need, about 3.8 times, and input tokens rose about 2.5 times. The held-back set had already been evaluated in Experiment 3. The loop stopped after meeting its predefined pass mark; the larger candidate setting is not active for readers.
 
 ### 7.5 Where the system loses quality
 
-Table 16 follows each required book passage through the five-agent conversation: retrieved, kept by Librarian's assessment, passed to drafting, and cited in the reply.
+Table 17 follows each required book passage through the five-agent conversation: retrieved, kept by Librarian's assessment, passed to drafting, and cited in the reply.
 
 | Scene | Retrieved | Assessed | Passed on | Cited | Items |
 |---|---|---|---|---|---|
@@ -661,21 +677,21 @@ Table 16 follows each required book passage through the five-agent conversation:
 | 08 | 0.89 | 0.67 | 0.67 | 0.11 | 18 |
 | 06 to 08 | 0.97 | 0.85 | 0.85 | 0.53 | 72 |
 
-**Table 16.** Share of required book evidence surviving each stage, runs 6 to 15 excluding run 9.
+**Table 17.** Share of required book evidence surviving each stage, runs 6 to 15 excluding run 9.
 
-Retrieval is not the bottleneck. Almost every required passage is retrieved. About 12 points are lost in Librarian's assessment, and about 32 more between drafting and review. The losses happen where one agent hands evidence to the next. Table 17 groups every observed failure using the categories of Cemri et al. (2025).
+Retrieval is not the bottleneck. Almost every required passage is retrieved. About 12 points are lost in Librarian's assessment, and about 32 more between drafting and review. The losses happen where one agent hands evidence to the next. Table 18 groups every observed failure using the categories of Cemri et al. (2025).
 
 | Category | Observed failures in Linger |
 |---|---|
 | Specification and system design | Answer keys stricter than the requirement they encoded, later loosened and re-adopted; reviewer strictness about inferences such as "used to", which caused more recall failures than curation changed; instruction-only fixes that did not change model behaviour |
-| Inter-agent misalignment | Required evidence dropped between retrieval and citation (Table 16); Serendipity choosing an identity comparison over the passages the question needed; a Muse revision dropping sources the first review had accepted; a candidate omitting a mandatory evidence declaration |
+| Inter-agent misalignment | Required evidence dropped between retrieval and citation (Table 17); Serendipity choosing an identity comparison over the passages the question needed; a Muse revision dropping sources the first review had accepted; a candidate omitting a mandatory evidence declaration |
 | Task verification | A second review objecting to text the first review passed, with no revision left; the reviewer accepting a wrong speaker attribution; an uncited web claim passing review; hard-gate passes with semantic defects |
 
-**Table 17.** Observed failures, by the categories of Cemri et al. (2025).
+**Table 18.** Observed failures, by the categories of Cemri et al. (2025).
 
 ### 7.6 Testing the application
 
-These tests replace every model with a stub, so they check that the code enforces its rules whatever a model returns. They say nothing about whether a model decides well. The suite has 3,172 tests on the `main` commit of 6 October (`48f9524`), and all of them run and pass in CI on every pull request.
+These tests replace language models with stubs and check application contracts, validators, and known failure paths. Retrieval tests also exercise the real local embedding and reranker models. Passing tests establish the covered behavior; they do not establish live semantic reliability. At `main` commit `9a5c074`, CI on 14 October passed 3,481 core tests and seven embedding tests, 3,488 backend tests in total. Table 19 retains the earlier 6 October breakdown of 3,172 tests at `48f9524`; its area counts have not been recounted for the newer commit.
 
 | Area | Tests | What the group establishes |
 |---|---:|---|
@@ -684,14 +700,14 @@ These tests replace every model with a stub, so they check that the code enforce
 | Accounts, API, and chat-turn orchestration | 425 | Only released turns enter history; every release has a recorded verdict; account scope comes from the login token; rate limits and message guards run before any agent |
 | Provenance review paths | 400 | Fixed finding codes; forced rejection on spoiler and injection; every prior finding resolved on revision; curation verdicts bound to the digest |
 | Cross-cutting contracts, safety detectors, and deployment | 373 | Supported-claim spans are exact; evidence budgets fail closed; self-harm and instruction-leak detectors; usage limits; deployment readiness and security-gate parsing |
-| Serendipity and web access | 334 | Copied reader wording never reaches a public query or URL; discovered URLs require a search lead; recall returns only exact records |
+| Serendipity and web access | 334 | Historical query/URL privacy cases, permitted search leads, and exact-record recall; current outbound PII coverage remains under review |
 | Sculptor and Memory and Policy Service | 332 | Originals are immutable; tombstones are reversible; capture requires nomination, policy, and no veto |
 | Runtime skills and fingerprints | 72 | Skill selection is explicit; digests change with instructions, schemas, tools, validators, or retries |
 | Telemetry redaction | 32 | Exported payloads contain only contract-permitted fields; failures classify by exception type, not text |
 
-**Table 18.** Contract tests by area.
+**Table 19.** Historical backend test breakdown at `48f9524`, 6 October 2026. These area counts sum to 3,172; current CI totals are stated above.
 
-Table 19 lists every kind of test and where it runs.
+Table 20 lists every kind of test and where it runs.
 
 | Type | What it covers | Where it runs | Section |
 |---|---|---|---|
@@ -705,7 +721,7 @@ Table 19 lists every kind of test and where it runs.
 | End-to-end scenario replay | Whole conversations through the production chat-turn boundary against human-adopted Ground truth | Manual and release checks | 7.3 |
 | Release behavioural suite | 22 Scenes covering grounding, memory retrieval, connections, sensitive inference, memory injection, and direct attacks | Release checks, currently switched off | 6.2 |
 
-**Table 19.** Kinds of test and where they run.
+**Table 20.** Kinds of test and where they run.
 
 ### 7.7 Cost, speed, and load
 
@@ -720,29 +736,33 @@ Table 19 lists every kind of test and where it runs.
 | Turn triage latency | Median 1.45 s, p90 3.0 s | Triage suite |
 | Muse reflection instructions | About 6,900 words; Provenance candidate review about 5,700 words | Skill sizes |
 
-**Table 20.** Cost and latency per turn.
+**Table 21.** Cost and latency per turn.
 
 Most tokens go to the two roles that read the most: Muse and Provenance. Their instructions restate rules that code already enforces, which is the target of a planned cost reduction.
 
-A load test sent five synthetic readers three messages each, once one after another and then all at once (`gpt-6-luna`).
+A 29 September development record describes a load test with synthetic readers on `gpt-6-luna`. Table 22 reproduces its historical notes. The referenced harness and raw reports could not be recovered for this report, so its timing, cost, and isolation observations have not been independently rechecked. The test is not evidence of current-main capacity.
 
-| Run | Answered | Safely declined | Median / p95 latency | Cost | Another reader's data seen |
+| Recorded run | Answered | Safely declined | Median / p95 latency | Cost | Cross-reader data exposure reported |
 |---|---|---|---|---|---|
-| 5 readers, one after another | 13 of 15 | 2 | 22 s / 85 s | US$0.15 | Never |
-| 5 readers at once, book questions (two runs) | 6 and 5 of 15 | 9 and 10 | 45 to 46 s / 58 to 95 s | US$0.05 each | Never |
-| 5 readers at once, light questions | 5 of 15 | 10 | 11 s / 52 s | US$0.03 | Never |
-| 3 readers at once, light questions | 6 of 9 | 3 | 17 s / 28 s | US$0.02 | Never |
+| 5 readers, one after another | 13 of 15 | 2 | 22 s / 85 s | US$0.15 | None reported |
+| 5 readers at once, book questions (two runs) | 6 and 5 of 15 | 9 and 10 | 45 to 46 s / 58 to 95 s | US$0.05 each | None reported |
+| 5 readers at once, light questions | 5 of 15 | 10 | 11 s / 52 s | US$0.03 | None reported |
+| 3 readers at once, light questions | 6 of 9 | 3 | 17 s / 28 s | US$0.02 | None reported |
 
-**Table 21.** Load test, 29 September.
+**Table 22.** Historical load observations from 29 September, retained in development notes and `linger-qt84`; raw artifacts are unavailable.
 
-Isolation held in every run. Throughput did not: running readers at the same time hit the model provider's rate limit, and every rate-limited turn ended as a safe decline rather than an error. The limit is the provider account, not the application, but the test shows the prototype does not yet serve five concurrent readers well.
+The notes attribute the concurrent declines to provider rate limits and report no cross-reader exposure. These observations indicate a service-reliability problem under concurrency. They do not isolate all application contributions or establish general account-isolation guarantees. Recovering reproducible load evidence and demonstrating a service fix remain open in `linger-qt84`.
 
 ### 7.8 Limitations
 
 - **Reader value is not measured.** No real readers used the system.
 - **No comparison with a simpler design.** No single-agent version was built, so the results show how this structure behaves, not how much better it is than an unstructured one.
 - **No fairness evaluation across reader backgrounds.**
-- **Load tested at five readers only.**
+- **Current concurrent-reader capacity is unverified.** Historical notes cover at most five readers, with unavailable raw load artifacts.
+
+Several implementation limits remain open. Saved reading progress can override a session retraction (`linger-ilo4`), and the title parser can mistake reading narration for a title (`linger-qsqm`). Outbound PII coverage requires review after the merged security change (`linger-lmt7`). These defects limit claims about boundary resolution and privacy beyond the tested cases.
+
+Capture still needs server-owned durable event identity and verified nomination offsets (`linger-gmr.8`, `linger-dxep`, `linger-n4h`). Derived-memory lineage and completely omitted memory declarations need stronger recall and release checks (`linger-gn7a`, `linger-s82k`). Capture-triggered curation exists, but independent semantic calibration, approval of capture-produced records as upstream evidence, and a verified capture-to-recall benefit remain incomplete (`linger-a4u.1`, `linger-a4u.4`). Historical passing checks do not close these obligations.
 
 | Threat | Effect on the results |
 |---|---|
@@ -755,7 +775,7 @@ Isolation held in every run. Throughput did not: running readers at the same tim
 | No comparison condition | No single-agent or ablated architecture was evaluated, so the results show how the structure behaves, not how much better it is than an unstructured alternative |
 | Stale evaluation assets | Scenario schemas changed more than once, leaving three early Scenarios on a historical schema that needs migration before replay |
 
-**Table 22.** Threats to validity.
+**Table 23.** Threats to validity.
 
 ---
 
@@ -765,7 +785,7 @@ Isolation held in every run. Throughput did not: running readers at the same tim
 
 Seven findings emerge from the evidence in Section 7. Each is stated with the evidence behind it and what it implies.
 
-**Finding 1: Prevention outperformed detection.** Linger protects the reader in two different ways. Some failures are made unreachable: text beyond the reading boundary is removed before any model sees it, and only the Memory and Policy Service can write. Others are detected after the fact: Provenance reads a finished reply and judges whether its claims are supported. Every control of the first kind held in every measurement, with zero spoiler exposures and no unreviewed write. Every residual safety failure came from the second kind: the uncited web claim Provenance passed, and the wrong speaker attribution it accepted. The strongest design move is therefore not a better reviewer but converting a judgment into a reachability rule wherever the domain allows it. Fixing the authority boundaries in code first, and only then placing agents inside them, is also what made the system testable: the contract suite exists because the boundaries were code rather than prompt text.
+**Finding 1: Deterministic boundaries and semantic review need different evidence.** Answer-facing retrieval applies the resolved chapter ceiling before supplying evidence to Muse, and the Memory and Policy Service alone writes personal-memory and curation records. Private boundary inference may inspect the full work without granting those candidates to the reply. The reported replay batch observed no spoiler exposure or unreviewed memory write. Semantic review still passed an uncited web claim and a wrong speaker attribution in separate evaluations. These results support deterministic scope and write controls while showing that citation binding alone cannot establish factual correctness. The current boundary and capture defects in Section 7.8 also require regression coverage before broader guarantees can be made.
 
 **Finding 2: The reviewer's statelessness protects it but also makes it inconsistent.** Provenance reviews every candidate from a fresh context, so a draft cannot argue with it and earlier conversation cannot persuade it. The same property means that the review of a revised draft does not know what the first review accepted. In ten repetitions of one Scene, three of the four declines were a second review objecting to text the first review had passed, with no revision left. Re-reading the four loop declines showed a mixed picture: in two, the second review was right, because Muse had reworded sentences that no finding named; in the other two, the first review had been incomplete. The fix was structural rather than an instruction to the reviewer. Application code now lets Muse rewrite only the sentences a finding names, and revisions were released in five of six cases against five of ten before. An isolation property chosen for security has a consistency cost, and constraining what can change between rounds proved cheaper than giving the reviewer memory.
 
@@ -781,7 +801,7 @@ Seven findings emerge from the evidence in Section 7. Each is stated with the ev
 
 ### 8.2 Lessons for building multi-agent systems
 
-- **Make unsafe states unreachable before trying to detect them.** Apply scope before search and keep write authority in deterministic code; reserve model review for what cannot be expressed as a rule.
+- **Apply deterministic limits before answer generation.** Restrict answer-facing search by the validated reading grant and keep personal-memory writes in deterministic code; reserve model review for semantic judgments.
 - **Constrain what changes between agent rounds.** A stateless reviewer is robust to manipulation but inconsistent with itself; limiting a revision to the flagged sentences restored consistency without giving the reviewer memory.
 - **Budget reliability across the chain.** Every agent placed in series multiplies the chance of a decline. Prefer fewer serial judgments, and give each one a narrow, checkable task.
 - **Keep rules in code and judgment in prompts.** Once a rule is enforced in code, restating it in a prompt adds cost without benefit. Loading only the instruction modules relevant to the granted tools cut Muse's input from about 25,000 to about 16,000 tokens per run with no change in hard-gate results.
@@ -805,7 +825,7 @@ Six items are listed in priority order.
 
 1. **Run the release suite live.** The memory-injection and direct-attack Scenarios have adopted Ground truth but no live run, and they are the strongest available test of the system's resistance to malicious input.
 2. **Repeat the single-run results.** Re-run the Provenance gates, the emotional preflight, and the Librarian live suite with repeats on the current model, and report them under pass^k.
-3. **Reduce evidence loss between agents.** Target Librarian's under-selection and the drafting stage's citation choices, the two places Table 16 shows evidence is lost, without loosening the reading boundary.
+3. **Reduce evidence loss between agents.** Target Librarian's under-selection and the drafting stage's citation choices, the two places Table 17 shows evidence is lost, without loosening the reading boundary.
 4. **Reduce over-refusal and cost together.** Move rules that code already enforces out of the Muse and Provenance instructions, accepting the change only if the repeated measurements do not regress.
 5. **Add a comparison condition.** Evaluate an ablated configuration, such as drafting without independent review, on the same Scenarios, so that the contribution of the structure can be measured rather than inferred.
 6. **Deploy and load-test.** Publish an approved image to a multi-account test environment, load-test beyond five readers with a higher provider rate limit, and configure alerting.
@@ -841,7 +861,7 @@ Linger draws on four areas of prior work.
 
 **Multi-agent failures and harness design.** Cemri et al. (2025) analysed over 1,600 traces from seven multi-agent frameworks and found that most failures arise from specification and coordination rather than model limits, in three categories: specification issues, inter-agent misalignment, and task verification. Anthropic's guidance on context engineering argues for minimal, curated context per model call (Rajasekaran et al., 2025), and Weng (2026) locates near-term improvement in the harness of typed contracts and gates around a model. These shaped Linger's typed hand-offs, per-agent context projections, and human-reviewed improvement loops.
 
-**Security and evaluation of LLM agents.** Greshake et al. (2023) showed that instructions planted in retrieved content can redirect an LLM application, and the OWASP Top 10 for LLM Applications (OWASP, 2025) supplies the vocabulary of the risk register. Yehudai et al. (2025) survey agent evaluation and identify cost, safety, and robustness as its least developed areas, and Xia et al. (2024) argue for evaluation as a continuous governing function across development and operation, the model Linger's evaluation layers and release gate follow.
+**Security and evaluation of LLM agents.** Greshake et al. (2023) showed that instructions planted in retrieved content can redirect an LLM application, and the OWASP Top 10 for LLM Applications (OWASP, 2025) supplies the vocabulary of the risk register. Yehudai et al. (2025) survey agent evaluation and identify cost, safety, and robustness as its least developed areas, and Xia et al. (2025) argue for evaluation as a continuous governing function across development and operation, the model Linger's evaluation layers and release gate follow.
 
 ## References
 
@@ -867,6 +887,6 @@ Robertson, S., and Zaragoza, H. (2009). The probabilistic relevance framework: B
 
 Weng, L. (2026). *Harness engineering for self-improvement*. Lil'Log.
 
-Xia, B., Lu, Q., Zhu, L., Xing, Z., Zhao, D., and Zhang, H. (2024). *Evaluation-driven development and operations of LLM agents: A process model and reference architecture*. arXiv:2411.13768.
+Xia, B., Lu, Q., Zhu, L., Xing, Z., Zhao, D., and Zhang, H. (2025). *Evaluation-driven development and operations of LLM agents: A process model and reference architecture* (Version 3). [arXiv:2411.13768v3](https://arxiv.org/abs/2411.13768v3).
 
 Yehudai, A., Eden, L., Li, A., Uziel, G., Zhao, Y., Bar-Haim, R., Cohan, A., and Shmueli-Scheuer, M. (2025). *Survey on evaluation of LLM-based agents*. arXiv:2503.16416.

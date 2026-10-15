@@ -1,32 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1075" height="736" viewBox="0 0 1075 736">
+<svg xmlns="http://www.w3.org/2000/svg" width="1075" height="824" viewBox="0 0 1075 824">
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker><marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#111" stroke-width="1.4"/></marker></defs>
-<rect width="1075" height="736" fill="#fff"/>
+<rect width="1075" height="824" fill="#fff"/>
 <rect x="20.0" y="40" width="150" height="46" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <text x="95" y="68.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Reader</text>
-<line x1="95" y1="86" x2="95" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="95" y1="86" x2="95" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <rect x="195.0" y="40" width="150" height="46" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <text x="270" y="68.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Application</text>
-<line x1="270" y1="86" x2="270" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="270" y1="86" x2="270" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <rect x="395.0" y="40" width="150" height="46" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
 <text x="470" y="68.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Provenance</text>
-<line x1="470" y1="86" x2="470" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="470" y1="86" x2="470" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <rect x="575.0" y="40" width="150" height="46" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
 <text x="650" y="68.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Muse</text>
-<line x1="650" y1="86" x2="650" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="650" y1="86" x2="650" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <rect x="745.0" y="40" width="150" height="46" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
 <text x="820" y="60.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Librarian /</text>
 <text x="820" y="75.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Serendipity</text>
-<line x1="820" y1="86" x2="820" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="820" y1="86" x2="820" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <rect x="910.0" y="40" width="150" height="46" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <text x="985" y="60.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Memory and</text>
 <text x="985" y="75.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Policy Service</text>
-<line x1="985" y1="86" x2="985" y2="696" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="985" y1="86" x2="985" y2="784" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
 <line x1="99" y1="120" x2="265" y2="120" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
 <rect x="99.0" y="100.5" width="167.0" height="17.5" fill="#fff"/>
 <text x="182.5" y="113" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">1  Line (reader message)</text>
 <rect x="262" y="150" width="16" height="28" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <rect x="282" y="150" width="207.81" height="18" fill="#fff"/>
-<text x="286" y="163" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">2  Pre-model checks (Table 1)</text>
+<text x="286" y="163" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">2  Pre-model checks (Table 7)</text>
 <rect x="282" y="166.5" width="221.32500000000002" height="16.5" fill="#fff"/>
 <text x="286" y="178" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">may end the turn with a fixed reply</text>
 <line x1="274" y1="208" x2="465" y2="208" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
@@ -38,34 +38,40 @@
 <line x1="274" y1="296" x2="645" y2="296" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
 <rect x="366.5625" y="276.5" width="186.875" height="17.5" fill="#fff"/>
 <text x="460.0" y="289" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">4  Triage, then tool grants</text>
-<line x1="654" y1="340" x2="815" y2="340" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
-<rect x="591.875" y="320.5" width="286.25" height="17.5" fill="#fff"/>
-<text x="735.0" y="333" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">5  Tool call with the reader’s exact spans</text>
-<line x1="816" y1="384" x2="655" y2="384" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
-<rect x="628.3125" y="364.5" width="213.375" height="17.5" fill="#fff"/>
-<text x="735.0" y="377" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">Typed evidence or typed decline</text>
-<line x1="646" y1="428" x2="275" y2="428" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
-<rect x="306.9375" y="408.5" width="306.125" height="17.5" fill="#fff"/>
-<text x="460.0" y="421" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">6  Typed candidate with evidence declarations</text>
-<line x1="274" y1="472" x2="465" y2="472" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
-<rect x="253.375" y="452.5" width="233.25" height="17.5" fill="#fff"/>
-<text x="370.0" y="465" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">7  Candidate review, fresh context</text>
-<line x1="466" y1="516" x2="275" y2="516" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
-<rect x="233.5" y="496.5" width="273.0" height="17.5" fill="#fff"/>
-<text x="370.0" y="509" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">pass | revise (once, back to 6) | reject</text>
-<rect x="262" y="546" width="16" height="28" fill="#fff" stroke="#111" stroke-width="1.2"/>
-<rect x="282" y="546" width="221.59" height="18" fill="#fff"/>
-<text x="286" y="559" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">8  Deterministic release checks</text>
-<rect x="282" y="562.5" width="270.08500000000004" height="16.5" fill="#fff"/>
-<text x="286" y="574" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">every quotation bound to the evidence index</text>
-<line x1="266" y1="604" x2="100" y2="604" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
-<rect x="46.0" y="584.5" width="273.0" height="17.5" fill="#fff"/>
-<text x="182.5" y="597" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">9  Released reply, or fixed safe decline</text>
-<line x1="274" y1="648" x2="980" y2="648" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
-<rect x="461.1875" y="628.5" width="332.625" height="17.5" fill="#fff"/>
-<text x="627.5" y="641" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">10  Commit nomination, if review and policy allow</text>
-<rect x="25" y="711" width="14" height="12" fill="#e6e6e6" stroke="#111"/>
-<text x="45" y="722" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">model-backed agent</text>
-<rect x="180" y="711" width="14" height="12" fill="#fff" stroke="#111"/>
-<text x="200" y="722" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">deterministic code</text>
+<line x1="646" y1="340" x2="275" y2="340" stroke="#111" stroke-width="1.3" marker-end="url(#a)"/>
+<rect x="354" y="320.5" width="212" height="17.5" fill="#fff"/>
+<text x="460" y="333" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">5a  Muse requests a granted tool</text>
+<line x1="274" y1="384" x2="815" y2="384" stroke="#111" stroke-width="1.3" marker-end="url(#a)"/>
+<rect x="383" y="364.5" width="324" height="17.5" fill="#fff"/>
+<text x="545" y="377" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">5b  Application supplies exact reader spans and scope</text>
+<line x1="816" y1="428" x2="275" y2="428" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<rect x="431" y="408.5" width="228" height="17.5" fill="#fff"/>
+<text x="545" y="421" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">5c  Typed evidence or typed decline</text>
+<line x1="274" y1="472" x2="645" y2="472" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<rect x="346" y="452.5" width="228" height="17.5" fill="#fff"/>
+<text x="460" y="465" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">5d  Application returns the tool result</text>
+<line x1="646" y1="516" x2="275" y2="516" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<rect x="306.9375" y="496.5" width="306.125" height="17.5" fill="#fff"/>
+<text x="460.0" y="509" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">6  Typed candidate with evidence declarations</text>
+<line x1="274" y1="560" x2="465" y2="560" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
+<rect x="253.375" y="540.5" width="233.25" height="17.5" fill="#fff"/>
+<text x="370.0" y="553" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">7  Candidate review, fresh context</text>
+<line x1="466" y1="604" x2="275" y2="604" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<rect x="233.5" y="584.5" width="273.0" height="17.5" fill="#fff"/>
+<text x="370.0" y="597" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">pass | revise (once, back to 6) | reject</text>
+<rect x="262" y="634" width="16" height="28" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<rect x="282" y="634" width="221.59" height="18" fill="#fff"/>
+<text x="286" y="647" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">8  Deterministic release checks</text>
+<rect x="282" y="650.5" width="270.08500000000004" height="16.5" fill="#fff"/>
+<text x="286" y="662" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">every quotation bound to the evidence index</text>
+<line x1="266" y1="692" x2="100" y2="692" stroke="#111" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<rect x="46.0" y="672.5" width="273.0" height="17.5" fill="#fff"/>
+<text x="182.5" y="685" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">9  Released reply, or fixed safe decline</text>
+<line x1="274" y1="736" x2="980" y2="736" stroke="#111" stroke-width="1.3"  marker-end="url(#a)"/>
+<rect x="461.1875" y="716.5" width="332.625" height="17.5" fill="#fff"/>
+<text x="627.5" y="729" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#111">10  Commit nomination, if review and policy allow</text>
+<rect x="25" y="799" width="14" height="12" fill="#e6e6e6" stroke="#111"/>
+<text x="45" y="810" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">model-backed agent</text>
+<rect x="180" y="799" width="14" height="12" fill="#fff" stroke="#111"/>
+<text x="200" y="810" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">deterministic code</text>
 </svg>
