@@ -69,8 +69,20 @@ reports the mean `reply_fact_recall` over graded cases,
 `reply_fact_graded_count`, and `reply_fact_complete_count`. This is a pattern
 gate: an unusual paraphrase can be reported missing, and wording that matches a
 pattern can still misstate the fact. It can err in either direction, so treat
-the result as a pre-sort and confirm it by reading the reply. It is report-only and does not affect
-`targets_pass`.
+the result as a pre-sort and confirm it by reading the reply. It is report-only
+and does not affect `targets_pass`.
+
+Run the evidence-range, required-fact, and release-report checks without
+provider calls:
+
+```bash
+uv run pytest -q tests/test_librarian_benchmark.py \
+	tests/test_librarian_evaluation_integrity.py
+```
+
+These checks cover complete source ranges, alternative anchors, omitted facts,
+negated or hypothetical egg-eating statements, and report aggregation. They
+also verify that reply-fact recall leaves `targets_pass` unchanged.
 
 Historical reports retain their original grades. Earlier reports used partial
 overlap and a strength proxy derived from the expected label. Their scores are

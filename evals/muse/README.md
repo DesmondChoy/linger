@@ -21,9 +21,9 @@ Every reader message passes through two screening steps before Muse drafts:
 
 Only then does Muse's
 [reflection skill](../../src/linger/agents/muse/skills/reflection/SKILL.md)
-draft the reply, which Provenance reviews before release. The two case
-folders follow that split, so the main cases can focus on Muse's own
-reasoning.
+draft the reply, which Provenance reviews before release. The case folders
+separate triage, reflection, and revision, so the main cases can focus on
+Muse's own reasoning.
 
 ## Case layout
 
@@ -79,7 +79,7 @@ root:
 
 ```bash
 uv run pytest tests/test_muse_evals.py tests/test_muse_eval_review_infra.py \
-  tests/test_muse_revision_eval.py tests/test_muse_blind_review.py
+	tests/test_muse_revision_eval.py tests/test_muse_blind_review.py
 ```
 
 ## Run the live evaluations
@@ -97,6 +97,11 @@ uv run python -m evals.muse.baseline_run --target current --pack all --runs 3 \
 # Revision: one live revision per fixture
 uv run python -m evals.muse.revision_run --runs 6 \
 	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_revision_<version>.json'
+# Focused revision comparison: --case can repeat
+uv run python -m evals.muse.revision_run --runs 3 \
+	--case muse-revision-misattributed-speaker-v1 \
+	--case muse-revision-added-source-v1 \
+	--output 'evals/muse/reports/<YYYY-MM-DD>T<HHMM>_revision-sources_<version>.json'
 # Blind grading of two or more reflection reports by a distinct judge model
 uv run python -m evals.muse.blind_review --report 'before=<path>' --report 'after=<path>' \
 	--judge-model openai:gpt-5.6 \
@@ -145,6 +150,39 @@ validates that draft with the production validator, and then makes one live
 revision. The revision receives the production envelope, draft messages,
 review findings, accepted claims, retained sources, and sentence restrictions.
 It measures the rewrite against fixed rules without a live Provenance review.
+
+The eight revision fixtures cover the following rules:
+
+| Fixture | Required behavior |
+| --- | --- |
+| `unflagged-repeat` | Correct a proposed event described as completed and delete an unflagged repetition of the same defect. |
+| `quoted-fragment` | Replace an unnecessary altered quotation with a supported paraphrase. |
+| `attribution-order` | Preserve the speaker, addressee, and event order while repairing a flagged sentence. |
+| `source-mapping` | Map the full source-dependent claim and remove a redundant unsupported closing interpretation. |
+| `session-line` | Attribute a reader-sourced fact to the reader and declare the reader's exact earlier words. |
+| `requested-quote` | Keep a requested exact quotation and its accepted mapping while repairing a separate unsupported sentence. |
+| `misattributed-speaker` | Correct the speaker and cite the passage supporting the correction. Keep the original source on undisputed wording. |
+| `added-source` | Remove an unsupported interpretation while keeping each remaining claim mapped to the passage that supports it. |
+
+Case IDs have the form `muse-revision-<fixture>-v1`. The corrected-speaker
+fixture requires the correction path, so deleting the disputed sentence fails
+that case even when the supplied finding allows deletion. Source-mapping
+grades check each required source's contribution to the mapped wording. One
+claim can draw on several passages, but each passage must support its declared
+part.
+
+Revision reports grade the expanded `MuseCandidate` that release validation
+sees. They also retain `raw_outputs` before sentence-label expansion,
+`labels_available`, `labels_used`, `labelled_retyped`, `expansion_changed`, and
+`label_annotated_errors`. These fields show whether Muse keeps eligible draft
+sentences by label and whether retries refer back to those labels.
+`retry_categories`, `first_attempt_clean_rate`, and `mean_retries` expose
+validation failures that a final hard pass alone would hide. Exhausted output
+retries are counted in `retry_exhausted` separately from other errored calls.
+
+The [Provenance revision-review cases](../provenance/README.md#revision-review-cases)
+measure the second review of fixed revised candidates. They complement the
+Muse runner's deterministic rewrite checks.
 
 `blind_review` hides the report identity, shuffles the saved replies, and asks
 the judge to assess the case's semantic criteria, forbidden claims, and
