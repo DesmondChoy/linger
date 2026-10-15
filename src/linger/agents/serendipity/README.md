@@ -122,7 +122,11 @@ access but the model cannot see or supply.
 The application grants `memory` only when its active account-scoped curated
 retrieval view contains records. It grants `book_corpus` only with confirmed
 chapter or named-unit context; an exact-passage grant does not permit Serendipity
-book search.
+book search. Interactive connection requests can use two or more books from
+the account's [saved reading progress](../../../../docs/book-registration.md#identity-and-ambiguity),
+each with its own confirmed part and chapter ceiling. A declaration in the
+current turn takes precedence for that book. Application code supplies these
+scopes; Serendipity cannot choose or increase their ceilings.
 Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 `get_recommendation` and `gather_sources` use `presentation=direct`, while
 `find_connection` uses `ask_before_showing`. When triage pinned

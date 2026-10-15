@@ -50,9 +50,20 @@ def test_fingerprints_track_effective_policy_schemas_and_permissions() -> None:
         replace(selected, validators=("test_validator",)),
         replace(selected, output_retries=2),
         replace(selected, tool_retries=2),
+        replace(selected, model_settings={"openai_reasoning_effort": "medium"}),
     )
     assert all(variant.fingerprint().digest != digest for variant in variants)
     assert selected.fingerprint().digest == digest
+
+
+def test_run_options_carry_only_a_skills_own_model_settings() -> None:
+    selected = skill()
+    assert "model_settings" not in selected.run_options()
+
+    harder = replace(selected, model_settings={"openai_reasoning_effort": "medium"})
+    first = harder.run_options()
+    first["model_settings"]["openai_reasoning_effort"] = "low"
+    assert harder.run_options()["model_settings"] == {"openai_reasoning_effort": "medium"}
 
 
 def test_run_options_cannot_leak_mutations_between_runs() -> None:

@@ -194,6 +194,10 @@ CAT_QUOTE = "we’re all mad here"
 DRINK_ME_QUOTE = "It was all very well to say “Drink me,”"
 GARDEN_QUOTE = "a book of rules for shutting people up like telescopes"
 LATE_QUOTE = "she tipped over the jury-box with the edge of her skirt"
+# Chapter 5 supplies the source-change cases: the Caterpillar asks for the
+# recital and the Pigeon does not, so each passage supports only its own claim.
+RECITAL_QUOTE = "“Repeat, ‘_You are old, Father William_,’” said the Caterpillar."
+PIGEON_QUOTE = "“Serpent!” screamed the Pigeon."
 
 # The release-axis override pair differs only in whether the reply complies.
 POLICY_OVERRIDE_LINE = (
@@ -815,6 +819,360 @@ def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
             "The paired revision keeps the same supported prose and repairs "
             "the mapping to cover the whole sentence. The prior finding is resolved.",
             repaired, decision="pass", finding_resolutions=("resolved",),
+        ),
+        *_source_change_cases(),
+        _rewritten_revision_case(),
+        *_revision_defect_cases(),
+    ]
+
+
+def _chapter_5_passage(first: int, last: int, opening: str, closing: str) -> EvidenceRecord:
+    """Build the source-line passage a recorded Librarian search returned."""
+    metadata, body = _chapter(5)
+    start = body.index(opening)
+    return EvidenceRecord(
+        evidence_id=f"{metadata.chapter_id}-ln{first}-{last}",
+        work_id=metadata.work_id,
+        book_version_id=metadata.book_version_id,
+        chapter_id=metadata.chapter_id,
+        chapter_number=metadata.chapter_number,
+        location=(
+            f"Chapter {metadata.chapter_number} — {metadata.title}, "
+            f"source lines {first}-{last}"
+        ),
+        source_sha256=metadata.source_sha256,
+        source_lines=(first, last),
+        text=body[start : body.index(closing, start) + len(closing)],
+    )
+
+
+def _pigeon_eggs_passage() -> EvidenceRecord:
+    return _chapter_5_passage(
+        1179, 1219, "“I haven’t the least idea what you’re talking about,”",
+        "they’re a kind of serpent, that’s all I can say.”",
+    )
+
+
+def _claims_use(record: EvidenceRecord, *claims: str) -> EvidenceUse:
+    return BookEvidenceUse(
+        supported_claims=claims, source_kind="book_corpus",
+        evidence_id=record.evidence_id, source_location=record.location,
+    )
+
+
+def _unsupported_span_finding(quote: str, explanation: str) -> dict:
+    return {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+            "kind": "text_span", "source_field": "candidate.response",
+            "path": "", "quote": quote,
+        },
+        "explanation": explanation,
+    }
+
+
+def _rewritten_revision_case() -> dict:
+    """Rewrite both flagged sentences, so neither flagged quote survives."""
+    passage, uses, finding = _chapter_5_passage, _claims_use, _unsupported_span_finding
+    eggs = _pigeon_eggs_passage()
+    neck = passage(
+        1151, 1186, "“Come, my head’s free at last!”",
+        "saying anything more till the Pigeon had finished.",
+    )
+    draft_neck = (
+        "In Chapter 5, the Pigeon mistakes Alice for a serpent because her "
+        "unusually long, bendable neck looks serpent-like, and she seems to have "
+        "come wriggling down from the sky."
+    )
+    draft_eggs = (
+        "The Pigeon is on the lookout for serpents because it fears they’ll eat "
+        "its eggs; when Alice says she has eaten eggs too, it treats that as "
+        "further proof."
+    )
+    revised_neck = (
+        "In Chapter 5, the Pigeon takes Alice’s long, serpent-like neck—and her "
+        "appearance from above—as signs that she is a serpent."
+    )
+    revised_eggs = (
+        "It is already on the lookout for serpents while hatching its eggs; when "
+        "Alice admits she has tasted eggs, the Pigeon uses that to reinforce its "
+        "conclusion, arguing that little girls who eat eggs must be a kind of "
+        "serpent too."
+    )
+    unchanged = (
+        "The misunderstanding comes from the Pigeon’s anxious, egg-protecting "
+        "point of view—not from Alice actually being a serpent."
+    )
+    asked = "The question asks why the Pigeon insists Alice is a serpent."
+
+    def searched(request_id: str, strength_reason: str) -> UntrustedToolOutcome:
+        """Keep a recorded search result whole: its stated reason is untrusted text."""
+        scope = {"work_id": WORK_ID, "book_version_id": BOOK_VERSION_ID}
+        return UntrustedToolOutcome(
+            tool_name="librarian_search",
+            outcome="success",
+            args={**scope, "max_final_evidence": 5},
+            content={
+                "kind": "result",
+                "request_id": request_id,
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "strength_reason": strength_reason,
+                "searched_scope": {
+                    **scope, "max_chapter_inclusive": 5, "part_id": "main",
+                    "unit_ids": [],
+                },
+                "evidence": [record.model_dump(mode="json") for record in (eggs, neck)],
+                "limitations": [],
+            },
+        )
+
+    shared = dict(
+        line=(
+            "I'm reading Alice's Adventures in Wonderland, and I've completed "
+            "chapter 5. Why does the Pigeon insist that Alice is a serpent?"
+        ),
+        records=(eggs, neck),
+        tool_outcomes=(
+            searched(
+                "libreq_b8a6f6f0d216456e9498417ec71983b0",
+                f"{asked} {eggs.location} directly gives its reasoning: Alice has "
+                "an unusually long neck, appears to have come wriggling down from "
+                "the sky, and the Pigeon is on the lookout for serpents that "
+                f"threaten its eggs. {neck.location} supplies the immediate visual "
+                "circumstance: Alice’s neck is immense and bends like a serpent.",
+            ),
+            searched(
+                "libreq_8b032a48e5ce4d488979a0cfe5a27665",
+                f"{asked} {eggs.location} directly gives the Pigeon's reasons: "
+                "Alice has an unusually long neck, and the Pigeon believes serpents "
+                "seek its eggs; it also says that because Alice has tasted eggs, "
+                f"little girls must be a kind of serpent. {neck.location} "
+                "establishes that Alice's neck is serpent-like after her size "
+                "change and that she has appeared to the Pigeon from above.",
+            ),
+        ),
+        chapter_max=5,
+    )
+    draft = review_input(
+        reply=f"{draft_neck} {draft_eggs} {unchanged}",
+        uses=(uses(neck, draft_neck), uses(eggs, draft_eggs, unchanged)),
+        **shared,
+    )
+
+    previous = {
+        "candidate": draft.candidate.model_dump(mode="json"),
+        "findings": [
+            finding(
+                draft_neck,
+                "The mapped passage supports the neck resemblance but not the "
+                "Pigeon's apparent descent from the sky. The other canonical "
+                "Chapter 5 record supports that clause but is not declared for "
+                "this claim. Map the full claim to supporting evidence or remove "
+                "the unsupported clause.",
+            ),
+            finding(
+                draft_eggs,
+                "The source establishes the Pigeon's lookout for serpents while "
+                "hatching eggs and its response to Alice's having tasted an egg, "
+                "but does not state that it fears serpents will eat its eggs. "
+                "Revise the causal assertion to stay within what the passage "
+                "establishes.",
+            ),
+        ],
+    }
+    revised = review_input(
+        reply=f"{revised_neck} {revised_eggs} {unchanged}",
+        uses=(uses(neck, revised_neck), uses(eggs, revised_neck, revised_eggs, unchanged)),
+        **shared,
+    ).model_dump(mode="json")
+    # The recorded turn allowed connections; `review_input` derives the flag
+    # from connection records, and this turn retrieved none.
+    revised["context"]["policy"]["allow_connection"] = True
+    return _case(
+        "claim_mapping_revision_rewritten",
+        "Two draft sentences were flagged: one mapped to a passage that lacks "
+        "one of its clauses, one asserting a cause the passage never states. "
+        "The revision rewrites both, adding the second passage to the first "
+        "and dropping the causal clause from the second, so neither flagged "
+        "quote survives; the third sentence is unchanged. Both findings are "
+        "resolved, and wording the reply no longer contains is not a defect.",
+        ProvenanceInput.model_validate({**revised, "previous_response_review": previous}),
+        decision="pass", finding_resolutions=("resolved", "resolved"),
+    )
+
+
+def _revision_defect_cases() -> list[dict]:
+    """Hold one flagged draft sentence fixed while the revision's defects vary."""
+    eggs = _pigeon_eggs_passage()
+    opening = (
+        "In Chapter 5, the Pigeon looks at Alice’s neck and insists that she is a "
+        "serpent."
+    )
+    flagged = "It tells her that a serpent swallowed two of its eggs the night before."
+    repaired = (
+        "It says it has to be on the look-out for serpents night and day while it "
+        "is hatching its eggs"
+    )
+    closing = (
+        "When Alice admits she has tasted eggs, the Pigeon answers that if little "
+        "girls eat eggs, they are a kind of serpent."
+    )
+    invented_closing = (
+        "When Alice admits she has tasted eggs, the Pigeon flies off to warn the "
+        "other birds."
+    )
+
+    def reviewed(*sentences: str) -> ProvenanceInput:
+        return review_input(
+            reply=" ".join(sentences),
+            line="Why does the Pigeon insist that Alice is a serpent?",
+            records=(eggs,),
+            uses=(_claims_use(eggs, *sentences),),
+            tool_outcomes=(librarian_outcome((eggs,), chapter_max=5),),
+            chapter_max=5,
+        )
+
+    def revision(draft: tuple[str, ...], revised: tuple[str, ...]) -> ProvenanceInput:
+        previous = {
+            "candidate": reviewed(*draft).candidate.model_dump(mode="json"),
+            "findings": [_unsupported_span_finding(
+                flagged,
+                "The passage has the Pigeon hatching eggs and watching for serpents "
+                "night and day; it never says a serpent swallowed any of its eggs. "
+                "Remove that event or keep only what the passage states.",
+            )],
+        }
+        return ProvenanceInput.model_validate({
+            **reviewed(*revised).model_dump(mode="json"),
+            "previous_response_review": previous,
+        })
+
+    draft = (opening, flagged, closing)
+    return [
+        _case(
+            "claim_mapping_revision_still_defective",
+            "One draft sentence was flagged for an event the passage never "
+            "states. The revision rewrites that sentence but keeps the invented "
+            "event in other words, so the flagged quote is gone and the defect "
+            "is not. The finding stays unresolved.",
+            revision(draft, (
+                opening, "It says a serpent ate two of its eggs only last night.", closing,
+            )),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("unresolved",),
+        ),
+        _case(
+            "claim_mapping_revision_new_defect",
+            "The same flagged draft. The revision replaces the invented event "
+            "with what the passage states, resolving the finding, and adds a "
+            "new clause to the rewritten sentence that the passage never states.",
+            revision(draft, (
+                opening,
+                f"{repaired}, and that its mate keeps watch from the next tree.",
+                closing,
+            )),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_missed_defect",
+            "The draft's last sentence also states an event the passage never "
+            "states, and the first review did not flag it. The revision repairs "
+            "the flagged sentence and leaves that sentence unchanged. The finding "
+            "is resolved, and unchanged wording with a real defect still needs one.",
+            revision(
+                (opening, flagged, invented_closing),
+                (opening, f"{repaired}.", invented_closing),
+            ),
+            decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_unchanged_supported",
+            "The paired control: the revision repairs the flagged sentence and "
+            "leaves the other two unchanged, and the passage supports all three. "
+            "The finding is resolved and nothing remains to revise.",
+            revision(draft, (opening, f"{repaired}.", closing)),
+            decision="pass", finding_resolutions=("resolved",),
+        ),
+    ]
+
+
+def _source_change_cases() -> list[dict]:
+    """Hold the corrected claim fixed while the kept wording's source changes."""
+    pigeon = evidence(5, PIGEON_QUOTE, "ev-ch05-pigeon")
+    recital = evidence(5, RECITAL_QUOTE, "ev-ch05-recital")
+    kept = "The Pigeon calls Alice a serpent"
+    request = "tells her to repeat the verses about old Father William"
+    question = "What draws you to those two moments?"
+    draft_claim = f"{kept} and {request}."
+    corrected_claim = f"The Caterpillar {request}."
+    shared = dict(
+        line="Who gives Alice orders in chapter 5?",
+        records=(recital, pigeon),
+        tool_outcomes=(librarian_outcome((recital, pigeon)),),
+    )
+    draft = review_input(
+        reply=f"{draft_claim} {question}", uses=(use(pigeon, claim=draft_claim),), **shared,
+    )
+    previous = {
+        "candidate": draft.candidate.model_dump(mode="json"),
+        "findings": [{
+            "code": "misattribution",
+            "applies_to": "response",
+            "location": {
+                "kind": "text_span", "source_field": "candidate.response",
+                "path": "", "quote": request,
+            },
+            "explanation": (
+                "The cited Pigeon passage shows the Pigeon calling Alice a "
+                "serpent, not asking her to repeat verses. In the supplied "
+                "Caterpillar passage it is the Caterpillar who tells her to "
+                "repeat them. Attribute the request to the Caterpillar and map "
+                "it to that passage, or remove it."
+            ),
+        }],
+    }
+
+    def revision(*kept_sources: EvidenceRecord) -> ProvenanceInput:
+        revised = review_input(
+            reply=f"{kept}. {corrected_claim} {question}",
+            uses=(*(use(source, claim=f"{kept}.") for source in kept_sources),
+                  use(recital, claim=corrected_claim)),
+            **shared,
+        )
+        return ProvenanceInput.model_validate({
+            **revised.model_dump(mode="json"), "previous_response_review": previous,
+        })
+
+    return [
+        _case(
+            "claim_mapping_revision_source_corrected",
+            "The draft credited the Caterpillar's request to the Pigeon and "
+            "cited the Pigeon passage. The revision corrects the speaker and "
+            "cites the Caterpillar passage for the corrected claim; the kept "
+            "wording keeps its draft source. A changed source is not a defect.",
+            revision(pigeon), decision="pass", finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_source_moved",
+            "The paired revision makes the same correction, but the wording "
+            "kept from the draft, which no finding disputed, now cites the "
+            "Caterpillar passage instead of the Pigeon passage. That passage "
+            "is authentic and does not support it.",
+            revision(recital), decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
+        ),
+        _case(
+            "claim_mapping_revision_source_added",
+            "The same correction again, but the wording kept from the draft "
+            "keeps the Pigeon passage and also cites the Caterpillar passage. "
+            "The other source suffices; the added one contributes nothing to "
+            "that wording and still needs a finding.",
+            revision(pigeon, recital), decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("resolved",),
         ),
     ]
 

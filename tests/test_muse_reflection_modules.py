@@ -73,7 +73,7 @@ def test_rules_needed_without_a_tool_load_in_a_tool_free_run(rule):
 def test_the_complete_text_carries_every_module_and_stays_the_prompt_identity():
     assert loaded(REFLECTION.instructions) == set(MARKERS)
     assert REFLECTION.instructions == reflection_instructions(revision=True, tools=None)
-    assert INSTRUCTIONS == f"{SHARED_INSTRUCTIONS}\n{REFLECTION.instructions}"
+    assert INSTRUCTIONS == f"{SHARED_INSTRUCTIONS}\n\n{REFLECTION.instructions}"
     # Fingerprints digest the complete text, so editing any module changes them.
     assert DRAFT_PROMPT_FINGERPRINT == REFLECTION.fingerprint(
         template_id="muse.reflection", input_type=MuseDraftInput
@@ -87,6 +87,21 @@ def test_run_options_keep_the_skill_contract_and_only_swap_instructions():
     assert options["retries"] == baseline["retries"]
     assert options["metadata"] == baseline["metadata"]
     assert options["instructions"] != baseline["instructions"]
+
+
+def test_reflection_drafts_and_revisions_ask_for_medium_reasoning_effort_and_triage_does_not():
+    from src.linger.agents.muse.skills import TURN_TRIAGE
+
+    for revision in (False, True):
+        options = reflection_run_options(revision=revision, tools={SEARCH})
+        assert options["model_settings"] == {"openai_reasoning_effort": "medium"}
+    assert "model_settings" not in TURN_TRIAGE.run_options()
+
+
+def test_grounding_asks_for_every_reason_the_passages_state():
+    assert "Answer the whole question from the returned passages." in reflection_instructions(
+        revision=False, tools={SEARCH})
+    assert "Answer the whole question" not in reflection_instructions(revision=False, tools=set())
 
 
 # --- G8 gating: every rule a turn condition needs is in its composed text ----

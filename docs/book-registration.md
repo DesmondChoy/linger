@@ -70,12 +70,38 @@ Muse asks for a title and author if the answer requires a book, or continues
 personal reflection when it does not.
 
 Naming a book establishes identity only. A later title answer does not confirm
-an earlier chapter guess. Retrieval still requires explicit completion, in this
-turn or carried from the reader's latest declaration in the session, a
-validated memory-supported boundary, or exact session-supported passage
-permission. Application code enforces the permitted revision and the
-chapter ceiling or exact passage IDs. Passage permission does not establish
-chapter completion.
+an earlier chapter guess. Retrieval requires a confirmed completed chapter or
+named unit, a validated memory-supported boundary, or exact session-supported
+passage permission. Confirmed chapter progress can come from the current turn,
+the reader's latest declaration in the session, or saved account progress.
+Application code enforces the permitted revision and the chapter ceiling or
+exact passage IDs. Passage permission does not establish chapter completion.
+
+Interactive chat saves explicit completed-chapter declarations in
+`reading_progress.sqlite3` under `LINGER_STATE_DIR`. Each account and book has
+one saved part and chapter. A released Muse reply or application clarification
+commits the declaration. The latest declaration replaces the earlier value,
+including a lower chapter. Inferred boundaries and named-unit or exact-passage
+grants do not enter this store.
+
+A later conversation can reuse that chapter after the current turn or
+`librarian_route` identifies the book. Saved progress cannot select a book, and
+reuse requires an allowed current revision and a valid chapter in its part.
+Before Muse drafts, direct saved-progress reuse defers to the current session's
+declaration or retraction. If the reader mentions a correction or incomplete
+progress that the parser cannot resolve, the application retracts the carried
+session ceiling. Within a session, lowering or retracting the ceiling takes
+effect immediately. Raising it requires a released reply.
+
+For a connection request, two or more permitted saved books can supply separate
+book scopes, each with its own part and chapter ceiling. A completion declaration
+in the current turn replaces that book's saved ceiling for the comparison.
+Ordinary book questions keep one active book.
+
+Session retractions do not update the account's saved chapter. Routing and
+multi-book comparisons can still reuse a saved ceiling after a session
+retraction. A released explicit completed-chapter declaration replaces that
+saved value.
 
 Private Librarian inference can grant up to five exact canonical paragraphs
 when earlier reader statements support having read the requested scene. The

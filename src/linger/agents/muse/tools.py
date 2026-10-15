@@ -4,7 +4,7 @@ A thin adapter and nothing else: all safety logic (authority checks, the
 access scope, the spoiler ceiling, fail-closed behaviour) lives in
 `grounding.py` and `connection.py`, where Muse cannot reach or influence it.
 This module only forwards Muse's arguments into a request the orchestration
-module validates.
+module validates, and shapes what Muse is shown of the result.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pydantic_ai import ModelRetry
 from apps.backend.contracts import ConnectionBrief
 from src.linger.agents.serendipity.models import ConnectionEvidence, ConnectionExplorationResult
 from src.linger.contracts.connection_evidence import WebConnectionEvidence, wrap_untrusted_web_excerpt
-from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse
+from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse, RetrievalResult
 from src.linger.orchestration.connection import connection_exploration
 from src.linger.orchestration.grounding import build_request, grounding_evidence
 from src.linger.orchestration.routing import route_reader_message
@@ -31,6 +31,21 @@ def _spotlight_web_evidence(evidence: tuple[ConnectionEvidence, ...]) -> tuple[C
         else item
         for item in evidence
     )
+
+
+SUFFICIENT_STRENGTH_REASON = "The selected records were judged sufficient for the reader's request."
+
+
+def _writer_view(response: LibrarianResponse) -> LibrarianResponse:
+    """Replace Librarian's free-text reason on a `sufficient` result for Muse's view.
+
+    That reason is unverified model prose and can credit a record with a detail
+    it does not contain. Muse states the reason only for a `weak` result, so
+    `weak` and `none` results, clarifications, and failures pass through unchanged.
+    """
+    if isinstance(response, RetrievalResult) and response.evidence_strength == "sufficient":
+        return response.model_copy(update={"strength_reason": SUFFICIENT_STRENGTH_REASON})
+    return response
 
 
 async def librarian_search(
@@ -55,7 +70,7 @@ async def librarian_search(
     if message is None:
         raise RuntimeError("librarian_search requires an active reader turn")
     request = build_request(message, work_id, book_version_id, max_final_evidence)
-    return await grounding_evidence(request)
+    return _writer_view(await grounding_evidence(request))
 
 
 async def librarian_route() -> LibrarianRoutingResponse:

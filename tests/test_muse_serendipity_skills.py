@@ -153,7 +153,7 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
                 mode = next(muse_runs)
                 self.assertEqual(
                     SHARED_INSTRUCTIONS
-                    + "\n"
+                    + "\n\n"
                     + reflection_instructions(revision=mode == "revision", tools=None),
                     info.instructions,
                 )

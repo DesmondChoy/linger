@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1040" height="350" viewBox="0 0 1040 350">
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
 <rect width="1040" height="350" fill="#fff"/>
-<rect x="320" y="20" width="450" height="315" fill="#f7f7f7" stroke="#999" stroke-width="1" stroke-dasharray="6 4"/>
+<rect x="320" y="20" width="485" height="315" fill="#f7f7f7" stroke="#999" stroke-width="1" stroke-dasharray="6 4"/>
 <text x="330" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="start" fill="#555">BACKEND HOST: ONE UVICORN PROCESS</text>
 <rect x="20" y="70" width="110" height="55" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <text x="75.0" y="102.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Browser</text>
@@ -12,10 +12,11 @@
 <rect x="350" y="70" width="230" height="55" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
 <text x="465.0" y="94.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Uvicorn and FastAPI</text>
 <text x="465.0" y="109.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">Python 3.12, one worker</text>
-<rect x="615" y="62" width="135" height="71" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
-<text x="682.5" y="87.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">State volume</text>
-<text x="682.5" y="102.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">SQLite: accounts,</text>
-<text x="682.5" y="117.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">transcripts, memories</text>
+<rect x="610" y="62" width="185" height="83" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="702.5" y="84.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">State volume</text>
+<text x="702.5" y="101.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">SQLite: accounts, transcripts,</text>
+<text x="702.5" y="116.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">reading progress</text>
+<text x="702.5" y="133.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">Markdown: memories</text>
 <rect x="350" y="165" width="230" height="60" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
 <text x="465.0" y="192.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Five Pydantic AI agents</text>
 <text x="465.0" y="207.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">local embedding and reranker models</text>
@@ -32,7 +33,7 @@
 <text x="150" y="90" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#333">HTTPS</text>
 <path d="M300,97 L350,97" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <text x="342" y="90" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#333">/api</text>
-<path d="M580,97 L615,97" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<path d="M580,97 L610,97" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <path d="M465,125 L465,165" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <text x="500" y="149" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#333">in-process</text>
 <path d="M465,225 L465,262" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>

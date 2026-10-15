@@ -97,6 +97,7 @@ from src.linger.orchestration.turn_context import (
 )
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
+from src.linger.contracts.security_validation import SecurityValidationBlocked
 
 # A grounded turn routes once, searches once per book the reader named, and
 # explores one connection; a two-book comparison is the longest ordinary shape,
@@ -238,6 +239,8 @@ class ReflectionRelease:
     released_citations: tuple[tuple[CitedSourceKind, str], ...] = ()
     # Muse tools that actually ran in a released turn; a declined turn records none.
     tool_names: tuple[str, ...] = ()
+    security_block_category: str | None = None
+    security_pattern_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:
@@ -254,6 +257,18 @@ class ReflectionRelease:
             raise ValueError("failure_type is required only with failure_stage")
         if has_failure != (self.failure_retryable is not None):
             raise ValueError("failure_retryable is required only with failure_stage")
+
+
+def _security_block_release(span: Any, error: SecurityValidationBlocked) -> ReflectionRelease:
+    """Stop the turn with the validator's fixed safe message."""
+    return _record_release(
+        span,
+        ReflectionRelease(
+            reply=error.user_message,
+            release_source="application_safe_decline",
+            security_block_category=error.category.value,
+        ),
+    )
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -1141,6 +1156,8 @@ async def _reflection_reply(
     )
     try:
         draft_input = MuseDraftInput.model_validate_json(message)
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except Exception as exc:
         _log_failure("muse_draft", exc)
         return _record_release(
@@ -1171,6 +1188,8 @@ async def _reflection_reply(
             ),
             **_reflection_options(revision=False),
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except Exception as exc:
         _log_failure("muse_draft", exc)
         return _record_release(
@@ -1214,6 +1233,8 @@ async def _reflection_reply(
             released_user_lines,
             required_clarification=draft_clarification,
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except ReleaseValidationError:
         return _record_release(
             span,
@@ -1353,6 +1374,8 @@ async def _reflection_reply(
                 released_reader_lines=released_user_lines,
             ),
         ).model_dump_json()
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except Exception as exc:
         _log_failure("muse_revision", exc)
         return _record_release(
@@ -1395,6 +1418,8 @@ async def _reflection_reply(
             ),
             **_reflection_options(revision=True),
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except Exception as exc:
         _log_failure("muse_revision", exc)
         return _record_release(
@@ -1467,6 +1492,8 @@ async def _reflection_reply(
             ),
             required_clarification=revised_clarification,
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except ReleaseValidationError:
         return _record_release(
             span,

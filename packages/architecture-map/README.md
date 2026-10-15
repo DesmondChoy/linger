@@ -5,10 +5,10 @@ evaluation Scenes, and the detail drawer. Two applications render it.
 
 - [`apps/evaluation-explorer`](../../apps/evaluation-explorer) is the standalone
   explorer. It supplies its own page header, footer, and chrome.
-- [`apps/frontend`](../../apps/frontend) embeds the graph beside chat, maps live
-  turn activity, and uses exported evaluation records for saved playback. Its
-  inspector retains every completed turn and opens components in that turn's
-  context.
+- [`apps/frontend`](../../apps/frontend) embeds a compact graph beside chat,
+  maps live turn activity, and replays exported synthetic personas. Component
+  and handoff details open in dialogs. **All turns and contracts** opens the
+  completed-turn timeline, with each turn's recorded contracts and outcome.
 
 ## Consuming it
 
@@ -25,8 +25,18 @@ import '@linger/architecture-map/src/map.css'
 
 `useScenarioExplorer` owns selection and walkthrough state but no layout, so a
 host arranges `ScenarioSelect`, `ScenarioStage`, and `Inspector` to suit its own
-page. `Graph` renders any `Scene`, which is how the chat panel maps an observed
-run rather than a curated one.
+page. `Graph` renders any `Scene`. The chat panel supplies an observed run,
+while the explorer supplies a curated explanation. These views share the graph
+and component registry, but the chat application's Inspector owns its completed
+turn records and developer content traces.
+The shared `Inspector` describes expected roles, bounded handoffs, and archived
+catalog metadata. It does not load live account records or raw developer traces.
+
+`Scene.layout = 'compact'` arranges the conversation across two rows, places
+specialists above it, and places the deterministic Memory & Policy component
+below release. Without this option, `layoutScene` uses the explorer's wider
+regions. The graph keeps node text readable and uses horizontal scrolling when
+the viewport is narrower than the layout.
 
 ## Styling
 

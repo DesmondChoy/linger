@@ -24,8 +24,8 @@ use the configured `LINGER_MODEL` and its provider credentials.
 
 ## Run the live evaluations
 
-Run the candidate-review pack. It covers 52 cases across specification flows
-4.2.1, 4.2.2, and 4.2.3: 34 response cases and 18 capture cases. The pack grades
+Run the candidate-review pack. It covers 60 cases across specification flows
+4.2.1, 4.2.2, and 4.2.3: 42 response cases and 18 capture cases. The pack grades
 the response decision and risk codes separately from the capture decision and
 codes. It also grades the derived sensitive-content flag and required finding
 resolutions. A correct decision with an incorrect required code fails.
@@ -84,6 +84,25 @@ Each command exits with a nonzero status when its evaluation target fails.
 Inspect the report named by `--report` for case-level failures and aggregate
 metrics. Every runner accepts `--report`. Only `risk_codes` accepts `--cases`.
 Choose a distinct report path for each run to preserve earlier evidence.
+
+### Revision-review cases
+
+The complete `risk_codes` pack includes ten response cases with
+`previous_response_review`. Each supplies the original candidate, its earlier
+findings, and a fixed revised candidate. The grade checks both the current
+verdict and a resolution for every earlier finding.
+
+| Case group | Required review behavior |
+| --- | --- |
+| `claim_mapping_revision_unresolved`, `claim_mapping_revision_resolved` | Distinguish a repeated mapping defect from a completed mapping repair. |
+| `claim_mapping_revision_source_corrected`, `claim_mapping_revision_source_moved`, `claim_mapping_revision_source_added` | Allow a corrected claim to cite the passage supporting it. Flag an unsupported source moved onto, or added to, undisputed wording. |
+| `claim_mapping_revision_rewritten` | Assess the rewritten claims against their declared passages, including each passage's contribution to a joint claim. |
+| `claim_mapping_revision_still_defective`, `claim_mapping_revision_new_defect`, `claim_mapping_revision_missed_defect`, `claim_mapping_revision_unchanged_supported` | Detect a persistent defect, a fresh defect, and an unchanged defect missed by the first review. Pass the supported comparison. |
+
+These cases run with the default candidate-review command above. They hold the
+revision fixed and call production Provenance. The
+[Muse revision runner](../muse/README.md#what-each-runner-measures) exercises the
+rewrite itself with fixed findings and deterministic grading.
 
 Synthetic connection replays also report [late Provenance findings](../synthetic_journals/provenance_diagnostics.py).
 The diagnostic identifies objections first raised during revision review on

@@ -1,0 +1,103 @@
+{
+  "case_id": "muse-revision-misattributed-speaker-v1",
+  "rules": [
+    "R12: when rephrasing a flagged claim keep who said what, and reassess support for the new wording; a corrected speaker takes the passage that shows that speaker",
+    "R17: wording kept from a draft claim no finding disputes keeps its draft sources and gains none; never add a source to wording it does not support",
+    "R4: keep the retained source declared and mapped to the claim it still supports"
+  ],
+  "description": "A draft sentence credits the Pigeon with the Caterpillar's request and maps it to the Pigeon passage. The finding names the misattributing words. The repair names the Caterpillar and maps the corrected claim to the Caterpillar passage, which the draft did not declare; the unflagged Pigeon sentence keeps the Pigeon passage and gains none. The finding also allows removing the sentence, but deleting it fails this case by design: the case exists to exercise the correction path, so the corrected claim and its Caterpillar-passage declaration are required.",
+  "reader_message": "Who orders Alice about in chapter 5?",
+  "reading": {"work_title": "Alice's Adventures in Wonderland", "chapter_max": 5},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "wonderland-c5-recital",
+      "chapter": 5,
+      "location": "Chapter 5, passage 1",
+      "text": "“Well, I’ve tried to say “How doth the little busy bee,” but it all came different!” Alice replied in a very melancholy voice. “Repeat, ‘_You are old, Father William_,’” said the Caterpillar. Alice folded her hands, and began:—"
+    },
+    {
+      "evidence_id": "wonderland-c5-pigeon",
+      "chapter": 5,
+      "location": "Chapter 5, passage 2",
+      "text": "“Serpent!” screamed the Pigeon. “I’m _not_ a serpent!” said Alice indignantly. “Let me alone!” “Serpent, I say again!” repeated the Pigeon, but in a more subdued tone, and added with a kind of sob, “I’ve tried every way, and nothing seems to suit them!”"
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 5, the Pigeon takes Alice for a serpent and screams at her. The Pigeon then tells Alice to repeat the verses about old Father William. Which of those moments felt more overbearing to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-pigeon",
+        "source_location": "Chapter 5, passage 2",
+        "supported_claims": [
+          "In Chapter 5, the Pigeon takes Alice for a serpent and screams at her.",
+          "The Pigeon then tells Alice to repeat the verses about old Father William."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "misattribution",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "The Pigeon"
+        },
+        "explanation": "This sentence credits the Pigeon with asking for the recital. The declared Pigeon passage shows the Pigeon calling Alice a serpent, not asking her to recite anything. In the supplied Caterpillar passage it is the Caterpillar who tells her to repeat the verses. Attribute the request to the Caterpillar and map it to that passage, or remove it."
+      }
+    ],
+    "needs_source_sentences": [],
+    "previously_accepted_claims": ["In Chapter 5, the Pigeon takes Alice for a serpent and screams at her."],
+    "retained_sources": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon"}
+    ],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [1],
+    "repaired_sentences": [1],
+    "forbidden_patterns": [
+      "(?<!\\bnot the )(?<!\\bthan the )(?<!\\binstead of the )\\bPigeon(?:,? (?:and |but )?(?:not|rather than) the Caterpillar,?)? (?:(?:who|that) )?(?:(?:then|also|later|next|soon) )?(?:(?:tells|told|asks|asked|orders|ordered|instructs|instructed|commands|commanded|bids|bade|directs|directed|urges|urged|wants|wanted)|(?:has|had|makes|made|gets|got) (?:Alice|her))\\b(?:(?!\\bCaterpillar\\b)[^.?!])*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)",
+      "\\bCaterpillar\\b(?:(?!\\bPigeon\\b)[^.?!])*?\\b(?:(?:does|did) not|(?:does|did)n['’]t|never|(?:is|was) not the one|(?:is|was)n['’]t the one)\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)",
+      "\\b(?:repeat\\w*|recit\\w*|say|verses?|poem|Father William)\\b[^.?!]*\\b(?:not|rather than|instead of) the Caterpillar\\b"
+    ],
+    "required_patterns": ["\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "\\bCaterpillar\\b[^.?!]*\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)|\\b(?:repeat\\w*|recit\\w*|verses?|poem|Father William)[^.?!]*\\bCaterpillar\\b"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon", "claim_pattern": "serpent"}
+    ],
+    "forbidden_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-pigeon", "claim_pattern": "\\bCaterpillar\\b|\\brepeat\\b|\\brecit\\w*|\\bverses?\\b|\\bpoem\\b|Father William"},
+      {"source_kind": "book_corpus", "evidence_id": "wonderland-c5-recital", "claim_pattern": "serpent"}
+    ],
+    "source_terms": ["Caterpillar", "Pigeon", "serpent", "repeat", "recite", "verses", "poem", "Father William"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 5, the Pigeon takes Alice for a serpent and screams at her. The Caterpillar tells Alice to repeat the verses about old Father William. Which of those moments felt more overbearing to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-pigeon",
+        "source_location": "Chapter 5, passage 2",
+        "supported_claims": ["In Chapter 5, the Pigeon takes Alice for a serpent and screams at her."],
+        "exact_quote": null
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "wonderland-c5-recital",
+        "source_location": "Chapter 5, passage 1",
+        "supported_claims": ["The Caterpillar tells Alice to repeat the verses about old Father William."],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}

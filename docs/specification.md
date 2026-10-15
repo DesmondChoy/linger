@@ -66,7 +66,7 @@ The core journey is:
 |---|---|
 | **Reflect** | Muse drafts responses to text or a photograph and asks a small number of useful follow-up questions. Provenance reviews every complete draft before display, including drafts with no declared factual claims. |
 | **Ground** | Librarian retrieves authorised book passages and memories. Muse drafts a response separating quotations, user statements, and generated interpretation; Provenance checks the complete draft and its claimed support. |
-| **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
+| **Preserve** | Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
 Automatic capture is enabled by default for interactive accounts. Controlled
@@ -84,10 +84,12 @@ about sensitive traits is never captured.
   of selected personal-memory evidence;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
-- reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
+- reviewed automatic memory capture, with a visible notice for any committed capture and account policy that controls whether capture is permitted;
+- saved reader-confirmed chapter progress per account and work, reused only after the work is identified for the current turn;
 - immutable original memories, versioned generated summaries, duplicate links,
   topic groups, reversible retrieval tombstones, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
+- cross-book connections across confirmed books, each bounded by its own reading permission;
 - capture-triggered memory curation in Section 4.2.5, with memory surfacing
   evaluated offline only;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
@@ -99,13 +101,13 @@ about sensitive traits is never captured.
 ### 3.2 Stretch
 
 - voice-note transcription, including audio-borne prompt-injection tests;
-- cross-book, memory-to-memory, and song-to-memory connections;
+- memory-to-memory and song-to-memory connections;
 - comparison of a revisited pairing with an earlier reflection; and
 - a synthetic exercise of an opt-in feedback pipeline.
 
 ### 3.3 Out of scope
 
-- persistent reading-progress tracking;
+- automatic reading-progress measurement or a dedicated reading-progress management interface;
 - live music, photo-library, messaging, or social integrations;
 - the full Project Gutenberg catalogue;
 - copyrighted books, lyrics, or copyrighted-audio analysis without permission;
@@ -230,7 +232,9 @@ release reject empty or stale spans. Provenance checks whether each source
 supports its mapped claims and scans the entire response for omitted claims.
 The application projects uncovered response spans, balanced double-quoted spans,
 and groups of overlapping claim mappings. Provenance audits every projected
-item and each declared source's contribution. Positive contributions carry
+item and each declared source's contribution within its mapped text. A source
+mapped to one clause does not establish support for the rest of a joint claim.
+Positive contributions carry
 literal excerpts from the named canonical source, with whitespace differences
 allowed. Several sources may jointly support a claim within their mapped text;
 undeclared records cannot supply missing support. Output validation checks audit
@@ -288,10 +292,25 @@ canonical evidence. It may explain that an earlier finding was mistaken, but
 the earlier review cannot grant evidence or reading authority. Capture findings
 remain separate and are not carried as response-repair obligations. Muse's
 revision envelope also identifies accepted claims, reviewed quotation interiors,
-and verified reader Lines. If unchanged accepted text remains in the reply, its
-source mappings must still cover it. Retained source quotations need valid
-current declarations. These repair checks grant no source authority and do not
-replace the second semantic review.
+verified reader Lines, and draft sentences with their findings and mappings.
+Eligible unflagged sentences have optional `{{SENTENCE_n}}` labels. Muse can
+copy a label into its reply, and application code expands it to the exact draft
+wording and source declarations before validation and review. Sentences that
+share a label are kept or deleted together.
+
+When findings can be located, each requires a change to at least one sentence
+it identifies. The repair can rewrite or delete that sentence, or change a
+source mapping the finding disputes. Muse's instructions require retained
+unflagged wording to stay exact. Validation detects rewrites through word runs.
+If unchanged accepted
+text remains in the reply, its source mappings must still cover it. Sources
+judged to contribute remain declared unless a finding rejects the source
+itself. A corrected claim may cite the source that supports its correction,
+including alongside a narrower mapping no finding disputes. That undisputed
+mapping must remain intact. Retained source quotations need valid current
+declarations. These repair checks grant no source authority and do not replace
+the second semantic review. `src/linger/agents/muse/claim_repair.py` and
+`src/linger/agents/muse/labels.py` implement them.
 
 ### 4.2 End-to-end flows
 
@@ -333,14 +352,16 @@ also show the preflight, curation, and offline surfacing paths.
 
 #### 4.2.2 Reviewed memory capture and curation
 
-During controlled evaluation, Muse may nominate one typed `MemoryCandidate`;
+During reflection, Muse may nominate one typed `MemoryCandidate`;
 Provenance may veto it for privacy, sensitive inference, unsupported provenance,
 or injection risk. The Memory & Policy Service derives account scope, checks the
-server-side evaluation policy and idempotency, validates the request, and owns
+server-side account policy and idempotency, validates the request, and owns
 every write. Independent of Provenance's judgement, the service also runs a
-deterministic pattern screen over the exact candidate text and refuses storage
-outright when it detects a shaped personal-data or credential pattern, without
-altering the stored text; the reply to the reader is unaffected. The application
+credential screen over the exact candidate text and refuses storage
+when it detects a credential, without altering the stored text. Incoming chat
+messages have email addresses and phone numbers redacted before nomination.
+The storage check does not apply another PII redaction pass. A capture veto
+leaves an otherwise approved reply eligible for release. The application
 reports a committed capture but offers no memory-management action.
 
 Sculptor is not part of capture. Curation is implemented as the callable
@@ -436,6 +457,14 @@ selected canonical records within that limit return to either caller. An
 oversized selection fails closed instead of truncating a verdict about a larger
 evidence set. Retrieval or judge failure returns no evidence.
 
+Muse's direct search adapter replaces a sufficient result's free-text
+`strength_reason` with a fixed status message. The selected canonical passages
+remain its drafting evidence. Weak results retain their reason and limitations.
+Muse's grounding instructions require a brief account of every reason or step
+the passages state for the reader's question. This instruction does not
+guarantee semantic completeness. `src/linger/agents/muse/tools.py` implements
+the result projection, checked by `tests/test_muse_search_reason.py`.
+
 Serendipity receives the source strength, reason, and limitations in the book
 search result's `judgement` field, then evaluates the broader connection. Weak
 source evidence may support a limited comparison. Serendipity declines when the
@@ -454,8 +483,9 @@ frontend does not expose either tool or depend on either tool's state.
 
 Reader is a developer browser for the enabled registered books. Read-only
 `/api/library` endpoints serve validated local canonical text and group chapters
-and named units by literary part. Reader opens at the first main narrative
-chapter. Opening a book, navigating to a unit, or revealing its summary changes
+and named units by literary part. Reader opens at the last unit viewed in this
+browser, or the first main narrative chapter when no location is saved.
+Opening a book, navigating to a unit, or revealing its summary changes
 local diagnostic state only. Summaries remain hidden behind an explicit spoiler
 warning. Navigation and summary reveal never establish reading progress,
 session evidence, or chat retrieval permission. Chat uses only the
@@ -467,21 +497,32 @@ assembled Muse dynamic input, application-recorded agent statuses, direct
 Librarian grounding calls, fixed Serendipity decline metadata, the released
 response, the actual Provenance verdict path, release source, released book
 evidence identifiers, failure stage, capture outcome, the identifiers of the
-memory a turn saved and the memories its reply cited, and server-generated trace
-ID. For a failed stage, Inspect records whether the failure came from application
-code, a model call, or deterministic validation, and whether the failure is
-retryable. This diagnostic detail exists to debug request-scoped contracts and
-hand-offs; it is not end-user content. It does not expose Serendipity proposals,
+memory a turn saved and the memories its reply cited, the number of available
+memories, and server-generated trace ID. The compact observed map shows the
+selected turn's outcome. Component and handoff dialogs show that turn's records
+and the component's standing authority. **All turns and contracts** opens the
+complete Inspect timeline in a separate dialog. For a failed stage, Inspect
+records whether the failure came from application code, a model call, or
+deterministic validation. It also records whether the failure is retryable.
+This diagnostic detail exists to debug request-scoped contracts and hand-offs;
+it is not end-user content. Ordinary turn records exclude Serendipity proposals,
 searches, web or private evidence payloads, rejected draft text, Provenance
-critiques, or memory content, unless the server runs with the developer setting
-`LINGER_DEV_INSPECT=true`. That setting is for local development and demos only
-and must never be enabled for a deployment real readers use. It attaches the
+critiques, and memory content. The developer setting `LINGER_DEV_INSPECT=true`
+enables these content traces for later turns. That setting is for local
+development and demos only and must never be enabled for a deployment real
+readers use. It attaches the
 turn's full content trace to Inspect: each agent's input prompt, tool calls and
 results, and output; Serendipity's queries, search results, and ranked
 decision; and the text behind each memory identifier. The trace reuses the
 evaluation transcript hooks, which observe without changing agent behaviour, and
-it is not sent to telemetry. Without the setting, developers resolve memory
-identifiers to text on the server with `python -m apps.backend.show_memories`. Inspect metadata cannot authorize retrieval,
+it is not sent to telemetry. Content traces persist with saved inspection
+records in `LINGER_STATE_DIR/transcripts.sqlite3`. Disabling the setting stops
+collection for later turns and does not erase previously saved traces.
+Without the setting, developers resolve memory identifiers to text on the
+server with `uv run python -m apps.backend.show_memories USERNAME [MEMORY_ID ...]`.
+The command reads the repository's `memories/` directory and lists active
+originals and the curated retrieval view, restricted to the supplied identifiers
+when present. Inspect metadata cannot authorize retrieval,
 release, capture, or storage, and its trace link follows the metadata-only backend
 telemetry contract in Section 8.1.
 
@@ -492,6 +533,28 @@ ordinary release checks finish. Inspect derives stage durations from paired
 start and completion events and shows per-agent totals and ordered hand-offs.
 An unpaired event leaves its duration unavailable. Progress metadata never
 contains draft text or grants release authority.
+
+The **Try a conversation** tray offers guided live conversations for spoiler
+limits, book grounding, memory recall, public-web connections, cross-book
+connections, safe declines, session continuity, and safety. The book filter and
+alternate wordings help developers exercise the registered corpus. Selecting a
+line fills the editable composer, and only **Send** submits it. A new-chat step
+creates a session. These suggestions have no adopted Ground truth or grading.
+
+**Replay a persona** opens saved synthetic evaluation runs without sign-in or
+model calls. The gallery groups personas by the Objective catalog's menu
+families. A selected run uses the same chat feed, compact map, current-turn
+summary, and Inspect dialogs. Its Backstory, Props, adopted answer key, recorded
+grade, and completed analysis review appear when available. Earlier recorded
+runs are selectable, offline curation Scenes are labelled as tasks, and missing
+contracts remain explicitly unrecorded. Playback reads a gallery index and
+per-persona JSON files in `apps/frontend/src/replay/personas`.
+`uv run python apps/frontend/scripts/export_personas.py` exports completed
+adjacent `scenario-run-*` directories with both `evaluation.json` and
+`summary.json`; `--check` compares those files without writing. Full model
+message transcripts, system instructions, and local paths are excluded from
+the exported snapshot. The separate evaluation explorer uses curated
+architecture Scenes and its own catalog snapshot rather than persona playback.
 
 #### 4.2.5 Capture-triggered curation and offline surfacing
 
@@ -543,10 +606,11 @@ Working context contains only:
   replies in this session, when present;
 - a bounded suffix of released conversation history.
 
-The complete memory archive is never injected into every prompt. Reading
-progress is not stored as durable user state. Apart from the session's
-declared chapter, Librarian resolves a temporary spoiler boundary anew for each
-book-related request.
+The complete memory archive is never injected into every prompt. Explicit
+reader-confirmed chapter progress is also stored per account and work under
+Section 6.1. During initial context resolution, the session's current declaration
+or retraction takes precedence over that saved value. When neither applies,
+Librarian resolves a temporary spoiler boundary for each book-related request.
 
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
@@ -564,10 +628,12 @@ clarifications persist per account in `data/transcripts.sqlite3`, including
 their local inspection records. Boundary replies and safe declines are not
 saved as transcript turns. Restoring a transcript supplies conversational
 context, but excludes its earlier reader statements from boundary inference.
-Reading progress, tool history, and evidence handles remain in-process state.
+Saved chapter progress persists in `LINGER_STATE_DIR/reading_progress.sqlite3`.
+Book selection, inferred boundaries, named-unit and exact-passage permissions,
+tool history, and evidence handles remain in-process state.
 **New chat** selects a fresh session while preserving earlier saved chats.
 Deleting a conversation removes its transcript and live session state while
-preserving account memories.
+preserving account memories and saved chapter progress.
 
 ### 5.2 Memory record
 
@@ -706,8 +772,9 @@ no number, such as "I haven't met…", "don't spoil…", or "a different book",
 and a parser clarification. Quotes do not shield a retraction. Lowering or
 retracting hides earlier reader statements from boundary inference and
 withholds earlier cited passages the ceiling no longer permits. Selecting another book or part, a session reset, or a restart
-clears the ceiling; a restart also hides restored reader statements from
-boundary inference. It is never stored durably. A follow-up that triggers none
+clears the session ceiling; a restart also hides restored reader statements from
+boundary inference. Released explicit chapter declarations also populate the
+account's saved progress, subject to the limits below. A follow-up that triggers none
 of this, stays on the same book and part, and names no other work reuses the
 ceiling; otherwise reading permission is resolved anew for each request.
 Chapter ceilings include only numbered chapters in that part. Prefaces, letters,
@@ -756,10 +823,11 @@ reader clarification. Explicit current-turn progress remains authoritative,
 while a memory-supported candidate is eligible for the provisional confidence
 policy. Librarian then performs a separate
 retrieval bounded to that ceiling, and application code rejects evidence outside
-it before Muse can use it. Linger stores memories of what the person discussed,
-not a durable chapter-progress field; apart from the session's declared
-chapter, the boundary is derived anew for each request. This separation lets
-evaluation compare Librarian's inferred ceiling with event-derived Ground truth
+it before Muse can use it. Memories retain what the person discussed. The
+separate saved-progress record contains only an explicitly confirmed completed
+chapter. An inferred boundary remains temporary and cannot update that record.
+This separation lets evaluation compare Librarian's inferred ceiling with
+event-derived Ground truth
 while preventing private inference access from becoming disclosure authority.
 
 Cached retrieval indexes use the work, revision, part, and chapter ceiling or
@@ -873,18 +941,25 @@ evidence. Explicit reader confirmation remains authoritative and skips
 inference for that request, and a routed inferred ceiling never widens or
 replaces a boundary the reader already confirmed this turn.
 
-**Saved reading progress.** When a released turn carries a chapter the reader
-explicitly declared or confirmed, application code saves that chapter for the
-account and work. The newest declaration replaces the saved value, including a
+**Saved reading progress.** When a released Muse reply or application
+clarification carries a chapter the reader explicitly declared or confirmed,
+application code saves that chapter for the account and work. The newest
+declaration replaces the saved value, including a
 lower chapter. Inferred ceilings, named-unit permissions, and exact-passage
 permissions are never saved. Saved progress never selects a work: it applies
 only after the current message names the work, the work is the session's
-active selection, or `librarian_route` identifies it. It then acts as a
-reader-confirmed boundary with the `saved_progress` authorization basis and
-skips boundary inference. A declaration in the current message outranks it,
-and a saved chapter that no longer fits the registered, permitted work is
-ignored. Trusted evaluation setup and replay do not read or write saved
+active selection, or `librarian_route` identifies it. It then supplies
+reader-confirmed permission and skips boundary inference. Direct context
+restoration records the `saved_progress` authorization basis. During initial
+context resolution, the session's
+declaration or retraction takes precedence for that work. A declaration in the
+current message outranks it. A saved chapter that no longer fits the registered,
+permitted work is ignored. Trusted evaluation setup and replay do not read or write saved
 progress.
+
+A vague retraction affects the carried session ceiling and leaves the durable
+saved record intact. Later `librarian_route` calls or a cross-book comparison
+can reuse that saved chapter until a released explicit correction replaces it.
 
 When turn triage classifies a message as a connection request and the reader
 has confirmed two or more books (saved progress, plus any book confirmed this
@@ -956,6 +1031,31 @@ claims and checks their semantic support.
 - Logs and telemetry follow the canonical [telemetry data contract](telemetry.md).
 
 ### 6.4 Untrusted content and privacy
+
+The chat entry point in `apps/backend/chat_turn.py` calls `validate_user_input`
+once on the incoming reader message. DataFog's regex engine detects `EMAIL` and
+`PHONE` entities and replaces them with entity-labelled tokens before agent
+processing or conversation storage. This check does not redact names,
+addresses, employers, or health conditions. A detected credential blocks the
+turn before the chat pipeline runs.
+
+After the language guard, three fixed rules check the current reader message
+for instruction overrides, requests for hidden instructions, and replacement
+instructions. A match returns an application safe decline before any agent
+runs. The blocked message does not enter agent session history or commit
+reading progress. These rules do not scan stored memories, book passages, or
+web excerpts for generic injection phrases. Provenance's semantic review still
+checks untrusted content. The [security guardrail reference](implementation/provenance-security-validation-guardrails.md)
+describes the rules and verification limits.
+
+Every reusable role Agent uses `ProviderCredentialGuard` before provider
+requests. It checks messages, tool history, instructions, and schemas for
+detected credentials. Generated replies, curation text, and session,
+transcript, and memory writes also have credential checks. These boundaries
+block detected secrets and do not apply PII redaction to other context.
+`src/linger/contracts/security_validation.py` defines the checks, and
+`tests/test_security_validation.py` and `tests/test_chat_endpoint.py` verify
+their behavior.
 
 Book text, web results, photographs, media descriptions, and candidate model
 responses are untrusted input. Web-search queries use general concepts.
@@ -1193,6 +1293,18 @@ Evaluation must test the product behaviour and authority boundaries in Sections 
   tombstones are reversible without physical deletion.
 
 The suggested measures in the [synthetic scenario evaluation-objective catalog](../synthetic-journal-evaluation/evaluation-objectives.yaml) identify relevant signals. They are not adopted thresholds, aggregate scores, or release gates. Every factual web claim must include a retrievable citation, every evidence identifier must resolve, and any LLM-as-judge result is secondary and labelled non-independent.
+
+Component evaluations also check released answer content. Librarian benchmark
+and live-validation cases can define `required_facts` with acceptable wording
+patterns. Reports record each fact result and `reply_fact_recall` separately
+from retrieval acceptance. Muse revision cases check required content,
+source declarations, and which reply spans name each source. Their reports
+include sentence-label use, retry categories, and production validation
+failures. Provenance's candidate risk-code suite includes second-review cases
+that require resolving earlier findings while checking the full revised reply.
+See the [Librarian](../evals/librarian/README.md),
+[Muse](../evals/muse/README.md), and
+[Provenance](../evals/provenance/README.md) guides for commands and limits.
 
 ### 7.2 Scenario-first synthetic evaluation
 
@@ -1675,7 +1787,15 @@ documents image smoke tests, approvals, deployment, backup, and rollback;
 
 The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI as a thin HTTP transport adapter. The public `run_chat_turn` application boundary owns deterministic orchestration, including session rollback, context resolution, agent sequencing, output release, and automatic capture. `POST /api/chat` supplies trusted dependencies and maps cancellation, success, and application failure to HTTP. `POST /api/chat/stream` wraps that same handler with content-free progress events and one final result or error; synthetic replay calls the application boundary directly. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Corpus builds, policies, tool contracts, schemas, and evaluation scenes are versioned. The proposed system playbook follows the same requirement if adopted. Every model invocation records a stable prompt-template ID and an automatically computed SHA-256 digest. Runtime skill digests cover the effective shared and selected instructions, input and output schemas, tool and capability permissions, validator identities, and retry limits. They exclude runtime content and require no manual prompt version counter. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Deployment verification exercises rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
+The standard model is `openai:gpt-6-luna` with low reasoning effort. Muse's
+reflection draft and revision and Provenance's candidate review select medium
+effort for OpenAI Responses calls. Sculptor's offline retrieval error analysis
+and research select high effort. Runtime skills supply these settings for
+their own runs, and exported skill records include them. Other providers retain
+their supported settings. See the [app configuration](../apps/README.md#setup)
+and [runtime skills](agent-skills.md) references.
+
+Corpus builds, policies, tool contracts, schemas, and evaluation scenes are versioned. The proposed system playbook follows the same requirement if adopted. Every model invocation records a stable prompt-template ID and an automatically computed SHA-256 digest. Runtime skill digests cover the effective shared and selected instructions, input and output schemas, tool and capability permissions, validator identities, retry limits, and skill-specific model settings. They exclude runtime content and require no manual prompt version counter. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Deployment verification exercises rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 Failure ownership is explicit. Exceptions from an agent invocation are model failures. Deterministic envelope, candidate-output, review-output, finding-location, and release checks are non-retryable validation failures. Instrumentation projection defects are non-retryable application failures. All failure paths record fixed metadata without exception text.
 
@@ -1695,7 +1815,7 @@ content-bearing instrumentation only for the five fixed named Pydantic AI
 agents, registering each reusable object once. Task spans record `agent.skill`
 alongside the existing role, stage, and prompt identity. Fingerprints cover the
 effective shared and selected instructions, relevant schemas, tool permissions,
-validator identities, and retry limits. This separation is code-owned; there is no production environment flag
+validator identities, retry limits, and skill-specific model settings. This separation is code-owned; there is no production environment flag
 that can enable synthetic transcript capture.
 
 Logfire's Evals view shows the replay as a dataset, experiment, and ordered

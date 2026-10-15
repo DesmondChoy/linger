@@ -19,6 +19,43 @@ Each selected skill starts a separate model run on `provenance_agent`. The same
 configured provider model may back Muse and Provenance. The application supplies
 a fresh review input and never shares Muse's conversation history.
 
+## Logical architecture
+
+This is the reflection and grounding flow from
+[`docs/specification.md` section 4.2.1](../../../../docs/specification.md#421-reflection-and-grounding),
+with the Provenance candidate-review path highlighted. It begins after
+Provenance's emotional preflight returns `continue_reflection`; an emotional
+boundary stops the turn through an application-owned response before Muse runs.
+The highlighted paths show review, a possible single revision, deterministic
+checks after a pass, and the application-owned safe decline.
+
+```mermaid
+flowchart TD
+    A[Application: typed draft and managed Muse history] --> M[Muse Agent: reflection skill]
+    M -->|optional model-selected tool| L[Application Librarian adapters]
+    L --> B[Librarian Agent: boundary inference when needed]
+    B --> I[Librarian Agent: identify event for a chapter candidate]
+    I --> R[Application: validate boundary and retrieve within scope]
+    R --> E[Librarian Agent: evidence assessment]
+    E --> M
+    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery or recall]
+    S -->|validated selected evidence| M
+    M -->|candidate only| P[Provenance Agent: candidate review]
+    P -->|first revise only| V[Application: bounded revision input]
+    V --> M
+    P -->|pass| D[Application: deterministic evidence and policy checks]
+    D --> U[Application releases reply]
+    P -->|reject or exhausted revision| F[Application safe decline]
+
+    classDef provenance fill:#fff0cc,stroke:#a65300,stroke-width:3px,color:#1a1a1a
+    class P provenance
+    linkStyle 9,10,11,12,13,14 stroke:#a65300,stroke-width:3px
+```
+
+Provenance reviews every Muse candidate, including revisions; the application
+retains release authority. The separate curation-review path is described in
+[Curation review](#curation-review).
+
 ## Assigned runtime skills
 
 [`skills.py`](skills.py) assigns the following tasks. These are application
@@ -38,6 +75,10 @@ the selected skill's instructions, output contract, and retry limit before invok
 model. Candidate review permits two output retries. Preflight and curation
 review each permit one. Pydantic model validators and deterministic checks
 remain task-specific.
+
+Candidate review requests OpenAI `medium` reasoning effort. Preflight and
+curation review keep the configured model's default effort. Per-run settings
+are included in the selected skill's fingerprint.
 
 No skill receives tools or PydanticAI dependencies. Every run starts without
 message history. Request data stays in the typed input. Concurrent runs and evaluation
@@ -197,6 +238,48 @@ absolute sensitive-content capture veto:
 | `professional_advice` | The candidate gives individualised medical, legal, financial, or therapeutic advice or instructions instead of declining and returning to the reading. |
 | `out_of_scope` | The candidate performs a task unconnected to reflection on the reader's reading instead of declining and returning to it. |
 | `instruction_disclosure` | The candidate reveals, quotes, or paraphrases its own instructions, loaded skills, tool names or schemas, or internal review process. |
+
+### Prompt-injection checks
+
+The backend checks the current user message against fixed regex rules before
+Provenance's emotional-boundary preflight and before Muse or its tools run. It
+blocks common, explicit attempts to override instructions or reveal hidden
+instructions. This is the first check, and it only matches the patterns defined
+by those rules.
+
+Provenance provides a second check after agents process the request. Candidate
+review checks whether retrieved content tries to redirect the agent and whether
+the response follows a reader's attempt to override Linger's instructions.
+Curation review checks whether a proposed memory action follows instructions
+embedded in source memories. These reviews use the surrounding content and
+proposed action, so they can catch subtler attempts that do not match the
+backend's regex rules. They can require a revision or reject the candidate or
+curation proposal.
+
+### Privacy and credential checks
+
+Incoming chat uses DataFog's regex detector for `EMAIL` and `PHONE` entities
+before agent processing. It replaces detected email addresses and phone numbers
+in the message. Names, addresses, health conditions, and other personal text
+are outside this redaction check. DataFog telemetry is disabled by application
+code.
+
+All five Agent builders register [`ProviderCredentialGuard`](../security.py).
+Before every provider request, it checks instructions, message history, tool
+results, retry feedback, and request schemas for credentials detected by
+`pydantic_ai_harness.redact_secrets`. A detected credential blocks dispatch.
+Muse's reply and memory nomination, curation-generated text, memory writes,
+session storage, transcripts, and captured model messages also have credential
+checks. Internal requests and storage do not repeat the incoming chat's PII
+redaction. Provenance's semantic capture veto and deterministic memory policy
+remain separate checks.
+
+[`contracts/security_validation.py`](../../contracts/security_validation.py)
+defines these boundaries and value-free findings.
+`tests/test_security_validation.py` checks provider interception, incoming
+redaction, credential blocking, and preservation of other internal text.
+
+### Capture veto scope
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
 capture. `false_persona`, `professional_advice`, and `out_of_scope` are
@@ -409,8 +492,10 @@ the loop re-hashes every source after each agent call and fails if anything
 moved.
 
 After a new durable capture with relevant prior memories, chat awaits the
-curation loop. Interactive capture is disabled by default. Standalone
-bounded-curation replay without an injected handler executes `run_curation_loop`
+curation loop. Interactive accounts without a stored policy permit automatic
+capture by default; a stored policy takes precedence. Other
+`MemoryPolicyService` callers default to capture disabled unless configured.
+Standalone bounded-curation replay without an injected handler executes `run_curation_loop`
 in an isolated temporary store, including this
 review, policy application, audit verification, and retrieval-state observation.
 Ground truth can constrain those outcomes as well as the proposal. Original

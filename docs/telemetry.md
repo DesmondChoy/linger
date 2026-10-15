@@ -38,6 +38,7 @@ the exported-payload test are updated together.
 | Turn triage | Fixed book-content, memory-need, and override labels; triage failure flag; registered tools offered to Muse; pinned Serendipity intent |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
+| Security blocks | Fixed category (`credential` or `prompt_injection`), boundary (`user_input`), and disposition (`block`); injection detector ID, ruleset version, and matched application-owned pattern IDs |
 | Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Objective ID, case ID, dataset version, run ID, system variant, Ground truth status, expected and actual fixed labels, proposal comparison or adopted-label pass/fail, aggregate counts and metrics, latency, tokens, and cost |
 
@@ -115,6 +116,15 @@ Recording a memory search never permits
 memory IDs or excerpts in backend telemetry. `serendipity.shortlist_size`
 records only the number of shortlisted candidates.
 
+On `chat.turn`, a blocked credential records `security.category`,
+`security.boundary`, and `security.disposition`. A matched user-input injection
+rule also records `security.detector=linger_injection_rules`,
+`security.detector_version=1`, and comma-separated `security.pattern_ids`.
+These fields contain no matched text or source offsets. Incoming chat email
+addresses and phone numbers are redacted locally before agent processing.
+DataFog's own telemetry is disabled, and backend spans contain neither the
+original values nor the redacted message.
+
 ## 3. What the backend service does not record
 
 Every runtime string originating from a user, model, tool, evidence source,
@@ -138,6 +148,36 @@ Human or production traffic never enters the content-bearing evaluation path.
 A live failure creates only a metadata signature; a human must author a
 synthetic or sanitised regression case. Runtime telemetry cannot reconstruct
 the user's content.
+
+### 3.1 Local developer inspection
+
+Completed chat responses carry read-only inspection records independently of
+Logfire. Their ordinary fields include request context, released contract
+details, and memory handles. `inspection.memory` identifies the active memory
+count, captured memory ID, and cited memory IDs. These account-scoped values
+are absent from backend telemetry.
+
+`LINGER_DEV_INSPECT=true` enables a developer or demo content trace for each
+completed turn. `DevTraceSink` reuses transcript hooks to collect agent task
+inputs, returned tool calls and results, retry feedback, typed outputs, and
+Serendipity queries, search records, and decisions. `inspection.memory.texts`
+contains the captured and cited memory text. The setting defaults to `false`
+and remains disabled for deployments used by real readers.
+
+This content travels in `inspection.dev_trace` and the account's saved turn
+in `transcripts.sqlite3`. It is absent from Logfire and the content-free
+progress stream. Disabling the setting stops future trace collection and does
+not redact stored inspection records. History can therefore return a trace
+saved while developer inspection was enabled. The history route can also
+resolve a saved turn's memory handles from the account memory store. A bound
+synthetic evaluation sink takes precedence over `DevTraceSink`.
+
+The local command `uv run python -m apps.backend.show_memories USERNAME
+[MEMORY_ID ...]` resolves memory handles to private source text. It prints
+active originals and their curated retrieval view from the repository-root
+`memories/` directory. It does not use a `LINGER_MEMORY_DIR` override.
+The [application guide](../apps/README.md#chat-and-developer-tools) describes
+these diagnostic tools.
 
 ## 4. Synthetic evaluation transcripts
 
@@ -178,11 +218,20 @@ provider actually returned; absence does not
 establish that a model performed no internal reasoning.
 
 When an agent invocation fails or is cancelled, `run_agent_traced` retains
-available partial model messages only if a synthetic transcript sink is bound.
-The durable `AgentExchange` records the fixed `failure_category` alongside the
-existing failure code. Calls that end without a result have no typed output or
+available partial model messages only if a transcript sink is bound.
+Synthetic replay and opt-in local developer inspection supply separate sinks.
+The durable synthetic `AgentExchange` records the fixed `failure_category`
+alongside the existing failure code. Calls that end without a result have no typed output or
 completed usage result. Their partial messages can still show attempted tool
 calls, returned tool results, and retry feedback; thinking parts remain omitted.
+
+Transcript recording checks agent inputs, outputs, and captured model messages
+for credentials. Credential-bearing input is replaced with empty text.
+Credential-bearing outputs or captured message histories are omitted while
+exchange metadata remains available. These checks preserve other personal text
+in synthetic and developer records. Email and phone redaction applies at
+incoming chat entry, so it does not anonymize an independently supplied
+component prompt or retrieved source.
 
 Synthetic exchanges also record `provider_error_kind` as `http`, `timeout`,
 `connection`, or `other` for recognised provider errors. `provider_status_code`
@@ -195,8 +244,9 @@ attempted conversation, which may include the supplied message history.
 Successful calls retain only new messages and leave this flag false.
 `tool_exchanges` excludes earlier history's tool calls in either case, so a
 failed follow-up does not report old tool work as new. An early failure may
-have no captured messages. Production requests never bind this sink and export
-only the permitted failure metadata, without partial messages.
+have no captured messages. Ordinary live requests leave transcript hooks
+unbound. Developer inspection can bind its separate local sink; live Logfire
+export retains only permitted failure metadata in either case.
 
 Book-grounding replay records routing selection, boundary authorization,
 completed retrieval, final permitted citations, and release outcomes. Its

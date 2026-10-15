@@ -54,6 +54,36 @@ reaction that explains shrinking. Retrieving all available supporting spans
 can earn full recall while the model must still acknowledge missing support
 for part of the question.
 
+Cited source lines show what a reply could have said, not what it says. A case
+can therefore declare `required_facts`: each has a `fact_id` and one or more
+case-insensitive regular-expression `patterns`, and any one pattern states the
+fact. Invalid or empty patterns and repeated fact IDs are rejected when the
+cases load. `pigeon-serpent` declares `long-neck` and `egg-eating-admission`;
+the second matches Alice or girls eating or having tasted eggs, not the
+Pigeon's eggs or serpents eating them. Live release validation grades the
+released reply text against these facts. Each case reports
+`reply_fact_recall`, the stated share of required facts, and
+`missing_reply_facts`. The recall is `null` and the list is empty when the case
+declares no facts or the turn did not release a Muse candidate. The summary
+reports the mean `reply_fact_recall` over graded cases,
+`reply_fact_graded_count`, and `reply_fact_complete_count`. This is a pattern
+gate: an unusual paraphrase can be reported missing, and wording that matches a
+pattern can still misstate the fact. It can err in either direction, so treat
+the result as a pre-sort and confirm it by reading the reply. It is report-only
+and does not affect `targets_pass`.
+
+Run the evidence-range, required-fact, and release-report checks without
+provider calls:
+
+```bash
+uv run pytest -q tests/test_librarian_benchmark.py \
+	tests/test_librarian_evaluation_integrity.py
+```
+
+These checks cover complete source ranges, alternative anchors, omitted facts,
+negated or hypothetical egg-eating statements, and report aggregation. They
+also verify that reply-fact recall leaves `targets_pass` unchanged.
+
 Historical reports retain their original grades. Earlier reports used partial
 overlap and a strength proxy derived from the expected label. Their scores are
 not directly comparable with results from the current scorer.

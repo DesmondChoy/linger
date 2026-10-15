@@ -9,6 +9,7 @@ connections.
 
 import copy
 import json
+from contextvars import ContextVar
 from dataclasses import replace
 from typing import Any
 
@@ -20,6 +21,7 @@ from pydantic_ai.tools import ToolDefinition
 
 from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import (
+    MemoryCandidate,
     MuseCandidate,
     memory_attribution_errors,
     source_application_errors,
@@ -33,19 +35,42 @@ from src.linger.agents.muse.quote_repair import (
     unbound_source_quotation_errors,
 )
 from src.linger.agents.muse.claim_repair import (
-    draft_sentence_errors, retained_claim_errors, retained_source_errors,
+    added_source_errors, draft_sentence_errors, retained_claim_errors, retained_source_errors,
 )
+from src.linger.agents.muse.labels import Expansion, annotate_retry, expand_labels
 from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS, SKILLS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import tool_exposure, turn_evidence
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.agents.provenance.quotation_audit import quote_is_bound
+from src.linger.agents.security import ProviderCredentialGuard
+from src.linger.contracts.security_validation import (
+    SecurityValidationBlocked,
+    ValidationCategory,
+    validate_generated_credentials,
+)
 
 
 def _available_evidence() -> dict[str, EvidenceRecord]:
     """Snapshot the application-owned evidence shared across this turn."""
     return dict(turn_evidence())
+
+
+def _revision_input(ctx: RunContext[None]):
+    """The revision envelope when this run is the single reviewed rewrite."""
+    prompt = getattr(ctx, "prompt", None)
+    if not isinstance(prompt, str):
+        return None
+    try:
+        envelope = json.loads(prompt)
+    except ValueError:
+        return None
+    if not isinstance(envelope, dict) or envelope.get("mode") != "revision":
+        return None
+    from apps.backend.contracts import MuseRevisionInput
+
+    return MuseRevisionInput.model_validate(envelope)
 
 
 def validate_muse_output(
@@ -55,20 +80,14 @@ def validate_muse_output(
     errors = supported_claim_errors(output.reply, output.evidence_uses)
     errors.extend(source_application_errors(output.reply, output.evidence_uses))
     errors.extend(memory_attribution_errors(output.reply, output.evidence_uses))
-    revision = None
-    prompt = getattr(_ctx, "prompt", None)
-    if isinstance(prompt, str):
-        try:
-            envelope = json.loads(prompt)
-        except ValueError:
-            envelope = None
-        if isinstance(envelope, dict) and envelope.get("mode") == "revision":
-            from apps.backend.contracts import MuseRevisionInput
-
-            revision = MuseRevisionInput.model_validate(envelope)
-            errors.extend(retained_claim_errors(output, revision.review.previously_accepted_claims))
-            errors.extend(retained_source_errors(output, revision.review.retained_sources))
-            errors.extend(draft_sentence_errors(output, revision.review.draft_sentences))
+    revision = _revision_input(_ctx)
+    if revision is not None:
+        errors.extend(retained_claim_errors(output, revision.review.previously_accepted_claims))
+        errors.extend(retained_source_errors(output, revision.review.retained_sources))
+        errors.extend(draft_sentence_errors(output, revision.review.draft_sentences))
+        errors.extend(added_source_errors(
+            output, revision.review.draft_sentences, revision.review.findings,
+        ))
     available = _available_evidence()
     connection_sources = canonical_connection_evidence()
     quote_sources: dict[int, str] = {}
@@ -259,6 +278,10 @@ def _pin_intent(tool: ToolDefinition, intent: str | None) -> ToolDefinition:
     return replace(tool, parameters_json_schema=schema)
 
 
+# Set by `before_output_validate` for the `after_output_validate` call on the same output.
+_EXPANSION: ContextVar[Expansion | None] = ContextVar("muse_label_expansion", default=None)
+
+
 class MuseSkillBoundary(AbstractCapability[None]):
     """Keep each run to its skill's tools, this turn's exposure, and its output checks."""
 
@@ -278,12 +301,43 @@ class MuseSkillBoundary(AbstractCapability[None]):
             if tool.name in exposure.tools
         ]
 
+    async def before_output_validate(
+        self, ctx: RunContext[None], *, output_context: OutputContext, output: Any,
+    ) -> Any:
+        # Labels expand before schema validation, so no MuseCandidate ever holds one.
+        revision = _revision_input(ctx)
+        expansion = None
+        if revision is not None:
+            output, expansion = expand_labels(ctx, output, revision.review.draft_sentences)
+        _EXPANSION.set(expansion)
+        return output
+
     async def after_output_validate(
         self, ctx: RunContext[None], *, output_context: OutputContext, output: Any,
     ) -> Any:
-        if isinstance(output, MuseCandidate):
-            return validate_muse_output(ctx, output)
-        return output
+        if not isinstance(output, MuseCandidate):
+            return output
+        try:
+            validated = validate_muse_output(ctx, output)
+        except ModelRetry as retry:
+            if (expansion := _EXPANSION.get()) is None:
+                raise
+            raise annotate_retry(retry, expansion) from None
+        reply = validate_generated_credentials(validated.reply)
+        if reply.blocked:
+            raise SecurityValidationBlocked(
+                ValidationCategory.CREDENTIAL,
+                reply.user_message or "This request was blocked because it contains a credential.",
+            )
+        memory = validated.memory
+        if isinstance(memory, MemoryCandidate):
+            nomination = validate_generated_credentials(memory.text)
+            if nomination.blocked:
+                raise SecurityValidationBlocked(
+                    ValidationCategory.CREDENTIAL,
+                    nomination.user_message or "This request was blocked because it contains a credential.",
+                )
+        return validated
 
 
 def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
@@ -301,7 +355,7 @@ def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
             Tool(serendipity_explore, sequential=True),
         ],
         retries={"tools": 1, "output": 3},
-        capabilities=[MuseSkillBoundary()],
+        capabilities=[MuseSkillBoundary(), ProviderCredentialGuard()],
     )
 
 

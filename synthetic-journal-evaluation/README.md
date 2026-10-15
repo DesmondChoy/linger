@@ -41,6 +41,15 @@ identity-connection scenario validates but has no adoption record.
 
 Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
 
+## Replay recorded runs in the app
+
+The frontend's **Replay a persona** gallery presents exported synthetic runs
+in the chat and Inspect views. A persona includes its Backstory, Scenes,
+recorded replies, available agent exchanges, and adopted answer key. Playback
+reads saved artifacts and makes no model calls. See
+[Synthetic personas](../apps/frontend/README.md#synthetic-personas) for the
+export command, validation option, and artifact requirements.
+
 ## Five-book grounding and clarification
 
 These Scenarios cover all registered books. Each contains four Scenes:

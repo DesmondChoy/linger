@@ -18,12 +18,106 @@ from evals.provenance.risk_codes import (
     load_risk_code_cases,
     run_evaluation,
 )
+from evals.synthetic_journals.provenance_diagnostics import late_provenance_findings
+from evals.synthetic_journals.transcript import AgentExchange
 from src.linger.agents.provenance.models import (
+    ProvenanceInput,
     ProvenanceReview,
     RiskFinding,
     StructuralLocation,
     TextSpanLocation,
 )
+
+
+# The second review one live run returned for the rewritten-revision case: it
+# holds the second earlier finding open over wording the reply no longer has.
+STALE_REWRITTEN_REVIEW = {
+    "claim_audit": [
+        {
+            "group_index": 0,
+            "source_contributions": [
+                {
+                    "declaration_index": 0, "claim_index": 0, "contributes": True,
+                    "source_excerpt": "her neck would bend about easily in any direction, like a serpent.",
+                },
+                {
+                    "declaration_index": 1, "claim_index": 0, "contributes": True,
+                    "source_excerpt": "they must needs come wriggling down\nfrom the sky! Ugh, Serpent!",
+                },
+            ],
+            "support_summary": (
+                "The first passage supports the serpent-like neck; the second "
+                "establishes the Pigeon's reaction to something coming down from the sky."
+            ),
+            "supported": True,
+        },
+        {
+            "group_index": 1,
+            "source_contributions": [{
+                "declaration_index": 1, "claim_index": 1, "contributes": True,
+                "source_excerpt": (
+                    "As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n"
+                    "“but I must be on the look-out for serpents night and day!"
+                ),
+            }],
+            "support_summary": (
+                "It does not say the Pigeon fears the serpents will eat its eggs, so "
+                "the reply's causal claim that this is why it watches for serpents is unsupported."
+            ),
+            "supported": False,
+        },
+        {
+            "group_index": 2,
+            "source_contributions": [{
+                "declaration_index": 1, "claim_index": 2, "contributes": True,
+                "source_excerpt": "but I must be on the look-out for serpents night and day!",
+            }],
+            "support_summary": (
+                "The passage supports the Pigeon's egg-related vigilance and its "
+                "mistaken classification of Alice as a serpent."
+            ),
+            "supported": True,
+        },
+    ],
+    "finding_resolutions": [
+        {
+            "finding_index": 0, "status": "resolved",
+            "explanation": (
+                "The current first claim is mapped to both records: the neck resemblance "
+                "is supported by the first, and the Pigeon's skyward-arrival reaction by the second."
+            ),
+        },
+        {
+            "finding_index": 1, "status": "unresolved",
+            "explanation": (
+                "The current reply still says the Pigeon is on the lookout for serpents "
+                "because it fears they will eat its eggs; the passage does not establish "
+                "that causal explanation."
+            ),
+        },
+    ],
+    "findings": [{
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+            "kind": "text_span", "source_field": "candidate.response", "path": "",
+            "quote": (
+                "It is already on the lookout for serpents while hatching its eggs; when "
+                "Alice admits she has tasted eggs, the Pigeon uses that to reinforce its "
+                "conclusion, arguing that little girls who eat eggs must be a kind of serpent too."
+            ),
+        },
+        "explanation": (
+            "The source supports the lookout during egg-hatching and the egg-tasting "
+            "argument, but not that the lookout is motivated by fear that serpents will "
+            "eat the eggs. Remove that causal assertion or replace it with the "
+            "passage-supported explanation."
+        ),
+    }],
+    "emotional_boundary_decision": "not_required",
+    "capture_decision": "no_candidate",
+    "response_decision": "revise",
+}
 
 
 def review(
@@ -109,10 +203,10 @@ class RiskCodeCaseSetTests(unittest.TestCase):
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
         self.assertEqual(("4.2.1", "4.2.2", "4.2.3"), self.case_set.flows)
-        self.assertEqual(52, len(self.case_set.cases))
+        self.assertEqual(60, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
-        self.assertEqual(17, len(self.case_set.positives))
-        self.assertEqual(17, len(self.case_set.negatives))
+        self.assertEqual(22, len(self.case_set.positives))
+        self.assertEqual(20, len(self.case_set.negatives))
         self.assertEqual(8, len(self.case_set.capture_positives))
         self.assertEqual(9, len(self.case_set.capture_negatives))
 
@@ -181,6 +275,77 @@ class RiskCodeCaseSetTests(unittest.TestCase):
             broken.review_input.candidate.evidence_uses,
             repaired.review_input.candidate.evidence_uses,
         )
+
+    def test_source_change_pair_differs_only_in_the_source_of_the_kept_wording(self) -> None:
+        corrected = self.by_behavior["claim_mapping_revision_source_corrected"]
+        moved = self.by_behavior["claim_mapping_revision_source_moved"]
+        self.assertEqual(
+            corrected.review_input.previous_response_review,
+            moved.review_input.previous_response_review,
+        )
+        self.assertEqual(
+            corrected.review_input.candidate.response,
+            moved.review_input.candidate.response,
+        )
+        self.assertEqual(
+            corrected.review_input.canonical_book_evidence,
+            moved.review_input.canonical_book_evidence,
+        )
+        original = corrected.review_input.previous_response_review.candidate
+        [draft_use] = original.evidence_uses
+        kept, rewritten = corrected.review_input.candidate.response.split(". ")[:2]
+        self.assertIn(kept, original.response)
+        self.assertNotIn(rewritten, original.response)
+
+        def sources(case) -> dict[str, set[str]]:
+            mapped: dict[str, set[str]] = {}
+            for declared in case.review_input.candidate.evidence_uses:
+                for claim in declared.supported_claims:
+                    mapped.setdefault(claim.rstrip("."), set()).add(declared.evidence_id)
+            return mapped
+
+        # The corrected claim leaves the draft's source in both; only the kept wording's source differs.
+        self.assertNotIn(draft_use.evidence_id, sources(corrected)[rewritten])
+        self.assertEqual(sources(corrected)[rewritten], sources(moved)[rewritten])
+        self.assertEqual({draft_use.evidence_id}, sources(corrected)[kept])
+        self.assertEqual(sources(moved)[rewritten], sources(moved)[kept])
+        self.assertEqual(("pass", ("resolved",)), (
+            corrected.expected_response_decision, corrected.expected_finding_resolutions))
+        self.assertEqual(("revise", ("unsupported_claim",), ("resolved",)), (
+            moved.expected_response_decision, moved.expected_response_codes,
+            moved.expected_finding_resolutions))
+        # The added-source case keeps the draft's source on the kept wording and adds the other beside it.
+        added = self.by_behavior["claim_mapping_revision_source_added"]
+        self.assertEqual(
+            (corrected.review_input.previous_response_review, corrected.review_input.candidate.response),
+            (added.review_input.previous_response_review, added.review_input.candidate.response),
+        )
+        self.assertEqual(sources(corrected)[rewritten], sources(added)[rewritten])
+        self.assertEqual(sources(corrected)[kept] | sources(moved)[kept], sources(added)[kept])
+        self.assertEqual(("revise", ("unsupported_claim",), ("resolved",)), (
+            added.expected_response_decision, added.expected_response_codes,
+            added.expected_finding_resolutions))
+
+    def test_rewritten_revision_drops_both_flagged_quotes_and_keeps_its_neighbour(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_rewritten"]
+        self.assertEqual("provenance-risk-claim-mapping-revision-rewritten-v1", case.case_id)
+        self.assertEqual(("pass", (), "no_candidate", (), ("resolved", "resolved")), (
+            case.expected_response_decision, case.expected_response_codes,
+            case.expected_capture_decision, case.expected_capture_codes,
+            case.expected_finding_resolutions))
+        previous = case.review_input.previous_response_review
+        current = case.review_input.candidate.response
+        self.assertEqual(2, len(previous.findings))
+        for finding in previous.findings:
+            self.assertEqual("unsupported_claim", finding.code)
+            self.assertIn(finding.location.quote, previous.candidate.response)
+            self.assertNotIn(finding.location.quote, current)
+        unchanged = (
+            "The misunderstanding comes from the Pigeon’s anxious, egg-protecting "
+            "point of view—not from Alice actually being a serpent."
+        )
+        self.assertIn(unchanged, previous.candidate.response)
+        self.assertIn(unchanged, current)
 
     def test_every_veto_code_has_a_positive_and_a_paired_negative(self) -> None:
         for code in FLOW_422_CODES:
@@ -378,6 +543,29 @@ class RiskCodeGradingTests(unittest.TestCase):
         self.assertTrue(grade.passed)
         self.assertEqual(("resolved",), grade.actual_finding_resolutions)
 
+    def test_rewritten_revision_fails_a_stale_unresolved_finding(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_rewritten"]
+        stale = ProvenanceReview.model_validate(STALE_REWRITTEN_REVIEW)
+        # Known gap this case measures: input validation accepts the stale review.
+        case.review_input.validate_review(stale)
+        grade = grade_review(case, stale)
+        self.assertFalse(grade.passed)
+        self.assertEqual("decision_mismatch", grade.failure_code)
+        self.assertEqual(("unsupported_claim",), grade.actual_codes)
+        self.assertEqual(("resolved", "unresolved"), grade.actual_finding_resolutions)
+
+    def test_rewritten_revision_passes_with_both_findings_resolved(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_rewritten"]
+        passing = expected_review(case)
+        self.assertEqual(
+            len(case.review_input.claim_support_groups), len(passing.claim_audit)
+        )
+        case.review_input.validate_review(passing)
+        grade = grade_review(case, passing)
+        self.assertTrue(grade.passed)
+        self.assertEqual("pass", grade.actual_decision)
+        self.assertEqual(("resolved", "resolved"), grade.actual_finding_resolutions)
+
     def test_wrong_decision_is_a_decision_mismatch(self) -> None:
         case = self.by_behavior["spoiler_positive"]
         grade = grade_review(case, review("pass", case=case))
@@ -526,6 +714,283 @@ class RiskCodeGradingTests(unittest.TestCase):
         self.assertEqual("invalid_review", grade.failure_code)
 
 
+# The pigeon-passage revision cases: one draft sentence was flagged, and each
+# case varies what the revision did about it and what else it left in place.
+PIGEON_OPENING = (
+    "In Chapter 5, the Pigeon looks at Alice’s neck and insists that she is a serpent."
+)
+PIGEON_FLAGGED = "It tells her that a serpent swallowed two of its eggs the night before."
+PIGEON_REPAIRED = (
+    "It says it has to be on the look-out for serpents night and day while it is "
+    "hatching its eggs."
+)
+PIGEON_CLOSING = (
+    "When Alice admits she has tasted eggs, the Pigeon answers that if little girls "
+    "eat eggs, they are a kind of serpent."
+)
+PIGEON_STILL_DEFECTIVE = "It says a serpent ate two of its eggs only last night."
+PIGEON_NEW_DEFECT = (
+    "It says it has to be on the look-out for serpents night and day while it is "
+    "hatching its eggs, and that its mate keeps watch from the next tree."
+)
+PIGEON_MISSED = (
+    "When Alice admits she has tasted eggs, the Pigeon flies off to warn the other birds."
+)
+PIGEON_RECORD = "pg11-v01b38ea4-ch05-ln1179-1219"
+# behaviour -> (draft sentences, revision sentences, decision, codes, resolutions, defect)
+PIGEON_REVISIONS = {
+    "claim_mapping_revision_still_defective": (
+        (PIGEON_OPENING, PIGEON_FLAGGED, PIGEON_CLOSING),
+        (PIGEON_OPENING, PIGEON_STILL_DEFECTIVE, PIGEON_CLOSING),
+        "revise", ("unsupported_claim",), ("unresolved",), PIGEON_STILL_DEFECTIVE,
+    ),
+    "claim_mapping_revision_new_defect": (
+        (PIGEON_OPENING, PIGEON_FLAGGED, PIGEON_CLOSING),
+        (PIGEON_OPENING, PIGEON_NEW_DEFECT, PIGEON_CLOSING),
+        "revise", ("unsupported_claim",), ("resolved",), PIGEON_NEW_DEFECT,
+    ),
+    "claim_mapping_revision_missed_defect": (
+        (PIGEON_OPENING, PIGEON_FLAGGED, PIGEON_MISSED),
+        (PIGEON_OPENING, PIGEON_REPAIRED, PIGEON_MISSED),
+        "revise", ("unsupported_claim",), ("resolved",), PIGEON_MISSED,
+    ),
+    "claim_mapping_revision_unchanged_supported": (
+        (PIGEON_OPENING, PIGEON_FLAGGED, PIGEON_CLOSING),
+        (PIGEON_OPENING, PIGEON_REPAIRED, PIGEON_CLOSING),
+        "pass", (), ("resolved",), None,
+    ),
+}
+
+
+def flagging_review(case, sentence: str, *statuses: str) -> ProvenanceReview:
+    """Flag one whole current sentence and audit its mapped claim as unsupported."""
+    audited = review_with_audits(case.review_input, ProvenanceReview(
+        findings=(RiskFinding(
+            code="unsupported_claim", applies_to="response",
+            location=TextSpanLocation(
+                kind="text_span", source_field="candidate.response", path="", quote=sentence,
+            ),
+            explanation="The passage does not state this; remove it or keep what it states.",
+        ),),
+        finding_resolutions=tuple({
+            "finding_index": index, "status": status,
+            "explanation": f"controlled test review marks finding {index} {status}",
+        } for index, status in enumerate(statuses)),
+        response_decision="revise",
+        emotional_boundary_decision="not_required",
+        capture_decision="no_candidate",
+    )).model_dump(mode="json")
+    groups = {group.group_index: group.claim for group in case.review_input.claim_support_groups}
+    for audit in audited["claim_audit"]:
+        audit["supported"] = groups[audit["group_index"]] != sentence
+    return ProvenanceReview.model_validate(audited)
+
+
+def review_exchange(prompt: ProvenanceInput, output: dict) -> AgentExchange:
+    ProvenanceReview.model_validate(output)
+    return AgentExchange.model_construct(
+        role="Provenance", stage="review", status="success",
+        input_prompt=prompt.model_dump_json(), output=output,
+    )
+
+
+class RevisionDefectCaseTests(unittest.TestCase):
+    """Revisions that must still be caught, beside the one that must be released."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.by_behavior = {
+            case.primary_behavior: case for case in load_risk_code_cases().cases
+        }
+
+    def test_each_case_has_its_id_texts_and_expectation(self) -> None:
+        for behavior, (draft, revision, decision, codes, resolutions, _) in PIGEON_REVISIONS.items():
+            with self.subTest(behavior=behavior):
+                case = self.by_behavior[behavior]
+                slug = behavior.replace("_", "-")
+                self.assertEqual(f"provenance-risk-{slug}-v1", case.case_id)
+                previous = case.review_input.previous_response_review
+                self.assertEqual(" ".join(draft), previous.candidate.response)
+                self.assertEqual(" ".join(revision), case.review_input.candidate.response)
+                self.assertEqual(
+                    "Why does the Pigeon insist that Alice is a serpent?",
+                    case.review_input.current_line.text,
+                )
+                self.assertEqual((decision, codes, "no_candidate", (), resolutions), (
+                    case.expected_response_decision, case.expected_response_codes,
+                    case.expected_capture_decision, case.expected_capture_codes,
+                    case.expected_finding_resolutions))
+                [finding] = previous.findings
+                self.assertEqual(("unsupported_claim", "response", "text_span", "candidate.response", ""), (
+                    finding.code, finding.applies_to, finding.location.kind,
+                    finding.location.source_field, finding.location.path))
+                self.assertEqual(PIGEON_FLAGGED, finding.location.quote)
+                self.assertEqual(
+                    "The passage has the Pigeon hatching eggs and watching for serpents "
+                    "night and day; it never says a serpent swallowed any of its eggs. "
+                    "Remove that event or keep only what the passage states.",
+                    finding.explanation,
+                )
+
+    def test_every_sentence_is_mapped_to_the_one_supplied_passage(self) -> None:
+        for behavior, (draft, revision, *_rest) in PIGEON_REVISIONS.items():
+            with self.subTest(behavior=behavior):
+                case = self.by_behavior[behavior]
+                current = ProvenanceInput.model_validate(case.review_input.model_dump(mode="json"))
+                self.assertEqual(case.review_input, current)
+                [record] = current.canonical_book_evidence
+                self.assertEqual(PIGEON_RECORD, record.evidence_id)
+                original = ProvenanceInput.model_validate({
+                    **current.model_dump(mode="json"),
+                    "candidate": current.previous_response_review.candidate.model_dump(mode="json"),
+                    "previous_response_review": None,
+                })
+                for reviewed, sentences in ((original, draft), (current, revision)):
+                    [declared] = reviewed.candidate.evidence_uses
+                    self.assertEqual(("book_corpus", PIGEON_RECORD), (
+                        declared.source_kind, declared.evidence_id))
+                    self.assertEqual(sentences, declared.supported_claims)
+                    self.assertEqual((), reviewed.uncovered_response_spans)
+                    self.assertEqual(
+                        sentences, tuple(group.claim for group in reviewed.claim_support_groups))
+
+    def test_the_passage_holds_the_supported_lines_and_none_of_the_inventions(self) -> None:
+        for behavior in PIGEON_REVISIONS:
+            with self.subTest(behavior=behavior):
+                review_input = self.by_behavior[behavior].review_input
+                [record] = review_input.canonical_book_evidence
+                passage = " ".join(record.text.split())
+                for line in (
+                    "never _one_ with such a neck as that",
+                    "You’re a serpent",
+                    "on the look-out for serpents night and day",
+                    "hatching the eggs",
+                    "I _have_ tasted eggs",
+                    "they’re a kind of serpent",
+                ):
+                    self.assertIn(line, passage)
+                supplied = [record.text, *(
+                    str(outcome.model_dump(mode="python"))
+                    for outcome in review_input.untrusted_tool_outcomes
+                )]
+                for invented in (
+                    "swallowed", "ate two", "night before", "last night", "mate",
+                    "next tree", "keeps watch", "flies off", "other birds", "warn",
+                ):
+                    for text in supplied:
+                        self.assertNotIn(invented, text)
+
+    def test_unchanged_sentences_are_identical_mapped_alike_and_were_not_flagged(self) -> None:
+        for behavior, closing in (
+            ("claim_mapping_revision_missed_defect", PIGEON_MISSED),
+            ("claim_mapping_revision_unchanged_supported", PIGEON_CLOSING),
+        ):
+            with self.subTest(behavior=behavior):
+                review_input = self.by_behavior[behavior].review_input
+                previous = review_input.previous_response_review
+                draft, current = previous.candidate.response, review_input.candidate.response
+                [finding] = previous.findings
+                self.assertEqual(1, draft.count(finding.location.quote))
+                flagged_start = draft.index(finding.location.quote)
+                flagged_end = flagged_start + len(finding.location.quote)
+                self.assertNotIn(finding.location.quote, current)
+
+                def sources(candidate, sentence):
+                    return {use.evidence_id for use in candidate.evidence_uses
+                            if sentence in use.supported_claims}
+
+                for sentence in (PIGEON_OPENING, closing):
+                    self.assertEqual(1, draft.encode("utf-8").count(sentence.encode("utf-8")))
+                    self.assertEqual(1, current.encode("utf-8").count(sentence.encode("utf-8")))
+                    start = draft.index(sentence)
+                    self.assertFalse(start < flagged_end and start + len(sentence) > flagged_start)
+                    self.assertEqual({PIGEON_RECORD}, sources(previous.candidate, sentence))
+                    self.assertEqual({PIGEON_RECORD}, sources(review_input.candidate, sentence))
+
+    def _exchanges(self, behavior: str, sentence: str) -> list[AgentExchange]:
+        """Replay the first review and a second review that flags `sentence`."""
+        case = self.by_behavior[behavior]
+        second = case.review_input
+        previous = second.previous_response_review
+        first = ProvenanceInput.model_validate({
+            **second.model_dump(mode="json"),
+            "candidate": previous.candidate.model_dump(mode="json"),
+            "previous_response_review": None,
+        })
+        first_output = {
+            "response_decision": "revise", "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate",
+            "findings": [finding.model_dump(mode="json") for finding in previous.findings],
+        }
+        second_output = flagging_review(case, sentence, *case.expected_finding_resolutions)
+        second.validate_review(second_output)
+        return [
+            review_exchange(first, first_output),
+            review_exchange(second, second_output.model_dump(mode="json")),
+        ]
+
+    def test_a_finding_on_the_missed_unchanged_sentence_is_classified_late(self) -> None:
+        late = late_provenance_findings(
+            self._exchanges("claim_mapping_revision_missed_defect", PIGEON_MISSED))
+        self.assertEqual(
+            [("unsupported_claim", PIGEON_MISSED)], [(item.code, item.text) for item in late])
+
+    def test_a_finding_on_the_rewritten_sentence_is_not_late(self) -> None:
+        for behavior, sentence in (
+            ("claim_mapping_revision_still_defective", PIGEON_STILL_DEFECTIVE),
+            ("claim_mapping_revision_new_defect", PIGEON_NEW_DEFECT),
+        ):
+            with self.subTest(behavior=behavior):
+                self.assertEqual((), late_provenance_findings(self._exchanges(behavior, sentence)))
+
+    def test_a_pass_is_graded_wrong_wherever_a_defect_remains(self) -> None:
+        for behavior, (*_texts, decision, _codes, _resolutions, defect) in PIGEON_REVISIONS.items():
+            if defect is None:
+                continue
+            with self.subTest(behavior=behavior):
+                case = self.by_behavior[behavior]
+                self.assertEqual("revise", decision)
+                released = review("pass", case=case, resolution_statuses=("resolved",))
+                case.review_input.validate_review(released)
+                grade = grade_review(case, released)
+                self.assertFalse(grade.passed)
+                self.assertEqual("decision_mismatch", grade.failure_code)
+                self.assertEqual("pass", grade.actual_decision)
+
+    def test_a_finding_on_the_defective_sentence_is_graded_right(self) -> None:
+        for behavior, (*_texts, _decision, codes, resolutions, defect) in PIGEON_REVISIONS.items():
+            if defect is None:
+                continue
+            with self.subTest(behavior=behavior):
+                case = self.by_behavior[behavior]
+                caught = flagging_review(case, defect, *resolutions)
+                case.review_input.validate_review(caught)
+                [audit] = [item for item in caught.claim_audit if not item.supported]
+                self.assertEqual(
+                    defect, case.review_input.claim_support_groups[audit.group_index].claim)
+                grade = grade_review(case, caught)
+                self.assertTrue(grade.passed)
+                self.assertIsNone(grade.failure_code)
+                self.assertEqual(("revise", codes, resolutions), (
+                    grade.actual_decision, grade.actual_codes, grade.actual_finding_resolutions))
+
+    def test_the_repaired_revision_is_released_and_a_revise_is_graded_wrong(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_unchanged_supported"]
+        released = expected_review(case)
+        case.review_input.validate_review(released)
+        grade = grade_review(case, released)
+        self.assertTrue(grade.passed)
+        self.assertEqual(("pass", (), ("resolved",)), (
+            grade.actual_decision, grade.actual_codes, grade.actual_finding_resolutions))
+        for sentence in (PIGEON_OPENING, PIGEON_REPAIRED, PIGEON_CLOSING):
+            with self.subTest(sentence=sentence):
+                blocked = flagging_review(case, sentence, "resolved")
+                case.review_input.validate_review(blocked)
+                regrade = grade_review(case, blocked)
+                self.assertFalse(regrade.passed)
+                self.assertEqual("decision_mismatch", regrade.failure_code)
+
+
 class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
     async def test_expected_labels_pass_and_report_holds_metadata_only(self) -> None:
         case_set = load_risk_code_cases()
@@ -672,7 +1137,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(report.summary.targets_pass)
         self.assertEqual(1.0, report.summary.block_recall)
-        self.assertEqual(0.3529, report.summary.code_precision)
+        self.assertEqual(0.5, report.summary.code_precision)
         self.assertEqual(1.0, report.summary.capture_veto_recall)
         self.assertEqual(0.125, report.summary.capture_code_precision)
 
@@ -683,7 +1148,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(52, report.summary.evaluation_error_count)
+        self.assertEqual(60, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 

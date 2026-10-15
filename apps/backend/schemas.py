@@ -89,6 +89,8 @@ class ReleaseInspection(BaseModel):
     # fault is distinguishable from one Provenance actually decided.
     failure_type: Literal["application", "model", "validation"] | None = None
     failure_retryable: bool | None = None
+    security_block_category: Literal["credential", "prompt_injection"] | None = None
+    security_pattern_ids: tuple[str, ...] = ()
     capture: CaptureInspection
 
     @model_validator(mode="after")

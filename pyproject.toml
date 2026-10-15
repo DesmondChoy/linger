@@ -10,7 +10,7 @@ dependencies = [
     "numpy>=2.0.0",
     "polars>=1.43.2",
     "pydantic>=2.0.0",
-    "pydantic-ai>=2.26.0",
+    "pydantic-ai>=2.53.0",
     "pydantic-ai-harness[exa]>=0.18.1",
     "pydantic-settings>=2.15.0",
     "pyyaml>=6.0.3",
@@ -18,6 +18,7 @@ dependencies = [
     "urllib3>=2.8.0",
     "uvicorn[standard]>=0.52.1",
     "fast-langdetect>=1.0.1",
+    "datafog==4.9.0",
 ]
 
 [dependency-groups]
