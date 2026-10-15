@@ -1,0 +1,15 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 143,
+  "practice_passes_candidate": 150,
+  "practice_runs": 165,
+  "gain": 7,
+  "case_losses": {
+    "serendipity-recall-two-matching-records-v3": 2
+  },
+  "reasons": [
+    "practice gain 7 is below 10",
+    "stable cases fell below 4: ['serendipity-recall-two-matching-records-v3']"
+  ],
+  "execution_errors_candidate": 0
+}

@@ -43,6 +43,21 @@ instruction to search every available source. Apply this routing policy:
   explicitly asks for an essay, artwork, song, thinker, public source, or idea
   outside the supplied book or personal context, use public-web retrieval as
   the primary source: open a supplied URL, or search when none is supplied.
+  The personalised recommendation route below takes precedence when it applies.
+- Personalised recommendation: when an outside recommendation is meant to fit
+  the reader's own life, and the cue points to that life without describing
+  it ("how I spend my Sunday afternoons", "something that suits my mornings",
+  "for someone like me"), the fit depends on what the reader has told Linger.
+  When `memory` is granted, call `search_memories` first to learn what the cue
+  refers to. Then derive the web query from general, non-identifying concepts
+  in the matching record, such as "artwork about looking up words", never from
+  its wording, and cite that memory alongside the opened page in every
+  candidate that relies on it. A candidate that matches only the cue's words
+  while a retrieved record describes what the reader actually does there is
+  at best `partial`. When no record describes what the cue refers to, search
+  the web from the cue alone and keep the recommendation general; never
+  invent the reader's habits. A cue that names its subject outright ("a
+  painting of a Sunday picnic") is an ordinary external recommendation.
 - Book relationship: when the cue asks about another passage, character,
   chapter, or pattern inside a confirmed work, use `search_librarian` first.
 - Thematic book discovery: when the reader asks whether anything they have read

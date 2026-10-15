@@ -11,6 +11,10 @@ each case, with the current skill:
 - `reasoning`: Serendipity at low reasoning effort against medium (medium has
   been Serendipity's default since 2026-10-08).
 - `model`: Serendipity on `gpt-6-luna` against `gpt-5.6-luna`.
+- `reasoning-suite`: low against medium on every discovery case, so the
+  effect of reasoning effort is measured on the whole suite with the cases fixed.
+- `model-medium`: `gpt-6-luna` against `gpt-5.6-luna`, both at medium
+  reasoning, on every discovery case, to compare accuracy and token cost.
 
 `reasoning` and `model` change every case, so they run on the weak behaviours
 and on the restraint behaviours that a looser agent could break.
@@ -95,6 +99,16 @@ def plan(name: str) -> tuple[tuple[SerendipityEvalCase, ...], dict[str, Conditio
         variants = real_page_variants(discovery, json.loads(SNAPSHOTS.read_text(encoding="utf-8")))
         cases = tuple(case for case in discovery if case.case_id in variants)
         return cases, {"one-sentence-pages": Condition(), "real-pages": Condition(case_variants=variants)}
+    if name == "reasoning-suite":
+        return discovery, {
+            "low": Condition(model=model_from_spec("openai:gpt-6-luna", "low")),
+            "medium": Condition(model=model_from_spec("openai:gpt-6-luna", "medium")),
+        }
+    if name == "model-medium":
+        return discovery, {
+            "gpt-6-luna": Condition(model=model_from_spec("openai:gpt-6-luna", "medium")),
+            "gpt-5.6-luna": Condition(model=model_from_spec("openai:gpt-5.6-luna", "medium")),
+        }
     cases = tuple(case for case in discovery if case.primary_behavior in WEAK | RESTRAINT)
     if name == "reasoning":
         return cases, {
@@ -145,7 +159,7 @@ async def run(name: str, repeats: int, concurrency: int) -> dict[str, Any]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("experiment", choices=("intent", "pages", "reasoning", "model"))
+    parser.add_argument("experiment", choices=("intent", "pages", "reasoning", "model", "reasoning-suite", "model-medium"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repeat", type=int, default=5)
     parser.add_argument("--concurrency", type=int, default=2)

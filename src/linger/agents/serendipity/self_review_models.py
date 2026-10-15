@@ -9,9 +9,9 @@ writes a file or changes the production skill.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Literal, Self
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_ai import ModelRetry, RunContext
 
 from src.linger.contracts.base import StrictModel
@@ -78,7 +78,19 @@ class EarlierRound(StrictModel):
     practice_passes_before: int
     practice_passes_after: int
     practice_runs: int
+    # Passes gained or lost against production in the same session, per
+    # behaviour pattern (restraint, selection, routing, recall).
+    pattern_gains: dict[str, int] = Field(default_factory=dict)
     outcome: str
+
+
+class FrontierCandidate(StrictModel):
+    """Instructions that beat every other candidate on at least one behaviour pattern."""
+
+    name: str
+    instructions: str = Field(min_length=1)
+    pattern_gains: dict[str, int]
+    best_on: tuple[str, ...] = Field(min_length=1)
 
 
 class SelfReviewInput(StrictModel):
@@ -86,6 +98,16 @@ class SelfReviewInput(StrictModel):
     current_instructions: str = Field(min_length=1)
     cases: tuple[CaseTrace, ...] = Field(min_length=1)
     earlier_rounds: tuple[EarlierRound, ...] = ()
+    # `merge`: carry what the other frontier candidates do better into
+    # `current_instructions` without losing what they already do well.
+    mode: Literal["improve", "merge"] = "improve"
+    frontier: tuple[FrontierCandidate, ...] = ()
+
+    @model_validator(mode="after")
+    def require_candidates_to_merge(self) -> Self:
+        if self.mode == "merge" and not self.frontier:
+            raise ValueError("a merge needs at least one other frontier candidate")
+        return self
 
 
 class SkillCorrection(StrictModel):

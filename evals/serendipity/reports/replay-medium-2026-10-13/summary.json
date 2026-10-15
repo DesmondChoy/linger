@@ -1,0 +1,322 @@
+{
+ "description": "Scenes 06-09 of the five-agent Scenario, Serendipity at medium reasoning (production configuration), five repetitions, 13 Oct 2026. Repetition 1 spanned a host sleep; its Scene 08 also recorded a provider_failure. Raw artifacts kept locally.",
+ "scenes": [
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 1,
+   "scene_id": "scene-06",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 1,
+   "scene_id": "scene-07",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 1,
+   "scene_id": "scene-08",
+   "hard_gate_pass": false,
+   "release_source": "application_safe_decline",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "provider_failure",
+    "unexpected_release_source",
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-08-prop-situated-self",
+    "missing_required_citation:evidence-08-hume-bundle",
+    "missing_required_citation:evidence-08-pinocchio-promise",
+    "missing_required_citation:evidence-08-pinocchio-delay",
+    "unpermitted_selected_evidence"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch12-ln1333-1382"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 1,
+   "scene_id": "scene-09",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4155-4230"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 2,
+   "scene_id": "scene-06",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 2,
+   "scene_id": "scene-07",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "serendipity_selection",
+   "failures": [
+    "unpermitted_selected_evidence"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4068-4127",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 2,
+   "scene_id": "scene-08",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-08-prop-situated-self",
+    "missing_required_citation:evidence-08-pinocchio-promise",
+    "missing_required_citation:evidence-08-pinocchio-delay"
+   ],
+   "pinocchio_evidence_seen": []
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 2,
+   "scene_id": "scene-09",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4155-4230",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 3,
+   "scene_id": "scene-06",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 3,
+   "scene_id": "scene-07",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "muse_presentation",
+   "failures": [
+    "missing_required_citation:evidence-07-pinocchio-delay"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4155-4230"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 3,
+   "scene_id": "scene-08",
+   "hard_gate_pass": false,
+   "release_source": "application_safe_decline",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "unexpected_release_source",
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-08-prop-situated-self",
+    "missing_required_citation:evidence-08-hume-bundle",
+    "missing_required_citation:evidence-08-pinocchio-promise",
+    "missing_required_citation:evidence-08-pinocchio-delay"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 3,
+   "scene_id": "scene-09",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4114-4172",
+    "pg500-v6bdc1734-ch30-ln4155-4230"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 4,
+   "scene_id": "scene-06",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-06-pinocchio-delay",
+    "unpermitted_selected_evidence"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4068-4127"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 4,
+   "scene_id": "scene-07",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 4,
+   "scene_id": "scene-08",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-08-pinocchio-promise"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 4,
+   "scene_id": "scene-09",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4114-4172",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 5,
+   "scene_id": "scene-06",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "serendipity_selection",
+   "failures": [
+    "unpermitted_selected_evidence"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4068-4127",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 5,
+   "scene_id": "scene-07",
+   "hard_gate_pass": true,
+   "release_source": "muse_candidate",
+   "first_failure_stage": null,
+   "failures": [],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4028-4081",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 5,
+   "scene_id": "scene-08",
+   "hard_gate_pass": false,
+   "release_source": "application_safe_decline",
+   "first_failure_stage": "retrieval",
+   "failures": [
+    "unexpected_release_source",
+    "required_source_not_inspected",
+    "missing_required_citation:evidence-08-prop-situated-self",
+    "missing_required_citation:evidence-08-hume-bundle",
+    "missing_required_citation:evidence-08-pinocchio-promise",
+    "missing_required_citation:evidence-08-pinocchio-delay"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  },
+  {
+   "condition": "medium",
+   "scenario": "scenes-06-09",
+   "repetition": 5,
+   "scene_id": "scene-09",
+   "hard_gate_pass": false,
+   "release_source": "muse_candidate",
+   "first_failure_stage": "muse_presentation",
+   "failures": [
+    "missing_required_citation:evidence-09-prop-situated-self"
+   ],
+   "pinocchio_evidence_seen": [
+    "pg500-v6bdc1734-ch30-ln4114-4172",
+    "pg500-v6bdc1734-ch30-ln4211-4255"
+   ]
+  }
+ ]
+}

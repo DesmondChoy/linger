@@ -58,8 +58,10 @@ from src.linger.agents.serendipity.tools import SerendipityDependencies, search_
 
 def _proposal(case) -> ConnectionProposal:
     assert isinstance(case.expected, ExpectedProposal)
+    # Every required record plus one acceptable one, as a correct winner would cite.
     evidence_ids = (
-        case.expected.required_evidence_ids or case.expected.acceptable_evidence_ids
+        *case.expected.required_evidence_ids,
+        *case.expected.acceptable_evidence_ids[:1],
     )
     candidates = (
         ConnectionCandidate(

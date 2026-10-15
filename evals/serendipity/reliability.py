@@ -71,6 +71,8 @@ class RunOutcome(StrictModel):
     latency_seconds: float | None = None
     model_requests: int | None = None
     tool_calls: int | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
     # What the agent returned and searched, kept so a reviewer, human or
     # Serendipity's self-review, can read why a run failed.
     response: dict[str, Any] | None = None
@@ -148,6 +150,8 @@ def _outcome_from_report(report: object) -> RunOutcome:
         latency_seconds=observation.latency_seconds,
         model_requests=observation.model_requests,
         tool_calls=observation.tool_calls,
+        input_tokens=observation.input_tokens,
+        output_tokens=observation.output_tokens,
         response=response,
         searches=tuple(f"{search.source}:{search.operation}:{search.outcome}" for search in observation.searches),
     )

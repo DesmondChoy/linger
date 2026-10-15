@@ -12,6 +12,14 @@ round and that round's luck. A confirmed candidate is then compared with
 production on the held-back cases. Production is never changed here:
 promotion is an owner decision.
 
+Since protocol version 3 the loop keeps a frontier rather than a single best
+candidate, after GEPA (Agrawal et al., 2025). Each candidate's gain over
+production is counted per behaviour pattern, and any candidate with the
+highest gain on at least one pattern stays on the frontier. Each round
+improves the frontier member used least as a parent; when two or more
+candidates are on the frontier, the next round instead merges them, so a
+candidate that fixed one pattern is combined with others rather than discarded.
+
     uv run python -m evals.serendipity.self_improvement \\
         --output-dir evals/serendipity/self_improvement/2026-10-06
 
@@ -24,7 +32,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -39,6 +47,7 @@ from src.linger.agents.serendipity.agent import serendipity_agent
 from src.linger.agents.serendipity.self_review_models import (
     CaseTrace,
     EarlierRound,
+    FrontierCandidate,
     ObservedRun,
     SelfReviewInput,
     SkillCorrection,
@@ -64,6 +73,22 @@ STABLE_FLOOR = 4
 MAX_ROUNDS = 3
 REVIEW_ATTEMPTS = 2
 MAX_EXCERPT_CHARS = 1_500
+SELECTION = "pattern-frontier"
+# The report's four behaviour patterns, so the frontier credits a candidate
+# for what kind of decision it improved rather than for its total alone.
+PATTERNS = {
+    "decline_when_no_supported_bridge_exists": "restraint",
+    "decline_when_no_memory_matches": "restraint",
+    "select_evidence_with_a_real_semantic_bridge": "selection",
+    "rank_the_strongest_supported_connection": "selection",
+    "exclude_ineligible_evidence_before_selection": "selection",
+    "route_book_relationship_to_librarian": "routing",
+    "route_personal_connection_to_memory": "routing",
+    "route_external_recommendation_to_web": "routing",
+    "stop_when_primary_source_is_sufficient": "routing",
+    "expand_source_only_when_justified": "routing",
+    "recall_the_readers_own_earlier_record": "recall",
+}
 
 
 class PassMark(StrictModel):
@@ -85,7 +110,9 @@ class Protocol(StrictModel):
     self_review_digest: str
     pass_mark: PassMark
     # 2: every comparison is paired in one session, and a pass must be confirmed.
+    # 3: candidates are kept on a per-pattern frontier and merged.
     design_version: int = 1
+    selection: str = "best-total"
     # Changes made after round 0 started. Only the self-review instructions may
     # change; the split, pass mark, model, and scored skill never do.
     amendments: tuple[dict[str, str], ...] = ()
@@ -168,6 +195,55 @@ def decide(baseline: ReliabilityReport, candidate: ReliabilityReport) -> Decisio
         reasons=tuple(reasons) or ("meets the pass mark",),
         execution_errors_candidate=_execution_errors(candidate),
     )
+
+
+def pattern_gains(production: ReliabilityReport, candidate: ReliabilityReport) -> dict[str, int]:
+    """Candidate passes minus production passes, per behaviour pattern, in one session."""
+    gains = dict.fromkeys(sorted(set(PATTERNS.values())), 0)
+    before = {case.case_id: case.passes for case in production.cases}
+    for case in candidate.cases:
+        gains[PATTERNS[case.primary_behavior]] += case.passes - before[case.case_id]
+    return gains
+
+
+@dataclass(eq=False)
+class Member:
+    """A candidate on the frontier, with the session that scored it."""
+
+    name: str
+    instructions: str
+    gains: dict[str, int]
+    report: ReliabilityReport
+    times_parent: int = 0
+
+    @property
+    def total(self) -> int:
+        return sum(self.gains.values())
+
+
+def best_on(member: Member, members: list[Member]) -> tuple[str, ...]:
+    """Patterns where this member's positive gain is the highest; earlier members win ties."""
+    patterns = []
+    for pattern, gain in member.gains.items():
+        if gain <= 0:
+            continue
+        leader = max(members, key=lambda other: (other.gains.get(pattern, 0), -members.index(other)))
+        if leader is member:
+            patterns.append(pattern)
+    return tuple(patterns)
+
+
+def update_frontier(members: list[Member], candidate: Member) -> list[Member]:
+    """Keep every candidate that leads on at least one pattern."""
+    pool = [*members, candidate]
+    return [member for member in pool if best_on(member, pool)]
+
+
+def choose_parent(members: list[Member]) -> Member | None:
+    """The member used least as a parent, then the largest total gain; None means production."""
+    if not members:
+        return None
+    return min(members, key=lambda member: (member.times_parent, -member.total))
 
 
 def _evidence(case: SerendipityEvalCase) -> tuple[dict[str, Any], ...]:
@@ -328,22 +404,25 @@ def _summary_markdown(
         f"Round 0 (production skill, traces for the review): {baseline.summary.total_passes} of "
         f"{baseline.summary.total_runs} practice runs.",
         "",
-        "| Round | Target failure | Production | Candidate | Gain | Decision | Confirmation |",
-        "|---|---|---|---|---|---|---|",
+        "| Round | Mode, parent | Target failure | Production | Candidate | Gain | Gain by pattern | Frontier | Decision | Confirmation |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for item in rounds:
         decision = item.get("decision")
         if decision is None:
-            lines.append(f"| {item['round']} | — | — | — | — | {item['outcome']} | — |")
+            lines.append(f"| {item['round']} | — | — | — | — | — | — | — | {item['outcome']} | — |")
             continue
         confirm = item.get("confirmation")
         confirm_text = "—" if confirm is None else (
             f"{confirm['practice_passes_baseline']} → {confirm['practice_passes_candidate']} "
             f"({confirm['gain']:+d}): {'confirmed' if confirm['passed'] else 'not confirmed'}"
         )
+        gains = ", ".join(f"{name} {gain:+d}" for name, gain in item["pattern_gains"].items())
         lines.append(
-            f"| {item['round']} | {item['target']} | {decision['practice_passes_baseline']} | "
-            f"{decision['practice_passes_candidate']} | {decision['gain']:+d} | "
+            f"| {item['round']} | {item['mode']}, {item['parent']} | {item['target']} | "
+            f"{decision['practice_passes_baseline']} | "
+            f"{decision['practice_passes_candidate']} | {decision['gain']:+d} | {gains} | "
+            f"{', '.join(item['frontier']) or 'production only'} | "
             f"{'pass' if decision['passed'] else 'fail: ' + '; '.join(decision['reasons'])} | {confirm_text} |"
         )
     if held_back:
@@ -372,7 +451,8 @@ async def run_loop(
         starting_skill_digest=CONNECTION_DISCOVERY.fingerprint().digest,
         self_review_digest=SELF_REVIEW_FINGERPRINT.digest,
         pass_mark=pass_mark(),
-        design_version=2,
+        design_version=3,
+        selection=SELECTION,
     )
     if protocol_path.exists():
         recorded = Protocol.model_validate_json(protocol_path.read_text(encoding="utf-8"))
@@ -403,23 +483,43 @@ async def run_loop(
         repeats=repeats, concurrency=concurrency,
     )
 
-    best_instructions, best_report, best_gain = CONNECTION_DISCOVERY.instructions, baseline, 0
+    members: list[Member] = []
     earlier: list[EarlierRound] = []
     rounds: list[dict[str, Any]] = []
     winner: str | None = None
+    merged_last = False
     for number in range(1, max_rounds + 1):
         round_dir = output_dir / f"round-{number}"
+        merge = len(members) >= 2 and not merged_last
+        if merge:
+            parent = max(members, key=lambda member: member.total)
+            others = [member for member in members if member is not parent]
+        else:
+            parent = choose_parent(members)
+            others = []
+        if parent is not None:
+            parent.times_parent += 1
+        parent_instructions = parent.instructions if parent else CONNECTION_DISCOVERY.instructions
         task = SelfReviewInput(
             skill_name=CONNECTION_DISCOVERY.name,
-            current_instructions=best_instructions,
-            cases=traces(practice, best_report),
+            current_instructions=parent_instructions,
+            cases=traces(practice, parent.report if parent else baseline),
             earlier_rounds=tuple(earlier),
+            mode="merge" if merge else "improve",
+            frontier=tuple(
+                FrontierCandidate(
+                    name=member.name, instructions=member.instructions,
+                    pattern_gains=member.gains, best_on=best_on(member, members),
+                )
+                for member in others
+            ),
         )
+        merged_last = merge
         correction = await _review(round_dir, task)
         if correction is None:
             rounds.append({"round": number, "outcome": "no valid correction after two attempts"})
             break
-        instructions = apply_edits(best_instructions, correction.edits)
+        instructions = apply_edits(parent_instructions, correction.edits)
         _write(round_dir / "candidate-SKILL.md", instructions + "\n")
         candidate = candidate_skill(instructions)
         production, scored = await _score_pair(
@@ -427,9 +527,21 @@ async def run_loop(
         )
         decision = decide(production, scored)
         _write(round_dir / "decision.json", decision.model_dump_json(indent=2))
+        gains = pattern_gains(production, scored)
+        member = Member(f"round-{number}", instructions, gains, scored)
+        members = update_frontier(members, member)
+        on_frontier = member in members
+        _write(round_dir / "frontier.json", json.dumps([
+            {"name": item.name, "pattern_gains": item.gains, "best_on": best_on(item, members)}
+            for item in members
+        ], indent=2))
         item: dict[str, Any] = {
-            "round": number, "target": correction.target_category,
-            "decision": decision.model_dump(mode="json"), "outcome": "pass" if decision.passed else "fail",
+            "round": number, "mode": task.mode,
+            "parent": parent.name if parent else "production",
+            "target": correction.target_category,
+            "decision": decision.model_dump(mode="json"), "pattern_gains": gains,
+            "frontier": [entry.name for entry in members],
+            "outcome": "pass" if decision.passed else "fail",
         }
         confirmed = False
         if decision.passed:
@@ -442,6 +554,7 @@ async def run_loop(
             confirmed = confirmation.passed
             item["outcome"] = "confirmed" if confirmed else "not confirmed"
         rounds.append(item)
+        leads = best_on(member, members) if on_frontier else ()
         earlier.append(EarlierRound(
             round=number,
             categories=correction.categories,
@@ -451,15 +564,14 @@ async def run_loop(
             practice_passes_before=production.summary.total_passes,
             practice_passes_after=scored.summary.total_passes,
             practice_runs=scored.summary.total_runs,
+            pattern_gains=gains,
             outcome=(
                 "passed and was confirmed" if confirmed
                 else "passed but was not confirmed in a fresh comparison" if decision.passed
-                else "kept as the new starting point" if decision.gain > best_gain
-                else "discarded; the next round starts from the earlier instructions"
+                else f"kept on the frontier: best on {', '.join(leads)}" if leads
+                else "discarded: not the best candidate on any pattern"
             ),
         ))
-        if decision.gain > best_gain:
-            best_instructions, best_report, best_gain = instructions, scored, decision.gain
         if confirmed:
             winner = instructions
             break

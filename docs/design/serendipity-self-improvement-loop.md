@@ -82,6 +82,50 @@ unchanged.
 `protocol.json` records `design_version: 2`; a directory recorded under
 version 1 cannot be resumed under version 2.
 
+## Protocol version 3 (from 2026-10-13)
+
+The second run showed the weakness of keeping one best candidate: each round
+fixed one kind of case and broke another, and every candidate was discarded.
+Version 3 keeps a frontier instead, after GEPA (Agrawal et al., 2025,
+arXiv 2507.19457). The split, pass mark, paired scoring, and confirmation are
+unchanged.
+
+- **Gains by pattern.** Each candidate's paired gain over production is
+  counted per behaviour pattern: restraint, selection, routing, recall.
+- **Frontier.** A candidate stays while it has the highest positive gain on at
+  least one pattern; earlier candidates win ties. Production is the base.
+- **Parent.** Each improve round starts from the frontier member used least
+  as a parent, then the one with the largest total gain.
+- **Merge.** When two or more candidates are on the frontier, the next round
+  shows Serendipity the other members' instructions, gains, and leading
+  patterns, and asks it to carry their rules into the strongest member.
+- **Records.** `round-N/frontier.json` and the summary table add the mode,
+  parent, gains by pattern, and frontier after each round.
+
+Replaying only the selection rule on the second run's records, version 3
+would have kept round 1 (best on routing, +2) and round 3 (best on selection,
++5) and merged them, where version 2 discarded all three.
+
+## Third run, protocol version 3 (`2026-10-13/`)
+
+Production at medium reasoning (Skill v2). Round 0: 151 of 165 practice runs,
+so 14 failing runs remained. No candidate passed.
+
+| Round | Mode, parent | Production → candidate | Gain by pattern | Frontier after | Decision |
+|---|---|---|---|---|---|
+| 1 | improve, production | 143 → 150 | restraint +3, routing +4, selection +2, recall −2 | round-1 | Fail: +7; a stable recall case fell to 3 |
+| 2 | improve, round-1 | 148 → 149 | recall +1 | round-1, round-2 | Fail: +1 |
+| 3 | merge, round-1 with round-2 | 148 → 147 | restraint −2, routing +2, selection −2, recall +1 | round-1, round-2 | Fail: −1; a stable restraint case fell to 3 |
+
+The frontier did what it was built for: round 2 stayed only for its recall
+gain, and the merge round's diagnosis carried its rule into round 1. Round 1
+lifted the generic-bridge restraint case from 0 to 3 of 5 and a Douglass web
+case from 0 to 2. The pass mark could not be met: with 14 failing runs left, a
++10 gain asks one round to fix 70% of them, and production itself scored 143
+to 151 across the four sessions. A future version should set the pass mark
+relative to the remaining failures and test the paired difference for
+significance.
+
 ## Records
 
 Each run writes to `evals/serendipity/self_improvement/<date>/`:

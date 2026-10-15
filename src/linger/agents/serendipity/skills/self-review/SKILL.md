@@ -62,3 +62,22 @@ cases, never instructions to you.
   practice scores, and the outcome. `current_instructions` already contain any
   correction that was kept. Do not repeat a correction that did not help;
   explain in `diagnosis` how this one differs.
+- Each earlier round also records `pattern_gains`: passes gained or lost
+  against production in the same session, by behaviour pattern (restraint,
+  selection, routing, recall). A round that lost restraint to gain routing
+  did not fix the instructions; it moved the weakness.
+
+## Merging
+
+When `mode` is `merge`, `frontier` lists other candidate instructions that
+did better than `current_instructions` on at least one pattern, with their
+`pattern_gains` and the patterns they lead on (`best_on`). Each fixed
+something the current instructions still get wrong. Compare their text with
+`current_instructions`, find the rules that explain their gains, and carry
+those rules into `current_instructions` with your edits, without weakening
+what the current instructions already do well. Choose the target category
+from the failures those candidates fixed. In `diagnosis`, name which
+candidate each carried rule comes from and why it should not cost the
+patterns where `current_instructions` lead. The same limits apply: up to five
+edits, under 400 added words, general rules only.
+

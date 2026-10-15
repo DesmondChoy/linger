@@ -131,7 +131,7 @@ def test_held_back_books_never_reach_the_review():
         case.case_id for case in load_serendipity_eval_cases()
         if "-keller-" in case.case_id or "-pinocchio-" in case.case_id
     }
-    assert len(held_back) == 13 and len(practice) == 33
+    assert len(held_back) == 13 and len(practice) == 35
     review = loop.traces(practice, report(practice, [0] * len(practice), repeats=1))
     text = json.dumps([item.model_dump(mode="json") for item in review]).lower()
     assert "keller" not in text and "pinocchio" not in text
@@ -218,12 +218,12 @@ def test_loop_pairs_every_comparison_confirms_a_pass_and_reuses_records(tmp_path
 
     summary = asyncio.run(loop.run_loop(tmp_path))
 
-    assert single == [33]
-    assert paired == [(33, ("production", "candidate"))] * 2 + [(13, ("production", "candidate"))]
+    assert single == [35]
+    assert paired == [(35, ("production", "candidate"))] * 2 + [(13, ("production", "candidate"))]
     assert summary["rounds"][0]["outcome"] == "confirmed"
     assert summary["held_back"]["baseline"] == 26 and summary["held_back"]["candidate"] == 65
     assert {case.case_id for case in reviewed[0].cases} == {case.case_id for case in practice}
-    assert json.loads((tmp_path / "protocol.json").read_text())["design_version"] == 2
+    assert json.loads((tmp_path / "protocol.json").read_text())["design_version"] == 3
     for name in ("round-0/practice.json", "round-1/review-input.json", "round-1/correction.json",
                  "round-1/candidate-SKILL.md", "round-1/practice-production.json",
                  "round-1/practice-candidate.json", "round-1/decision.json",
@@ -370,3 +370,85 @@ def test_every_case_records_the_digest_of_the_skill_it_ran(monkeypatch):
     assert set(result.prompt_digests) == {
         "serendipity.connection-discovery", "serendipity.memory-recall", "serendipity.source-gathering",
     }
+
+
+def _member(name, **gains):
+    full = {"recall": 0, "restraint": 0, "routing": 0, "selection": 0, **gains}
+    return loop.Member(name, f"instructions {name}", full, report(CASES, [0] * len(CASES)))
+
+
+def test_frontier_keeps_any_candidate_that_leads_on_one_pattern():
+    web = _member("round-1", routing=7, restraint=-3)
+    restraint = _member("round-2", restraint=2, routing=-1)
+    frontier = loop.update_frontier(loop.update_frontier([], web), restraint)
+    assert [member.name for member in frontier] == ["round-1", "round-2"]
+    assert loop.best_on(web, frontier) == ("routing",)
+    assert loop.best_on(restraint, frontier) == ("restraint",)
+    # A later candidate that leads on nothing is discarded, and one that leads
+    # on everything a member led on replaces it.
+    assert loop.update_frontier(frontier, _member("round-3", routing=5))[-1].name == "round-2"
+    replaced = loop.update_frontier(frontier, _member("round-3", routing=8, restraint=3))
+    assert [member.name for member in replaced] == ["round-3"]
+
+
+def test_parent_is_the_member_used_least_then_the_largest_gain():
+    assert loop.choose_parent([]) is None
+    small, large = _member("a", routing=2), _member("b", selection=6)
+    assert loop.choose_parent([small, large]) is large
+    large.times_parent = 1
+    assert loop.choose_parent([small, large]) is small
+
+
+def test_pattern_gains_count_each_behaviour_pattern_in_one_session():
+    practice, _ = loop.split_cases(load_serendipity_eval_cases())
+    production = report(practice, [3] * len(practice))
+    candidate = report(practice, [
+        5 if loop.PATTERNS[case.primary_behavior] == "routing" else 2 for case in practice
+    ])
+    gains = loop.pattern_gains(production, candidate)
+    routing = sum(loop.PATTERNS[case.primary_behavior] == "routing" for case in practice)
+    assert gains["routing"] == 2 * routing
+    assert gains["restraint"] < 0 and set(gains) == {"recall", "restraint", "routing", "selection"}
+
+
+def test_two_frontier_candidates_are_merged_in_the_next_round(tmp_path: Path, monkeypatch):
+    rounds = {"paired": 0}
+    reviewed: list[SelfReviewInput] = []
+    better = {1: "routing", 2: "restraint"}  # each round fixes one pattern only
+
+    async def fake_experiment(*, repeats, cases, concurrency, discovery_skill):
+        return report(cases, [3] * len(cases))
+
+    async def fake_paired(skills, *, repeats, cases, concurrency):
+        rounds["paired"] += 1
+        target = better.get(rounds["paired"])
+        # One case of the target pattern improves: on the frontier, far below the pass mark.
+        first = next((case.case_id for case in cases if loop.PATTERNS[case.primary_behavior] == target), None)
+        candidate = [4 if case.case_id == first else 3 for case in cases]
+        return {"production": report(cases, [3] * len(cases)), "candidate": report(cases, candidate)}
+
+    async def fake_review(task):
+        reviewed.append(task)
+        failing = sorted(case.case_id for case in task.cases if case.passes < case.repeats)
+        return SkillCorrection(
+            notes=tuple({"case_id": case_id, "note": "n"} for case_id in failing),
+            categories=({"name": "c", "definition": "d", "case_ids": failing},),
+            target_category="c", diagnosis="d",
+            edits=(SkillEdit(find=task.current_instructions[:40], replace=f"Opening {len(reviewed)}.", reason="r"),),
+            expected_fixes=(failing[0],), risks="r",
+        )
+
+    monkeypatch.setattr(loop, "run_reliability_experiment", fake_experiment)
+    monkeypatch.setattr(loop, "run_paired_reliability", fake_paired)
+    monkeypatch.setattr(loop, "propose_skill_correction", fake_review)
+    monkeypatch.setattr(loop, "configure_component_evaluation_telemetry", lambda agent: None)
+
+    summary = asyncio.run(loop.run_loop(tmp_path, max_rounds=3))
+    assert [task.mode for task in reviewed] == ["improve", "improve", "merge"]
+    assert reviewed[1].current_instructions.startswith("Opening 1.")  # round 2 improves round 1
+    merge = reviewed[2]
+    assert [candidate.name for candidate in merge.frontier] == ["round-2"]
+    assert merge.frontier[0].best_on == ("restraint",)
+    assert summary["rounds"][1]["frontier"] == ["round-1", "round-2"]
+    assert merge.earlier_rounds[0].pattern_gains["routing"] > 0
+    assert "kept on the frontier" in merge.earlier_rounds[0].outcome

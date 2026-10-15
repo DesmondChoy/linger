@@ -225,6 +225,7 @@ not from the order of `allowed_sources`:
 | --- | --- | --- |
 | Connection to the reader's authorized prior context | `search_memories` | Keep private memory wording out of public-web queries. |
 | External recommendation: essay, artwork, song, thinker, public source, or outside idea | Exa | Add the confirmed book only when the reader explicitly asks for that comparison or the web result is insufficient and the book comparison is materially useful. |
+| Personalised recommendation: an outside work meant to fit the reader's life, which the cue points to without describing ("how I spend my Sunday afternoons") | `search_memories`, then Exa | Query the web with general concepts from the matching record, never its wording, and cite the memory beside the page. With no matching record, search the web from the cue alone. |
 | Relationship within a confirmed work | Librarian: `book_corpus` | Add web only when the cue explicitly asks to cross that domain or the bounded book evidence is insufficient. |
 | Explicit comparison across domains | Every named, permitted domain | Do not add unnamed domains merely because they are granted. |
 | Ambiguous reflective connection | Confirmed book, when specifically relevant | Do not search the web just to manufacture novelty. Decline when no permitted evidence fits. |

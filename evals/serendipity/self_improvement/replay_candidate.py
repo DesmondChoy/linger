@@ -5,6 +5,8 @@ self-improvement candidate. Scenario replay loads the connection-discovery
 skill at import, so the driver swaps the skill file between processes and
 restores the committed file however it exits. `--compare reasoning` compares
 Serendipity at low and medium reasoning effort through LINGER_ROLE_REASONING.
+`--compare medium` runs the production configuration alone, for more
+repetitions of one condition; `--only` limits the replays to the named ones.
 Conditions alternate within each repetition so drift over time affects both
 equally.
 
@@ -12,6 +14,9 @@ equally.
         evals/serendipity/self_improvement/2026-10-06 --repeats 3
     uv run python evals/serendipity/self_improvement/replay_candidate.py \\
         evals/serendipity/reports/replay-reasoning-2026-10-08 --compare reasoning
+    uv run python evals/serendipity/self_improvement/replay_candidate.py \\
+        evals/serendipity/reports/replay-medium-2026-10-13 --compare medium \\
+        --only scenes-06-09 --repeats 5
 """
 
 from __future__ import annotations
@@ -53,13 +58,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--compare", choices=("candidate", "reasoning"), default="candidate")
+    parser.add_argument("--compare", choices=("candidate", "reasoning", "medium"), default="candidate")
+    parser.add_argument("--only", nargs="+", choices=tuple(REPLAYS), default=tuple(REPLAYS))
     args = parser.parse_args()
     base_env = {**os.environ, "LINGER_WEB_SEARCH_ENABLED": "true"}
     if args.compare == "candidate":
         candidate = (args.run_dir / "final" / "candidate-SKILL.md").read_text(encoding="utf-8")
         out = args.run_dir / "replay"
         conditions = {"production": (None, {}), "candidate": (candidate, {})}
+    elif args.compare == "medium":
+        out = args.run_dir
+        conditions = {"medium": (None, {"LINGER_ROLE_REASONING": '{"serendipity": "medium"}'})}
     else:
         out = args.run_dir
         conditions = {
@@ -73,7 +82,8 @@ def main() -> None:
                 if skill_text is not None:
                     SKILL.write_text(skill_text, encoding="utf-8")
                 env = {**base_env, **extra_env}
-                for name, (module, scenario, extra) in REPLAYS.items():
+                for name in args.only:
+                    module, scenario, extra = REPLAYS[name]
                     output = out / condition / f"{name}-rep{rep}.json"
                     if output.exists():
                         print(f"reusing {output}", flush=True)
