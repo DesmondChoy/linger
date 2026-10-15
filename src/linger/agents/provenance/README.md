@@ -76,6 +76,10 @@ model. Candidate review permits two output retries. Preflight and curation
 review each permit one. Pydantic model validators and deterministic checks
 remain task-specific.
 
+Candidate review requests OpenAI `medium` reasoning effort. Preflight and
+curation review keep the configured model's default effort. Per-run settings
+are included in the selected skill's fingerprint.
+
 No skill receives tools or PydanticAI dependencies. Every run starts without
 message history. Request data stays in the typed input. Concurrent runs and evaluation
 model overrides do not modify the shared Agent configuration. Instructions load
@@ -251,6 +255,31 @@ embedded in source memories. These reviews use the surrounding content and
 proposed action, so they can catch subtler attempts that do not match the
 backend's regex rules. They can require a revision or reject the candidate or
 curation proposal.
+
+### Privacy and credential checks
+
+Incoming chat uses DataFog's regex detector for `EMAIL` and `PHONE` entities
+before agent processing. It replaces detected email addresses and phone numbers
+in the message. Names, addresses, health conditions, and other personal text
+are outside this redaction check. DataFog telemetry is disabled by application
+code.
+
+All five Agent builders register [`ProviderCredentialGuard`](../security.py).
+Before every provider request, it checks instructions, message history, tool
+results, retry feedback, and request schemas for credentials detected by
+`pydantic_ai_harness.redact_secrets`. A detected credential blocks dispatch.
+Muse's reply and memory nomination, curation-generated text, memory writes,
+session storage, transcripts, and captured model messages also have credential
+checks. Internal requests and storage do not repeat the incoming chat's PII
+redaction. Provenance's semantic capture veto and deterministic memory policy
+remain separate checks.
+
+[`contracts/security_validation.py`](../../contracts/security_validation.py)
+defines these boundaries and value-free findings.
+`tests/test_security_validation.py` checks provider interception, incoming
+redaction, credential blocking, and preservation of other internal text.
+
+### Capture veto scope
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
 capture. `false_persona`, `professional_advice`, and `out_of_scope` are
@@ -463,8 +492,10 @@ the loop re-hashes every source after each agent call and fails if anything
 moved.
 
 After a new durable capture with relevant prior memories, chat awaits the
-curation loop. Interactive capture is disabled by default. Standalone
-bounded-curation replay without an injected handler executes `run_curation_loop`
+curation loop. Interactive accounts without a stored policy permit automatic
+capture by default; a stored policy takes precedence. Other
+`MemoryPolicyService` callers default to capture disabled unless configured.
+Standalone bounded-curation replay without an injected handler executes `run_curation_loop`
 in an isolated temporary store, including this
 review, policy application, audit verification, and retrieval-state observation.
 Ground truth can constrain those outcomes as well as the proposal. Original

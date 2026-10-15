@@ -26,6 +26,13 @@ reflection skill is a core [`SKILL.md`](skills/reflection/SKILL.md) plus modules
 `reflection_run_options` composes them from the mode and the turn's tool
 exposure; the tool docstrings in [`tools.py`](tools.py) carry the rules for when
 to call each tool.
+
+Draft and revision runs request OpenAI `medium` reasoning effort. Turn triage
+keeps the configured model's default effort. The grounding instructions ask Muse
+to answer every part of the question and include each reason or step stated in
+the returned passages. This is a model instruction, so evidence review and
+evaluation still need to check completeness.
+
 All resources load from the package without depending
 on the working directory. The [runtime skills architecture](../../../../docs/agent-skills.md)
 describes the common assignment mechanism.
@@ -132,11 +139,31 @@ marked `needs_source` must have its substantive content mapped to supporting
 evidence or be removed. If a finding cannot be located, the application omits
 the sentence restrictions.
 
+An unflagged sentence that can carry its text and declarations without loss has
+a label such as `{{SENTENCE_2}}`. Muse can copy the label in place of that text.
+Before schema validation, [`labels.py`](labels.py) expands it to the accepted
+draft's exact wording and source declarations. Sentences joined by a source
+quotation can share one label. Each label can occur once, and malformed or
+unknown labels trigger repair. The ordinary candidate checks and second review
+see the expanded reply, including its carried declarations.
+
+When findings can be located, each must change at least one sentence it names,
+through a rewrite, deletion, or a change to a disputed source mapping. Moving an
+unchanged flagged sentence with its original mappings does not resolve the
+finding.
+
 An unchanged accepted claim keeps source mappings over its retained text.
 Supporting sources remain declared unless a finding rejects the source itself,
 and a retained source quotation needs a valid current declaration. The second
 review independently checks every current source assignment and resolves each
 earlier response finding.
+
+Wording kept from an undisputed draft claim keeps its draft sources. A corrected
+claim can cite the source that supports the correction. If a narrower,
+undisputed mapping survives inside that claim, the revision preserves that
+mapping beside the corrected claim's source. [`claim_repair.py`](claim_repair.py)
+recognizes kept wording through word runs and checks these retention rules.
+It does not decide whether a source semantically supports the revised wording.
 
 After semantic approval, deterministic validation resolves every declared source
 against the exact authorized record. Book quotations must match their source and
@@ -149,6 +176,13 @@ supplies its own clarification, emotional-boundary response, or safe decline.
 The shared Agent stores no session, account, evidence, or release state. The
 application deliberately constructs each run's message history and request
 context. There is no direct Muse-to-storage or Muse-to-reader bypass.
+
+The shared [`ProviderCredentialGuard`](../security.py) checks each provider
+request, including tool results and repair messages, for detected credentials.
+Muse's output boundary also checks the reply and memory nomination for
+credentials. Incoming chat redacts email addresses and phone numbers before
+Muse runs. These checks and their scope are described in the
+[runtime security boundaries](../../../../docs/agent-skills.md#security-boundaries).
 
 ## Evaluation and supported scope
 
@@ -174,7 +208,8 @@ configuration.
 Focused checks include `tests/test_muse_agent.py`,
 `tests/test_muse_turn_triage.py`, `tests/test_muse_tool_exposure.py`,
 `tests/test_muse_reflection_modules.py`, `tests/test_muse_revision_sentences.py`,
-`tests/test_muse_claim_retention.py`, and `tests/test_reflection.py`. Chat and
+`tests/test_muse_revision_labels.py`, `tests/test_muse_claim_retention.py`,
+`tests/test_muse_search_reason.py`, and `tests/test_reflection.py`. Chat and
 synthetic replay tests also cover released history, bounded revision, tool
 permissions, and concurrent request isolation. `tests/test_reading_progress.py`
 checks session carry, corrections, and evidence exclusion;

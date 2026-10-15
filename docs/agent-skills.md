@@ -109,7 +109,7 @@ Instructions load through `importlib.resources`, independently of the working
 directory. Only shared policy and the selected skill reach the model. Runtime
 skills never load Codex development instructions. Fingerprints cover effective
 shared and selected instructions, input and output schemas, tool permissions,
-validator identities, and retry limits.
+validator identities, retry limits, and any skill-specific model settings.
 
 Each fingerprint contains a stable `template_id` and an automatically computed
 SHA-256 `digest`. Changes to the covered instructions or configuration change
@@ -133,7 +133,8 @@ search, model-driven selection, or skill-loading model call occurs.
 
 The [installed PydanticAI run API](https://pydantic.dev/docs/ai/api/agent/)
 provides additive per-run instructions, output contracts, retries, dependencies,
-and capabilities. This implementation was verified against version 2.26.0.
+and capabilities. The project requires PydanticAI 2.53.0 or later, and
+`uv.lock` pins version 2.53.0.
 Each no-tool role has an empty tool set. Muse permits `librarian_route`,
 `librarian_search`, and sequential `serendipity_explore`; each turn offers a
 subset of them (see [Muse tool exposure](#muse-tool-exposure)). Serendipity retains
@@ -149,7 +150,33 @@ the approved failure categories and the pages that the run opened. Each
 application entry point repeats its checks before returning the result. Error
 analysis and research use `openai_reasoning_effort="high"` for those runs.
 Muse's reflection draft and revision, and Provenance's candidate review, use
-`openai_reasoning_effort="medium"`; every other run keeps the shared low effort.
+`openai_reasoning_effort="medium"`. Other runs keep their configured model's
+defaults. The shared OpenAI `gpt-6-luna` model defaults to low effort.
+
+## Security boundaries
+
+The incoming chat boundary redacts only email addresses and phone numbers with
+DataFog's regex detector. Application code disables DataFog telemetry. The
+redacted message becomes the reader Line for agent processing and persistence.
+Fixed regex rules also block explicit instruction-override and hidden-instruction
+requests before emotional preflight. These rules recognize only their defined
+patterns. Provenance independently reviews injection and policy compliance.
+
+All five reusable Agents register
+[`ProviderCredentialGuard`](../src/linger/agents/security.py), which checks each
+provider request before dispatch. The guard checks instructions, message
+history, tool results, repair feedback, and request schemas for credentials
+detected by `pydantic_ai_harness.redact_secrets`. It does not apply PII redaction
+to internal requests or canonical source text. A detected credential blocks
+the request.
+
+Muse's reply and memory nomination, generated curation text, memory writes,
+session storage, transcripts, and captured model messages also have credential
+checks. [`security_validation.py`](../src/linger/contracts/security_validation.py)
+defines value-free findings and fixed block messages. These checks complement
+the source grants, semantic review, and memory policy described below.
+`tests/test_security_validation.py` covers agent registration, provider
+interception, incoming redaction, storage checks, and internal text preservation.
 
 ## Muse tool exposure
 
@@ -255,6 +282,15 @@ sentences require complete source mappings or deletion. If a finding cannot be
 located, the application omits the sentence restrictions. The second review
 still checks the complete reply within the original evidence authority. Muse
 never releases its own reply.
+
+When findings can be located, each must change at least one sentence it names
+through a rewrite, deletion, or change to a disputed source mapping. Retained undisputed
+wording keeps its draft sources. A corrected claim can take a source supporting
+the correction while preserving an undisputed narrower mapping inside it.
+The grounding instructions also ask Muse to include every reason or step that
+the returned passages state for the reader's question. Sentence retention and
+word-run matching check mechanical constraints. Answer completeness and semantic
+source support remain review and evaluation responsibilities.
 
 Librarian's chapter-boundary decision begins with one explicit assessment per
 supplied memory. Each assessment names canonical passages and explains whether

@@ -62,6 +62,15 @@ Planning failures are recorded and use original-text retrieval as a fallback.
 An empty authorized plan also gets that recovery path; no authorized scope
 means no search. Exact-passage grants still assess only the granted records.
 
+Muse's `librarian_search` adapter returns a fixed application sentence as
+`strength_reason` when the judgment is `sufficient`. The selected passages,
+limitations, scope, and evidence ledgers keep their values. `weak` and `none`
+judgments keep the model's reason. Librarian's recorded assessment and
+Serendipity's `search_librarian` result retain the full reason in every case.
+This keeps unverified assessment prose from supplying Muse with facts absent
+from the passages. `tests/test_muse_search_reason.py` covers the adapter and
+the paths that retain the original reason.
+
 Progress search uses focused event locators plus the original progress query,
 then interleaves those candidates with memory searches under a private
 20-record boundary budget. The boundary judge receives the original reader
@@ -86,6 +95,10 @@ contain only common trust and authority rules. Each run adds its selected
 `SKILL.md`; no run adds another task's instructions or conversation history.
 Fingerprints cover both instruction layers and their contracts. Builders accept
 injected models, and a production role override applies to every skill.
+
+The shared [`ProviderCredentialGuard`](../security.py) checks each provider
+request for detected credentials before dispatch. It preserves canonical
+passage text and other personal data when no credential is detected.
 
 The Librarian subsystem also resolves work identity, searches, filters, fuses,
 deduplicates, reranks, and resolves canonical records. These deterministic

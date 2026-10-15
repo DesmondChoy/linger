@@ -50,6 +50,11 @@ reaches the model.
 No task inherits another task's policy or output schema. Candidate review
 allows two output retries; the other skills allow one. Output schemas retain
 their Pydantic validators, and orchestration retains its deterministic checks.
+
+Candidate review requests OpenAI `medium` reasoning effort. The other skills
+keep the configured model's default effort. Skill fingerprints include any
+task-specific model settings.
+
 No skill receives tools, PydanticAI dependencies, or conversation history.
 Request inputs and evaluation overrides remain local to each run.
 
@@ -102,6 +107,9 @@ proof to named records; they do not establish semantic support by themselves.
 Output validation retries incomplete audits, invalid bindings, and inconsistent
 findings within the two-retry budget. A revision also requires a resolution for
 every earlier response finding.
+
+The second review checks the complete revised reply and every current source
+mapping. A resolved earlier finding does not exempt other text from review.
 
 Muse's own non-sensitive reflection needs no source mapping. A claim about what
 a book, memory, or web source establishes requires the matching declaration.
@@ -161,6 +169,21 @@ digest mismatch. The audit contract rebuilds the plan and verifies its digest.
 These checks bind a verdict to the object and state that were reviewed. They do
 not turn Provenance into a writer or a release authority.
 
+## Security boundaries
+
+Incoming chat redacts email addresses and phone numbers with DataFog's regex
+detector before agent processing. Fixed regex rules block explicit attempts to
+override instructions or request hidden instructions. Provenance still reviews
+the candidate independently for injection and policy compliance.
+
+Every reusable Agent has a `ProviderCredentialGuard`, which checks each
+provider request for detected credentials, including tool results and retry
+messages. Internal provider requests and storage do not repeat incoming PII
+redaction. Muse output, generated curation text, memory writes, sessions,
+transcripts, and captured model messages also have credential checks. See the
+[runtime security boundaries](../agent-skills.md#security-boundaries) for
+detector scope and focused verification.
+
 ## Component boundaries
 
 | Component | Responsibility | Authority limit |
@@ -179,7 +202,9 @@ The three skills, deterministic gates, and curation binding are implemented.
 Chat consumes preflight and candidate review. After a new durable capture with
 relevant prior memories, chat awaits the application curation loop, which uses
 the separate curation-review contract. Offline workflows can invoke that loop
-directly. Interactive capture remains disabled by default.
+directly. Interactive accounts without a stored policy permit automatic
+capture by default. A stored policy takes precedence. Other
+`MemoryPolicyService` callers default to capture disabled unless configured.
 
 The [Provenance evaluation guide](../../evals/provenance/README.md) describes an
 eight-case emotional pack, a 60-case candidate-review pack, a nine-case focused
