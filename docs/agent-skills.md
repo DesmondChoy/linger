@@ -204,7 +204,7 @@ earlier, leaves the intent open.
 A pending clarification, or a reading context confirmed in the current turn,
 always adds the book tools; a chapter carried from an earlier turn or restored
 from saved account progress leaves exposure to triage. Only tools that ran in
-a released turn are remembered, matching the session history and evidence handles, so a declined draft cannot widen later
+a released turn are remembered, matching the evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
 Turn triage also classifies `override_attempt`: whether the reader's own

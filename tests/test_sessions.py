@@ -56,7 +56,10 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
             record.review_finding_codes,
         )
         self.assertNotIn(private_passage, json.dumps(asdict(record)))
-        self.assertEqual([], sessions.history(self.session_id))
+        self.assertEqual(
+            [private_passage, "safe decline"],
+            [message.parts[0].content for message in sessions.history(self.session_id)],
+        )
 
     def test_new_released_history_preserves_pii_outside_the_chat_input_boundary(self) -> None:
         email = "alice.person@example.com"
@@ -167,8 +170,10 @@ class ReaderStatementTests(unittest.TestCase):
         statements = sessions.reader_statements(self.session_id)
 
         self.assertIsInstance(statements, tuple)
-        self.assertEqual([original, "Chapter 5?"], [item.text for item in statements])
-        self.assertEqual(2, len({item.statement_id for item in statements}))
+        self.assertEqual(
+            [original, "Failed user turn", "Chapter 5?"], [item.text for item in statements]
+        )
+        self.assertEqual(3, len({item.statement_id for item in statements}))
         self.assertEqual((), sessions.reader_statements("unknown-session"))
 
     def test_ids_are_stable_as_recent_window_moves_and_turn_ids_repeat(self) -> None:

@@ -377,7 +377,10 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("validation", response.inspection.release.failure_type)
         self.assertIsNone(response.memory_capture)
         self.assertEqual([], self.service.list_active(self.account))
-        self.assertEqual([], sessions.history(session_id))
+        self.assertEqual(
+            [source, response.reply],
+            [message.parts[0].content for message in sessions.history(session_id)],
+        )
 
     async def test_substantive_nomination_preserves_surrounding_whitespace(self) -> None:
         self.service.set_capture_enabled(self.account, True)

@@ -198,6 +198,14 @@ def reader_statements(session_id: str) -> tuple[ReaderStatement, ...]:
     return tuple(reversed(selected))
 
 
+# A safe decline keeps the reader's Line beside the fixed decline text, so a
+# correction in that Line survives; Muse's rejected draft never reaches the store.
+# Emotional and language boundaries keep the Line out of history.
+CHAT_HISTORY_SOURCES: frozenset[ReleaseSource] = frozenset(
+    {"muse_candidate", "application_clarification", "application_safe_decline"}
+)
+
+
 def append_turn(
     session_id: str,
     user_message: str,
@@ -209,11 +217,11 @@ def append_turn(
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
     tool_names: tuple[str, ...] = (),
 ) -> None:
-    """Store content-free evidence and review handles; store chat only if released."""
+    """Store content-free evidence and review handles, plus the chat the reader saw."""
     user_message = check_storage_credentials(user_message)
     assistant_message = check_storage_credentials(assistant_message)
     assert isinstance(user_message, str) and isinstance(assistant_message, str)
-    if release_source in {"muse_candidate", "application_clarification"}:
+    if release_source in CHAT_HISTORY_SOURCES:
         messages: list[ModelMessage] = [
             ModelRequest(parts=[UserPromptPart(content=user_message)]),
             ModelResponse(parts=[TextPart(content=assistant_message)]),

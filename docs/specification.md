@@ -616,8 +616,11 @@ For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
 finding codes. This record never stores passage text or reading progress.
 Released Muse replies and application-authored clarifications enter the
-conversational message history; an emotional-boundary or safe-decline turn
-keeps only its content-free record. Only identifiers from successfully released
+conversational message history. A safe-decline turn enters it as the reader's
+message paired with the fixed decline text, so a correction in a declined
+message still reaches later turns; Muse's rejected draft is never stored. An
+emotional-boundary or language-boundary turn keeps only its content-free
+record. Only identifiers from successfully released
 Muse replies may be re-resolved on a later turn, and session reset removes
 these handles with the conversation.
 
