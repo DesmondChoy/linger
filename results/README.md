@@ -8,10 +8,8 @@ slide evidence: **16 Scenarios and 79 source Scenes**.
 **16 / 16 final results retained.** Final results may include
 legitimate failures. Follow each summary link for findings and next steps.
 
-\* Rerun on 16 October 2026 after the boundary-inference fix in
-[Error analysis](#error-analysis). Its Automated score comes from the rerun.
-Its LLM-review is pending, and it is not yet bundled into `results/`. The
-previous reviewed summary stays linked.
+Douglass, Helen Keller, and Alice Pigeon show the results of their reruns
+after the boundary-inference fix in [Error analysis](#error-analysis).
 
 Rows are grouped by the agent each Scenario represents, as in
 [issue #100](https://github.com/DesmondChoy/linger/issues/100). Scores count Scenes. **Completed** means the run and its LLM-review finished,
@@ -23,10 +21,10 @@ even when individual Scenes failed.
 | Muse | [Session continuity and longitudinal retrieval](../synthetic-journal-evaluation/scenarios/session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/backstory.json) | 4 | Completed | 3/4 passed, 1 ungraded | 3/4 passed, 1 failed | [Summary](session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/summary.md) |
 | Librarian | [Alice event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 4/4 passed | 3/4 passed, 1 failed | [Summary](event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | Librarian | [Animal Farm event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 4/4 passed | [Summary](animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| Librarian | [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json)\* | 4 | Rerun; LLM-review pending | 3/4 passed, 1 failed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/douglass/analysis-report-2026-10-16T203640+0800-54199123.md) · [Previous summary](douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| Librarian | [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json)\* | 4 | Rerun; LLM-review pending | 4/4 passed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/helen-keller/analysis-report-2026-10-16T203902+0800-d9fe032a.md) · [Previous summary](helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 3/4 passed, 1 failed | [Summary](douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 4/4 passed | 4/4 passed | [Summary](helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | Librarian | [Pinocchio event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 2/4 passed, 2 failed | [Summary](pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| Librarian | [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json)\* | 3 | Rerun; LLM-review pending | 3/3 passed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/alice-pigeon/analysis-report-2026-10-16T204254+0800-94a8d532.md) · [Previous summary](alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/summary.md) |
+| Librarian | [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json) | 3 | Completed | 3/3 passed | 3/3 passed | [Summary](alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/summary.md) |
 | Serendipity | [Cross-source connections and restraint](../synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
 | Serendipity | [Alice roses, concealment, and restraint](../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
 | Provenance | [Sensitive inference and capture veto](../synthetic-journal-evaluation/scenarios/sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/summary.md) |
@@ -78,24 +76,26 @@ retrieved.
   Provenance keeps its shape.
 
 **Rerun results.** The six Scenarios that run boundary inference were rerun
-once each on 16 October 2026 with `openai:gpt-6-luna`. Evidence is in
-`output/boundary-rerun-2026-10-16/` and is not yet bundled or LLM-reviewed.
-Scores are Automated.
+once each on 16 October 2026 with `openai:gpt-6-luna`, then LLM-reviewed.
+Douglass, Helen Keller, and Alice Pigeon replaced their previous results in
+`results/`. Pinocchio, Animal Farm, and Alice event-led kept the same Automated
+scores, so their previous results stay in place; their reviewed reruns are in
+`output/boundary-rerun-2026-10-16/`.
 
-| Scenario | Before | After | What changed |
-| --- | ---: | ---: | --- |
-| Helen Keller | 3/4 | **4/4** | Boundary accepted: Chapter 10, with the correct anchors |
-| Alice Pigeon | 2/3 | **3/3** | Infers Chapter 5 instead of returning "uncertain" |
-| Douglass | 3/4 | 3/4 | Boundary succeeds on the first call, and the reader gets the quotation and reflection. The Scene still fails because the model cited one extra correct anchor: the "pit … no ladder" passage that the reader reports reading. The Ground truth does not list it as optional, so this is an expectation mismatch. |
-| Pinocchio | 3/4 | 3/4 | Still fails. The model altered a source excerpt, which the fix does not address. This is a legitimate model failure. |
-| Animal Farm | 3/4 | 3/4 | The same missing-anchor failure, as expected |
-| Alice event-led | 4/4 | 4/4 | No regression. The earlier Dodo and thimble paraphrase error did not recur. |
-| **Total** | **18/23** | **20/23** | |
+| Scenario | Automated before | Automated after | LLM-review before | LLM-review after | What changed |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Helen Keller | 3/4 | **4/4** | 3/4 | **4/4** | Boundary accepted: Chapter 10, with the correct anchors. The reply quotes the crab sentence exactly. |
+| Alice Pigeon | 2/3 | **3/3** | 2/3 | **3/3** | Infers Chapter 5 instead of returning "uncertain", and quotes the sentence exactly. In the ambiguity Scene the boundary stage over-committed, and the independent event-identification check caught it. |
+| Douglass | 3/4 | 3/4 | 3/4 | 3/4 | Boundary now succeeds on the first call with chapter 7. The Scene still fails twice over. The grader rejects one extra, correct anchor, the "pit … no ladder" passage the reader reports reading. The reply also lacks the quotation, because a later book-request plan dropped the reader's description of the sentence. |
+| Pinocchio | 3/4 | 3/4 | 2/4 | 2/4 | Still fails. Both attempts chose chapter 9 with no inventory fault but altered a source excerpt, which the fix does not address. |
+| Animal Farm | 3/4 | 3/4 | 4/4 | 4/4 | The same missing-anchor failure, as expected |
+| Alice event-led | 4/4 | 4/4 | 3/4 | **4/4** | No regression. The earlier Dodo and thimble paraphrase error did not recur, which is model variance, not the fix. |
+| **Total** | **18/23** | **20/23** | **17/23** | **20/23** | |
 
-Only Douglass, Helen Keller, and Alice Pigeon are marked \* in
-[Current progress](#current-progress), because their results changed.
-Pinocchio, Animal Farm, and Alice event-led kept the same Automated scores, so
-their reviewed results stay in place.
+The fix also exposed two expectation problems. Douglass and Animal Farm
+disagree on whether a reader-reported event must be a boundary anchor. The
+Douglass reply shows that the stage after boundary inference can still lose
+the reader's description of the passage to retrieve.
 
 ## Run policy
 
