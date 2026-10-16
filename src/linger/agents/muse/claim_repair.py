@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from src.linger.agents.muse.models import (
     DraftSentence, MuseCandidate, RetainedSource, SentenceMapping, limit_claim_texts,
 )
+from src.linger.agents.response_text import sentence_spans
 
 if TYPE_CHECKING:
     from src.linger.agents.provenance.models import (
@@ -163,7 +164,6 @@ def retained_source_errors(
         if (source.source_kind, source.evidence_id) not in declared]
 
 
-_SENTENCE_BREAK = re.compile(r"(?<=[.?!])[\"'”’)\]*_]*(?=\s)|\n[ \t]*\n")
 _MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
 _WORD = re.compile(r"\w+")
 # A connective or two left unmapped ("but", "and so") is not a source claim.
@@ -174,21 +174,6 @@ _REWRITE_SIMILARITY = 0.5
 # and covers this share of the claim's words.
 _MIN_KEPT_RUN = 5
 _MIN_KEPT_SHARE = 0.7
-
-
-def _sentence_spans(text: str) -> list[tuple[int, int]]:
-    spans, start = [], 0
-    for match in _SENTENCE_BREAK.finditer(text):
-        spans.append((start, match.end()))
-        start = match.end()
-    spans.append((start, len(text)))
-    trimmed = []
-    for start, end in spans:
-        segment = text[start:end]
-        if segment.strip():
-            lead = len(segment) - len(segment.lstrip())
-            trimmed.append((start + lead, start + len(segment.rstrip())))
-    return trimmed
 
 
 def _normalized(text: str) -> str:
@@ -241,7 +226,7 @@ def draft_sentences_for_revision(
                     if span.span_index in source_dependent]
     reply = candidate.reply
     sentences = []
-    for start, end in _sentence_spans(reply):
+    for start, end in sentence_spans(reply):
         # Indexes into `response_findings`, the revision's `review.findings`.
         findings = tuple(index for index, intervals in enumerate(placed) if _overlaps(start, end, intervals))
         sentences.append(DraftSentence(
@@ -258,7 +243,7 @@ def _label_units(reply: str) -> list[list[int]]:
     """Runs of sentence indexes joined by a quotation the splitter cut; every other sentence alone."""
     from src.linger.agents.provenance.quotation_audit import quoted_response_spans
 
-    spans = _sentence_spans(reply)
+    spans = sentence_spans(reply)
     quotes = [(quote.start, quote.end) for quote in quoted_response_spans(reply)]
     units: list[list[int]] = []
     for index, (start, _) in enumerate(spans):
@@ -273,7 +258,7 @@ def label_sentences(
     candidate: MuseCandidate, sentences: tuple[DraftSentence, ...],
 ) -> tuple[DraftSentence, ...]:
     """Label each unit of unflagged sentences whose text and declarations the revision can carry whole."""
-    spans = _sentence_spans(candidate.reply)
+    spans = sentence_spans(candidate.reply)
     labels: dict[int, str] = {}
     for unit in _label_units(candidate.reply):
         start, end = spans[unit[0]][0], spans[unit[-1]][1]
@@ -463,7 +448,7 @@ def draft_sentence_errors(
     if not draft_sentences:
         return []
     reply = candidate.reply
-    spans = _sentence_spans(reply)
+    spans = sentence_spans(reply)
     revised = [_normalized(reply[start:end]) for start, end in spans]
     drafted = [_normalized(sentence.text) for sentence in draft_sentences]
     errors: list[dict[str, object]] = []

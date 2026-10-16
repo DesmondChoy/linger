@@ -121,9 +121,11 @@ from the current candidate and canonical sources. Supplied values cannot
 override those projections.
 Provenance returns four complete audits:
 
-- `coverage_audit` classifies each undeclared response span as presentation,
+- `coverage_audit` classifies each undeclared response fragment as presentation,
   reader reflection, or source-dependent content. Source-dependent content
-  requires a finding on that span.
+  requires a finding on that fragment. Application code splits uncovered text
+  at the same sentence boundaries Muse uses for revision, so a factual claim
+  does not impose a source requirement on the following personal reflection.
 - `quotation_audit` classifies each balanced double-quoted span. A source
   quotation needs a current declaration whose exact quote binds the complete
   displayed occurrence, including its interior punctuation and whitespace.

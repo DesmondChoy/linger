@@ -11,7 +11,7 @@ from src.linger.agents.muse.claim_repair import (
     added_source_errors, draft_sentence_errors, draft_sentences_for_revision,
 )
 from src.linger.agents.muse.models import DraftSentence, MuseCandidate
-from src.linger.agents.provenance.models import ProvenanceReview, UncoveredResponseSpan
+from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview, UncoveredResponseSpan
 from src.linger.orchestration.turn_context import reset_turn_evidence, set_turn_evidence
 from tests.test_muse_claim_retention import revision_context
 from tests.test_muse_repair_feedback import BOOK
@@ -91,6 +91,46 @@ def test_source_dependent_uncovered_span_marks_its_sentence():
     span = UncoveredResponseSpan(span_index=0, start=start, end=start + len(FLAGGED), text=FLAGGED)
     marked = draft_sentences_for_revision(candidate(DRAFT), review(quoted(FLAGGED), source_dependent=(0,)), (span,))
     assert [item.text for item in marked if item.needs_source] == [FLAGGED]
+
+
+def test_book_repairs_preserve_adjacent_unmapped_personal_reflection():
+    reflection = (
+        "There may be a similar tension in your lunches—thanks arriving after you’ve supplied "
+        "the deposit and effort, so that appreciation can feel like your own contribution "
+        "being handed back rather than newly recognized."
+    )
+    second_fact = "Alice refuses the prize."
+    draft = candidate(f"{FLAGGED} {reflection} {second_fact} {QUESTION}")
+    request = ProvenanceInput.model_validate({
+        "context": {"policy": {"allow_retrieval": False, "allow_connection": True,
+                               "allow_memory_capture": False}, "reading_context": None},
+        "candidate": {"response": draft.reply, "memory": draft.memory.model_dump(mode="json")},
+        "current_line": {"text": "Help me connect these book scenes with organising lunches."},
+    })
+    checked = review(quoted(FLAGGED), quoted(second_fact), source_dependent=(0, 2))
+    checked = checked.model_copy(update={"coverage_audit": tuple(
+        checked.coverage_audit[0].model_copy(update={
+            "span_index": index,
+            "classification": "source_dependent" if index in (0, 2) else "reader_reflection",
+        }) for index in range(4)
+    )})
+    marks = draft_sentences_for_revision(draft, checked, request.uncovered_response_spans)
+    assert [(item.flagged, item.needs_source) for item in marks] == [
+        (True, True), (False, False), (True, True), (False, False),
+    ]
+    assert marks[1].label and marks[3].label
+    request.validate_review(checked)
+
+    repaired_first = "Pinocchio delays his promise."
+    repaired_second = "Alice accepts the prize."
+    repaired_reply = f"{repaired_first} {reflection} {repaired_second} {QUESTION}"
+    assert draft_sentence_errors(
+        candidate(repaired_reply, claims=(repaired_first, repaired_second)), marks,
+    ) == []
+    for missing, mapped in ((repaired_first, repaired_second), (repaired_second, repaired_first)):
+        errors = draft_sentence_errors(candidate(repaired_reply, claims=(mapped,)), marks)
+        assert any(error["path"] == "evidence_uses" and error["value"] == missing for error in errors)
+        assert not any(error["value"] in (reflection, QUESTION) for error in errors)
 
 
 def test_flagged_rewrite_and_unflagged_deletion_are_allowed():

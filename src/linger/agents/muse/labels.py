@@ -17,9 +17,10 @@ from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
 from src.linger.agents.muse.claim_repair import (
-    _occurrences, _sentence_mappings, _sentence_spans, label_sentences,
+    _occurrences, _sentence_mappings, label_sentences,
 )
 from src.linger.agents.muse.models import LABEL_TRACE, DraftSentence, MuseCandidate
+from src.linger.agents.response_text import sentence_spans
 
 # pydantic-ai's tool return for the one output call it accepted as the run's result.
 _FINAL_RESULT_PROCESSED = "Final result processed."
@@ -66,7 +67,7 @@ def reviewed_draft(ctx: Any, sentences: tuple[DraftSentence, ...]) -> MuseCandid
         draft = MuseCandidate.model_validate(call.args_as_dict())
     except (ValidationError, ValueError):
         return None
-    spans = _sentence_spans(draft.reply)
+    spans = sentence_spans(draft.reply)
     if len(spans) != len(sentences):
         return None
     # Sentence text, flags, labels, and every declaration, field and text a label can carry.
@@ -133,7 +134,7 @@ def _use_texts(uses: list[dict]) -> list[str]:
 
 def _units(draft: MuseCandidate, sentences: tuple[DraftSentence, ...]) -> dict[str, tuple[int, int, int, int]]:
     """Label -> (draft start, draft end, first sentence, last sentence)."""
-    spans = _sentence_spans(draft.reply)
+    spans = sentence_spans(draft.reply)
     units: dict[str, tuple[int, int, int, int]] = {}
     for index, sentence in enumerate(sentences):
         if sentence.label:
@@ -195,7 +196,7 @@ def _carried(
         return []
     from src.linger.orchestration.turn_context import turn_evidence
 
-    spans = _sentence_spans(draft.reply)
+    spans = sentence_spans(draft.reply)
     placed = {label: start - units[label][0] for label, start, _ in placements}  # draft -> reply offset
     owner = {index: label for label, (_, _, first, last) in units.items()
              if label in placed for index in range(first, last + 1)}

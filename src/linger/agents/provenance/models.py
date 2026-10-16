@@ -18,6 +18,7 @@ from src.linger.agents.provenance.quotation_audit import (
     QuotationAudit, QuotedResponseSpan, quotation_audit_errors,
     quoted_response_spans as project_quoted_response_spans,
 )
+from src.linger.agents.response_text import sentence_spans
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from src.linger.contracts.librarian import EvidenceRecord, PassageScope
@@ -620,10 +621,20 @@ class ProvenanceInput(StrictModel):
             cursor = max(cursor, end)
         if cursor < len(response):
             gaps.append((cursor, len(response)))
+        sentence_ends = [end for _, end in sentence_spans(response)]
+        fragments = []
+        for start, end in gaps:
+            last_text = start + len(response[start:end].rstrip())
+            cursor = start
+            for boundary in sentence_ends:
+                if cursor < boundary < last_text:
+                    fragments.append((cursor, boundary))
+                    cursor = boundary
+            fragments.append((cursor, end))
         return tuple(UncoveredResponseSpan(
             span_index=index, start=start, end=end, text=response[start:end],
         ) for index, (start, end) in enumerate(
-            (start, end) for start, end in gaps if response[start:end].strip()
+            (start, end) for start, end in fragments if response[start:end].strip()
         ))
 
     @computed_field

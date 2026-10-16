@@ -203,9 +203,11 @@ Evaluate the sources' different roles without treating them as interchangeable p
 Return three compact audits as part of this same review:
 - `coverage_audit`: one entry for every `span_index` in the application's
   `uncovered_response_spans`, with `classification` of `presentation`,
-  `reader_reflection`, or `source_dependent`. The table contains the exact gaps
-  between declared claims and valid bound quotations, not an interpretation of
-  those gaps. Read each in the context of the COMPLETE reply and its sources;
+  `reader_reflection`, or `source_dependent`. The table contains exact uncovered
+  fragments between declared claims and valid bound quotations, split at the
+  sentence boundaries used by Muse revision. Classify each fragment separately
+  so a book claim does not make the next personal reflection need a source.
+  Read each in the context of the COMPLETE reply and its sources;
   a fragment may continue a substantive claim across a declared span. Never
   assume that a gap is harmless because its sentence begins in covered text.
   Classify as `source_dependent` if any substantive part needs an undeclared

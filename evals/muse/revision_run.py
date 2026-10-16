@@ -51,6 +51,8 @@ from pydantic_ai.messages import (
 from pydantic_ai.models import Model
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
+from src.linger.agents.response_text import sentence_spans
+
 CASES_DIR = Path(__file__).resolve().parent / "cases" / "revision"
 WORK_ID = "revision-eval-novel"
 BOOK_VERSION_ID = "revision-eval-novel-v1"
@@ -264,12 +266,6 @@ def _candidate(data: dict[str, Any]):
     return MuseCandidate.model_validate(data)
 
 
-def _sentence_spans(text: str) -> list[tuple[int, int]]:
-    from src.linger.agents.muse.claim_repair import _sentence_spans as production
-
-    return production(text)
-
-
 def draft_sentences(case: RevisionCase):
     """Production placement (`draft_sentences_for_revision`) for the fixture's findings."""
     from src.linger.agents.muse.claim_repair import (
@@ -285,7 +281,7 @@ def draft_sentences(case: RevisionCase):
             raise ValueError(f"{case.case_id}: a finding cannot be placed; production would send no sentences")
         placed.append(intervals)
     sentences = []
-    for index, (start, end) in enumerate(_sentence_spans(draft.reply)):
+    for index, (start, end) in enumerate(sentence_spans(draft.reply)):
         named = tuple(i for i, intervals in enumerate(placed) if _overlaps(start, end, intervals))
         sentences.append(DraftSentence(
             text=draft.reply[start:end], flagged=bool(named),
@@ -460,7 +456,7 @@ def grade_revision(case: RevisionCase, output) -> dict[str, Any]:
     sentences = draft_sentences(case)
     drafted = [_normalized(sentence.text) for sentence in sentences]
     reply = output.reply
-    spans = _sentence_spans(reply)
+    spans = sentence_spans(reply)
     revised = [_normalized(reply[start:end]) for start, end in spans]
     covered = _mapped_mask(output)
     failures: list[str] = []
@@ -639,7 +635,7 @@ def label_use(case: RevisionCase, messages: list[ModelMessage], output) -> dict[
     raw = accepted_output_call(messages).args_as_dict()
     reply = str(raw.get("reply", ""))
     used = [label for label in units if label in reply]
-    revised = {_normalized(output.reply[start:end]) for start, end in _sentence_spans(output.reply)}
+    revised = {_normalized(output.reply[start:end]) for start, end in sentence_spans(output.reply)}
     return {
         "labels_available": len(units),
         "labels_used": len(used),
