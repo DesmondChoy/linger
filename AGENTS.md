@@ -1,9 +1,5 @@
 # Agent Instructions
 
-Read and follow [`CONSTITUTION.md`](CONSTITUTION.md). It provides baseline
-guidance; the repository-specific instructions below override it where they are
-more specific.
-
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 ## Workflow

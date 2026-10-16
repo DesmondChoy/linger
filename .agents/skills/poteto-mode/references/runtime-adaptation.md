@@ -106,4 +106,4 @@ Models: the `Agent` tool's `model` field accepts the aliases it lists (`fable`, 
 
 Invocation: Claude Code ignores `agents/openai.yaml`, so skills that Codex keeps explicit-only (`poteto-mode` and the `principle-*` skills) are model-invocable on Claude Code by design. Do not add `disable-model-invocation`; Codex's validator rejects it.
 
-`CLAUDE.md` imports `AGENTS.md` and `CONSTITUTION.md`; edit `AGENTS.md`, not `CLAUDE.md`. Global Claude Code configuration, when explicitly in scope, lives under `~/.claude/`. Do not write agent-private memories in place of shared instructions; use `bd remember` when `AGENTS.md` asks for persistent knowledge.
+`CLAUDE.md` imports `AGENTS.md`; edit `AGENTS.md`, not `CLAUDE.md`. Global Claude Code configuration, when explicitly in scope, lives under `~/.claude/`. Do not write agent-private memories in place of shared instructions; use `bd remember` when `AGENTS.md` asks for persistent knowledge.
