@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.reading import permits_scope
-from src.linger.contracts.turn import ReleaseScope, ReleaseSource
+from src.linger.contracts.turn import ConfirmedReading, ReleaseScope, ReleaseSource
 from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.grounding import librarian_service
 
@@ -133,6 +133,46 @@ def _retract(session_id: str, progress: sessions.ReadingProgress) -> None:
     sessions.supersede_reader_statements(session_id)
 
 
+def effective_saved_readings(
+    request: ChatRequest,
+    resolution: ContextResolution,
+    saved: dict[str, ConfirmedReading],
+    *,
+    parser_patterns: Iterable[re.Pattern[str]],
+) -> dict[str, ConfirmedReading]:
+    """Apply session corrections once before routing and comparison consume saved progress."""
+    readings = dict(saved)
+    for work_id in saved:
+        progress = sessions.reading_progress_for(request.session_id, work_id)
+        if progress is not None:
+            if progress.chapter_max is None:
+                readings.pop(work_id)
+            else:
+                readings[work_id] = ConfirmedReading(
+                    work_id=work_id, chapter_max=progress.chapter_max, part_id=progress.part_id,
+                )
+    if resolution.status == "confirmed" or not readings:
+        return readings
+    work_id = resolution.work_id
+    route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
+    if route is not None and not isinstance(route, BookClarification):
+        work_id = route.scope.work_id
+    if work_id not in readings:
+        return readings
+    current = readings[work_id]
+    selection = sessions.book_selection(request.session_id)
+    if selection is not None and selection.book_id == current.work_id and selection.part_id != current.part_id:
+        readings.pop(current.work_id)
+        return readings
+    progress = sessions.ReadingProgress(
+        current.work_id, librarian_service.version_for(current.work_id), current.part_id, current.chapter_max,
+    )
+    if unparsed_progress(request.message, progress, parser_patterns):
+        _retract(request.session_id, replace(progress, chapter_max=None))
+        readings.pop(current.work_id)
+    return readings
+
+
 def apply(
     request: ChatRequest,
     resolution: ContextResolution,
@@ -149,27 +189,34 @@ def apply(
         declared = sessions.ReadingProgress(
             resolution.work_id, resolution.book_version_id, resolution.part_id, resolution.chapter_max,
         )
+        previous = sessions.reading_progress_for(session_id, declared.work_id)
         if (
-            slot is not None and slot.chapter_max is not None
-            and (slot.work_id, slot.part_id) == (declared.work_id, declared.part_id)
-            and declared.chapter_max < slot.chapter_max
+            previous is not None and previous.chapter_max is not None
+            and previous.part_id == declared.part_id
+            and declared.chapter_max < previous.chapter_max
         ):
             _retract(session_id, declared)
             return resolution, None, False
         return resolution, None if declared == slot else PendingProgress(slot, declared), False
     if slot is None or slot.chapter_max is None:
         return resolution, None, False
-    if resolution.clarification_question or unparsed_progress(request.message, slot, parser_patterns):
+    selection = sessions.book_selection(session_id)
+    selection_matches = selection is not None and (selection.book_id, selection.part_id) == (slot.work_id, slot.part_id)
+    route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
+    if route is not None and not isinstance(route, BookClarification) and route.scope.work_id != slot.work_id:
+        if not selection_matches:
+            sessions.set_reading_progress(session_id, None)
+        return resolution, None, False
+    if unparsed_progress(request.message, slot, parser_patterns):
         _retract(session_id, replace(slot, chapter_max=None))
         return resolution, None, False
-    selection = sessions.book_selection(session_id)
-    if selection is None or (selection.book_id, selection.part_id) != (slot.work_id, slot.part_id):
+    if not selection_matches:
         sessions.set_reading_progress(session_id, None)
         return resolution, None, False
-    if resolution.status != "inferred" or resolution.work_id != slot.work_id:
+    if resolution.clarification_question:
+        _retract(session_id, replace(slot, chapter_max=None))
         return resolution, None, False
-    route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
-    if route is not None and (isinstance(route, BookClarification) or route.scope.work_id != slot.work_id):
+    if resolution.status != "inferred" or resolution.work_id != slot.work_id or isinstance(route, BookClarification):
         return resolution, None, False
     return ContextResolution(
         status="confirmed", work_id=slot.work_id, work_title=resolution.work_title,
@@ -192,14 +239,17 @@ def commit(session_id: str, pending: PendingProgress | None, release_source: Rel
 
 
 def permitted_evidence(session_id: str, records: Iterable[EvidenceRecord]) -> tuple[EvidenceRecord, ...]:
-    """Drop earlier evidence from the slot's book that its current ceiling no longer permits."""
-    slot = sessions.reading_progress(session_id)
-    if slot is None:
-        return tuple(records)
-    if slot.chapter_max is None:
-        return tuple(record for record in records if record.work_id != slot.work_id)
-    scope = ReleaseScope(
-        work_id=slot.work_id, book_version_id=slot.book_version_id,
-        chapter_max=slot.chapter_max, part_id=slot.part_id,
-    )
-    return tuple(record for record in records if record.work_id != slot.work_id or permits_scope(scope, record))
+    """Drop earlier evidence forbidden by the latest correction for each book."""
+    permitted = []
+    for record in records:
+        progress = sessions.reading_progress_for(session_id, record.work_id)
+        if progress is None:
+            permitted.append(record)
+        elif progress.chapter_max is not None:
+            scope = ReleaseScope(
+                work_id=progress.work_id, book_version_id=progress.book_version_id,
+                chapter_max=progress.chapter_max, part_id=progress.part_id,
+            )
+            if permits_scope(scope, record):
+                permitted.append(record)
+    return tuple(permitted)

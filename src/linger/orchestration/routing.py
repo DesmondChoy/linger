@@ -102,6 +102,18 @@ async def _route_reader_message(
                 selection_basis=decision.basis,
             )
         selection = sessions.book_selection(session_id()) if session_id() else None
+        progress = sessions.reading_progress_for(session_id(), scope.work_id) if session_id() else None
+        if progress is not None and progress.chapter_max is None:
+            sessions.set_pending_clarification(session_id(), sessions.PendingClarification(
+                book_id=scope.work_id, book_title=scope.title, part_id=progress.part_id,
+                reason_code="reading_boundary_unconfirmed",
+            ))
+            return ClarificationRequest(
+                kind="clarification", request_id=request_id,
+                clarification_id=f"clarify_{uuid4().hex}", reason_code="reading_boundary_unconfirmed",
+                question=f"Which chapter or named section of {scope.title} have you completed?",
+                expected_answer=ExpectedAnswer(type="free_text"),
+            )
         saved = saved_reading(scope.work_id) if existing is None else None
         if saved is not None and (
             selection is None or selection.book_id != scope.work_id

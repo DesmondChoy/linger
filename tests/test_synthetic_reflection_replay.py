@@ -595,6 +595,37 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("We talked about Alice finding the little door.", prop_texts[0])
 
+    async def test_prop_source_line_endings_reach_the_scene_unchanged(self) -> None:
+        for newline in ("\r\n", "\r"):
+            with self.subTest(newline=repr(newline)):
+                text = f"I like tea.{newline}I read at night.{newline}"
+                content = _content_document()
+                content["props"][0]["source_text"] = text
+                backstory_bytes = _json_bytes(content)
+                backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
+                ground_truth = ProposedGroundTruth.model_validate_json(
+                    _json_bytes(_ground_truth_document(backstory_bytes))
+                )
+                observed_texts: list[tuple[str, ...]] = []
+
+                async def handler(request, service, account):
+                    observed_texts.append(tuple(
+                        record.text for record in service.list_active(account)
+                    ))
+                    grounded_scene = "hoping to find" in request.message
+                    return _response(
+                        reply="A reply.",
+                        evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
+                        retrieved=grounded_scene,
+                        chapter_max=6 if grounded_scene else None,
+                    )
+
+                await replay_reflection_scenes(
+                    backstory, ground_truth, chat_handler=handler
+                )
+
+                self.assertEqual((text,), observed_texts[0])
+
     async def test_scenes_do_not_inherit_each_others_props(self) -> None:
         """A Scene is graded as a unit with only its own designated Props."""
         backstory, ground_truth = _scenario()

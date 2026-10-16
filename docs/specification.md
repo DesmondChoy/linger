@@ -608,8 +608,8 @@ Working context contains only:
 
 The complete memory archive is never injected into every prompt. Explicit
 reader-confirmed chapter progress is also stored per account and work under
-Section 6.1. During initial context resolution, the session's current declaration
-or retraction takes precedence over that saved value. When neither applies,
+Section 6.1. During context resolution, routing, and comparisons, the session's
+current declaration or retraction takes precedence over that saved value. When neither applies,
 Librarian resolves a temporary spoiler boundary for each book-related request.
 
 For evidence continuity, the session keeps one content-free record per turn:
@@ -634,6 +634,13 @@ tool history, and evidence handles remain in-process state.
 **New chat** selects a fresh session while preserving earlier saved chats.
 Deleting a conversation removes its transcript and live session state while
 preserving account memories and saved chapter progress.
+
+The transport permits one active operation per session. Overlapping turns and
+deletion requests receive a conflict before they can change session state.
+Retrying a saved turn with the same client turn ID and normalised message
+returns the persisted response without another agent run. A different message
+under that turn ID receives a conflict. A persisted request fingerprint allows
+this check without retaining the reader's unredacted contact details.
 
 ### 5.2 Memory record
 
@@ -760,7 +767,8 @@ Book and part selection may persist within a session, and so may the reader's
 latest declared chapter: an in-memory, session-scoped ceiling for one work,
 revision, and part. Only application code writes it, and only from the reader's
 explicit completion or clarification answer; inference never raises it.
-Quoted, blockquoted, or fenced text declares nothing. A lower declaration
+Questions, conditions, and explicit uncertainty about completion do not grant
+progress. Quoted, blockquoted, or fenced text declares nothing. A lower declaration
 applies at once, even if the turn then fails; a higher one, or any declaration
 after a retraction, applies only after its turn is released. Any other turn
 that may speak to progress retracts the ceiling and fails closed. That covers a
@@ -771,8 +779,10 @@ a chapter word or such a cue or in a reply of four words or fewer. It also cover
 no number, such as "I haven't met…", "don't spoil…", or "a different book",
 and a parser clarification. Quotes do not shield a retraction. Lowering or
 retracting hides earlier reader statements from boundary inference and
-withholds earlier cited passages the ceiling no longer permits. Selecting another book or part, a session reset, or a restart
-clears the session ceiling; a restart also hides restored reader statements from
+withholds earlier cited passages the ceiling no longer permits. Selecting another
+book or part clears active chapter carry. Per-work corrections remain until a
+session reset or restart, so returning to a book cannot restore a retracted
+permission. A restart also hides restored reader statements from
 boundary inference. Released explicit chapter declarations also populate the
 account's saved progress, subject to the limits below. A follow-up that triggers none
 of this, stays on the same book and part, and names no other work reuses the

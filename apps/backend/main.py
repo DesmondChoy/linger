@@ -2,8 +2,8 @@
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, suppress
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager, suppress
 from dataclasses import asdict
 from time import perf_counter
 from typing import Annotated, Any
@@ -11,7 +11,7 @@ from typing import Annotated, Any
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 # Configure the exporter before application-owned spans can be created.
 from .telemetry import configure_telemetry, record_failure, set_span_attrs
@@ -37,7 +37,7 @@ from .library import router as library_router  # noqa: E402
 from .rate_limit import enforce_chat_rate_limit  # noqa: E402
 from .progress_store import ReadingProgressStore  # noqa: E402
 from .schemas import ChatRequest, ChatResponse  # noqa: E402
-from .transcripts import TranscriptStore, TranscriptTurn  # noqa: E402
+from .transcripts import TranscriptStore, TranscriptTurn, request_fingerprint  # noqa: E402
 
 configure_logging()
 
@@ -79,6 +79,24 @@ _UNKNOWN_SESSION = "This conversation is not available."
 _TRANSCRIBED_RELEASES = {"muse_candidate", "application_clarification"}
 
 
+@contextmanager
+def _session_operation(session_id: str, account_id: str) -> Iterator[None]:
+    try:
+        with sessions.exclusive_operation(session_id, account_id):
+            if (
+                sessions.owner(session_id) not in (None, account_id)
+                or transcript_store.owner_of(session_id) not in (None, account_id)
+            ):
+                raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
+            yield
+    except sessions.SessionBusyError as exc:
+        if exc.account_id != account_id:
+            raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION) from None
+        raise HTTPException(
+            status_code=409, detail="This conversation has a request in progress. Try again when it finishes.",
+        ) from None
+
+
 def _claim_session(session_id: str, account_id: str) -> bool:
     """Bind a session to one account, including sessions saved before a restart."""
     if transcript_store.owner_of(session_id) not in (None, account_id):
@@ -111,8 +129,6 @@ async def _run_turn(
     context: AccountDependency,
 ) -> ChatResponse:
     """Map the HTTP request onto one application-owned chat turn."""
-    if not _claim_session(request.session_id, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
     cancelled: asyncio.CancelledError | None = None
     failure: ChatTurnError | None = None
     response: ChatResponse | None = None
@@ -206,10 +222,49 @@ def _save_turn(
         context.account_id,
         request.session_id,
         response.inspection.muse_turn["turn_id"],
-        request.message,
+        response.inspection.muse_turn["user_message"],
         response.reply,
         details={"response": response.model_dump(mode="json"), "progress": progress},
+        request_fingerprint=request_fingerprint(request.message),
     )
+
+
+def _replay_turn(request: ChatRequest, account_id: str) -> ChatResponse | None:
+    if request.turn_id is None:
+        return None
+    saved = transcript_store.replay(account_id, request.session_id, request.turn_id)
+    if saved is None:
+        return None
+    matches = (
+        saved.request_fingerprint == request_fingerprint(request.message)
+        if saved.request_fingerprint is not None
+        else saved.user_message == request.message
+    )
+    if not matches:
+        raise HTTPException(status_code=409, detail="This turn ID was already used for a different message.")
+    try:
+        return ChatResponse.model_validate(saved.response)
+    except ValidationError:
+        raise HTTPException(
+            status_code=409, detail="This earlier turn cannot be replayed. Send a new turn ID to continue.",
+        ) from None
+
+
+async def _execute_turn(
+    request: ChatRequest,
+    service: MemoryPolicyService,
+    context: AccountDependency,
+    progress: list[dict[str, object]],
+) -> ChatResponse:
+    with _session_operation(request.session_id, context.account_id):
+        if not _claim_session(request.session_id, context.account_id):
+            raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
+        replay = _replay_turn(request, context.account_id)
+        if replay is not None:
+            return replay
+        response = await _run_turn(request, service, context)
+        _save_turn(request, response, context, progress)
+        return response
 
 
 @app.post(
@@ -222,9 +277,7 @@ async def chat(
     service: MemoryServiceDependency,
     context: AccountDependency,
 ) -> ChatResponse:
-    response = await _run_turn(request, service, context)
-    _save_turn(request, response, context, progress=[])
-    return response
+    return await _execute_turn(request, service, context, progress=[])
 
 
 def _sse(event: str, payload: dict[str, object]) -> str:
@@ -288,8 +341,7 @@ async def chat_stream(
         async def run() -> None:
             token = begin_progress(publish)
             try:
-                response = await _run_turn(request, service, context)
-                _save_turn(request, response, context, progress=observed)
+                response = await _execute_turn(request, service, context, progress=observed)
             except asyncio.CancelledError:
                 raise
             except HTTPException as exc:
@@ -383,12 +435,9 @@ def history(context: AccountDependency) -> list[Conversation]:
 @app.delete("/api/sessions/{session_id}", status_code=204)
 def delete_session(session_id: str, context: AccountDependency) -> None:
     """Forget a conversation: its live state and its saved transcript."""
-    if sessions.owner(session_id) not in (None, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
-    if transcript_store.owner_of(session_id) not in (None, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
-    sessions.clear(session_id)
-    transcript_store.delete(context.account_id, session_id)
+    with _session_operation(session_id, context.account_id):
+        sessions.clear(session_id)
+        transcript_store.delete(context.account_id, session_id)
 
 
 if settings.linger_static_dir is not None:

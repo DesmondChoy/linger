@@ -230,6 +230,26 @@ class MemoryPolicyServiceTests(unittest.TestCase):
                 candidate("Different content.", "same-event"),
             )
 
+    def test_source_line_endings_survive_reload_and_identical_retry(self) -> None:
+        self.service.set_capture_enabled(self.alice, True)
+        for index, newline in enumerate(("\r\n", "\r", "\n")):
+            with self.subTest(newline=repr(newline)):
+                original = candidate(
+                    f"I like tea.{newline}I read at night.{newline}",
+                    f"line-endings-{index}",
+                )
+                saved = self.service.save_automatic(self.alice, original)
+                reopened = MemoryPolicyService(self.root)
+                reloaded = next(
+                    record
+                    for record in reopened.list_active(self.alice)
+                    if record.memory_id == saved.record.memory_id
+                )
+                self.assertEqual(saved.record, reloaded)
+                retry = reopened.save_automatic(self.alice, original)
+                self.assertFalse(retry.created)
+                self.assertEqual(saved.record, retry.record)
+
 
 if __name__ == "__main__":
     unittest.main()

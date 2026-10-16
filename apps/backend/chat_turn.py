@@ -225,9 +225,12 @@ NAMED_LOCATION_KINDS = {
 }
 NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
+DECLARATION_SENTENCE_END_PATTERN = re.compile(
+    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)",
+    re.IGNORECASE,
+)
 DECLARATION_END_PATTERN = re.compile(
-    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)|"
-    r"(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
+    DECLARATION_SENTENCE_END_PATTERN.pattern + r"|(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
     r"|what|why|how|tell|can|could|would|please)\b)",
     re.IGNORECASE,
@@ -237,13 +240,50 @@ READ_NAMED_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PROGRESS_PARSER_PATTERNS = (IN_PROGRESS_PATTERN, COMPLETION_PATTERN, READ_NAMED_PATTERN)
+COMPLETION_PREAMBLE_PATTERN = re.compile(
+    r"(?:(?:sorry|oops|actually|wait|nope|nah|correction|my\s+mistake|finally|at\s+last)"
+    r"[\s,:!–—-]*)*(?:i\s+meant(?:\s+to\s+say)?\s*)?",
+    re.IGNORECASE,
+)
+COMPLETION_QUALIFIER_PATTERN = re.compile(
+    r"\b(?:if|unless|maybe|perhaps|possibly|unsure|uncertain|not\s+sure"
+    r"|(?:cannot|can['’]t)\s+remember)\b"
+    r"|\bi\s+(?:think|guess|suppose)(?=\s*[,;.!?]|$)",
+    re.IGNORECASE,
+)
+
+
+def _declaration_bounds(message: str, completion: re.Match[str]) -> tuple[int, int]:
+    start = 0
+    for ending in DECLARATION_SENTENCE_END_PATTERN.finditer(message):
+        if ending.end() <= completion.start():
+            start = ending.end()
+        elif ending.start() >= completion.end():
+            return start, ending.end()
+    return start, len(message)
+
+
+def _asserted_completion(message: str, completion: re.Match[str]) -> bool:
+    start, end = _declaration_bounds(message, completion)
+    prefix = message[start:completion.start()].strip()
+    prefix = re.sub(r"(?:,\s*)?\b(?:and|but)\s*$", "", prefix, flags=re.IGNORECASE).rstrip(" ,")
+    ending = DECLARATION_END_PATTERN.search(message, completion.end())
+    return bool(
+        COMPLETION_PREAMBLE_PATTERN.fullmatch(prefix)
+        or TITLE_PREFIX_PATTERN.fullmatch(prefix)
+        or TITLE_LEAD_PATTERN.fullmatch(prefix)
+        or COMPLETED_CHAPTER_SUBJECT_PATTERN.fullmatch(prefix + " ")
+    ) and not (
+        (ending is not None and ending.group().startswith("?"))
+        or COMPLETION_QUALIFIER_PATTERN.search(message[start:end])
+    )
 
 
 def _completed_location(message: str) -> str | None:
     # Someone else's words, quoted or fenced, declare nothing for the reader.
     unquoted = reading_progress.mask_quotes(message)
     completion = COMPLETION_PATTERN.search(unquoted) or READ_NAMED_PATTERN.search(unquoted)
-    if completion is None:
+    if completion is None or not _asserted_completion(unquoted, completion):
         return None
     location = DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
     if not re.match(
@@ -263,12 +303,7 @@ def _completed_location(message: str) -> str | None:
 
 def _declaration_sentence(message: str, match: re.Match[str]) -> str:
     """Return the sentence containing a matched progress declaration."""
-    start = max(message.rfind(mark, 0, match.start()) for mark in ".!?") + 1
-    endings = tuple(
-        index for mark in ".!?"
-        if (index := message.find(mark, match.end())) >= 0
-    )
-    end = min(endings) + 1 if endings else len(message)
+    start, end = _declaration_bounds(message, match)
     return message[start:end].strip()
 
 
@@ -1085,6 +1120,13 @@ def _apply_saved_progress(
     slot = sessions.reading_progress(request.session_id)
     if slot is not None and slot.work_id == saved.work_id:
         return resolution, None
+    retained = sessions.reading_progress_for(request.session_id, saved.work_id)
+    if retained is not None:
+        if retained.chapter_max is None:
+            return resolution, None
+        saved = ConfirmedReading(
+            work_id=retained.work_id, chapter_max=retained.chapter_max, part_id=retained.part_id,
+        )
     selection = sessions.book_selection(request.session_id)
     if selection is not None and selection.part_id != saved.part_id:
         return resolution, None
@@ -1096,7 +1138,7 @@ def _apply_saved_progress(
         status="confirmed", work_id=saved.work_id, work_title=resolution.work_title,
         book_version_id=version, chapter_max=saved.chapter_max, part_id=saved.part_id,
         boundary_source="reader_confirmed", boundary_authorization_basis="saved_progress",
-        explanation="The reader confirmed this completed chapter in an earlier conversation.",
+        explanation="The reader confirmed this completed chapter earlier.",
     ), reading_progress.PendingProgress(slot, progress)
 
 
@@ -1240,6 +1282,9 @@ async def _run_chat_pipeline(
         _saved_readings(progress_store, account)
         if progress_store is not None and connection_book_scopes is None and initial_reading is None
         else {}
+    )
+    saved_readings = reading_progress.effective_saved_readings(
+        request, resolution, saved_readings, parser_patterns=PROGRESS_PARSER_PATTERNS,
     )
     if pending_progress is None and resolution.work_id is not None:
         resolution, pending_progress = _apply_saved_progress(

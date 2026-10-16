@@ -9,7 +9,7 @@ import tempfile
 import threading
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -249,6 +249,10 @@ class MemoryPolicyService:
             ):
                 raise CurationPolicyError("curation_state_stale")
             self._validate_action_state(approved, current_events)
+            applied_at = datetime.now(UTC)
+            if current_events:
+                latest = datetime.fromisoformat(current_events[-1].applied_at)
+                applied_at = max(applied_at, latest + timedelta(microseconds=1))
             event = AppliedCuration(
                 event_id=event_id,
                 account_key=approved.plan.account_key,
@@ -258,7 +262,7 @@ class MemoryPolicyService:
                 provenance_review=approved.review,
                 proposal=approved.plan.proposal,
                 source_snapshots=approved.plan.source_snapshots,
-                applied_at=datetime.now(UTC).isoformat(),
+                applied_at=applied_at.isoformat(),
             )
             try:
                 _create_atomically(
@@ -799,7 +803,8 @@ def _serialize(record: MemoryRecord) -> str:
 
 def _read_record(path: Path) -> MemoryRecord:
     try:
-        raw = path.read_text(encoding="utf-8")
+        with path.open(encoding="utf-8", newline="") as handle:
+            raw = handle.read()
         if not raw.startswith("---\n"):
             raise ValueError("missing JSON front matter")
         front_matter, text = raw[4:].split("\n---\n", maxsplit=1)

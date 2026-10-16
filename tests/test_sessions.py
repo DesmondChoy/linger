@@ -317,5 +317,49 @@ class ReadingStateTests(unittest.TestCase):
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
 
+class ReadingProgressStateTests(unittest.TestCase):
+    session_id = "reading-progress-state-test"
+
+    def tearDown(self) -> None:
+        sessions.clear(self.session_id)
+
+    def test_work_switch_preserves_each_latest_correction(self) -> None:
+        original = sessions.ReadingProgress("pg11", "alice-v1", "main", 5)
+        retracted = sessions.ReadingProgress("pg11", "alice-v1", "main", None)
+        other = sessions.ReadingProgress("pg23", "book-v1", "main", 3)
+        corrected = sessions.ReadingProgress("pg11", "alice-v1", "main", 2)
+        for progress in (original, retracted, other):
+            sessions.set_reading_progress(self.session_id, progress)
+
+        self.assertIs(other, sessions.reading_progress(self.session_id))
+        self.assertIs(retracted, sessions.reading_progress_for(self.session_id, "pg11"))
+        sessions.set_reading_progress(self.session_id, corrected)
+        self.assertIs(corrected, sessions.reading_progress(self.session_id))
+        self.assertIs(corrected, sessions.reading_progress_for(self.session_id, "pg11"))
+        self.assertIs(other, sessions.reading_progress_for(self.session_id, "pg23"))
+
+    def test_none_clears_active_carry_and_retains_corrections_by_work(self) -> None:
+        retracted = sessions.ReadingProgress("pg11", "alice-v1", "main", None)
+        sessions.set_reading_progress(self.session_id, retracted)
+
+        sessions.set_reading_progress(self.session_id, None)
+
+        self.assertIsNone(sessions.reading_progress(self.session_id))
+        self.assertIs(retracted, sessions.reading_progress_for(self.session_id, "pg11"))
+        self.assertIsNone(sessions.reading_progress_for(self.session_id, "unknown"))
+
+    def test_full_clear_removes_active_carry_and_every_work_correction(self) -> None:
+        for work in ("pg11", "pg23"):
+            sessions.set_reading_progress(
+                self.session_id, sessions.ReadingProgress(work, "version", "main", None),
+            )
+
+        sessions.clear(self.session_id)
+
+        self.assertIsNone(sessions.reading_progress(self.session_id))
+        for work in ("pg11", "pg23"):
+            self.assertIsNone(sessions.reading_progress_for(self.session_id, work))
+
+
 if __name__ == "__main__":
     unittest.main()

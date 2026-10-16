@@ -7,7 +7,10 @@ NOTE(kay): That is deliberate for the prototype. Swapping in Redis or a
 database means changing this module and nothing else.
 """
 
-from dataclasses import dataclass
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from threading import Lock
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -29,8 +32,30 @@ _reading_candidates: dict[str, "ReadingCandidate"] = {}
 _pending_clarifications: dict[str, "PendingClarification"] = {}
 _turn_records: dict[str, list["TurnRecord"]] = {}
 _owners: dict[str, str] = {}
-_reading_progress: dict[str, "ReadingProgress"] = {}
+_reading_progress: dict[str, "_ReadingProgressState"] = {}
 _statement_floors: dict[str, int] = {}
+_active_operations: dict[str, str] = {}
+_operations_lock = Lock()
+
+
+class SessionBusyError(Exception):
+    def __init__(self, account_id: str) -> None:
+        self.account_id = account_id
+        super().__init__("A conversation operation is already running.")
+
+
+@contextmanager
+def exclusive_operation(session_id: str, account_id: str) -> Iterator[None]:
+    """Keep one active operation per session, across request threads and loops."""
+    with _operations_lock:
+        if session_id in _active_operations:
+            raise SessionBusyError(_active_operations[session_id])
+        _active_operations[session_id] = account_id
+    try:
+        yield
+    finally:
+        with _operations_lock:
+            del _active_operations[session_id]
 
 
 class BookSelection(BaseModel):
@@ -70,6 +95,12 @@ class ReadingProgress:
     book_version_id: str
     part_id: str
     chapter_max: int | None
+
+
+@dataclass
+class _ReadingProgressState:
+    active_work_id: str | None = None
+    by_work: dict[str, ReadingProgress] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -325,14 +356,26 @@ def clear_pending_clarification(session_id: str) -> None:
 
 
 def reading_progress(session_id: str) -> ReadingProgress | None:
-    return _reading_progress.get(session_id)
+    state = _reading_progress.get(session_id)
+    if state is None or state.active_work_id is None:
+        return None
+    return state.by_work[state.active_work_id]
+
+
+def reading_progress_for(session_id: str, work_id: str) -> ReadingProgress | None:
+    state = _reading_progress.get(session_id)
+    return None if state is None else state.by_work.get(work_id)
 
 
 def set_reading_progress(session_id: str, progress: ReadingProgress | None) -> None:
     if progress is None:
-        _reading_progress.pop(session_id, None)
-    else:
-        _reading_progress[session_id] = progress
+        state = _reading_progress.get(session_id)
+        if state is not None:
+            state.active_work_id = None
+        return
+    state = _reading_progress.setdefault(session_id, _ReadingProgressState())
+    state.by_work[progress.work_id] = progress
+    state.active_work_id = progress.work_id
 
 
 def supersede_reader_statements(session_id: str) -> None:

@@ -183,18 +183,24 @@ about the same book and part. A lower declaration applies to the session
 immediately, including when the reply fails. A higher declaration takes effect
 after a released Muse reply or application clarification. An unclear correction
 retracts the session ceiling and excludes earlier statements and passages that
-could restore the carried permission. During context preparation, a session
-declaration or retraction takes precedence over saved progress for that work.
+could restore the carried permission. During context preparation, routing, and
+comparisons, a session declaration or retraction takes precedence over saved
+progress for that work. Questions, conditions, and explicit uncertainty about
+completion do not grant chapter progress.
 
 After a released Muse reply or application clarification, the interactive
 application saves explicit completed-chapter progress. The latest saved
 statement wins, including a lower chapter or a different part. Saved progress
 never selects a book, grants a named unit or exact passage, or stores a
 Librarian inference. A failed or declined correction affects the session but
-does not replace the saved account record. An unclear retraction also remains
-local to the session. Later routing or a comparison can reuse the saved
-chapter until a released explicit correction replaces it. Changing book or
-part, deleting the session, or restarting the backend clears session progress; the saved account record remains.
+does not replace the saved account record. An unclear retraction stays local
+to the session. It withholds that work's saved chapter from later routing and
+comparisons. A released explicit correction can replace the retracted
+permission. Changing book or part clears active chapter carry.
+Corrections for each work remain for the rest
+of the session, including when the reader returns to a previous book. Deleting
+the session or restarting the backend clears those corrections; the saved
+account record remains.
 Saved conversation text does not establish reading permission after a restart.
 
 When triage selects `find_connection`, the application combines saved progress
@@ -282,6 +288,19 @@ control characters, and rejects unexpected fields. The server supplies account
 identity and all authority-bearing policy state. The [security checks](#security-checks)
 describe redaction before agent processing and storage.
 
+A successful saved turn can be retried with the same session, turn ID, and
+normalised message. The application returns its saved response without running
+the agents again, including after a restart. Reusing a turn ID with different
+input returns a conflict. A request fingerprint distinguishes messages whose
+contact details redact to the same placeholders without storing those details.
+Older turns without a complete saved response require a new turn ID.
+
+One operation can change a session at a time. An overlapping chat request or
+deletion returns a conflict, and the reader can retry after the active request
+finishes. Atomic chat and deletion return `409`. Streaming chat emits its
+existing `error` event with no `result` event.
+The guard follows the backend's existing in-process session storage.
+
 The two chat endpoints share a limit of 10 requests per rolling 60 seconds per
 authenticated account. Exceeding it returns `429` with `Retry-After` before a
 stream opens or a model runs. Counters are local to the backend process.
@@ -314,6 +333,9 @@ phone numbers with placeholders such as `[EMAIL_1]` and `[PHONE_1]`. Agents,
 saved conversation text, inspection, and automatic-capture offsets use that
 redacted message. This detector leaves names, addresses, employers, and health
 conditions unchanged. DataFog telemetry is disabled by the application.
+Legacy saved reader messages and their session previews are redacted before
+history restoration. Generated replies and other saved context receive no
+additional PII scan.
 
 Detected credentials receive a fixed safe decline before any agent runs.
 The user-input injection check also blocks three fixed patterns: requests to
