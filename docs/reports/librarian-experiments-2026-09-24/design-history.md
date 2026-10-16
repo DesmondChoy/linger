@@ -3,10 +3,11 @@
 [Open the visual HTML report](design-history.html) for the interactive decision
 timeline, architecture comparison, and illustrated failure examples.
 
-Prepared September 24, 2026 from repository history and Beads, with
-`librarian-attempts` at `1facc55` as the source snapshot. This report explains
-the decisions from the first August 10 design through the September repair
-series and retained implementation. It introduces no runtime changes or new
+Prepared September 24, 2026 from repository history and Beads at `1facc55`.
+Extended October 14, 2026 against `librarian-attempts` at `cac9477`, which
+contains upstream `9a5c074`. The original September experiments and their
+interpretations remain historical records. The later sections trace changes
+through the current runtime. This update introduces no runtime changes or new
 evaluation results.
 
 The first design concentrated on finding accurate, spoiler-safe passages.
@@ -17,7 +18,8 @@ the current separation between application services and Librarian's model tasks.
 
 The [experiment report](report.md) contains the detailed outcomes and recurring
 failures. The [attempt chronology](chronology.md) records individual interventions.
-This document connects those experiments to the earlier design decisions.
+This document connects those experiments to the earlier design decisions and
+records the later changes without treating old scores as current validation.
 
 ## Evidence and limits
 
@@ -125,7 +127,8 @@ reader has reached it. Recognizing a title or associating a memory with a book
 does not establish progress. Stronger identity and reading-support checks
 followed, while explicit reader-confirmed progress remained authoritative.
 
-These early descriptions refer to full-work inference. Current inference
+These early descriptions refer to full-work inference. At the October 14
+snapshot, private inference
 localizes numbered chapters in the main part. Other parts and named units need
 explicit scope. That limitation matters for books with letters or supplementary
 material.
@@ -315,7 +318,7 @@ test passed. It was the strongest recorded full batch, not an all-pass result
 or an established normal performance range. Later integration was not a fresh
 live validation of that checkpoint.
 
-## What the retained design establishes, and what remains uncertain
+## What the September checkpoint established, and what remained uncertain
 
 The accumulated decisions separate matching a book, locating an event,
 establishing permission, retrieving a passage, judging support, and releasing an
@@ -323,13 +326,13 @@ answer. The interpretation supported by this history is that experiments exposed
 places where one of those decisions had been treated as sufficient for another.
 Explicit boundaries made the errors easier to detect and constrain.
 
-The retained architecture has exact canonical sources, shared retrieval,
+The September architecture had exact canonical sources, shared retrieval,
 request planning with original-text fallback, distinct chapter and passage
 permission, token-aware reranking, and separate semantic review. The records
 explain why those mechanisms were added more strongly than they establish the
 reliability of every mechanism in combination.
 
-Remaining limits include incorrect boundary proof construction, disagreement
+The September record still included incorrect boundary proof construction, disagreement
 over mandatory Animal Farm continuity evidence, Roses mapping and expectation
 issues, incomplete declaration of source-dependent interpretations, and reviewer
 inconsistency. Exact-passage behavior is also outside the chapter-scoped synthetic
@@ -342,6 +345,159 @@ Configurations, prompts, expectations, and execution conditions changed across
 the repair series, so its aggregate pass rate is not a production reliability
 estimate. No single historical report supplies a current latency, cost, or
 quality baseline for the integrated implementation.
+
+## September 23 to 27: several books needed separate retrieval budgets
+
+Commit [`8c7bdba`][multi-book] let one comparison carry several confirmed book
+scopes through Muse, Serendipity, Provenance, and release validation. It did
+not assign one primary book or make evidence from one work authorize another.
+The wider request exposed a retrieval-budget problem. One book could occupy
+the shared candidate pool and displace a relevant passage from another.
+
+On September 26, [`7012886`][per-book] gave each granted book its own search
+and 20-record assessment pool. Query preparation also removed the searched
+book's author-name words unless they occurred in its title or aliases. The
+reader's exact spans and canonical text stayed unchanged.
+
+The next reduction worked at the requested-part level. The planner learned to
+split each named event in a sequence in [`d72b87e`][sequence-plan]. Then
+[`d6b8e30`][part-routing] retained three candidates per planned query in a
+clearly matching book, or in every granted book when no match dominated.
+A single-book route required a best relevance score of at least 0.05 and ten
+times the next book's score. Original reader text and prior statements retained
+two candidates per book as fallback. These are retention decisions after
+search, not permission decisions.
+
+The September 27 commit records Scene 07's assessment pool falling from 60 to
+14 passages and an offline replay retaining all 32 required passages. Those
+measurements explain the reduction at that checkpoint. They do not establish
+that three candidates preserve every answer, and October's retention fix
+changed that production value to four.
+
+## September 26 to 27: assessment failures became repairable
+
+Some searches failed after retrieving the right text. The assessor could copy
+one record's long ID while describing another, omit support for a requested
+part, or return reader spans that did not match the input. A check performed
+only after the model run discarded the whole result without allowing repair.
+
+[`7012886`][per-book] reported ID and selection errors together.
+[`3fa2c01`][assessment-repair] moved coverage and exact-span checks into the
+bounded output-retry loop, then repeated the checks at the application
+boundary. Useful incomplete evidence remained a valid `weak` result. Output
+that still violated the contract remained invalid.
+
+[`544d648`][short-labels] replaced long corpus IDs with local labels such as
+`E1` and `E2` in assessment input. Application code maps validated selections
+back to canonical IDs and replaces labels in explanations with source
+locations. The labels reduce copying errors. They do not prove that the model
+chose the right passage. The current [assessment dispatch][assessment-source]
+retains this separation between model labels and canonical identity.
+
+## October 1: optional retrieval experiments exposed a cost tradeoff
+
+[Experiment 3][experiment3] tested search-only chapter descriptions,
+characters, and cues for Pinocchio. Canonical quotations and citations stayed
+unchanged. With the original cues, 17 of 20 practice needs reached the
+assessment pool. Sculptor's first rewrite also reached 17, with one gain and
+one loss. The stop rule ended the loop before a second rewrite. The once-run
+sealed set reached 14 of 20 with the original cues and 16 with the rewrite.
+The experiment did not meet its decision rule, and the approved cues stayed
+inactive.
+
+[Experiment 4][experiment4] changed the measure to the passages Librarian
+actually selected, rather than any passage reaching its pool. Sculptor read
+practice traces and proposed retaining 20 candidates per planned part instead
+of three. The owner approved the steps, and the developer implemented an
+explicit experiment argument. Selected-evidence results rose from 17 to 20 of
+20 practice needs and from 16 to 20 of 20 held-back needs, with no losses.
+The held-back set had already been used in Experiment 3. It was not an untouched
+test set.
+
+Round 1 met its predefined practice pass mark, so the loop stopped. The
+Librarian read about 3.8 times as many words per practice need, and input tokens
+rose about 2.5 times. These results establish the recorded experiment's outcome,
+not a production quality baseline or a demonstrated second improvement round.
+Reader replies were not the measure.
+
+At the October 14 snapshot, `HybridLibrarian(read_chapter_cues=True)` remains
+opt-in, and the 20-per-part setting remains an offline experiment override.
+Production uses four per planned query. The experiment reports' three-record
+baseline describes October 1 and must not be silently updated to today's
+value. See the [hybrid implementation][hybrid-source] and
+[candidate gathering][candidate-source].
+
+## October 2: candidate reduction stopped discarding unique answer text
+
+Commit [`5c4f4b4`][retention-fix] repaired three losses in the reduced pool.
+The private retrieval output interleaves keyword, fused, semantic, and
+reranker streams. Its first three records are not the three highest scores.
+Keeping four records preserves a first round of those streams when they are
+available, including a reranker choice that the previous cutoff could remove.
+
+The old overlap filter could also discard a passage whose unique lines
+contained the answer. The replacement removes a window only when an earlier
+record contains all of its source lines within the same work, version, part,
+chapter, and source hash. Partially overlapping windows remain eligible.
+
+Finally, original-context fallback now survives independently of planned-query
+routing. Identical queries reuse one search, but a routed planned query cannot
+silently remove another book's fallback. The 20-record cap per book and final
+selection budget remain. Cache checks in the offline experiment runner also
+include retrieval code and budgets, so old scores cannot be reused after those
+inputs change.
+
+The commit records focused regression checks and 32 of 32 saved recall anchors.
+Those are dated validation records. This history update does not rerun them or
+claim that the changes eliminate semantic assessment errors.
+
+## October 12: Muse receives less unverified assessment prose
+
+A sufficient assessment can select useful records while its explanation
+attributes a detail to text that does not contain it. Commit
+[`4cddb25`][writer-reason] changed Muse's `librarian_search` view of a
+`sufficient` result to use a fixed explanation. The selected passages, IDs,
+and strength stay available. Weak and absent evidence retain their reasons
+and limitations. The underlying Librarian judgment still keeps its original
+reason; this change applies to the result shown to Muse.
+
+The same day's [`322af82`][stated-answers] tried an additional model step to
+list answers explicitly stated by selected records. [`ae1bb4e`][answers-revert]
+reverted that experiment. The current runtime has four Librarian skills and
+no `stated-answers` skill or answer-list contract. The fixed sufficient-result
+explanation survived the revert. Commit history establishes the addition and
+removal; it does not establish a measured quality benefit or the full reason
+for reverting it.
+
+The [current writer view][writer-source] and [current skill assignments][skill-source]
+show the retained behavior. Muse still needs to read the selected canonical
+passages, and Provenance plus application checks still govern answer release.
+
+## The current endpoint on October 14
+
+The [current design][current-design] carries the same authority boundaries
+through the later repairs. One reusable Librarian Agent has four selected
+model tasks. Application code resolves books, carries accepted permission,
+retrieves candidates, validates judgments, and restores canonical IDs.
+Reader-confirmed saved progress can supply an accepted scope without private
+inference. Inferred progress and exact-passage grants do not become saved
+completed-chapter progress.
+
+For answer retrieval, a plan uses exact reader spans and receives no candidate
+text. Application code searches each granted book, applies part routing,
+retains four records per planned query and two per context fallback, then
+limits the merged pool to 20 per book. Without a plan, context retrieval keeps
+the full pool budget. Assessment can recover omitted needs from original
+reader text, but it does not start another search. The normal final selection
+limit is five records across the search. Exact-passage grants assess their
+fixed records instead of broadening the search.
+
+These changes address specific losses between permission, retrieval,
+assessment, and writing. The September checkpoint, October offline experiments,
+and individual repair checks answer different questions. None is a fresh
+end-to-end score for the October 14 runtime. The original limitations remain
+part of the historical record; their presence here does not assert that each
+one is still an open defect today.
 
 [first-design]: https://github.com/DesmondChoy/linger/blob/205252c00872e2c3b8ec98383e55587393915553/docs/design/librarian-design.md
 [corpus-design]: https://github.com/DesmondChoy/linger/blob/7935acaa1552daddc24214f1274daf96f3b310de/docs/design/librarian-design.md
@@ -356,3 +512,21 @@ quality baseline for the integrated implementation.
 [retrieval-design]: ../../../reports/librarian-fixes-2026-09-17/design-retrieval.md
 [integration]: ../../../synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/design-integration.md
 [boundary15]: ../../../synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/repair-15-boundary-design.md
+
+[multi-book]: https://github.com/DesmondChoy/linger/commit/8c7bdba
+[per-book]: https://github.com/DesmondChoy/linger/commit/7012886
+[sequence-plan]: https://github.com/DesmondChoy/linger/commit/d72b87e
+[part-routing]: https://github.com/DesmondChoy/linger/commit/d6b8e30
+[assessment-repair]: https://github.com/DesmondChoy/linger/commit/3fa2c01
+[short-labels]: https://github.com/DesmondChoy/linger/commit/544d648
+[experiment3]: ../../evaluation/chapter-cue-experiment-3-2026-10-01.md
+[experiment4]: ../../evaluation/retrieval-research-experiment-4-2026-10-01.md
+[retention-fix]: https://github.com/DesmondChoy/linger/commit/5c4f4b4
+[writer-reason]: https://github.com/DesmondChoy/linger/commit/4cddb25
+[stated-answers]: https://github.com/DesmondChoy/linger/commit/322af82
+[answers-revert]: https://github.com/DesmondChoy/linger/commit/ae1bb4e
+[candidate-source]: https://github.com/DesmondChoy/linger/blob/9a5c074/src/linger/orchestration/book_evidence.py
+[assessment-source]: https://github.com/DesmondChoy/linger/blob/9a5c074/src/linger/orchestration/evidence_strength.py
+[hybrid-source]: https://github.com/DesmondChoy/linger/blob/9a5c074/apps/backend/hybrid_librarian.py
+[writer-source]: https://github.com/DesmondChoy/linger/blob/9a5c074/src/linger/agents/muse/tools.py
+[skill-source]: https://github.com/DesmondChoy/linger/blob/9a5c074/src/linger/agents/librarian/skills.py
