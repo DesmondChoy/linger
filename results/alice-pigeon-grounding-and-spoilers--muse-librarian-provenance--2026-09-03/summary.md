@@ -1,10 +1,10 @@
 # Alice pigeon grounding and spoilers
 
-Final run. 2026-10-16T16:07:21.700198+08:00. Model `openai:gpt-6-luna`.
+Final run. 2026-10-16T20:42:54.991607+08:00. Model `openai:gpt-6-luna`.
 
 Execution status: **completed**.
 
-Automated results: **2/3 Scenes passed**. LLM-review: **2/3 Scenes passed** (1 failed, 2 passed).
+Automated results: **3/3 Scenes passed**. LLM-review: **3/3 Scenes passed** (3 passed).
 
 ## How to read the results
 
@@ -14,46 +14,31 @@ Automated results: **2/3 Scenes passed**. LLM-review: **2/3 Scenes passed** (1 f
 
 For LLM-review, **passed** means the review found the expectations met within its scope. **Failed** means it found a material omission or violation. **Inconclusive** means the evidence did not support a decision. **Unreviewed** means no response assessment was recorded. LLM-review does not change the automated result.
 
-[Open the traces in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a143bf25befbf4ce6acde948553e71-346a3d314438f5d6>) (visibility unverified).
+[Open the traces in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a144bad80307d35321384ded4acb29-8ad977bd8f8dd7b2>) (visibility unverified).
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| pigeon-reflection | Infer Chapter 5 from the Caterpillar memory and the Pigeon event, then quote 'I—I'm a little girl,' with 'rather doubtfully' exactly and reflect on naming a new role. | Librarian returned uncertain with insufficient_context in one call, although a supplied passage contained the serpent exchange. The reply was only a generic clarification. | failed (0/2) | failed | A clear, unique event was declared unlocatable. The uncertain exit skips every check. |
-| uncertain-growth | Clarify, because 'Alice gets bigger again' fits more than one later episode. | Librarian returned uncertain; the reply asked for the latest chapter or scene; nothing was retrieved. | passed (1/1) | passed | Ambiguity was handled correctly. The fixed question asks for a location, not a remembered detail. |
-| personal-reflection | Book-free help exploring the awkwardness of the manager title, with an adaptable introduction. | No retrieval; a tentative explanation and two introductions in the reader's terms. | passed (1/1) | passed | A book-free personal question got useful wording. |
-
-## Failures
-
-### pigeon-reflection
-
-**Failure type: Legitimate model failure** (cause suspected). Automated failed; LLM-review failed.
-
-**What failed.** Librarian boundary inference returned uncertain with reason_code insufficient_context, so no ceiling was granted. Nothing was retrieved, and the reader got the generic clarification instead of the quotation and reflection. Both proposals (pigeon-grounding and pigeon-boundary) fail as a result.
-
-**Ground truth.** Infer the Chapter 5 position from the authorised remembered-caterpillar Prop and the current Pigeon event. Quote '“I—I’m a little girl,” said Alice, rather doubtfully' exactly (evidence pigeon, Chapter 5) and answer within that scope with no extra location question.
-
-**Root cause.** The memory was grounded correctly in ch05-ln0960-1016. The supplied candidate ch05-ln1179-1219 contains 'Serpent!', 'little girl' and 'rather doubtfully', and no other serpent occurrence was supplied. The skill reserves insufficient_context for cases where no event can be located, so the decision contradicts the inputs. The cause is suspected because no reasoning trace exists. One hypothesis is low reasoning effort on a 2,000-word skill. Another is that the candidate contract (exactly-once inventory and verbatim excerpts) is costly, while an uncertain output needs neither and passes validation in one call. That would make uncertain the easy way out.
-
-**Proposed solution.** Keep this result. As a discriminating check after the sweep, replay the captured boundary input (a) at medium Librarian reasoning effort and (b) with the reduced candidate contract proposed in linger-ey6i. If only (b) yields a Chapter 5 candidate, the contract burden is the cause. If (a) does, reasoning effort is.
+| pigeon-reflection | Infer Chapter 5 from the Caterpillar memory and the Pigeon event, then quote 'I—I'm a little girl,' with 'rather doubtfully' exactly and reflect on naming a new role. | Chapter 5 candidate in one call; exact quotation; two tentative readings of the awkwardness. | passed (2/2) | passed | Without the inventory burden the model committed to the clear event instead of exiting with 'uncertain'. |
+| uncertain-growth | Clarify, because 'Alice gets bigger again' fits more than one later episode. | Boundary inference proposed Chapter 5; event identification returned unresolved; the reply asked for the latest chapter or scene. | passed (1/1) | passed | The independent second check caught an over-confident first stage. Safety here depends on that check. |
+| personal-reflection | Book-free help exploring the awkwardness of the manager title, with an adaptable introduction. | No retrieval; tentative reasons and an introduction in the reader's words. | passed (1/1) | passed | The personal control stayed book-free. |
 
 ## Report points
 
-- Automated checks passed 2 of 3 Scenes, and LLM-review passed 2 of 3. Both fail pigeon-reflection.
-- The Librarian returned uncertain (insufficient_context) for a uniquely identified Chapter 5 event, although the matching passage was among its candidates. With no ceiling, the reader got a location question instead of the quotation.
-- Unlike Douglass, Pinocchio and Helen Keller, the model never attempted the candidate contract. The uncertain output needs no inventory or excerpts, so it passed validation in one call.
-- The growth clarification and the personal control behaved as intended.
+- Rerun after the Librarian boundary inventory fix (3e8a422c), which made the application derive the candidate inventory and merge repeated support anchors.
+- Automated checks passed 3 of 3 Scenes, and LLM-review passed 3 of 3, up from 2 of 3 each.
+- pigeon-reflection now infers Chapter 5 in one call and quotes the sentence exactly. The previous run returned 'uncertain' for the same clear event, consistent with the costly candidate contract being the cause.
+- In uncertain-growth the boundary stage proposed Chapter 5 for an ambiguous Line, and the event-identification check rejected it, so the reader was asked to clarify. The other five ambiguity Scenes in this sweep stayed uncertain at the first stage.
 
 ## Slide points
 
-- Alice Pigeon: 2/3 automated, 2/3 LLM-review.
-- A clear event was called unlocatable; the uncertain exit is the cheap path.
-- 5 of 6 book Scenarios run so far failed a Scene at Librarian boundary inference.
+- Alice Pigeon: 3/3 automated, 3/3 LLM-review (was 2/3).
+- Two checks in series: the second caught an over-confident first.
 
 ## Limitations
 
 - One synthetic attempt per Scene. Repeatability has not been established.
 - Response review was performed by coding agents. No independent human validation or additional model grader was used.
 - This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
-- No reasoning trace was captured, so why the model chose uncertain is inferred, not observed.
+- Whether the lighter contract makes the boundary stage commit more often on ambiguous Lines needs repeated runs.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.
