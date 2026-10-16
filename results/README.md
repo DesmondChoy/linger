@@ -5,7 +5,7 @@ slide evidence: **16 Scenarios and 79 source Scenes**.
 
 ## Current progress
 
-**7 / 16 final results retained; 9 remain unrun.** Final results may include
+**9 / 16 final results retained; 7 remain unrun.** Final results may include
 legitimate failures. Follow each summary link for findings and next steps.
 
 Scores count Scenes. **Completed** means the run and its LLM-review finished,
@@ -19,8 +19,8 @@ even when individual Scenes failed.
 | [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 3/4 passed, 1 failed | [Summary](douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 3/4 passed, 1 failed | [Summary](helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 2/3 passed, 1 failed | [Summary](alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/summary.md) |
-| [Alice roses, concealment, and restraint](../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Not run | - | - | - |
-| [Cross-source connections and restraint](../synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Not run | - | - | - |
+| [Alice roses, concealment, and restraint](../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
+| [Cross-source connections and restraint](../synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
 | [Pottery memory curation](../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](pottery-memory-curation--sculptor--2026-08-29/summary.md) |
 | [Reviewed capture and bounded curation](../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/backstory.json) | 16 | Not run | - | - | - |
 | [Memory curation and cross-source connections](../synthetic-journal-evaluation/scenarios/memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/backstory.json) | 9 | Not run | - | - | - |
