@@ -1,6 +1,6 @@
 ### Bug fix
 
-Own the diagnosis, fix, and verification. Follow the evidence and remove speculative changes when it refutes their premise.
+Own the diagnosis, fix, and verification. Follow the evidence. When evidence refutes a hypothesis, remove the speculative changes it motivated.
 
 1. Reproduce the failure with the smallest test or runtime exercise that reaches the affected behavior. Use the real UI, CLI, or integration surface when narrower evidence cannot capture the symptom. If reproduction is unavailable, inspect reachable evidence, state the limitation, and ask only for information or access that remains necessary.
 2. Form hypotheses and use relevant source, history, instrumentation, or runtime evidence to eliminate them. Use **how** or **why** when they resolve a specific gap. Delegate independent evidence gathering when it improves speed or quality; keep dependent diagnosis and shared edits coordinated.

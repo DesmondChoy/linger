@@ -4,7 +4,7 @@ This playbook is disabled for ordinary Linger work. The repository forbids workt
 
 Use this playbook only when the user explicitly asks to inspect or remove exact worktrees, simulators, or caches. First inventory targets with read-only commands. Show any uncommitted or untracked files and identify active Codex tasks or Claude Code sessions that may use each target. Ask before any deletion that could discard work or remove a user-owned environment.
 
-Do not run `scripts/worktree-audit.sh` in Linger. It assumes Claude Code transcript storage, so it misses Codex tasks. Resolve task state with the runtime's task-history tools when available.
+The refreshed upstream script supports `[-b <pr-base-ref>] [repo-path]`; its default merge reference is `origin/HEAD`. This is reference information only. Do not run `scripts/worktree-audit.sh` in Linger. It assumes Claude Code transcript storage, so it misses Codex tasks. Resolve task state with the runtime's task-history tools when available.
 
 After explicit approval, use exact validated paths and non-interactive commands. Never target a home directory, repository root, workspace root, unresolved variable, or broad glob. Report what was removed and whether it can be recovered.
 

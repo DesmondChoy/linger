@@ -27,14 +27,14 @@ Share the framing and tradeoffs before a long run, then proceed within existing 
 
 ## Phase B: Design the workflow
 
-Decompose into atomic, independently-landable units. Sequence riskiest-unknown-first so option value stays high. Scaffold and verification come before features (the **foundational-thinking** principle skill).
+Decompose into atomic, independently-landable units. Sequence riskiest-unknown-first. Scaffold and verification come before features (the **foundational-thinking** principle skill).
 
 - Identify suitable verification and capture a relevant baseline before changing behavior. Reuse existing checks; add a harness only when it resolves a concrete verification gap.
 - Use **architect** for consequential unresolved design choices. Use competing prototypes or **arena** when they can resolve that uncertainty or the user requests them. A settled design needs no tournament.
 - Decide what fans out. Parallelize only across genuine seams. In Linger, give concurrent writers disjoint paths in the shared checkout and serialize overlap. Do not create worktrees.
 - Write the designed phase list down. That list is what the human reviews.
 
-Then put the design into motion. Add its steps to the todolist as concrete items, after the Phase C entry and before Phase D. Run each under the Phase C loop discipline, and weave the Phase D log through them, a row as each step lands, rather than saving the whole trail for the end.
+Then execute the design. Track its steps in Beads when required by the repository, or the runtime plan when useful, as concrete items between the Phase C and Phase D entries. Run each under the Phase C loop discipline, and weave the Phase D log through them, a row as each step lands, rather than saving the whole trail for the end.
 
 ## Phase C: Run the loop
 
@@ -51,6 +51,6 @@ Log the run via the **show-me-your-work** skill when an audit trail materially h
 
 ## Phase E: Verify and hand back
 
-Check the whole against the Phase A predicate on the real product, not just the harness. Encode any recurring correction as a gate, a lint rule, a check, or a script, so the win can't silently regress (the **encode-lessons-in-structure** principle skill).
+Check the whole against the Phase A predicate on the real product, not just the harness. Encode any recurring correction as a gate, a lint rule, a check, or a script (the **encode-lessons-in-structure** principle skill).
 
 **Reply:** the playbook you designed, the rigor level and why, the decision-trail path, what's verified against the predicate, and what's still open.

@@ -44,11 +44,13 @@ Project skills live under `.agents/skills/`. The project instructions file is `A
 
 ## Advanced upstream playbooks
 
-The Graphite, stack-shipping, orchestrate, autopilot, worktree, and simulator-cleanup playbooks are retained as upstream reference material. In this repository they are unavailable by default because they assume tools, topology, or destructive authority that Linger does not grant.
+The stack-shipping, orchestrate, autopilot, worktree, and simulator-cleanup playbooks are retained as upstream reference material. In this repository they are unavailable by default because they assume tools, topology, or destructive authority that Linger does not grant. Upstream stack utilities now use GitHub or Origin through forge adapters; that change does not grant authority to run the workflows here.
 
 Use one only when the user explicitly requests that workflow and authorizes its prerequisites. Apply the no-worktree rule, the runtime's concurrency limit, and the authority rules above. If the workflow cannot be adapted without changing its meaning, explain the mismatch and use the narrowest safe playbook instead.
 
 `poteto-mode/scripts/worktree-audit.sh` audits git worktrees against Claude Code transcripts and must not run in Linger, which has no worktrees. The `watch-pr` and `orch` scripts may run only when their owning workflow is authorized and their dependencies are present.
+
+The retained `check-plan.mjs` validates upstream's full program template. It is not a gate for local Beads plans. `make-bot-ui` also needs actual Grok Bot routine and secret-handling tools; neither runtime acquires those tools by loading the skill.
 
 ## Codex
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Make bot UI"
+  short_description: "Build a UI for an authorized Grok Bot webhook"
+  default_prompt: "Use $make-bot-ui to connect a UI to my Grok Bot webhook."

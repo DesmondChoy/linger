@@ -11,11 +11,13 @@ metadata:
 
 This project runs pstack on Codex and Claude Code. Read [`references/runtime-adaptation.md`](references/runtime-adaptation.md) before following any pstack workflow. It defines the shared authority boundary and no-worktree rule, then each runtime's tool mapping, concurrency limit, model names, and task-history access.
 
+Bundled skills live at `../<name>/SKILL.md` from this file. Give a child that needs this mode the absolute path to this file so it can find the same skills on either runtime.
+
 Repository `AGENTS.md`, developer instructions, and the user's current request override pstack. A skill chooses a method. It never grants permission to broaden scope or to commit, push, open or merge a pull request, rewrite history, update trackers, deploy, send messages, or change remote services.
 
 ## Non-negotiables
 
-**Start a nontrivial multi-step task with the repository's tracking mechanism.** In Linger, use Beads for durable task state. Use the runtime's plan tool only for a useful in-session execution plan, and only where `AGENTS.md` allows it. The first step is to read the Principles section below in full. Do not create tracking ceremony for a trivial task. In your reply, name only the principles that materially changed a decision.
+**Start a nontrivial multi-step task with the repository's tracking mechanism.** In Linger, use Beads for durable task state. Use the runtime's plan tool only for a useful in-session execution plan, and only where `AGENTS.md` allows it. The first step is to read the Principles section below in full. Do not create tracking ceremony for a trivial task. In your reply, name only the principles that materially changed a decision and whose leaf skill you read this session.
 
 Remaining triggers:
 
@@ -31,6 +33,7 @@ Remaining triggers:
 - Before an authorized commit → run the repository's **quality** skill. The **deslop** skill may supplement it but never replaces repository quality gates.
 - Explicit comment cleanup or a concrete maintainability concern in comments → the **no-comments** skill (`/no-comments`), within the authorized scope.
 - Changes to UI, IDE, or CLI behavior → exercise the affected surface when needed to establish correctness. Use a focused test when it exercises the changed contract adequately. For bug fixes, reproduce the failure where practical and state any limits, as described in Bug fix.
+- Running a benchmark, measuring performance, or reporting a measured speedup or regression → the **benchmark-checklist** skill before reporting or acting on the number.
 - Any PR-status request → the **Babysit** playbook (`playbooks/babysit.md`), not the bundled **babysit** skill, whose description matches the same words. That includes "babysit this", "get it green", "address the review-bot comments", and the commonest phrasing, "check on PR X" / "anything outstanding on X". Never triggered by merely opening a PR. Declare its mode before polling; the playbook's step 1 owns the request-to-mode mapping. Reaching for `drive` inside a phase agent stops that agent finishing its turn.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - An automated PR-review bot or the agentic security review commented → skeptical posture. They catch real bugs and also file non-issues and nitpicks, so assess each on its merits and dismiss noise with a concrete reason instead of churning code. Triage fix / dismiss / ask per `references/bugbot-triage.md`.
@@ -46,6 +49,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 - **Laziness Protocol** (**principle-laziness-protocol**). Refactoring, sizing a diff, or tempted to add abstractions, layers, or signal threading. Bias to deletion and the smallest change that solves the problem.
 - **Foundational Thinking** (**principle-foundational-thinking**). Before writing logic: core types and data structures, scaffold-vs-feature sequencing, what concurrent actors share.
 - **Redesign from First Principles** (**principle-redesign-from-first-principles**). Integrating a new requirement into an existing design. Redesign as if it had been foundational from day one.
+- **Attack the Premise** (**principle-attack-the-premise**). Two or more fixes that share one premise have failed the same gate. Write the premise down and test it before another fix assumes it.
 - **Subtract Before You Add** (**principle-subtract-before-you-add**). Sequencing an addition, refactor, or rewrite. Remove dead weight first, then build on the simpler base.
 - **Minimize Reader Load** (**principle-minimize-reader-load**). Reviewing or shaping code that's hard to trace. Count layers and hidden state, collapse one-caller wrappers, shrink mutable scope.
 - **Outcome-Oriented Execution** (**principle-outcome-oriented-execution**). Planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture, don't preserve throwaway compatibility states.
@@ -65,8 +69,10 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 **Verification**
 
 - **Prove It Works** (**principle-prove-it-works**). After a task, before declaring done. Verify against the real artifact, not a proxy or "it compiles".
-- **Fix Root Causes** (**principle-fix-root-causes**). Debugging. Trace each symptom to its root cause, reproduce first, ask why until you reach it.
+- **Fix Root Causes** (**principle-fix-root-causes**). Debugging. Trace each symptom to the first place the system went wrong. A guard is a fix only when the state it handles is legitimate.
 - **Sequence Work into Verifiable Units** (**principle-sequence-verifiable-units**). Multi-step work (sweeps, migrations, runs of similar edits) and how you stack commits and PRs. Group related edits into coherent units, verify before dependent work builds on them, and keep authorized delivery easy to review.
+- **Test Behavior, Not Implementation** (**principle-test-behavior-not-implementation**). Writing, changing, or keeping a test. Assert what users can observe so the test catches broken behavior and survives internal restructuring.
+- **Explain the Number** (**principle-explain-the-number**). Before trusting, reporting, or acting on a measured performance or evaluation result, find what limits it and rule out skipped work, errors, or measurement noise.
 
 **Delegation**
 
@@ -93,6 +99,10 @@ Use collaboration agents for bounded, independent work when they improve speed o
 
 Omit model overrides by default so children inherit the parent. If `.agents/pstack-models.md` exists, use only valid configured overrides. Distinguish reviewers by their evidence lens and prompt even when the runtime exposes one model family.
 
+For a configured override, match reasoning effort and speed to the job only within the options the runtime exposes and the user authorized. Keep the configured model family. An inherited role stays inherited. Do not invent a model slug or change a role's model because an upstream default names one.
+
+Give a new independent task or review round a fresh child with the consolidated brief, including later directives and relevant prior results. Reuse a child when it holds useful state that would be costly to move, such as uncommitted changes or a running process. A role may continue across several children. Stop or hold messages can go to the current child.
+
 You own every subagent's work. Continue useful local work while children run. Inspect their artifacts and diffs, reconcile disagreements, and write the final judgment yourself.
 
 ## Writing the reply
@@ -105,6 +115,7 @@ Write the reply clean as you draft it. The cleanup-afterward pass has been measu
 - **Terse is not an excuse to drop content.** Every item the playbook's reply names stays. Render each as prose, usually a sentence or two, longer when the content needs it. No section headers, and no item expanded into its own block.
 - **Frame impact for the consumer and the maintainer.** Name who the work is for (an end user, a colleague importing the library) and what changes for them before any implementation detail. Then what the next engineer who owns this code inherits. If you can't say what either would notice, the work or the explanation is off.
 - **Never fabricate a link, citation, or transcript reference.** Link only artifacts you produced or read this session.
+- **Keep evidence with material claims.** Distinguish measured results, inferences, and uncertainty. Run available checks before handing a factual question back to the user.
 
 Every playbook ends with a reply written this way. When an authorized workflow created a pull request, include its real link as `https://github.com/<owner>/<repo>/pull/<number>`. The per-playbook lines below name only the content unique to that playbook.
 
@@ -131,11 +142,11 @@ A large or cross-cutting effort (a migration across many call sites, an ambitiou
 - **Authoring or modifying a skill.** Writing or editing a SKILL.md. `playbooks/authoring-a-skill.md`.
 - **Eval.** Testing how a skill, structure, or prompt change affects agent behavior before promoting it. `playbooks/eval.md`.
 - **Babysit.** Driving a PR or a stack to merge-ready: conflicts, review threads, CI. `playbooks/babysit.md`.
-- **Shipping.** The half after Babysit. Independently verifying a green stack, then landing the contiguous verified run with Graphite merge-when-ready. `playbooks/shipping.md`.
+- **Shipping.** The half after Babysit. Independently verifying a green stack, then landing the contiguous verified run through an available forge CLI when authorized. `playbooks/shipping.md`.
 - **Autonomous run.** A long task to drive to completion without stopping ("run until done", "/loop until X"). `playbooks/autonomous-run.md`.
-- **Orchestrate.** A standing project handed to one coordinator task. Child agents run in waves within the runtime's concurrency limit (three on Codex). The playbook's Graphite, worktree, and persistent-store assumptions require explicit user authorization and repository compatibility. `playbooks/orchestrate.md`.
+- **Orchestrate.** A standing project handed to one coordinator task. Child agents run in waves within the runtime's concurrency limit (three on Codex). The playbook's stack, worktree, and persistent-store assumptions require explicit user authorization and repository compatibility. `playbooks/orchestrate.md`.
 - **Autopilot-full.** A queue of independent PRs driven to merge-ready with full autonomy: one owner per PR carries build to merge-ready, the root swarm-verifies each head, and the operator clicks every merge ("autopilot this queue", "full autopilot", one-owner-per-PR programs). `playbooks/autopilot-full.md`.
-- **Autopilot-stack.** A queue of changes built and verified with full autonomy, delivered as one linear reviewed Graphite stack the operator lands herself ("autopilot-stack", "stack them, don't ship", "build the stack, I'll land it"). `playbooks/autopilot-stack.md`.
+- **Autopilot-stack.** A queue of changes built and verified with full autonomy, delivered as one linear reviewed branch stack the operator lands ("autopilot-stack", "stack them, don't ship", "build the stack, I'll land it"). `playbooks/autopilot-stack.md`.
 - **Session pickup.** Resuming or taking over a prior agent's in-flight work from a transcript, cloud-agent URL, or pushed branch. `playbooks/session-pickup.md`.
 - **Pause safely.** Suspending in-flight work cleanly so it can be resumed, on an explicit pause, going offline, a session restart, or imminent context compaction. The complement to Session pickup. Full steps: `playbooks/pause-safely.md`.
 - **Multi-phase or multi-PR plan.** Work that spans phases or stacked PRs. `playbooks/multi-phase-plan.md`.

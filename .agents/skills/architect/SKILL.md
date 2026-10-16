@@ -35,7 +35,7 @@ Compare alternatives when current evidence leaves a consequential choice unresol
 
 When running an arena, use up to three runners within runtime limits. They inherit the parent model by default, or use valid project-local overrides from [Models](#models). Record the synthesis decision when combining candidates.
 
-Screen the proposed design against [`references/design-red-flags.md`](references/design-red-flags.md). Prefer an interface that hides complexity behind a small, useful surface. Reject or revise shallow modules, information leakage, and unnecessary pass-through methods.
+Screen the proposed design against [`references/design-red-flags.md`](references/design-red-flags.md). Prefer an interface that hides complexity behind a small, useful surface. Assume the next contributor may see only the files it opened and copy the nearest example. Make a locally reasonable edit correct for the whole repository: one state owner, one supported path, inaccessible internals, and derived registries. Reject or revise shallow modules, information leakage, and unnecessary pass-through methods.
 
 ## Phase C: Agree (opt-in)
 
@@ -64,13 +64,13 @@ The signal is a *pattern*, not single instances. Tells:
 - Types that need escape hatches (`any`, casts, optional fields always set in practice) to compile.
 - The "we need a lock" reflex when the sketch said the state wasn't shared.
 - Callers having to know the abstraction's internal rules to use it.
-- Two or more independent Phase D deviations of the same shape across the implementation. Surfacing deviations is Phase D's job; a repeated pattern of them is Phase E's trigger.
+- Two or more independent Phase D deviations of the same shape across the implementation.
 
-Use judgment. A few edge cases don't condemn an architecture. Some problems are legitimately complex; complexity in the data is not complexity in the design. The rewrite signal is repeated friction of the same shape, not single hard cases.
+Use judgment. A few edge cases don't condemn an architecture. Some problems are legitimately complex. Complexity in the data is not complexity in the design.
 
 When you scrap:
 
-1. Re-run the **how** skill over what's been built. The implementation lessons enter the new design as inputs, not vibes.
+1. Re-run the **how** skill over what's been built.
 2. Redesign as if the new constraints had been day-one assumptions, per redesign-from-first-principles.
 3. Subtract before adding, per the **subtract-before-you-add** principle skill. The new sketch should be smaller than the old one before it grows.
 4. Return to Phase B with the new evidence. Run another arena only if competing designs would resolve the remaining uncertainty.
