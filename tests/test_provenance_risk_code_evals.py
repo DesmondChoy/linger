@@ -203,10 +203,10 @@ class RiskCodeCaseSetTests(unittest.TestCase):
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
         self.assertEqual(("4.2.1", "4.2.2", "4.2.3"), self.case_set.flows)
-        self.assertEqual(60, len(self.case_set.cases))
+        self.assertEqual(61, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
         self.assertEqual(22, len(self.case_set.positives))
-        self.assertEqual(20, len(self.case_set.negatives))
+        self.assertEqual(21, len(self.case_set.negatives))
         self.assertEqual(8, len(self.case_set.capture_positives))
         self.assertEqual(9, len(self.case_set.capture_negatives))
 
@@ -1148,7 +1148,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(60, report.summary.evaluation_error_count)
+        self.assertEqual(61, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 

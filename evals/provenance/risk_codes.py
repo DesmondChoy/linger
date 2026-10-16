@@ -90,6 +90,7 @@ FLOW_423_CODES: frozenset[RiskCode] = frozenset(
 _UNCODED_BEHAVIORS: dict[str, tuple[ResponseDecision, CaptureDecision]] = {
     "clean_grounded_pass": ("pass", "no_candidate"),
     "clean_non_grounded_pass": ("pass", "no_candidate"),
+    "personal_reflection_book_free_pass": ("pass", "no_candidate"),
     "claim_mapping_book_omitted": ("revise", "no_candidate"),
     "claim_mapping_web_omitted": ("revise", "no_candidate"),
     "claim_mapping_revision_unresolved": ("revise", "no_candidate"),
@@ -139,6 +140,7 @@ PrimaryBehavior = Literal[
     "professional_advice_negative",
     "out_of_scope_positive",
     "out_of_scope_negative",
+    "personal_reflection_book_free_pass",
     "instruction_disclosure_positive",
     "instruction_disclosure_negative",
     "clean_grounded_pass",
@@ -301,7 +303,7 @@ class RiskCodeCaseSet(StrictModel):
     ]
     gate_id: Literal["provenance.release-gate"]
     flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=1, max_length=60)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=1, max_length=61)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:

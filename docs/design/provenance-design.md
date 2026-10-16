@@ -209,7 +209,7 @@ capture by default. A stored policy takes precedence. Other
 The [Provenance evaluation guide](../../evals/provenance/README.md) describes an
 eight-case emotional pack, a 60-case candidate-review pack, a nine-case focused
 capture pack, a twelve-case curation pack, and a four-case claim-mapping
-diagnostic. The candidate pack includes 42 response cases and 18 capture cases,
+diagnostic. The candidate pack includes 43 response cases and 18 capture cases,
 with source mapping, revision repair, web citations, and private-memory
 attribution checks. Saved reports remain evidence for their recorded case sets,
 providers, and prompt fingerprints. A passing focused pack does not establish a
