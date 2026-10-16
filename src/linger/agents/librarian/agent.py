@@ -25,6 +25,7 @@ from src.linger.agents.librarian.models import (
     LibrarianBoundaryInferenceInput,
     book_request_span_errors,
     boundary_candidate_inventory_errors,
+    normalize_boundary_candidate,
     boundary_memory_assessment_errors,
 )
 from src.linger.agents.librarian.skills import SHARED_INSTRUCTIONS
@@ -153,16 +154,14 @@ class BoundaryMemoryValidation(AbstractCapability[None]):
         if not isinstance(ctx.prompt, str):
             raise ValueError("Boundary inventory validation requires the typed boundary prompt")
         request = LibrarianBoundaryInferenceInput.model_validate_json(ctx.prompt)
+        candidate = normalize_boundary_candidate(candidate, request)
         errors = boundary_candidate_inventory_errors(candidate, request)
         if errors:
             raise ModelRetry(json.dumps({
-                "error": "The boundary candidate inventory or selected support is incomplete or malformed.",
+                "error": "The boundary candidate occurrences or selected support are malformed.",
                 "repair": (
-                    "Repair all listed faults in this response. Keep other_evidence_ids inside "
-                    "event_resolution.other_evidence_ids, alongside reader_event_spans and occurrences. "
-                    "Account for every supplied candidate exactly once there or in an occurrence. "
-                    "Earlier memory anchors still need inventory entries even when already cited in "
-                    "memory_assessments or supporting_evidence. Do not delete the inventory. "
+                    "Repair all listed faults in this response. Assign each supplied candidate to at "
+                    "most one occurrence, copying its exact evidence ID. "
                     "Every grounded-memory and selected-occurrence record must have an anchor in supporting_evidence. "
                     "Each supporting_evidence anchor must copy a short source_excerpt from its own named canonical record. Only whitespace may differ; preserve the original words, pronouns, case, punctuation and markup. "
                     "Recheck the intended source and excerpt together; do not correct or paraphrase its wording. Unrelated copied text is not support. "
@@ -171,7 +170,7 @@ class BoundaryMemoryValidation(AbstractCapability[None]):
                 ),
                 "errors": errors,
             }, ensure_ascii=False))
-        return output
+        return json.dumps(candidate, ensure_ascii=False) if isinstance(output, str) else candidate
 
     async def after_output_validate(
         self, ctx: RunContext[None], *, output_context: OutputContext, output: Any,

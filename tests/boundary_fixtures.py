@@ -27,9 +27,6 @@ def event_resolution(reader_text, evidence, selected_ids):
                 "explanation": "The controlled test judge identifies this supplied event from the reader's wording.",
             },
         ),
-        "other_evidence_ids": tuple(
-            item.evidence_id for item in evidence if item.evidence_id not in current_ids
-        ),
     }
 
 

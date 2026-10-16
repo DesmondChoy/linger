@@ -85,7 +85,6 @@ def identified_stop():
                     "explanation": "The alternative return follows imprisonment instead.",
                 },
             ),
-            "other_evidence_ids": ("earlier-event",),
         },
     )
 
@@ -109,17 +108,14 @@ def test_distinct_current_stop_can_extend_earlier_memory_without_latest_alternat
     assert boundary_memory_assessment_errors(identified_stop(), request()) == []
 
 
-def test_every_private_candidate_must_be_accounted_for_before_grant():
+def test_candidates_outside_occurrences_need_no_model_written_inventory():
     decision = identified_stop()
     resolution = decision.event_resolution.model_copy(
         update={"occurrences": decision.event_resolution.occurrences[:1]}
     )
-    errors = boundary_memory_assessment_errors(
+    assert boundary_memory_assessment_errors(
         decision.model_copy(update={"event_resolution": resolution}), request()
-    )
-    assert any(
-        error.get("missing_evidence_ids") == ["other-return"] for error in errors
-    )
+    ) == []
 
 
 def test_corpus_or_memory_detail_cannot_be_fabricated_as_reader_identification():

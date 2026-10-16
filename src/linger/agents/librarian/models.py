@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from difflib import get_close_matches
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, model_validator
 
@@ -306,9 +306,6 @@ class BoundaryEventResolution(StrictModel):
 
     reader_event_spans: tuple[str, ...] = Field(min_length=1)
     occurrences: tuple[BoundaryEventOccurrence, ...] = Field(min_length=1)
-    other_evidence_ids: tuple[str, ...] = Field(
-        description="Required inside event_resolution, never at the top level. Every candidate not assigned to event_resolution.occurrences, including earlier memory anchors even when already cited in memory_assessments or supporting_evidence. Use [] only when all candidates are assigned to occurrences. Never hide a plausible alternative here.",
-    )
 
     @model_validator(mode="after")
     def _one_resolved_occurrence(self) -> "BoundaryEventResolution":
@@ -316,12 +313,9 @@ class BoundaryEventResolution(StrictModel):
             raise ValueError(
                 "a candidate requires exactly one identified occurrence; otherwise return uncertain"
             )
-        ids = [
-            *self.other_evidence_ids,
-            *(key for item in self.occurrences for key in item.evidence_ids),
-        ]
+        ids = [key for item in self.occurrences for key in item.evidence_ids]
         if len(ids) != len(set(ids)):
-            raise ValueError("account for each candidate evidence ID exactly once")
+            raise ValueError("assign each candidate evidence ID to at most one occurrence")
         if any(not span.strip() for span in self.reader_event_spans) or any(
             not span.strip()
             for item in self.occurrences
@@ -405,6 +399,51 @@ class BoundaryUncertainDecision(StrictModel):
         if errors:
             raise ValueError(str(errors))
         return self
+
+
+def normalize_boundary_candidate(
+    output: dict[str, Any],
+    request: LibrarianBoundaryInferenceInput,
+) -> dict[str, Any]:
+    """Drop bookkeeping the application derives itself before parsing a candidate.
+
+    Candidates not assigned to an occurrence are the complement of the supplied
+    set, so a model-written inventory is discarded rather than checked. Repeated
+    support anchors for one record collapse to the first whose excerpt binds to
+    that record, so a second quotation from the same passage is not a fault.
+    """
+    normalized = dict(output)
+    normalized.pop("other_evidence_ids", None)
+    resolution = normalized.get("event_resolution")
+    if isinstance(resolution, dict):
+        normalized["event_resolution"] = {
+            key: value for key, value in resolution.items() if key != "other_evidence_ids"
+        }
+    support = normalized.get("supporting_evidence")
+    if isinstance(support, (list, tuple)):
+        texts = {
+            item.evidence_id: " ".join(item.text.split())
+            for item in request.full_work_candidates
+        }
+
+        def binds(anchor: dict[str, Any]) -> bool:
+            excerpt = anchor.get("source_excerpt")
+            text = texts.get(anchor.get("evidence_id"))
+            return (
+                text is not None and isinstance(excerpt, str) and bool(excerpt.strip())
+                and " ".join(excerpt.split()) in text
+            )
+
+        merged: dict[str, dict[str, Any]] = {}
+        others: list[Any] = []
+        for anchor in support:
+            identity = anchor.get("evidence_id") if isinstance(anchor, dict) else None
+            if not isinstance(identity, str):
+                others.append(anchor)
+            elif identity not in merged or (not binds(merged[identity]) and binds(anchor)):
+                merged[identity] = anchor
+        normalized["supporting_evidence"] = [*merged.values(), *others]
+    return normalized
 
 
 def boundary_candidate_inventory_errors(
@@ -498,30 +537,13 @@ def boundary_candidate_inventory_errors(
         missing_memory = sorted(memory_support - support_ids)
         if missing_memory:
             errors.append({"path": "supporting_evidence", "error": "Include a canonical excerpt anchor for every grounded-memory evidence ID.", "missing_evidence_ids": missing_memory})
-    if "other_evidence_ids" in output:
-        errors.append(
-            {
-                "path": "other_evidence_ids",
-                "error": "Move this field inside event_resolution.other_evidence_ids; it is not a top-level candidate field.",
-            }
-        )
     resolution = output.get("event_resolution")
     if not isinstance(resolution, dict):
         return errors
-    if "other_evidence_ids" not in resolution:
-        errors.append(
-            {
-                "path": "event_resolution.other_evidence_ids",
-                "error": "This nested field is required. Include remaining candidate IDs, including earlier memory anchors; do not delete the inventory to repair nesting.",
-            }
-        )
-    other = resolution.get("other_evidence_ids", [])
     occurrences = resolution.get("occurrences", [])
-    if not isinstance(other, (list, tuple)) or not isinstance(
-        occurrences, (list, tuple)
-    ):
+    if not isinstance(occurrences, (list, tuple)):
         return errors
-    ids = list(other)
+    ids: list[object] = []
     for occurrence in occurrences:
         if not isinstance(occurrence, dict) or not isinstance(
             occurrence.get("evidence_ids"), (list, tuple)
@@ -532,15 +554,13 @@ def boundary_candidate_inventory_errors(
         return errors
     counts = Counter(ids)
     required = {item.evidence_id for item in request.full_work_candidates}
-    missing = sorted(required - counts.keys())
     unknown = sorted(counts.keys() - required)
     duplicated = sorted(identity for identity, count in counts.items() if count > 1)
-    if missing or unknown or duplicated:
+    if unknown or duplicated:
         errors.append(
             {
-                "path": "event_resolution",
-                "error": "Account for every supplied candidate exactly once across event_resolution.occurrences[*].evidence_ids and event_resolution.other_evidence_ids. Memory and boundary support citations do not replace this inventory.",
-                "missing_evidence_ids": missing,
+                "path": "event_resolution.occurrences",
+                "error": "Assign each supplied candidate to at most one occurrence; copy its exact evidence ID.",
                 "unknown_evidence_ids": unknown,
                 "duplicate_evidence_ids": duplicated,
             }

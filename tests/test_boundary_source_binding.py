@@ -42,7 +42,6 @@ def test_correct_private_anchors_and_optional_bridge_are_accepted():
     task = task.model_copy(update={"full_work_candidates": (*task.full_work_candidates, bridge)})
     output = payload()
     output["supporting_evidence"].append({"evidence_id": bridge.evidence_id, "source_excerpt": bridge.text})
-    output["event_resolution"]["other_evidence_ids"].append(bridge.evidence_id)
     decision = BoundaryInferenceDecision.model_validate_json(json.dumps(output))
     assert boundary_memory_assessment_errors(decision, task) == []
 
@@ -51,7 +50,7 @@ def test_quote_and_inventory_and_missing_memory_support_repair_together():
     invalid = payload()
     invalid["supporting_evidence"] = [invalid["supporting_evidence"][1]]
     invalid["supporting_evidence"][0]["source_excerpt"] = "A fabricated event."
-    invalid["event_resolution"]["other_evidence_ids"].append("invented")
+    invalid["event_resolution"]["occurrences"][1]["evidence_ids"].append("invented")
     calls = []
 
     def respond(messages, info):
