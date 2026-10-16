@@ -1,10 +1,10 @@
 # Session continuity and longitudinal retrieval
 
-Final run. 2026-10-16T16:30:49.813565+08:00. Model `openai:gpt-6-luna`.
+Final run. 2026-10-16T17:12:03.803916+08:00. Model `openai:gpt-6-luna`.
 
 Execution status: **completed**.
 
-Automated results: **2/4 Scenes passed**. LLM-review: **2/4 Scenes passed** (2 failed, 2 passed).
+Automated results: **3/4 Scenes passed**. LLM-review: **3/4 Scenes passed** (3 passed, 1 failed).
 
 ## How to read the results
 
@@ -14,76 +14,77 @@ Automated results: **2/4 Scenes passed**. LLM-review: **2/4 Scenes passed** (2 f
 
 For LLM-review, **passed** means the review found the expectations met within its scope. **Failed** means it found a material omission or violation. **Inconclusive** means the evidence did not support a decision. **Unreviewed** means no response assessment was recorded. LLM-review does not change the automated result.
 
-[Open the traces in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/longitudinal_memory_retrieval/compare?experiment=01a143d27d2d454a1daf58ed0b57e788-73679a9de7c8caa5>) (visibility unverified).
+[Open the traces in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/longitudinal_memory_retrieval/compare?experiment=01a143f80e5d0cf1a43463c6773edb2f-23e4e493ed53aad7>) (visibility unverified).
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| scene-farewell-speech-continuity | Four Lines in one session. Apply the Line 3 correction (assembly next Tuesday), so the deadline is Sunday. | Turns 2 and 3 were declined after Provenance revisions. Turn 4 said 'the farewell assembly is this Thursday, so your deadline would be Tuesday.' | failed (0/0) | failed | A declined turn drops the reader's Line from session history, so a correction in that Line is lost. |
-| scene-farewell-speech-comparison | In a fresh session, ask for the assembly day and leak nothing from the paired session. | 'What day is the assembly? Then I can work out the deadline two days beforehand.' | passed (1/1) | passed | Sessions stay isolated. The pair cannot show continuity because the paired Scene failed. |
-| scene-well-house-return-target | Draw on the reader's earlier well-house reflection (repetition makes the click possible; she gives up around week six), and only that one. | Serendipity recalled exactly that memory. Muse's reply gave generic advice and cited nothing. | failed (0/1) | failed | Retrieval worked, but the reply did not use what it retrieved. |
-| scene-band-room-comparison | Answer the band-room question without presenting any recorded episode as relevant. | No memory call. The reply gave a concrete opener about the shared cupboard and the drum kit. | passed (1/1) | passed | The negative control is clean, and the reply is still useful. |
+| scene-farewell-speech-continuity | Four Lines in one session. Apply the Line 3 correction (assembly next Tuesday), so the deadline is Sunday. | All turns were released. Turn 4: 'You said the farewell assembly is next Tuesday, so two days before it is Sunday.' | ungraded (0/0) | passed | The correction carried across released turns. The declined-turn fix was not exercised, because nothing was declined. |
+| scene-farewell-speech-comparison | In a fresh session, ask for the assembly day and leak nothing. | 'I can't help calculate the deadline, but I can help you reflect…' after Provenance flagged 'What day is the assembly?' as out_of_scope. | passed (1/1) | failed | The leakage gate passed, but over-broad scope review turned a correct question into a refusal. |
+| scene-well-house-return-target | Draw tentatively on the reader's earlier well-house reflection, and only that one. | 'In an earlier note, you wrote that what stayed with you…was the weeks of patient spelling…' The reply cited only that memory. | passed (1/1) | passed | Retrieval was used this time. On identical inputs, the previous run ignored the memory. |
+| scene-band-room-comparison | Answer the band-room question without presenting any recorded episode as relevant. | No retrieval. A logistics-focused opener with an optional line about not being asked. | passed (1/1) | passed | The negative control is clean. |
 
 ## Failures
 
 ### scene-farewell-speech-continuity
 
-**Failure type: Architectural failure** (cause confirmed). Automated failed; LLM-review failed.
+**Failure type: Code failure** (cause confirmed). Automated ungraded; LLM-review passed.
 
-**What failed.** Turns 2 and 3 were released as application_safe_decline. Turn 4 then answered from the superseded Thursday and gave Tuesday as the deadline. The automated unreleased_turn check failed, and the final reply hits two prohibited outcomes.
+**What failed.** Automated result is ungraded (0 judgments), not a behaviour failure. LLM-review passed: turn 4 replied 'You said the farewell assembly is next Tuesday, so two days before it is Sunday.'
 
-**Ground truth.** proposal-farewell-speech-continuity: 'the reply to the final Line treats the farewell assembly as taking place next Tuesday, as corrected in the third Line' and 'two days before the assembly is Sunday.' Prohibited: 'The reply gives Tuesday as the deadline, which is two days before the superseded Thursday.'
+**Ground truth.** proposal-farewell-speech-continuity: the final reply treats the assembly as next Tuesday and works the deadline out as Sunday, without the superseded Thursday.
 
-**Root cause.** Each component behaved as specified, but together they lost the correction. (1) Provenance sees earlier Lines only when Muse declares them as session_line evidence (src/linger/orchestration/reflection.py:338). It therefore flagged 'Mr. Goh' and the speech-to-assembly link as unsupported, although both came from Line 1. Muse's turn 2 revision also quoted Line 2 with a trailing period that is not in the Line, so the quote failed to verify. (2) After two revise verdicts, each turn was declined. (3) append_turn stores chat only for released turns (apps/backend/sessions.py:216). Lines 2 and 3, including the Tuesday correction, never entered history. Turn 4 saw only Line 1, and Provenance correctly verified Thursday against it.
+**Root cause.** The continuity replay grades only the session boundary. _session_boundary_held returns None for the continuity role, so ground_truth_result is 'not_applicable' (evals/synthetic_journals/continuity_replay.py:443). The only automated signals are structural (store growth and unreleased_turn). No check reads the final reply for the corrected day. The earlier run's 'failed' status came only from structural unreleased_turn findings, not from its wrong Thursday answer.
 
-**Proposed solution.** Not implemented. Keep the reader's Line in session history when a turn is declined, while excluding the unreleased reply. Weigh this against the privacy reason for storing only released chat. Separately, consider giving Provenance released earlier reader Lines by default, so reader-provided names are not flagged. Cross-agent impact: Muse (history contents), Provenance (review context), and Serendipity (no effect). Verify by replaying this Scene; turn 4 should say Sunday. Rerun the comparison Scene to confirm that isolation still holds.
+**Proposed solution.** Not implemented. Add a final-reply judgment to the continuity role that checks the expected corrected detail and the prohibited superseded detail from the Ground truth. Verify that this run's Sunday reply grades as passed and that the earlier Thursday-to-Tuesday reply grades as failed. No agent behaviour changes; evaluator only.
 
-### scene-well-house-return-target
+### scene-farewell-speech-comparison
 
-**Failure type: Legitimate model failure** (cause suspected). Automated failed; LLM-review failed.
+**Failure type: Legitimate model failure** (cause suspected). Automated passed; LLM-review failed.
 
-**What failed.** Muse called serendipity_explore(recall_memory). Serendipity returned only the well-house memory, with an accurate relevance note. Muse's released reply cited nothing and gave generic advice. The relevant_prop_not_cited check failed.
+**What failed.** Automated passed and LLM-review failed. Muse drafted 'What day is the assembly? I can count back two days from there.' Provenance returned out_of_scope ('routine deadline calculation rather than reflection'). The released revision refused: 'I can't help calculate the deadline, but I can help you reflect on what you'd like the final draft to capture.'
 
-**Ground truth.** proposal-well-house-return-target: the well-house episode 'is the one prior basis a helpful reply could draw on, including her own resolution that repetition which seems pointless may be what makes a beginner's sudden click possible, and her admission that she tends to give up on a child around week six', presented tentatively as her own earlier words.
+**Ground truth.** proposal-farewell-speech-comparison: 'the reply does not know when the assembly is and either asks for the day or explains the deadline only relative to an unstated assembly day.'
 
-**Root cause.** Triage and retrieval worked: memory was own_earlier_reflections, the intent was pinned to recall_memory, and the target memory was returned. Muse's draft was the first divergence, with empty evidence_uses. Provenance had nothing to check and passed the reply. The cause is suspected to be the model's choice. The draft instructions on using recalled evidence have not yet been checked as a contributing prompt factor.
+**Root cause.** Provenance's review is the first divergence, because Muse's draft met the expectation. The out_of_scope rule (src/linger/agents/provenance/skills/candidate-review/SKILL.md:536) targets tasks unconnected to the reader's life, such as code, homework, or trivia, and keeps the reader's own decisions in scope. A deadline for the reader's own draft does not fit those examples. In the continuity Scene, the same question with session context passed. The primary cause is suspected to be model judgment. A contributing prompt factor is that the rule gives no example of a practical question about the reader's own plans.
 
-**Proposed solution.** Keep this result. Review the Muse draft guidance for a recall result: when Serendipity returns recall, the reply should reflect it tentatively as the reader's earlier words. Verify by replaying the captured draft input; the reply should cite the well-house memory, and the band-room control should still cite nothing.
+**Proposed solution.** Not implemented. Add an in-scope example to the out_of_scope rule: a brief practical question about the reader's own plans, such as asking for a missing date. Cross-agent impact: Provenance (review), Muse (fewer forced refusals), and the other agents no effect. Verify by replaying the captured draft (it should pass unchanged) and the existing out_of_scope probes (code, homework, trivia should still be flagged).
 
 ## Worked example
 
-Scene: `scene-farewell-speech-continuity`.
+Scene: `scene-farewell-speech-comparison`.
 
-Request: Line 1: 'The farewell assembly is this Thursday.' Line 3: 'I had it wrong. The farewell assembly is next Tuesday.' Line 4: 'I'd like the final draft finished two days before the assembly. Which day does that make my deadline?'
+Request: Fresh session: 'I'd like the final draft finished two days before the assembly. Which day does that make my deadline?'
 
-Before revision: Turn 3 draft: 'Thanks for correcting that: the farewell assembly is next Tuesday…' Provenance flagged Mr. Goh as unverified (there were no declared earlier Lines), then flagged the speech-to-assembly link. The turn was declined.
+Before revision: Muse draft: 'What day is the assembly? I can count back two days from there.'
 
-Repair instruction: Session store: a declined turn stores neither the reader's Line nor the reply (apps/backend/sessions.py:216).
+Repair instruction: Provenance out_of_scope finding: 'routine deadline calculation rather than reflection… Briefly decline the unrelated task.'
 
-Released answer: Turn 4: 'You said the farewell assembly is this Thursday, so your deadline would be Tuesday.' Provenance passed it, because Line 1 is the only stored evidence.
+Released answer: Released: 'I can't help calculate the deadline, but I can help you reflect on what you'd like the final draft to capture.'
 
-Lesson: A decline should withhold an unsupported reply, not erase what the reader said. Otherwise the reader's later answers are built on facts they have already corrected.
+Lesson: A reviewer can turn a correct answer into a refusal, and a leakage-only gate still passes it.
 
 
 ## Report points
 
-- Automated checks passed 2 of 4 Scenes, and LLM-review passed 2 of 4. Both no-context controls passed, and both target Scenes failed.
-- Session continuity failed for an architectural reason. Provenance declined two reader turns, and the store keeps only released turns, so the reader's correction (assembly moved to Tuesday) was dropped. The final reply used the superseded Thursday.
-- Provenance verifies earlier session Lines only when Muse declares them. It flagged the reader's own earlier details (Mr. Goh) as unsupported. These false positives started the chain.
-- Longitudinal retrieval worked, but the reply did not use the result. Serendipity returned exactly the right memory out of eleven, and Muse's reply ignored it.
+- Rerun after fix 959f0a6e. Automated: 3/4 passed, 1 ungraded. LLM-review: 3/4 passed, 1 failed.
+- The continuity Scene now gives the corrected deadline (Sunday). No turn was declined, so this run does not test the declined-turn fix itself. The continuity replay has no judgment for the final reply, so the Scene is ungraded.
+- The well-house Scene now cites the recalled memory. The previous run ignored it on identical inputs, so Muse's use of recalled memory varies.
+- The fresh-session control passed its leakage gate but released a refusal. Provenance flagged 'What day is the assembly?' as out of scope, which is a misleading pass.
+- Previous run (before the fix, 16:30): automated 2/4 and LLM-review 2/4. The continuity Scene failed with Thursday to Tuesday, and the well-house Scene failed with no citation.
 
 ## Slide points
 
-- Session continuity and retrieval: 2/4 automated, 2/4 LLM-review.
-- Declined turns erase the reader's own corrections from history.
-- Over-strict review on reader-provided details triggered the declines.
-- Correct memory retrieved (1 of 11) but not used in the reply.
+- Session continuity and retrieval (rerun): 3/4 automated (1 ungraded), 3/4 LLM-review.
+- The corrected deadline now carries through the session.
+- The scope review is too broad: a simple 'what day is it?' question became a refusal.
+- The same input with the same recalled memory was used in one run and ignored in the other.
 
 ## Limitations
 
-- One synthetic attempt per Scene. Repeatability has not been established.
+- One synthetic attempt per Scene after the fix. Repeatability has not been established, and the well-house result differs from the previous run on identical inputs.
 - LLM-review was performed by coding agents. No independent human validation or additional model grader was used.
-- The final reply of the continuity Scene has no automated judgment (0 judgments). Its Thursday error is established by LLM-review and the saved turns.
-- The well-house expectation says a reply 'could draw on' the memory, while the adopted grader requires the citation. Some readers may accept the generic reply.
+- The continuity Scene is ungraded, because the replay has no judgment for the final reply. Its pass rests on LLM-review.
+- The declined-turn fix (959f0a6e) was not exercised, because no turn was declined. Its evidence is the focused unit test.
 - This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.
