@@ -147,3 +147,14 @@ class CuratedMemory(StrictModel):
     duplicate_memory_ids: tuple[str, ...] = ()
     topic_labels: tuple[str, ...] = ()
     created_at: str = Field(min_length=1)
+
+
+class CurationCandidate(StrictModel):
+    """One earlier original scored for a conversational curation batch; scores only, no text."""
+
+    memory_id: str
+    # Cosine similarity to the new memory; below the selection floor it is never selected.
+    similarity: float
+    # 1-based BM25 rank among memories sharing a keyword; None when none is shared.
+    keyword_rank: int | None
+    selected: bool

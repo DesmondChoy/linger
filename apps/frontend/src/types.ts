@@ -118,6 +118,21 @@ export type CaptureInspection = {
   storage: 'committed' | 'refused' | 'suppressed' | 'not_applicable'
   reason_code: string | null
   curation_status?: string | null
+  /** The new memory first, then the earlier originals selected beside it. */
+  curation_memory_ids?: string[]
+  /** How many earlier originals were scored for the batch. */
+  curation_scored_count?: number
+  /** The batch Sculptor got, in rank order, then the nearest memories left out. */
+  curation_candidates?: CurationCandidate[]
+}
+
+export type CurationCandidate = {
+  memory_id: string
+  /** Cosine similarity to the new memory. */
+  similarity: number
+  /** 1-based keyword (BM25) rank; null when no keyword is shared. */
+  keyword_rank: number | null
+  selected: boolean
 }
 
 export type AvailableMemory = {
@@ -131,14 +146,42 @@ export type StoredMemory = {
   memory_id: string
   kind: 'original' | 'derived_summary' | 'topic_group'
   created_at: string
-  /** The turn whose reply saved it; null for a curated item. */
+  /** The turn whose reply saved it; null for a curated item or a scenario Prop. */
   source_turn_id: string | null
+  /** The scenario Prop a reader loaded it from; null otherwise. */
+  source_prop_id: string | null
   source_memory_ids: string[]
   /** False for an original that curation retired from search. */
   searchable: boolean
   /** Developer inspect only. */
   text: string | null
   topic_labels: string[]
+  /** Originals curation linked to this one as the same memory; absent in recorded runs. */
+  duplicate_memory_ids?: string[]
+  /** The duplicate kept searchable in place of this retired original. */
+  retired_for?: string | null
+}
+
+export type CurationAction =
+  | 'link_duplicates'
+  | 'update_derived_summary'
+  | 'assign_topic_group'
+  | 'tombstone_for_retrieval'
+  | 'restore_to_retrieval'
+
+/** One applied curation event, oldest first. */
+export type CurationHistoryEntry = {
+  event_id: string
+  applied_at: string
+  action: CurationAction
+  source_memory_ids: string[]
+  /** The summary or topic group row it created. */
+  result_memory_id: string | null
+  /** The original retired or restored, and the duplicate kept in its place. */
+  memory_id: string | null
+  canonical_memory_id: string | null
+  /** Developer inspect only. */
+  text: string | null
 }
 
 /** Content-free memory handles for one turn; absent on turns saved before it existed. */

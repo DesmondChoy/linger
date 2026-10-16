@@ -75,13 +75,13 @@ def offline_retrieval_models(request, monkeypatch):
     if request.node.get_closest_marker("embeddings"):
         from src.linger.orchestration.grounding import librarian_service
 
-        monkeypatch.setattr(librarian_service, "_embedding", REAL_MODELS._embedding_model())
+        monkeypatch.setattr(librarian_service, "_embedding", REAL_MODELS.embedding_model())
         monkeypatch.setattr(librarian_service, "_reranker", REAL_MODELS._reranker_model())
         monkeypatch.setattr(librarian_service, "_indexes", REAL_MODELS._indexes)
         return
     embedding, reranker = TermEmbedding(), TermReranker()
     monkeypatch.setattr(
-        HybridLibrarian, "_embedding_model", lambda self: embedding if self._embedding is None else self._embedding
+        HybridLibrarian, "embedding_model", lambda self: embedding if self._embedding is None else self._embedding
     )
     monkeypatch.setattr(
         HybridLibrarian, "_reranker_model", lambda self: reranker if self._reranker is None else self._reranker

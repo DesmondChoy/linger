@@ -75,45 +75,62 @@ Without identifiers, the command lists active originals and the curated
 retrieval view from the repository's `memories/` directory. With identifiers,
 it lists only matching records and reports any missing records for the account.
 
-## Synthetic personas
+## Synthetic scenarios
 
-**Replay a persona** (on the start page, or **Replay a synthetic persona** in the
-chat tray) opens recorded synthetic evaluation runs without signing in. Personas
-are grouped by the objective catalog's menu families. Opening one replays its
-latest run in the same chat feed, compact map, turn summary, popups, and
-**All turns and contracts** view as a live conversation. The **Run** selector
-opens earlier recorded runs when available. The persona brief shows its
-Backstory, Props placed in the account before the run, model, result totals,
-and completed review verdict when recorded. Each Scene's
-person-adopted answer key, its recorded result, and the completed analysis
-review's assessment appear in the turn summary. Offline curation Scenes appear
-as labelled tasks. Anything a run did not record shows as "Not recorded in this
-run" (for example, the MuseTurn policy of an offline curation task, where Muse
-never drafted). The replay is read-only: it neither starts an evaluation nor calls a model.
+**Replay a scenario** (on the start page, or **Replay a synthetic scenario** in
+the chat tray) opens recorded synthetic evaluation runs without signing in.
+A scenario is one evaluation Scenario: an invented reader's Backstory, the Props
+placed in their account, Scenes of Lines, and a person-adopted answer key.
+Scenarios are grouped by the objective catalog's menu families. Opening one
+replays its latest run in the same chat feed, compact map, turn summary, popups,
+and **All turns and contracts** view as a live conversation. The **Run** selector
+opens earlier recorded runs when available. The scenario brief shows the
+reader's Backstory, the Props, model, result totals, and completed review
+verdict when recorded. Each Scene's answer key, its recorded result, and the
+completed analysis review's assessment appear in the turn summary. Offline
+curation Scenes appear as labelled tasks. Anything a run did not record shows as
+"Not recorded in this run" (for example, the MuseTurn policy of an offline
+curation task, where Muse never drafted). The replay is read-only: it neither
+starts an evaluation nor calls a model.
 
-Playback reads [`src/replay/personas/`](src/replay/personas): a small `index.json`
-for the gallery and one file per persona, loaded only when that persona opens.
-The exporter reads each Scenario's `backstory.json`, `ground-truth.json`, and
-adjacent `scenario-run-*` directories containing both `evaluation.json` and
-`summary.json`. Runs without the completion summary are excluded. A matching
-`analysis-report-*.json` supplies the completed review when available. The
-snapshot contains clipped synthetic agent inputs and outputs, recorded source
-details, and connection events. Full model message transcripts, system
-instructions, and local paths are excluded.
+**Memories** in a replay uses the live memory table, read-only. It lists the
+Props, memories the run saved, and each summary or topic group a curation Scene
+applied. Each curation Scene ran on its own copy of the Props, so no row is
+retired.
+
+A signed-in reader can choose **Load these memories into my account** under the
+Props. The server saves the scenario's Props from this snapshot into that
+reader's account (`POST /api/scenarios/{id}/props`), keeping each Prop's
+`recorded_at` when it has one. Loading again saves nothing new. A live chat then
+starts from the memories the run started from. Live curation still follows the
+live trigger: Sculptor runs after a turn saves a new memory that is close in
+meaning to earlier ones.
+
+Playback reads [`src/replay/scenarios/`](src/replay/scenarios): a small
+`index.json` for the gallery and one file per scenario, loaded only when that
+scenario opens. The backend reads the same files to load Props, so both
+Dockerfiles copy this folder. The exporter reads each Scenario's
+`backstory.json`, `ground-truth.json`, and adjacent `scenario-run-*` directories
+containing both `evaluation.json` and `summary.json`. Runs without the
+completion summary are excluded. A matching `analysis-report-*.json` supplies
+the completed review when available. The snapshot contains clipped synthetic
+agent inputs and outputs, recorded source details, and connection events. Full
+model message transcripts, system instructions, and local paths are excluded.
 
 From the repository root, export the snapshot or check it without writing:
 
 ```sh
-uv run python apps/frontend/scripts/export_personas.py
-uv run python apps/frontend/scripts/export_personas.py --check
+uv run python apps/frontend/scripts/export_scenarios.py
+uv run python apps/frontend/scripts/export_scenarios.py --check
 ```
 
 `--check` exits with an error when any exported JSON differs from the available
-Scenario records. Exporting writes the gallery and persona files and removes
-obsolete persona JSON files. These commands do not run evaluations or call models.
-If a checkout has persona files without their source run directories, `--check`
-reports a mismatch and exporting removes those personas. Restore the source
-runs before refreshing a snapshot whose recorded playback must be preserved.
+Scenario records. Exporting writes the gallery and scenario files and removes
+obsolete scenario JSON files. These commands do not run evaluations or call
+models. If a checkout has scenario files without their source run directories,
+`--check` reports a mismatch and exporting removes those scenarios. Restore the
+source runs before refreshing a snapshot whose recorded playback must be
+preserved.
 
 ## Library
 

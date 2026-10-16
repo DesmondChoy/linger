@@ -65,7 +65,7 @@ def test_frozen_page_is_exact_and_search_still_uses_the_client():
     ("get_page", {"url": URL}, "returned by web_search", "."),
     ("get_page", {"url": "https://example.com/unapproved"}, "outside this request", "."),
     ("web_search", {"query": "sk-proj-1234567890123456789012345678901234567890 literary imagery"}, "privacy checks", "."),
-    ("web_search", {"query": "private divorce literary imagery"}, "privacy checks", "My private divorce"),
+    ("web_search", {"query": "Li divorce literary imagery"}, "privacy checks", "My divorce from Li"),
 ])
 def test_frozen_page_cannot_bypass_production_guards(operation, args, match, cue):
     client = FakeExaClient()

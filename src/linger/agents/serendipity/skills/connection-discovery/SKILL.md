@@ -130,8 +130,12 @@ opened page does not establish.
 Use `web_search` only for a public connection that could materially deepen the
 current cue. Never put private memory wording or identifying reader details
 in a query. Keep web searches concise. When no specific public URLs are supplied,
-derive queries only from non-identifying concepts in the current cue. Never paste
-the reader's full wording into a query. Prefer primary or authoritative web sources.
+derive queries only from non-identifying concepts in the current cue, read
+together with any earlier reader message it follows up. Use only words that
+describe what the reader asked for; do not add purposes or genres they did not
+mention. Never paste the reader's full wording into a query. When a query is blocked, the
+retry message says why; follow it in the next query. Prefer primary or
+authoritative web sources.
 
 A candidate is an argument that two things illuminate each other, so
 `shared_structure` and `meaningful_difference` must both be real and specific.

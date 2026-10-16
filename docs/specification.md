@@ -541,20 +541,25 @@ alternate wordings help developers exercise the registered corpus. Selecting a
 line fills the editable composer, and only **Send** submits it. A new-chat step
 creates a session. These suggestions have no adopted Ground truth or grading.
 
-**Replay a persona** opens saved synthetic evaluation runs without sign-in or
-model calls. The gallery groups personas by the Objective catalog's menu
+**Replay a scenario** opens saved synthetic evaluation runs without sign-in or
+model calls. The gallery groups scenarios by the Objective catalog's menu
 families. A selected run uses the same chat feed, compact map, current-turn
 summary, and Inspect dialogs. Its Backstory, Props, adopted answer key, recorded
 grade, and completed analysis review appear when available. Earlier recorded
 runs are selectable, offline curation Scenes are labelled as tasks, and missing
-contracts remain explicitly unrecorded. Playback reads a gallery index and
-per-persona JSON files in `apps/frontend/src/replay/personas`.
-`uv run python apps/frontend/scripts/export_personas.py` exports completed
+contracts remain explicitly unrecorded. The replay's memory table lists the
+Props, saved memories, and applied curation read-only. A signed-in reader can
+load the scenario's Props into their own account; the server reads them from
+the committed snapshot by scenario ID, saves them as `scenario_prop` records
+that keep any Prop `recorded_at`, and saves nothing new on a repeat load.
+Playback reads a gallery index and per-scenario JSON files in
+`apps/frontend/src/replay/scenarios`.
+`uv run python apps/frontend/scripts/export_scenarios.py` exports completed
 adjacent `scenario-run-*` directories with both `evaluation.json` and
 `summary.json`; `--check` compares those files without writing. Full model
 message transcripts, system instructions, and local paths are excluded from
 the exported snapshot. The separate evaluation explorer uses curated
-architecture Scenes and its own catalog snapshot rather than persona playback.
+architecture Scenes and its own catalog snapshot rather than scenario playback.
 
 #### 4.2.5 Capture-triggered curation and offline surfacing
 

@@ -31,6 +31,8 @@ RUN uv sync --locked --no-dev --no-install-project
 COPY src ./src
 COPY apps/backend ./apps/backend
 COPY data/corpus ./data/corpus
+# Scenario Props a reader can load into their account.
+COPY apps/frontend/src/replay/scenarios ./apps/frontend/src/replay/scenarios
 COPY docker/cache_models.py ./docker/cache_models.py
 RUN uv sync --locked --no-dev --no-editable \
     && python docker/cache_models.py \

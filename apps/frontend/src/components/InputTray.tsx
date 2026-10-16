@@ -10,8 +10,8 @@ type Props = {
   onNewChat: () => void
   /** False while the current chat is still empty, so a new chat would change nothing. */
   canStartNewChat: boolean
-  /** Opens the recorded synthetic-persona replays. */
-  onOpenPersonas: () => void
+  /** Opens the recorded synthetic-scenario replays. */
+  onOpenScenarios: () => void
 }
 
 type Active = { path: DemoPath; variant: number; done: Set<number> }
@@ -25,11 +25,11 @@ function pickVariant(options: number[], avoid?: number): number {
  * Two ways in, kept visually distinct because they make different claims.
  *
  * A guided path is a live conversation you could have typed: nothing checks it,
- * and following it is optional. A persona replay is a recorded run with an
+ * and following it is optional. A scenario replay is a recorded run with an
  * answer key a person adopted. Collapsing them would imply the first has
  * ground truth behind it.
  */
-export function InputTray({ disabled, onFill, onNewChat, canStartNewChat, onOpenPersonas }: Props) {
+export function InputTray({ disabled, onFill, onNewChat, canStartNewChat, onOpenScenarios }: Props) {
   const [active, setActive] = useState<Active | null>(null)
   const [previewed, setPreviewed] = useState<number | null>(null)
   const [workId, setWorkId] = useState(ANY_BOOK)
@@ -162,10 +162,10 @@ export function InputTray({ disabled, onFill, onNewChat, canStartNewChat, onOpen
         </div>
       )}
 
-      <button type="button" className="tray-evaluations" onClick={onOpenPersonas}>
+      <button type="button" className="tray-evaluations" onClick={onOpenScenarios}>
         <span>
           <Icon name="checklist" size={15} />
-          Replay a synthetic persona
+          Replay a synthetic scenario
         </span>
         <span className="tray-count">
           recorded runs with answer keys

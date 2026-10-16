@@ -11,6 +11,7 @@ from apps.backend.contracts import BookScope, EvidenceItem
 from src.linger.contracts.base import StrictModel
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
+from src.linger.contracts.session import ReaderStatement
 
 
 ConnectionIntent = Literal["find_connection", "gather_sources", "get_recommendation", "recall_memory"]
@@ -84,7 +85,9 @@ class ConnectionDiscoveryInput(StrictModel):
     intent: ConnectionIntent
     presentation: PresentationMode
     scope: ConnectionScope
-
+    # The reader's earlier messages, oldest first, so a short follow-up cue
+    # ("Yes upbeat music") can be read against the request it answers.
+    prior_reader_statements: tuple[ReaderStatement, ...] = ()
 
 
 

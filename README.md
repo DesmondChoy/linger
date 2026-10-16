@@ -177,7 +177,7 @@ pnpm --dir apps/frontend dev
 ```
 
 Open <http://localhost:5173> and create an account or sign in to use live chat.
-The synthetic-persona path opens saved evaluations without sign-in or model
+The synthetic-scenario path opens saved evaluations without sign-in or model
 calls. Interactive API documentation is available at <http://127.0.0.1:8000/docs>.
 
 ### Start with Docker Compose
@@ -230,8 +230,9 @@ The local frontend includes developer tools alongside the conversation:
   wording. Select a prompt to place it in the composer, then send it. Paths
   include spoiler boundaries, memory recall, public-web discovery, connections
   across books, session continuity, declines, and safety.
-- Persona replay shows recorded synthetic runs, their answer keys, and review
-  assessments in the same chat and map UI, without invoking agents.
+- Scenario replay shows recorded synthetic runs, their answer keys, and review
+  assessments in the same chat and map UI, without invoking agents. A signed-in
+  reader can load a scenario's Props into their account and continue live.
 
 `LINGER_DEV_INSPECT=true` attaches full agent exchanges and connection events
 to the Inspector and saved account history. These details can contain prompts,
@@ -239,17 +240,17 @@ tool results, rejected outputs, and memory text. Use this setting only for local
 development or demos. It defaults to `false` and does not change the
 metadata-only Logfire policy.
 
-Inspect memory IDs on the server and check the committed persona exports:
+Inspect memory IDs on the server and check the committed scenario exports:
 
 ```bash
 	uv run python -m apps.backend.show_memories USERNAME
 	uv run python -m apps.backend.show_memories USERNAME MEMORY_ID
-	uv run python apps/frontend/scripts/export_personas.py --check
+	uv run python apps/frontend/scripts/export_scenarios.py --check
 ```
 
-The memory command reads the repository's `memories/` directory. The persona
+The memory command reads the repository's `memories/` directory. The scenario
 exporter reads saved local evaluation runs. See the
-[frontend guide](apps/frontend/README.md#synthetic-personas) for export requirements
+[frontend guide](apps/frontend/README.md#synthetic-scenarios) for export requirements
 and the command that writes the snapshots.
 
 These diagnostics are for local development and grant no runtime authority.
