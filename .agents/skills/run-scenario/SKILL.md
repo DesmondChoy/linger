@@ -154,7 +154,10 @@ evidence. The helper preserves original evidence and review identities, saves
 a recovery archive outside `results/`, and removes redundant individual files.
 
 Curate `scenes[].expected`, `observed`, and `key_learning`, plus `report_points`,
-`slide_points`, `worked_examples`, and `limitations` in `result.json`. Keep the
+`slide_points`, `worked_examples`, and `limitations` in `result.json`. Add one
+`failure_diagnoses` entry per failed Scene (automated or LLM-review) with
+`scene_id`, `failure_type`, `cause`, `failure`, `ground_truth`, `root_cause`,
+and `proposed_solution`, following the failure types in `results/README.md`. Keep the
 summary useful for report and slide preparation. Keep recorded automated and
 semantic outcomes unchanged. Regenerate the summary with `report --result PATH`.
 Do not add per-Scene copies, separate transcript documents, or bookkeeping files.

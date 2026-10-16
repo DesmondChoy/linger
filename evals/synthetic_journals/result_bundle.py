@@ -59,6 +59,43 @@ class ArchivedFile(BaseModel):
         return raw
 
 
+FailureType = Literal["legitimate_model_failure", "prompt_failure", "code_failure",
+                      "architectural_failure", "setup_or_provider_failure", "inconclusive"]
+FAILURE_TYPES: dict[FailureType, str] = {
+    "legitimate_model_failure": "Legitimate model failure",
+    "prompt_failure": "Prompt failure",
+    "code_failure": "Code failure",
+    "architectural_failure": "Architectural failure",
+    "setup_or_provider_failure": "Setup or provider failure",
+    "inconclusive": "Inconclusive",
+}
+
+
+class FailureDiagnosis(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    scene_id: str
+    failure_type: FailureType
+    cause: Literal["confirmed", "suspected"]
+    failure: str
+    ground_truth: str
+    root_cause: str
+    proposed_solution: str
+
+
+def _failed(row: dict) -> bool:
+    return row["automated_result"]["status"] != "passed" or row["response_review"] != "passed"
+
+
+def _diagnoses(bundle: dict) -> list[FailureDiagnosis]:
+    diagnoses = [FailureDiagnosis.model_validate(item) for item in bundle.get("failure_diagnoses", [])]
+    failed = {row["scene_id"] for row in bundle["scenes"] if _failed(row)}
+    ids = [diagnosis.scene_id for diagnosis in diagnoses]
+    if len(ids) != len(set(ids)) or not set(ids) <= failed:
+        raise ValueError("failure diagnoses must name each failed Scene at most once")
+    return diagnoses
+
+
 def _archive(path: Path, raw: bytes) -> dict:
     return ArchivedFile.capture(raw, json_file=path.suffix == ".json").model_dump(mode="json", exclude_none=True)
 
@@ -142,6 +179,7 @@ def _validate(bundle: dict) -> tuple[AnalysisDocument, bytes | None]:
         if (row["automated_result"] != automated or row["response_review"] != review.semantic_review.status
                 or row["assessment"] != review.assessment):
             raise ValueError("Scene outcomes disagree with the original analysis")
+    _diagnoses(bundle)
     return document, evaluation
 
 
@@ -241,7 +279,7 @@ def _make_bundle(directory: Path, original: dict[Path, bytes]) -> dict:
                           "finished_at": run_summary.get("finished_at", document.created_at)},
                 "observed_agents": sorted(_agents(evaluation))},
         "outcomes": {"automated": document.summary, "response_review": _semantic_counts(document)},
-        "scenes": rows, "findings": _findings(document),
+        "scenes": rows, "findings": _findings(document), "failure_diagnoses": [],
         "report_points": [document.review.verdict],
         "slide_points": [finding["explanation"] for finding in _findings(document)],
         "worked_examples": [],
@@ -292,6 +330,26 @@ def _summary(bundle: dict) -> str:
                   f"{grade['status']} ({grade['judgments_passed']}/{grade['judgments_total']})",
                   row["response_review"], row["key_learning"]]
         lines.append("| " + " | ".join(map(text, fields)) + " |")
+    failed = [row for row in bundle["scenes"] if _failed(row)]
+    if failed:
+        lines.extend(["", "## Failures", ""])
+        diagnoses = {diagnosis.scene_id: diagnosis for diagnosis in _diagnoses(bundle)}
+        for row in failed:
+            checks = (f"Automated {row['automated_result']['status']}; "
+                      f"LLM-review {row['response_review']}.")
+            lines.extend([f"### {text(row['scene_id'])}", ""])
+            diagnosis = diagnoses.get(row["scene_id"])
+            if diagnosis is None:
+                lines.extend([f"**Failure type: not yet diagnosed.** {checks} Record a diagnosis in "
+                              "`failure_diagnoses` in `result.json`.", ""])
+                continue
+            lines.extend([f"**Failure type: {FAILURE_TYPES[diagnosis.failure_type]}** "
+                          f"(cause {diagnosis.cause}). {checks}", ""])
+            for label, value in (("What failed", diagnosis.failure), ("Ground truth", diagnosis.ground_truth),
+                                 ("Root cause", diagnosis.root_cause),
+                                 ("Proposed solution", diagnosis.proposed_solution)):
+                lines.extend([f"**{label}.** {text(value)}", ""])
+        lines.pop()
     for example in bundle.get("worked_examples", []):
         lines.extend(["", "## Worked example", "", f"Scene: `{text(example['scene_id'])}`.", ""])
         for label, key in (("Request", "request"), ("Before revision", "before"),

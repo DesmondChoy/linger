@@ -23,6 +23,20 @@ For LLM-review, **passed** means the review found the expectations met within it
 | farm-spoiler-inference | Infer chapter 5 from the puppies memory and the 'tactics' stopping event, anchoring three events. | Chapter 5 inferred and answered correctly; one required anchor ('recognised them as those puppies') was missing. | failed (0/1) | passed | The answer was right, but the audit trail was incomplete, and the hard check measures the trail. |
 | farm-interrupted-discussion | Clarify progress, since the sheep's chant ends discussion in both chapter 5 and chapter 7. | Librarian returned uncertain; the reply asked for the latest chapter or scene; nothing was retrieved. | passed (1/1) | passed | Genuine ambiguity led to a clean clarification. |
 
+## Failures
+
+### farm-spoiler-inference
+
+**Failure type: Prompt failure** (cause suspected). Automated failed; LLM-review passed.
+
+**What failed.** The Librarian inferred the correct chapter 5 ceiling, and the released answer was correct and spoiler-safe. Its boundary support cited only two anchors: the puppies memory (chapter 3) and tonight's windmill and tactics stop (chapter 5). The automated boundary_support_differs_from_ground_truth check failed because the third adopted anchor was missing.
+
+**Ground truth.** The adopted expectation anchors three events: the puppies being taken (chapter 3), the reader recognising the dogs as those puppies (chapter 5, lines 1082-1114), and the tactics acceptance (chapter 5). The reader reported the recognition directly: "I recognised them as those puppies". The Librarian placed both recognition passages in event_resolution.other_evidence_ids.
+
+**Root cause.** The Librarian's boundary-inference skill says to "Select only the needed current-event and memory anchors as boundary support". Tonight's stopping event alone establishes chapter 5, so omitting the earlier reported event is consistent with that instruction. Nothing in the skill asks for an anchor for each completed event the reader reports. The prompt and the adopted expectation therefore disagree. This is suspected, not confirmed, because the model might still have omitted the anchor under clearer wording.
+
+**Proposed solution.** Keep this result and the fixed expectation. Propose a Librarian boundary-inference change: cite an anchor for each reader-reported completed event that the candidate passages locate, not only the stopping event. Check cross-agent impact on the Provenance and Muse handoffs first. Verify by replaying the captured boundary-inference input and checking that farm-puppies-recognised appears in supporting_evidence.
+
 ## Worked example
 
 Scene: `farm-personal-trust`.

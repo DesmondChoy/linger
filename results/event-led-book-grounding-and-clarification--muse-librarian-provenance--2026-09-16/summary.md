@@ -23,6 +23,20 @@ For LLM-review, **passed** means the review found the expectations met within it
 | alice-spoiler-inference | Infer chapter 3, stay within it, and preserve the personal connection. | Correct reading limit; revision repaired book mapping and retained the lunch/deposit bridge. | passed (1/1) | passed | Coverage by sentence preserves reflection during factual repair. |
 | alice-bottle-ambiguity | Clarify the ambiguous bottle episode without guessing or disclosing plot. | Asked for the latest completed chapter or scene; no response retrieval or plot explanation. | passed (1/1) | passed | Ambiguity leads to clarification rather than a guessed reading limit. |
 
+## Failures
+
+### alice-race-reflection
+
+**Failure type: Legitimate model failure** (cause confirmed). Automated passed; LLM-review failed.
+
+**What failed.** The released answer says the Dodo "takes the thimble from her pocket". Muse wrote this paraphrase, and Provenance approved it as supported. The quotation and the lunch/deposit reflection were otherwise correct.
+
+**Ground truth.** Every book claim must be supported by the cited passage (Chapter 3, lines 578-617). There the Dodo asks "What else have you got in your pocket?", says "Hand it over here," and then presents the thimble. Alice hands it over; the Dodo does not take it.
+
+**Root cause.** Muse paraphrased the scene loosely, although its reflection skill says a source establishes only what it reports. Provenance then excerpted the correct lines and summarised them as the Dodo "receiving the thimble", yet judged Muse's sentence supported. It never compared the actor and action with its own excerpt. Suspected contributing factors: Provenance's candidate-review instructions focus on mapping and quotation mechanics without explicitly asking who performed each paraphrased action, and this sentence also went through a quotation line-break repair that may have drawn attention away from the paraphrase. Neither makes the instructions unclear, so the primary type stays model failure.
+
+**Proposed solution.** Keep this result. For a future comparison, add one line to Provenance candidate review: a paraphrased event must keep the source's actor and action, otherwise it is unsupported_claim. Add a risk-code eval case built on this sentence, or compare a stronger reasoning setting for candidate review. Verify by replaying this Scene's captured candidate through Provenance and checking that the sentence is flagged.
+
 ## Worked example
 
 Scene: `alice-spoiler-inference`.

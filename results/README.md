@@ -51,15 +51,23 @@ When sharing results after each run, give separate **Automated** and
 Show inconclusive, unreviewed, and incomplete results explicitly.
 
 For every failure, including an automated pass that fails LLM-review, record
-the following in that run's `summary.md` and explain it to the user:
+a diagnosis in `failure_diagnoses` in that run's `result.json` and explain it to
+the user. The summary's **Failures** section opens each failed Scene with its
+failure type and flags any failed Scene that still lacks a diagnosis.
 
-- **Ground truth.** State the approved expected behaviour and cite the relevant
-  expectation or source passage. Show the actual result or decisive excerpt.
 - **Failure type.** Use **legitimate model failure** when adequate instructions,
   inputs, and functioning code were available but the model made an error.
   Use **prompt failure** for unclear, contradictory, or incorrect instructions.
   Use **code failure** for implementation, orchestration, validation, or grader
-  defects. Identify setup or provider failures separately.
+  defects. Use **architectural failure** when each component works as specified
+  but the division of roles, handoffs, or checks lets the error through, for
+  example when no stage can verify that kind of claim. Use **setup or provider
+  failure** for environment, credential, or provider errors. Use
+  **inconclusive** when the evidence cannot establish a type. Mark the cause
+  `confirmed` or `suspected`.
+- **What failed.** Describe the error briefly and say where it appeared.
+- **Ground truth.** State the approved expected behaviour and cite the relevant
+  expectation or source passage. Show the actual result or decisive excerpt.
 - **Root cause.** Explain where the result first diverged from the expectation,
   with supporting trace, prompt, or code evidence. State whether the cause is
   confirmed or suspected. Use **inconclusive** when evidence cannot establish

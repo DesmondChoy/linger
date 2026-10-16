@@ -165,6 +165,39 @@ def test_rerender_preserves_grades_and_rejects_changed_outcomes(completed_run, t
         render_bundle(result_path)
 
 
+def test_summary_declares_failure_type_for_each_failed_scene(completed_run, tmp_path):
+    from evals.synthetic_journals.result_bundle import bundle_run, render_bundle
+
+    directory, _, _ = completed_run
+    bundle_run(directory, backup_root=tmp_path / "backups")
+    result_path = directory / "result.json"
+    data = json.loads(result_path.read_text())
+    failed = next(row["scene_id"] for row in data["scenes"] if row["response_review"] == "failed")
+    assert "### " + failed + "\n\n**Failure type: not yet diagnosed.**" in (directory / "summary.md").read_text()
+
+    data["failure_diagnoses"] = [{
+        "scene_id": failed, "failure_type": "architectural_failure", "cause": "suspected",
+        "failure": "Revision dropped the personal reflection.",
+        "ground_truth": "The reply keeps the requested reflection.",
+        "root_cause": "No stage re-checks the reflection after a factual repair.",
+        "proposed_solution": "Add a coverage check after revision.",
+    }]
+    result_path.write_text(json.dumps(data))
+    render_bundle(result_path)
+    summary = (directory / "summary.md").read_text()
+    assert "**Failure type: Architectural failure** (cause suspected)." in summary
+    assert "**Root cause.** No stage re-checks the reflection after a factual repair." in summary
+
+    diagnosis = data["failure_diagnoses"][0]
+    passed = next(row["scene_id"] for row in data["scenes"] if row["scene_id"] != failed)
+    for invalid in ([{**diagnosis, "scene_id": passed}], [{**diagnosis, "failure_type": "bad_luck"}],
+                    [diagnosis, diagnosis]):
+        data["failure_diagnoses"] = invalid
+        result_path.write_text(json.dumps(data))
+        with pytest.raises(ValueError):
+            render_bundle(result_path)
+
+
 def test_changed_source_snapshot_and_symlinks_are_not_removed(completed_run, tmp_path):
     from evals.synthetic_journals.result_bundle import bundle_run
 
