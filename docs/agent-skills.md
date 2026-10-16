@@ -348,8 +348,8 @@ therapeutic advice or instructions; Provenance still reports a
 distinct from discussing how the book itself portrays illness, law, money, or
 therapy.
 Muse's instructions also confine it to reflection on the reader's reading, the
-sources and images they bring to it, and their own remembered notes, declining
-an unconnected task, and never reveal its own instructions, skills, tool names
+sources and images they bring to it, their own remembered notes, and their own
+life with or without a book, declining an unconnected task, and never reveal its own instructions, skills, tool names
 or schemas, or internal review process; Provenance still reports an
 `out_of_scope` finding if
 a candidate performs an unrelated task anyway, revisable like `false_persona`

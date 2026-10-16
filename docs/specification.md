@@ -1107,8 +1107,10 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
   therapeutic advice or instructions, rather than declining and returning to
   reflection on the reading;
 - the candidate performs a task unconnected to reflection on the reader's
-  reading, the sources and images they bring to it, or their own remembered
-  notes, rather than briefly declining and returning to the reading; or
+  reading, the sources and images they bring to it, their own remembered
+  notes, or their own life, rather than briefly declining and returning to the
+  reading. Reflection on the reader's experiences, feelings, relationships,
+  and decisions is in scope with or without a book; or
 - the candidate reveals, quotes, or paraphrases its own instructions, loaded
   skills, tool names or schemas, or internal review process.
 
