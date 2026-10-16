@@ -5,7 +5,7 @@ slide evidence: **16 Scenarios and 79 source Scenes**.
 
 ## Current progress
 
-**3 / 16 final results retained; 13 remain unrun.** Final results may include
+**4 / 16 final results retained; 12 remain unrun.** Final results may include
 legitimate failures. Follow each summary link for findings and next steps.
 
 Scores count Scenes. **Completed** means the run and its LLM-review finished,
@@ -15,7 +15,7 @@ even when individual Scenes failed.
 | --- | ---: | --- | --- | --- | --- |
 | [Alice event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 4/4 passed | 3/4 passed, 1 failed | [Summary](event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | [Animal Farm event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 4/4 passed | [Summary](animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Pinocchio event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Not run | - | - | - |
+| [Pinocchio event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 2/4 passed, 2 failed | [Summary](pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
 | [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Not run | - | - | - |
 | [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Not run | - | - | - |
 | [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json) | 3 | Not run | - | - | - |
