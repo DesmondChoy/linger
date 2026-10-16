@@ -36,7 +36,7 @@ from src.linger.orchestration.progress_context import (  # noqa: E402
 from .library import router as library_router  # noqa: E402
 from .rate_limit import enforce_chat_rate_limit  # noqa: E402
 from .progress_store import ReadingProgressStore  # noqa: E402
-from .schemas import ChatRequest, ChatResponse  # noqa: E402
+from .schemas import ChatRequest, ChatResponse, StoredMemory  # noqa: E402
 from .transcripts import TranscriptStore, TranscriptTurn, request_fingerprint  # noqa: E402
 
 configure_logging()
@@ -400,7 +400,11 @@ def _with_memory_handles(turn: TranscriptTurn, saved_by_turn: dict[str, Any], te
     if record is not None and not memory.get("captured_memory_id"):
         memory["captured_memory_id"] = record.memory_id
     if settings.linger_dev_inspect:
-        ids = [memory.get("captured_memory_id"), *memory.get("cited_memory_ids", [])]
+        ids = [
+            memory.get("captured_memory_id"),
+            *memory.get("cited_memory_ids", []),
+            *(item["memory_id"] for item in memory.get("available_memories", [])),
+        ]
         memory["texts"] = {memory_id: texts[memory_id] for memory_id in ids if memory_id in texts}
     inspection["memory"] = memory
     return turn
@@ -430,6 +434,54 @@ def history(context: AccountDependency) -> list[Conversation]:
         )
         for summary in reversed(transcript_store.list_sessions(context.account_id))
     ]
+
+
+@app.get("/api/memories")
+def list_memories(context: AccountDependency, service: MemoryServiceDependency) -> list[StoredMemory]:
+    """The reader's saved originals and curated items, newest first."""
+    try:
+        originals = service.list_active(context)
+        curated = service.list_for_retrieval(context)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    searchable = {item.memory_id for item in curated}
+    show_text = settings.linger_dev_inspect
+    rows = [
+        StoredMemory(
+            memory_id=record.memory_id,
+            kind="original",
+            created_at=record.created_at,
+            source_turn_id=record.source_event_id,
+            source_memory_ids=[record.memory_id],
+            searchable=record.memory_id in searchable,
+            text=record.text if show_text else None,
+        )
+        for record in originals
+    ] + [
+        StoredMemory(
+            memory_id=item.memory_id,
+            kind=item.kind,
+            created_at=item.created_at,
+            source_memory_ids=list(item.source_memory_ids),
+            searchable=True,
+            text=item.text if show_text else None,
+            topic_labels=list(item.topic_labels),
+        )
+        for item in curated
+        if item.kind != "original"
+    ]
+    return sorted(rows, key=lambda row: row.created_at, reverse=True)
+
+
+@app.delete("/api/memories/{memory_id}", status_code=204)
+def forget_memory(memory_id: str, context: AccountDependency, service: MemoryServiceDependency) -> None:
+    """Forget one saved memory and every summary or topic group built over it."""
+    try:
+        forgotten = service.forget(context, memory_id)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    if not forgotten:
+        raise HTTPException(status_code=404, detail="No such memory.")
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)

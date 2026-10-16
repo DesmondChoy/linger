@@ -4,11 +4,13 @@ from src.linger.contracts.reading import permits_scope, contains_scope, scope_fi
 
 import asyncio
 import json
+import logging
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
 import logfire
 from pydantic_ai import Agent, UsageLimits
+from pydantic_ai.exceptions import ModelHTTPError, UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -102,6 +104,25 @@ from src.linger.contracts.security_validation import SecurityValidationBlocked
 # at four calls. Double that for headroom: PydanticAI refuses a whole batch of
 # parallel tool calls that would cross this line, and a cap that declines a real
 # turn is worse than one that lets a looping model waste a few more calls first.
+# Under the backend's `linger` root, so these reach the file log.
+logger = logging.getLogger("linger.reflection")
+
+
+def _log_failure(stage: str, exc: Exception) -> None:
+    """Log why a stage failed without chat content.
+
+    Only pydantic-ai's fixed messages are logged; a model body, a validation
+    error, or any other exception text can quote the reader or the draft.
+    """
+    if isinstance(exc, (UnexpectedModelBehavior, UsageLimitExceeded)):
+        reason = exc.message
+    elif isinstance(exc, ModelHTTPError):
+        reason = f"HTTP {exc.status_code} from {exc.model_name}"
+    else:
+        reason = "detail withheld"
+    logger.warning("Stage failed stage=%s error=%s reason=%s", stage, type(exc).__name__, reason)
+
+
 MUSE_TOOL_CALL_LIMIT = 8
 # The tool-call budget above is what stops a tool loop; this one only has to be
 # loose enough never to pre-empt it. Each successful call costs one model
@@ -1137,7 +1158,8 @@ async def _reflection_reply(
         draft_input = MuseDraftInput.model_validate_json(message)
     except SecurityValidationBlocked as exc:
         return _security_block_release(span, exc)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1168,7 +1190,8 @@ async def _reflection_reply(
         )
     except SecurityValidationBlocked as exc:
         return _security_block_release(span, exc)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1184,7 +1207,8 @@ async def _reflection_reply(
             _routing_responses(draft_tool_results)
         )
         draft_clarification = _required_clarification(draft_routing)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1223,7 +1247,8 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(candidate),
             ),
         )
-    except Exception:
+    except Exception as exc:
+        _log_failure("provenance_review", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1351,7 +1376,8 @@ async def _reflection_reply(
         ).model_dump_json()
     except SecurityValidationBlocked as exc:
         return _security_block_release(span, exc)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1394,7 +1420,8 @@ async def _reflection_reply(
         )
     except SecurityValidationBlocked as exc:
         return _security_block_release(span, exc)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1421,7 +1448,8 @@ async def _reflection_reply(
             _routing_responses(revised_tool_results)
         )
         revised_clarification = _required_clarification(revised_routing)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1486,7 +1514,8 @@ async def _reflection_reply(
                 review_finding_codes=_review_codes(review),
             ),
         )
-    except Exception:
+    except Exception as exc:
+        _log_failure("provenance_review", exc)
         return _record_release(
             span,
             _safe_decline(

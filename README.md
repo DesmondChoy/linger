@@ -102,14 +102,18 @@ Sculptor curation, Provenance review, and application of approved derived
 changes while preserving original records. Memory surfacing runs only in
 offline evaluation.
 
-This is a prototype with username and password accounts. Accounts and
-per-account conversation history and declared reading progress persist in local
-SQLite files under `data/` and survive restarts. Signing in restores saved chats
-and continues the latest conversation. **New chat** starts another conversation
-while keeping earlier ones in the feed. **Delete** removes a conversation and
-its saved inspection details. Chat content is sent to the configured model
-provider. Optional backend telemetry records metadata rather than conversation
-content. Synthetic evaluations may also
+Readers sign up and log in with a username and password. Passwords are stored
+as salted scrypt hashes, and every chat, history, and session route takes the
+account from the bearer login token, so a reader sees and continues only their
+own conversations. Accounts, per-account conversation history, and declared
+reading progress persist in local SQLite files under `data/` and survive
+restarts. Signing in restores saved chats and continues the latest
+conversation. **New chat** starts another conversation while keeping earlier
+ones in the feed. **Delete** removes a conversation and its saved inspection
+details. This is still a prototype: there is no password reset, email
+verification, or multi-process deployment. Chat content is sent to the
+configured model provider. Optional backend telemetry records metadata rather
+than conversation content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
 
 The chat entry point redacts detected email addresses and phone numbers before

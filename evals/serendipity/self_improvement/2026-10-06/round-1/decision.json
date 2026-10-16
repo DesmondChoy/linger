@@ -1,0 +1,18 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 105,
+  "practice_passes_candidate": 113,
+  "practice_runs": 165,
+  "gain": 8,
+  "case_losses": {
+    "serendipity-alice-memory-connection-real-over-echo-v3": 1,
+    "serendipity-animal-farm-route-book-relationship-v3": 1,
+    "serendipity-douglass-route-book-relationship-v3": 1,
+    "serendipity-exclude-ineligible-evidence-v3": 2,
+    "serendipity-recall-sibling-no-matching-memory-v3": 1
+  },
+  "reasons": [
+    "practice gain 8 is below 10"
+  ],
+  "execution_errors_candidate": 0
+}

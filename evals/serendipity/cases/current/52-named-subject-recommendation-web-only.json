@@ -1,0 +1,95 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-named-subject-recommendation-web-only-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_external_recommendation_to_web",
+  "contrast_group": "personal-recommendation",
+  "tier": "regression",
+  "description": "Contrast for the personalised recommendation case: the same memories and pages, but the cue names its subject outright (people relaxing in a park on a Sunday afternoon). Nothing in it points to the reader's own life, so memory is granted but must not be searched, and the Seurat or the Renoir is the right answer.",
+  "input": {
+    "cue": "Can you recommend a painting of people relaxing in a park on a Sunday afternoon?",
+    "intent": "get_recommendation",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "web"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-sunday-word-list",
+      "excerpt": "I keep a list of new words I come across and look them up on Sunday afternoons.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-morning-swims",
+      "excerpt": "I learned to swim as an adult by practising a little every morning before work.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884",
+      "title": "A Sunday on La Grande Jatte — 1884",
+      "trust_level": "external",
+      "excerpt": "Seurat's painting shows people of every age and social class relaxing on the banks of the Seine on a Sunday afternoon, composed with the order of a classical frieze."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.moma.org/collection/works/81435",
+      "title": "Joseph Kosuth. One and Three Chairs. 1965",
+      "trust_level": "external",
+      "excerpt": "Kosuth places a wooden folding chair beside a photograph of that chair and an enlarged dictionary definition of the word 'chair', asking where the meaning of a word lives."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.nga.gov/collection/art-object-page.46303.html",
+      "title": "Jean-Honoré Fragonard, A Young Girl Reading, c. 1769",
+      "trust_level": "external",
+      "excerpt": "A young woman sits absorbed in a small book held in one hand, painted with quick, loose strokes that suggest a quiet hour given over entirely to reading."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124",
+      "title": "Pierre-Auguste Renoir, Bal du moulin de la Galette, 1876",
+      "trust_level": "external",
+      "excerpt": "Renoir paints a crowded Sunday-afternoon dance in the open-air garden of the Moulin de la Galette in Montmartre, with dappled light falling on Parisians at leisure."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "primary_operation": "web_search"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "direct",
+    "forbidden_evidence_ids": [
+      "memory-sunday-word-list",
+      "memory-morning-swims"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Recommends a painting of people relaxing outdoors on a Sunday",
+        "Says what the painting offers without claiming anything about the reader"
+      ],
+      "forbidden_claims": [
+        "Refers to the reader's saved memories or habits"
+      ]
+    },
+    "acceptable_evidence_ids": [
+      "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884",
+      "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124"
+    ]
+  }
+}

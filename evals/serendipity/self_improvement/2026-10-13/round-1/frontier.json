@@ -1,0 +1,16 @@
+[
+  {
+    "name": "round-1",
+    "pattern_gains": {
+      "recall": -2,
+      "restraint": 3,
+      "routing": 4,
+      "selection": 2
+    },
+    "best_on": [
+      "restraint",
+      "routing",
+      "selection"
+    ]
+  }
+]

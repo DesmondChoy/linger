@@ -2,6 +2,8 @@ import { components } from '@linger/architecture-map'
 import type { ComponentId, GraphEdge, Scene } from '@linger/architecture-map'
 import type { AgentExchange, TurnRecord } from '../../types'
 import { NOT_RECORDED } from '../../replay/adapter'
+import { agentStory } from './agentStory'
+import { connectionStory, webStory } from './connectionStory'
 
 export type DetailRecord = {
   label: string
@@ -16,6 +18,8 @@ export type ComponentDetail = {
   role: string
   /** One plain sentence about what happened here, this turn. */
   did: string
+  /** Plain-language steps of what happened, read before the raw records. */
+  story?: string[]
   records: DetailRecord[]
   /** The standing contract, shown under the run data rather than instead of it. */
   receives: string[]
@@ -80,6 +84,7 @@ function traceRecords(id: ComponentId, turn: TurnRecord): DetailRecord[] {
     records.unshift({
       label: 'Search, results and ranked decision, in order',
       value: trace.connection_events,
+      collapsed: true,
     })
   }
   return records
@@ -88,9 +93,14 @@ function traceRecords(id: ComponentId, turn: TurnRecord): DetailRecord[] {
 export function componentDetail(id: ComponentId, turn: TurnRecord): ComponentDetail {
   const detail = runDetail(id, turn)
   const traced = traceRecords(id, turn)
-  const runs = turn.inspection.dev_trace?.agent_exchanges.filter((exchange) => TRACE_OWNERS[id]?.(exchange)).length ?? 0
-  const did = runs && detail.did === 'This component was not exercised on this turn.'
-    ? `Recorded ${runs} run${runs === 1 ? '' : 's'} on this turn; open them below.`
+  const owns = TRACE_OWNERS[id]
+  const runs = owns ? turn.inspection.dev_trace?.agent_exchanges.filter(owns) ?? [] : []
+  const story = id === 'serendipity' ? connectionStory(turn)
+    : id === 'web' ? webStory(turn)
+      : agentStory(id, runs, turn)
+  if (story) return { ...detail, did: story.summary, story: story.steps, records: [...detail.records, ...traced] }
+  const did = runs.length && detail.did === 'This component was not exercised on this turn.'
+    ? `Recorded ${runs.length} run${runs.length === 1 ? '' : 's'} on this turn; open them below.`
     : detail.did
   return { ...detail, did, records: [...detail.records, ...traced] }
 }
@@ -173,6 +183,20 @@ function runDetail(id: ComponentId, turn: TurnRecord): ComponentDetail {
           ? [{ label: 'Connection decline', value: inspection.connection_decline }]
           : [{ label: 'Connection grants', value: turn.replayed && !turn.replayed.museTurnRecorded ? NOT_RECORDED : { allow_connection: inspection.muse_turn.policy.allow_connection } }],
       }
+    case 'web': {
+      const cited = (turn.sources ?? []).filter((source) => source.kind === 'web')
+      const events = inspection.dev_trace?.connection_events.filter((event) => event.source === 'web') ?? []
+      return {
+        ...base,
+        did: cited.length
+          ? `The reply that reached you cited ${cited.length} web page${cited.length === 1 ? '' : 's'}.`
+          : 'The reply that reached you cited no web page.',
+        records: [
+          ...(cited.length ? [{ label: 'Web pages the reply cited', value: cited.map(({ label, url }) => ({ label, url })) }] : []),
+          ...(events.length ? [{ label: 'Web searches and opened pages, in order', value: events, collapsed: true }] : []),
+        ],
+      }
+    }
     case 'provenance':
       return {
         ...base,

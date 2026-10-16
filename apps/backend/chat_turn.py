@@ -111,6 +111,7 @@ from .logger import ROOT_NAME
 from .dev_trace import DevTraceSink
 from .progress_store import ReadingProgressStore, SavedProgress
 from .schemas import (
+    AvailableMemory,
     CaptureInspection,
     ChatRequest,
     ChatResponse,
@@ -118,6 +119,8 @@ from .schemas import (
     ConnectionDeclineInspection,
     MemoryCaptureNotice,
     MemoryInspection,
+    ReadingProgressEntry,
+    ReadingStateInspection,
     ReleaseInspection,
     TraceReference,
     TurnInspection,
@@ -1181,6 +1184,28 @@ def _saved_progress_to_record(resolution: ContextResolution) -> SavedProgress | 
     return SavedProgress(resolution.work_id, resolution.part_id, resolution.chapter_max)
 
 
+def _progress_entry(work_id: str, part_id: str, chapter_max: int | None) -> ReadingProgressEntry:
+    registration = registry.CORPORA.get(work_id)
+    return ReadingProgressEntry(
+        work_id=work_id, title=registration.book.title if registration else None,
+        part_id=part_id, chapter_max=chapter_max,
+    )
+
+
+def _reading_state_inspection(
+    session_id: str, account: AccountContext, progress_store: ReadingProgressStore | None,
+) -> ReadingStateInspection:
+    """Both progress stores as this turn left them, for Inspect."""
+    slot = sessions.reading_progress(session_id)
+    return ReadingStateInspection(
+        session=_progress_entry(slot.work_id, slot.part_id, slot.chapter_max) if slot else None,
+        saved=(
+            [_progress_entry(row.work_id, row.part_id, row.chapter_max) for row in progress_store.list_for(account.account_id)]
+            if progress_store is not None else None
+        ),
+    )
+
+
 async def _turn_tool_exposure(
     request: ChatRequest,
     inspection: TurnInspection,
@@ -1199,14 +1224,14 @@ async def _turn_tool_exposure(
             # A triage fault must never fail the reader's turn; `expose_tools`
             # narrows rather than widens exposure when it has no needs.
             needs = None
+        previously_called = sessions.called_tools(request.session_id)
+        # A ceiling carried from an earlier turn says nothing about this message's needs.
+        book_override = (
+            (inspection.muse_turn.get("reading_context") is not None and not carried)
+            or sessions.pending_clarification(request.session_id) is not None
+        )
         exposure = expose_tools(
-            needs,
-            previously_called=sessions.called_tools(request.session_id),
-            # A ceiling carried from an earlier turn says nothing about this message's needs.
-            book_override=(
-                (inspection.muse_turn.get("reading_context") is not None and not carried)
-                or sessions.pending_clarification(request.session_id) is not None
-            ),
+            needs, previously_called=previously_called, book_override=book_override,
         )
         tools = sorted(exposure.tools)
         set_span_attrs(span, {
@@ -1223,6 +1248,10 @@ async def _turn_tool_exposure(
         "triage_failed": needs is None,
         "tools": tools,
         "pinned_intent": exposure.pinned_intent,
+        # Why book tools may be offered beyond triage: a reading boundary or a pending question.
+        "book_override": book_override,
+        # Tools offered because an earlier turn in this session already used them.
+        "carried_tools": sorted(exposure.tools & previously_called),
     }
     inspection.traces.insert(1, {
         "agent": "Router",
@@ -1516,6 +1545,14 @@ async def _run_chat_pipeline(
         active_count=len(active_memories),
         captured_memory_id=capture.record.memory_id if capture.record is not None else None,
         cited_memory_ids=cited_memory_ids,
+        available_memories=[
+            AvailableMemory(
+                memory_id=memory.memory_id,
+                kind=memory.kind,
+                source_memory_ids=list(memory.source_memory_ids),
+            )
+            for memory in active_memories
+        ],
         texts=(
             {
                 **{memory.memory_id: memory.text for memory in active_memories
@@ -1539,6 +1576,7 @@ async def _run_chat_pipeline(
         reading_progress.commit(
             request.session_id, pending_progress, release.release_source
         )
+    inspection.reading_state = _reading_state_inspection(request.session_id, account, progress_store)
     return inspection, release, capture
 
 

@@ -43,6 +43,21 @@ instruction to search every available source. Apply this routing policy:
   explicitly asks for an essay, artwork, song, thinker, public source, or idea
   outside the supplied book or personal context, use public-web retrieval as
   the primary source: open a supplied URL, or search when none is supplied.
+  The personalised recommendation route below takes precedence when it applies.
+- Personalised recommendation: when an outside recommendation is meant to fit
+  the reader's own life, and the cue points to that life without describing
+  it ("how I spend my Sunday afternoons", "something that suits my mornings",
+  "for someone like me"), the fit depends on what the reader has told Linger.
+  When `memory` is granted, call `search_memories` first to learn what the cue
+  refers to. Then derive the web query from general, non-identifying concepts
+  in the matching record, such as "artwork about looking up words", never from
+  its wording, and cite that memory alongside the opened page in every
+  candidate that relies on it. A candidate that matches only the cue's words
+  while a retrieved record describes what the reader actually does there is
+  at best `partial`. When no record describes what the cue refers to, search
+  the web from the cue alone and keep the recommendation general; never
+  invent the reader's habits. A cue that names its subject outright ("a
+  painting of a Sunday picnic") is an ordinary external recommendation.
 - Book relationship: when the cue asks about another passage, character,
   chapter, or pattern inside a confirmed work, use `search_librarian` first.
 - Thematic book discovery: when the reader asks whether anything they have read
@@ -103,7 +118,14 @@ comparison needs.
 
 Cite only exact evidence IDs returned by this run's permitted tools. A
 `web_search` result is a lead, not citable evidence: open its exact URL with
-`get_page` before citing it. Web evidence IDs are the exact opened URLs.
+`get_page` before citing it. Web evidence IDs are the exact opened URLs. An
+opened public page may provide only a concise description or excerpt. It can
+still support a tentative recommendation or bounded comparison when it directly
+states a relevant idea, question, or topic. Keep claims within that stated
+content, distinguish an outside lens from proof about a book or reader, and
+acknowledge limits. Do not require fuller text merely because the accessible
+description is brief; decline if the proposed connection depends on details the
+opened page does not establish.
 
 Use `web_search` only for a public connection that could materially deepen the
 current cue. Never put private memory wording or identifying reader details
@@ -138,10 +160,18 @@ connection. A decline is a complete answer.
 A proposal requires two or three distinct, eligible candidates. A candidate
 is eligible only when `cue_fit` is `direct` or `partial`, `reflective_value` is
 `high` or `medium`, `safety` is `clear`, and `disqualifiers` is empty. Never pad
-the shortlist with an ineligible candidate. Distinct means different
-interpretations, not different passages: two candidates may read the same pair
-of records differently, as long as the shortlist as a whole cites at least two
-records. Do not decline only because the evidence holds one earlier scene
+the shortlist with an ineligible candidate. When one specific pairing is well
+supported, do not assume it permits only one reading or that the shortlist
+needs two independent bridges. Test whether the same evidence supports
+meaningfully different emphases—for example, how the passages develop or
+contrast each other, or what remains unresolved. A narrower reading can be a
+valid runner-up if it adds a distinct, evidence-grounded angle; rank it below
+the stronger reading when appropriate. Do not merely restate a candidate,
+invent missing details, or elevate a shared subject into a structure. Distinct
+means different interpretations, not different passages: two candidates may
+read the same pair of records differently, as long as the shortlist as a whole
+cites at least two records. Do not decline only because the evidence holds one
+earlier scene
 rather than several.
 
 Rubric anchors are ordinal judgments, not probabilities and not numbers to add:

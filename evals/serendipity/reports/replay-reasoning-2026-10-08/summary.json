@@ -1,0 +1,1141 @@
+{
+  "description": "Paired Scenario replays, Serendipity at low vs medium reasoning, Skill v2, 8-9 Oct 2026. Raw artifacts kept locally.",
+  "scenes": [
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_ae24648895f1983308bb95f5077f03f6a3e41873fa784551153504a942c599ab",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_ae24648895f1983308bb95f5077f03f6a3e41873fa784551153504a942c599ab",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_c2e0e39e32b1a826ecd9880d37b15c2dec421f8b86bb8f8d7a3edd91c73077ae",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S2",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "provenance_review",
+      "failures": [
+        "missing_review_approval"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_c2e0e39e32b1a826ecd9880d37b15c2dec421f8b86bb8f8d7a3edd91c73077ae",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_3c5d9adf7e5ff4fd65b2f8fa89f9f545273214b3d6be216aa3e205f7ca627bcb",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_3c5d9adf7e5ff4fd65b2f8fa89f9f545273214b3d6be216aa3e205f7ca627bcb",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_0637bc0fdc581471c44a87ca6064e10a4768f85a8324913816b0ef1d7762bced",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_0637bc0fdc581471c44a87ca6064e10a4768f85a8324913816b0ef1d7762bced",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_f816fcd0e3628d6b96a4086d9a4c5b9dd4f5e36a84530a5eadaf4465dde7975c",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_f816fcd0e3628d6b96a4086d9a4c5b9dd4f5e36a84530a5eadaf4465dde7975c",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_57a4373ca6173fcaa05e7d73c77d37f422fca0394c25e8fd62e09f2e2864f6d0",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_57a4373ca6173fcaa05e7d73c77d37f422fca0394c25e8fd62e09f2e2864f6d0",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-06",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "unexpected_release_source",
+        "missing_required_citation:evidence-06-prop-situated-self",
+        "missing_required_citation:evidence-06-alice-identity",
+        "missing_required_citation:evidence-06-hume-perceptions",
+        "missing_required_citation:evidence-06-pinocchio-promise",
+        "missing_required_citation:evidence-06-pinocchio-delay",
+        "missing_required_citation:evidence-06-keller-work-and-recreation"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_2a56cc21f47d2ec2436683812a46b7ccd89d4fc9f3a40878db857be9118f6fd4",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4114-4172",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-07",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "invalid_evidence_release",
+        "missing_required_citation:evidence-07-prop-situated-self",
+        "missing_required_citation:evidence-07-hume-perceptions",
+        "missing_required_citation:evidence-07-pinocchio-promise",
+        "missing_required_citation:evidence-07-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_2a56cc21f47d2ec2436683812a46b7ccd89d4fc9f3a40878db857be9118f6fd4",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-08",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "unexpected_release_source",
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-08-prop-situated-self",
+        "missing_required_citation:evidence-08-hume-bundle",
+        "missing_required_citation:evidence-08-pinocchio-promise",
+        "missing_required_citation:evidence-08-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "missing_review_approval",
+        "missing_required_citation:evidence-09-prop-situated-self",
+        "missing_required_citation:evidence-09-hume-bundle"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-06",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "serendipity_selection",
+      "failures": [
+        "unpermitted_selected_evidence"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_524f28177fb047c88b192bc40b5ebe10cfb81d929e9e07be61a922fc7452a1b2",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4068-4127",
+        "pg500-v6bdc1734-ch30-ln4114-4172"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-07",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_524f28177fb047c88b192bc40b5ebe10cfb81d929e9e07be61a922fc7452a1b2",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4155-4230",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-08",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-08-pinocchio-promise",
+        "missing_required_citation:evidence-08-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-09-prop-situated-self"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-06",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_a0fbde6e0932409ee00fcf82702f4e7f226a026f2aa2307e23c40bbc2e5f2c26",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4114-4172",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-07",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "serendipity_selection",
+      "failures": [
+        "missing_review_approval",
+        "missing_required_citation:evidence-07-prop-situated-self",
+        "missing_required_citation:evidence-07-hume-perceptions",
+        "missing_required_citation:evidence-07-pinocchio-promise",
+        "missing_required_citation:evidence-07-pinocchio-delay",
+        "unpermitted_selected_evidence"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_a0fbde6e0932409ee00fcf82702f4e7f226a026f2aa2307e23c40bbc2e5f2c26",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4068-4127",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-08",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "low",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "missing_review_approval",
+        "missing_required_citation:evidence-09-prop-situated-self",
+        "missing_required_citation:evidence-09-hume-bundle"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S1",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "serendipity_selection",
+      "failures": [
+        "unpermitted_selected_evidence"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_abeeaad6cba4e418d0ef0c2393e57c5334cb7f9d2de20071d51820a3eef64950",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg11-v01b38ea4-ch05-ln1004-1056"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_abeeaad6cba4e418d0ef0c2393e57c5334cb7f9d2de20071d51820a3eef64950",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 1,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S1",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "unexpected_release_source",
+        "missing_required_citation:s1-connection-memory",
+        "missing_required_citation:s1-connection-book",
+        "missing_required_citation:s1-connection-public"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_4197acae0068cd7fb623486bf5283ba554993fc7d7b4f38062245f23bdb8ea99",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_4197acae0068cd7fb623486bf5283ba554993fc7d7b4f38062245f23bdb8ea99",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 2,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S1",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "unexpected_release_source",
+        "missing_required_citation:s1-connection-memory",
+        "missing_required_citation:s1-connection-book",
+        "missing_required_citation:s1-connection-public"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_955a9a9b145a80401953abd917ce6385b5cce52ea0c63387db1aceadb76b1ad5",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S2",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_955a9a9b145a80401953abd917ce6385b5cce52ea0c63387db1aceadb76b1ad5",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "cross-source",
+      "repetition": 3,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S1",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "unexpected_release_source",
+        "missing_required_citation:S1C-memory",
+        "missing_required_citation:S1C-book",
+        "missing_required_citation:S1C-public"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_c7d79b008b41111b24adeddf18ca8727fc7a6f087a7bd80aa2b066f99c75f291",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S2",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "provenance_review",
+      "failures": [
+        "missing_review_approval"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_c7d79b008b41111b24adeddf18ca8727fc7a6f087a7bd80aa2b066f99c75f291",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 1,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_62fc4fb2e1f9e824194f322a5a74f2d3a2759ce44e0714b8a48dd559b379ba14",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S2",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "missing_review_approval"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_62fc4fb2e1f9e824194f322a5a74f2d3a2759ce44e0714b8a48dd559b379ba14",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 2,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S1",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/",
+        "mem_8103e542449c95c2eaa97f6cf3b5f07eab0c696a8a0338b4267ab4fa552c1290",
+        "pg11-v01b38ea4-ch08-ln1931-1970"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S2",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "missing_connection_decision",
+        "missing_source_inspection",
+        "required_source_not_inspected",
+        "unpermitted_citation"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "roses",
+      "repetition": 3,
+      "scene_id": "S3",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "invocation",
+      "failures": [
+        "unexpected_exploration"
+      ],
+      "serendipity_skills": [],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-06",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-06-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_347c00eea81040a75b75fb686373fdc4b18cc2607dca7a919f0f7eb2d868d7ab",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-07",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "missing_review_approval",
+        "missing_required_citation:evidence-07-prop-situated-self",
+        "missing_required_citation:evidence-07-hume-perceptions",
+        "missing_required_citation:evidence-07-pinocchio-promise",
+        "missing_required_citation:evidence-07-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_347c00eea81040a75b75fb686373fdc4b18cc2607dca7a919f0f7eb2d868d7ab",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4155-4230"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-08",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-08-hume-bundle"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 1,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-09-prop-situated-self"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-06",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_581e9fc5b6894aebd3b08023f5e63361ff53d86f6f6b6413b5f54abc675abdfc",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4114-4172"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-07",
+      "hard_gate_pass": true,
+      "release_source": "muse_candidate",
+      "first_failure_stage": null,
+      "failures": [],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_581e9fc5b6894aebd3b08023f5e63361ff53d86f6f6b6413b5f54abc675abdfc",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-08",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-08-prop-situated-self",
+        "missing_required_citation:evidence-08-pinocchio-promise"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 2,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-06",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "serendipity_selection",
+      "failures": [
+        "unpermitted_selected_evidence"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_ae05b78563435a24751f8ecac7bca2f24dc9bf8333a460588cbcc8a93bc28ef7",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4068-4127",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-07",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "missing_review_approval",
+        "missing_required_citation:evidence-07-prop-situated-self",
+        "missing_required_citation:evidence-07-hume-perceptions",
+        "missing_required_citation:evidence-07-pinocchio-promise",
+        "missing_required_citation:evidence-07-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.source-gathering"
+      ],
+      "serendipity_evidence_ids": [
+        "https://davidhume.org/texts/t/1/4/6",
+        "mem_ae05b78563435a24751f8ecac7bca2f24dc9bf8333a460588cbcc8a93bc28ef7",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg2397-vb3cc1e13-sec024-ln3115-3140",
+        "pg500-v6bdc1734-ch30-ln4028-4081",
+        "pg500-v6bdc1734-ch30-ln4211-4255"
+      ]
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-08",
+      "hard_gate_pass": false,
+      "release_source": "muse_candidate",
+      "first_failure_stage": "retrieval",
+      "failures": [
+        "required_source_not_inspected",
+        "missing_required_citation:evidence-08-pinocchio-delay"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    },
+    {
+      "condition": "medium",
+      "scenario": "scenes-06-09",
+      "repetition": 3,
+      "scene_id": "scene-09",
+      "hard_gate_pass": false,
+      "release_source": "application_safe_decline",
+      "first_failure_stage": "muse_presentation",
+      "failures": [
+        "provider_failure",
+        "missing_review_approval",
+        "missing_required_citation:evidence-09-prop-situated-self",
+        "missing_required_citation:evidence-09-hume-bundle"
+      ],
+      "serendipity_skills": [
+        "serendipity.connection-discovery"
+      ],
+      "serendipity_evidence_ids": []
+    }
+  ]
+}

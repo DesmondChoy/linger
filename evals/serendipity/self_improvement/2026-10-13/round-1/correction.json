@@ -1,0 +1,75 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-decline-insufficient-bridge-v3",
+      "note": "In the failing repetition, the run chose `unsupported_cue` even though the cue did identify an earlier change; the available evidence was insufficient to establish the comparison, which was the expected decline basis."
+    },
+    {
+      "case_id": "serendipity-decline-generic-bridge-v3",
+      "note": "In two failing repetitions, the run proposed connections by reading the puppy encounter and Alice’s complaint about her height as evidence of changed agency or power, rather than declining when the passages supported only the broad motif of smallness."
+    },
+    {
+      "case_id": "serendipity-recall-no-matching-memory-v3",
+      "note": "In the failing repetition, the run returned notes about moving into a flat and a first rehearsal as relevant to starting a new job, although neither was the reader’s earlier statement about that subject."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "Across all five failing repetitions, the run searched repeatedly and declined because the opened summaries did not explain the rationale for anti-literacy laws, instead of considering a bounded recommendation of a source that directly covers the requested topic."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "Across all five failing repetitions, the run treated the lack of an explicit explanation for the prohibition as disqualifying, searched further, and declined rather than offering a relevant source as a limited starting point."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Topical recommendation rejected for incomplete explanation",
+      "definition": "A run declines an external-source recommendation because the accessible source description does not itself supply the full answer, despite covering the requested topic sufficiently to be offered as a bounded starting point.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Motif elaborated into unsupported structure",
+      "definition": "A run proposes a specific interpretive bridge by adding consequences or structure not established by the paired passages, where the supported overlap remains a broad motif.",
+      "case_ids": [
+        "serendipity-decline-generic-bridge-v3"
+      ]
+    },
+    {
+      "name": "Decline basis mismatch",
+      "definition": "A run declines despite the evidence gap being the issue, but chooses a reason that describes a different problem than the cue or evidence presents.",
+      "case_ids": [
+        "serendipity-decline-insufficient-bridge-v3"
+      ]
+    },
+    {
+      "name": "Unrelated memories treated as recall",
+      "definition": "A run returns personal records that echo a mood or broad circumstance but do not answer what the reader asked to recall.",
+      "case_ids": [
+        "serendipity-recall-no-matching-memory-v3"
+      ]
+    }
+  ],
+  "target_category": "Topical recommendation rejected for incomplete explanation",
+  "diagnosis": "The instruction says a brief public-page description can support a recommendation when it directly states a relevant topic, but its final caution—“decline if the proposed connection depends on details the opened page does not establish”—does not distinguish recommending a source to begin exploring a question from claiming that the source already answers it. A careful reader can therefore treat an incomplete description as making the recommendation itself unsupported, search repeatedly for a source that states the full rationale, and decline. Clarifying that a directly topical source may be recommended as a starting point, while explicitly marking what the excerpt does not establish, addresses that failure without relaxing the boundary on claims.",
+  "edits": [
+    {
+      "find": "Cite only exact evidence IDs returned by this run's permitted tools. A `web_search` result is a lead, not citable evidence: open its exact URL with `get_page` before citing it. Web evidence IDs are the exact opened URLs. An opened public page may provide only a concise description or excerpt. It can still support a tentative recommendation or bounded comparison when it directly states a relevant idea, question, or topic. Keep claims within that stated content, distinguish an outside lens from proof about a book or reader, and acknowledge limits. Do not require fuller text merely because the accessible description is brief; decline if the proposed connection depends on details the opened page does not establish.",
+      "replace": "Cite only exact evidence IDs returned by this run's permitted tools. A `web_search` result is a lead, not citable evidence: open its exact URL with `get_page` before citing it. Web evidence IDs are the exact opened URLs. An opened public page may provide only a concise description or excerpt. For an external recommendation, a source that directly covers the requested topic may be proposed as a useful starting point even if its accessible description does not state the full explanation the reader asks about. State what it does establish and identify the gap; do not imply that the recommendation answers the full question. A page can also support a tentative recommendation or bounded comparison when it directly states a relevant idea, question, or topic. Keep claims within that stated content, distinguish an outside lens from proof about a book or reader, and acknowledge limits. Do not require fuller text merely because the accessible description is brief; decline if the proposed connection depends on details the opened page does not establish.",
+      "reason": "Separates the support needed to recommend a source for further reading from the support needed to claim that it answers the reader’s full question, while requiring a clear statement of limits."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-douglass-route-external-web-v3",
+    "serendipity-douglass-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-alice-web-with-distractor-v3"
+  ],
+  "risks": "These passing recommendation cases could be affected by the more explicit allowance for topical starting-point recommendations. They should remain sound because their sources already state relevant ideas directly, and the edit requires the proposal to describe only established content, name any explanatory gap, and avoid presenting a recommendation as proof or as a complete answer."
+}

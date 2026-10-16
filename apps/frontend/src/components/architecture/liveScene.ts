@@ -107,7 +107,7 @@ function optionalEdges(present: Set<ComponentId>): GraphEdge[] {
       edges.push(edge('serendipity', 'librarian', '', 'Only permitted book evidence may enter the connection search.', ['Bounded query', 'Exact book evidence'], true))
     }
     if (present.has('web')) {
-      edges.push(edge('serendipity', 'web', 'Permitted search', 'Guarded public discovery used generalized concepts; web-backed release still fails closed.', ['Non-private query', 'Opened pages and source URLs'], true))
+      edges.push(edge('serendipity', 'web', 'Permitted search', 'Guarded public discovery used generalized queries; opened pages could be cited once checked.', ['Non-private query', 'Opened pages and source URLs'], true))
     }
     if (present.has('memory')) {
       edges.push(edge('serendipity', 'memory', 'Memory search', 'Serendipity searched active account-scoped memories under application grants.', ['Bounded memory query', 'Eligible memory records'], true))
