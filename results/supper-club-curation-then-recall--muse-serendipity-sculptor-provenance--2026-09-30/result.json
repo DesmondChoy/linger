@@ -276,7 +276,12 @@
     "Memory search counts shared words, common words included, and returns five results. The three sat-beside notes take three of the five places for general supper-club queries. Linking two of them as duplicates does not merge them in search. Code: src/linger/agents/serendipity/tools.py:211-240.",
     "Before curation, in scene-current-night, the application's 10-second triage limit was reached (apps/backend/chat_turn.py:135). Muse then had only the book tools, so no memory search ran. No HTTP error was recorded, and the cause of the delay is unverified.",
     "In scene-charging-no-match after round 3, the reply cited the sat-beside note, which the approved answer forbids. The note bears on 'what supper club is', so the approved answer may be too strict. It is unchanged.",
-    "This repetition shows no recall gain from curation. It makes no claim about repeatability. The triage retry was added after this run and is not yet verified by a rerun. The search fix is not implemented."
+    "This repetition shows no recall gain from curation. It makes no claim about repeatability. The triage retry was added after this run and is not yet verified by a rerun. The search fix is not implemented.",
+    "Decision: this result is kept as is. The Scene score is low partly because a Scene passes only if all four attempts pass: 1/5 Scenes passed, but 13/20 attempts passed.",
+    "Two of the four failed Scenes (scene-several-changes, scene-start-of-evening-nerves) trace to word-overlap memory search (search_memories). A replay of all 25 recorded searches reproduced every miss, so curation did not cause them.",
+    "The other two failed Scenes have different causes: a provider timeout in triage (scene-current-night) and a debatable expectation (scene-charging-no-match). A new retriever would not fix them.",
+    "Offline replay: BM25 and the bge-small embedding model each put the one-change note in the top five for every recorded query. No method already in the project reliably found the first-tray note; the best, BM25 with the Librarian's reranker, found it for 5 of 8 queries.",
+    "The Scenario is kept as a regression check for future retrieval and model changes, not as a measure of curation's value. Any candidate retriever needs the cross-agent impact check first, because Serendipity's recall and connection skills share this search."
   ],
   "slide_points": [
     "Automated 1/5 Scenes passed, 13/20 attempts. LLM-review 1/5 Scenes passed, 12/20 attempts.",
@@ -306,7 +311,8 @@
     "The charging Scene's expectation that no note applies is debatable for the third sat-beside note (prop-faces-c). It is recorded as a limitation, and the approved answer is unchanged.",
     "At run time the working tree had an uncommitted change in evals/synthetic_journals/replay.py. It affects capture grading only, which this loop does not use.",
     "Logfire export reported flushed=true. Remote visibility has not been read back.",
-    "LLM-review is the coding assistant's separate saved judgment. It is not independent human validation. Automated grades are unchanged."
+    "LLM-review is the coding assistant's separate saved judgment. It is not independent human validation. Automated grades are unchanged.",
+    "The offline retriever replay reused the queries that exposed the failure, so it may favour the method chosen. It is supporting evidence, not proof of a fix. Showing a real gain needs a fresh run with several repetitions, because one repetition cannot separate a gain from run-to-run variation."
   ],
   "telemetry": {
     "url": "https://logfire-us.pydantic.dev/desmond-choy/linger/evals/memory_curation_recall_loop/compare?experiment=01a1441ffff82eb6f572c3987f4ca5a6-b88237ed2e7a96f2",
