@@ -38,6 +38,7 @@ Master of Technology in Intelligent Systems, Institute of Systems Science, Natio
   - [3.3 Reasoning boundary: typed hand-offs](#33-reasoning-boundary-typed-hand-offs)
   - [3.4 Output boundary: review and release](#34-output-boundary-review-and-release)
   - [3.5 Memory boundary](#35-memory-boundary)
+  - [3.6 Prompt patterns](#36-prompt-patterns)
 - [4. Explainable and Responsible AI Practices](#4-explainable-and-responsible-ai-practices)
   - [4.1 Responsible AI across the lifecycle](#41-responsible-ai-across-the-lifecycle)
   - [4.2 Explainability and traceability](#42-explainability-and-traceability)
@@ -244,28 +245,28 @@ The product interface provides account access and chat. The local development in
 
 ## 3. Agent Roles and Design
 
-All five agents use the shared configured model, `LINGER_MODEL`; the team standard is OpenAI's `gpt-6-luna`. Shared OpenAI reasoning effort is low (`src/linger/agents/build.py`). Muse reflection and Provenance candidate review override it to medium in `src/linger/agents/muse/skills.py` and `src/linger/agents/provenance/skills.py`; Serendipity retains the shared low setting. Earlier evaluations used `gpt-5.6-luna`. Table 6 summarises each role. Dated evaluation results describe the configuration measured at the time, which may differ from the current implementation.
+All five agents use the shared configured model, `LINGER_MODEL`; the team standard is OpenAI's `gpt-6-luna`. Shared OpenAI reasoning effort is low (`src/linger/agents/build.py`). Muse reflection and Provenance candidate review override it to medium in `src/linger/agents/muse/skills.py` and `src/linger/agents/provenance/skills.py`. Serendipity runs at medium by role default in `src/linger/agents/build.py`. Earlier evaluations used `gpt-5.6-luna`. Table 6 summarises each role, and Table 7 shows what each role can see and change. Dated evaluation results describe the configuration measured at the time, which may differ from the current implementation.
 
 Agents never call one another, and no agent can release text or write to storage. Sections 3.2 to 3.5 describe the four boundaries where the application constrains the agents. Each lists what the application enforces and what the agents decide.
 
 ### 3.1 Roles
 
-| Agent | Purpose and responsibilities | Model | Memory | Tools |
-|---|---|---|---|---|
-| Muse | Owns the conversation. Triages each Line, drafts the only reader-facing prose, nominates at most one exact span for capture, and repairs one round of review findings | Configured model; turn triage uses `gpt-6-luna` with OpenAI or `gemini-2.5-flash` with Google | Released session history only: at most eight recent turns and 16,000 characters. Stored memories arrive only as evidence returned by Serendipity | `librarian_route`, `librarian_search`, `serendipity_explore`, granted by the application per turn, after triage |
-| Librarian | Resolves the reader's reading boundary, plans book requests as exact spans of the reader's text, and judges whether permitted passages support each part of a request | Configured model, plus local embedding and reranker models in application-owned retrieval | Stateless per request, apart from a chapter the reader explicitly declared, which is held for the session and saved per account and work | None. Retrieval is application code |
-| Serendipity | Looks for one tentative, evidence-supported connection between a reflection and a permitted book passage, memory, or web page, or returns a typed decline; under a separate intent, recalls the reader's earlier words | Configured model | None. Holds no account identity | Book search through Librarian's path, account memory search, and Exa web search with page retrieval, each granted per request |
-| Provenance | Classifies each Line for the emotional boundary, reviews every complete Muse candidate and memory nomination, and reviews every Sculptor curation proposal against its exact sources | Configured model | None. Every review starts from a fresh typed input | None |
-| Sculptor | Proposes bounded curation over supplied memory records while preserving originals; judges memory surfacing offline; runs offline retrieval-improvement experiments | Configured model | None. Receives only a bounded record set, with account identity excluded | None, except web search and page retrieval in offline research tasks |
-| Memory and Policy Service | Deterministic application code, not an agent. The only writer of personal-memory and curation records | None | Owns the account-scoped memory store: immutable originals, curation layer, audit log | Not applicable |
+| Agent | Purpose and responsibilities | Reasoning pattern | Model | Memory | Tools |
+|---|---|---|---|---|---|
+| Muse | Owns the conversation. Triages each Line, drafts the only reader-facing prose, nominates at most one exact span for capture, and repairs one round of review findings | Two runs per turn. Triage classifies the Line with no tools. Reflection drafts the reply and decides whether to call each granted tool, up to eight tool calls. One revision run follows if Provenance asks | Configured model; turn triage uses `gpt-6-luna` with OpenAI or `gemini-2.5-flash` with Google | Released session history only: at most eight recent turns and 16,000 characters. Stored memories arrive only as evidence returned by Serendipity | `librarian_route`, `librarian_search`, `serendipity_explore`, granted by the application per turn, after triage |
+| Librarian | Resolves the reader's reading boundary, plans book requests as exact spans of the reader's text, and judges whether permitted passages support each part of a request | A chain of single typed judgements that the application runs in order: infer the reading boundary and identify the event when needed, plan the request, then assess the retrieved evidence. No tool loop | Configured model, plus local embedding and reranker models in application-owned retrieval | Stateless per request, apart from a chapter the reader explicitly declared, which is held for the session and saved per account and work | None. Retrieval is application code |
+| Serendipity | Looks for one tentative, evidence-supported connection between a reflection and a permitted book passage, memory, or web page, or returns a typed decline; under a separate intent, recalls the reader's earlier words | A search loop. It chooses which granted sources to search, filters and ranks the candidates, then returns one proposal or a typed decline. The intent selects the skill. At most 14 tool calls and 16 model requests | Configured model | None. Holds no account identity | Book search through Librarian's path, account memory search, and Exa web search with page retrieval, each granted per request |
+| Provenance | Classifies each Line for the emotional boundary, reviews every complete Muse candidate and memory nomination, and reviews every Sculptor curation proposal against its exact sources | One review per run with no tools. It checks each claim against frozen evidence and returns a typed verdict: pass, revise, or reject | Configured model | None. Every review starts from a fresh typed input | None |
+| Sculptor | Proposes bounded curation over supplied memory records while preserving originals; judges memory surfacing offline; runs offline retrieval-improvement experiments | One proposal per run over a bounded record set. Declining is a valid output. Offline research tasks add a web search loop | Configured model | None. Receives only a bounded record set, with account identity excluded | None, except web search and page retrieval in offline research tasks |
+| Memory and Policy Service | Deterministic application code, not an agent. The only writer of personal-memory and curation records | Deterministic rules | None | Owns the account-scoped memory store: immutable originals, curation layer, audit log | Not applicable |
 
 **Table 6.** Agent roles.
 
-Muse is the only role that writes reader-facing prose or sees conversation history, and it can neither release its own words nor write durable memory. Its tools are thin adapters that the application grants and executes: the model supplies an intent, and the application supplies the reader's exact wording, so Muse cannot substitute a paraphrase of its own as a search query.
+Muse is the only role that writes reader-facing prose or sees the released conversation, including earlier replies, and it can neither release its own words nor write durable memory. Its tools are thin adapters that the application grants and executes: the model supplies an intent, and the application supplies the reader's exact wording, so Muse cannot substitute a paraphrase of its own as a search query.
 
 Private boundary inference may inspect full-work candidates to identify an event the reader describes (`src/linger/orchestration/boundary.py`). Those candidates do not become answer evidence without a validated reading grant. The application applies the resolved boundary to answer-facing retrieval and assessment before supplying evidence to Muse. Only an explicitly declared chapter persists; inferred boundaries are resolved afresh on each request. Saved-progress reuse must also respect session corrections and retractions, an unresolved edge case described in Section 7.8.
 
-Serendipity filters candidates for eligibility before ranking them. Equal declared top ratings produce a decline; whether the model recognises a semantic tie correctly remains an evaluation question. Its runs are capped at eight model requests and six tool calls (`src/linger/agents/serendipity/tools.py`; component results in Section 7.4).
+Serendipity filters candidates for eligibility before ranking them. Equal declared top ratings produce a decline; whether the model recognises a semantic tie correctly remains an evaluation question. Its runs are capped at 14 tool calls and 16 model requests, enough for one book search, one web search, and a page retrieval for each web result, twice over (`src/linger/orchestration/connection.py`; component results in Section 7.4).
 
 Provenance is the reason the rest of the design can afford model initiative elsewhere. Its review input is organised by trust level, separating policy and reading scope from frozen evidence and from untrusted tool outcomes. A finding of `spoiler` or `prompt_injection` forces outright rejection with no revision. A Provenance approval is necessary but never sufficient for release or for a write. Figure 9 shows a review that sent a draft back once before passing it.
 
@@ -283,11 +284,24 @@ Sculptor's proposals are bound to the content digest of the records it saw, revi
 
 The Memory and Policy Service turns identity, policy, and reviewed candidates into auditable storage decisions. A capture requires trusted account scope, capture policy enabled, a nomination validated as an exact slice of the current message, an independent Provenance allowance, no sensitive content, and an atomic commit without overwrite. A turn that ends in a safe decline or the emotional boundary writes nothing, even if the nomination was approved.
 
+Table 7 shows what each role can see and change during a live turn. Every agent's "can change" entry is no: the application holds all write and release authority. The see entries are qualified because each agent receives a different, bounded slice of the same data.
+
+| Role | Current Line | Earlier session text | Book passages | Account memories | Web pages | Can write storage | Can release text |
+|---|---|---|---|---|---|---|---|
+| Muse | Yes | Released turns: at most eight turns and 16,000 characters | Only as evidence that `librarian_search` returns, within the reading boundary | Only as evidence that Serendipity returns | Only as evidence that Serendipity returns | No. Nominates one exact span | No. Drafts a candidate |
+| Librarian | Yes | The reader's own earlier words, never Muse's replies | Yes. Full-work candidates only for private boundary inference; answer evidence only within the boundary | Only memories that mention the work, for boundary inference | No | No | No |
+| Serendipity | Yes, as its search cue | No. The application uses earlier words only for its own privacy checks | Only through Librarian, within the reading boundary | Yes, through `search_memories`, with no account identity | Yes, when granted for the request | No | No |
+| Provenance | Yes | Only reader statements the application has verified as exact text from this session | The frozen evidence under review | Cited memories, the nomination, and curation source records | Cited pages under review | No. Its approval is necessary but not sufficient | No |
+| Sculptor | No | No | No; an offline chapter-cue task reads chapter text | 2 to 12 records per run, with account identity removed | Only in offline research tasks | No. Proposes curation | No |
+| Application, including the Memory and Policy Service | Yes | Yes | Yes | Yes | Yes | Yes. The only writer | Yes. Only after review and deterministic checks |
+
+**Table 7.** Who can see what and who can change what. Sources: each role's typed input in `src/linger/agents/*/models.py`, `src/linger/orchestration/boundary.py`, `src/linger/orchestration/curation.py`, and `src/linger/agents/serendipity/tools.py`.
+
 Section 7.4 reports each agent's component evaluation, and Section 7.3 the scenarios that exercise the agents together.
 
 ### 3.2 Input boundary: controls before any model
 
-Table 7 groups transport preprocessing and the subsequent checks in `run_chat_turn`. A check may transform the input, let it continue, or end the turn. Section 7.6 reports their contract tests.
+Table 8 groups transport preprocessing and the subsequent checks in `run_chat_turn`. A check may transform the input, let it continue, or end the turn. Section 7.6 reports their contract tests.
 
 **Application enforces:** request normalization, rate limits, inbound privacy and credential checks, language routing, injection rules, and fixed boundary replies. A detected first-person self-harm phrase skips the English guard. The injection filter runs before the fixed self-harm response, so a message matching both can receive the security decline.
 
@@ -303,7 +317,7 @@ Table 7 groups transport preprocessing and the subsequent checks in `run_chat_tu
 | 5. Emotional preflight (Provenance, no tools) | A distressing disclosure, such as grief that is still raw | If classified `apply_boundary`, a fixed reply; no search or memory capture runs | `src/linger/orchestration/emotional.py` | `tests/test_emotional_boundary.py`; live suite in Section 7.4 |
 | None of the above | "I've finished Chapter 2 of Alice. Her changes in size made me feel out of place." | Continues to Muse (Section 3.3) | `apps/backend/chat_turn.py` | |
 
-**Table 7.** Transport preprocessing and turn-level input controls. The inbound detector covers emails and phone numbers; it is not a complete detector of all project-defined PII.
+**Table 8.** Transport preprocessing and turn-level input controls. The inbound detector covers emails and phone numbers; it is not a complete detector of all project-defined PII.
 
 ### 3.3 Reasoning boundary: typed hand-offs
 
@@ -321,7 +335,7 @@ Agents reach one another only through the application (Figure 1). Muse calls Lib
 - **Tool grants.** Muse gets only the tools the triage result and reading context allow.
 - **Exact wording.** Book searches use the reader's exact words, never a model's paraphrase.
 - **Scope.** Answer-facing retrieval uses the resolved reading position. Private full-work boundary-inference candidates cannot enter Muse's evidence without a validated grant.
-- **Typed hand-offs.** Every hand-off is a typed Pydantic object carrying only the fields the next step needs (Table 8). Full transcripts are never passed.
+- **Typed hand-offs.** Every hand-off is a typed Pydantic object carrying only the fields the next step needs (Table 9). Full transcripts are never passed.
 - **Permission in the input.** Each agent receives a scope saying what it may search. It returns identifiers that the application looks up again, so no agent can claim a permission it was not given.
 
 | Hand-off | Input to output | Authority note |
@@ -337,7 +351,7 @@ Agents reach one another only through the application (Figure 1). Muse calls Lib
 | Application to Provenance, curation | `CurationReviewInput` to `CurationProvenanceReview` | The verdict echoes the proposal digest unchanged |
 | Application to Memory and Policy Service | Reviewed command carrying a digest | Accepted only when the digest matches an approving verdict and the sources are unchanged |
 
-**Table 8.** Typed hand-offs, in the order they occur.
+**Table 9.** Typed hand-offs, in the order they occur.
 
 Figure 10 shows one recorded hand-off.
 
@@ -403,6 +417,19 @@ Agents hold no state of their own: every agent run starts from a fresh typed inp
 
 Memory surfacing, where Sculptor judges whether stored history could help a later conversation, runs only in offline evaluation.
 
+### 3.6 Prompt patterns
+
+All five agents share the same prompt patterns. Table 6 gives each role's own reasoning pattern.
+
+- **One agent per role, one skill per task.** Each role is one reusable PydanticAI `Agent`. For each run, the application selects a skill: task instructions, typed input, typed output, permitted tools, validators, and retry limits (`src/linger/agents/skills.py`). For example, Provenance runs `emotional-preflight`, `candidate-review`, or `curation-review` on the same agent.
+- **Role rules, then task rules.** The agent's base instructions hold the role's purpose and authority rules from the prompt catalogue (`src/linger/prompts/prompt_catalog.yaml`). The selected skill adds the instructions for that task.
+- **Instructions only for offered tools.** Muse's reflection skill adds its routing, grounding, or connection module only when the turn offers the matching tool (`src/linger/agents/muse/skills.py`). Each tool's description states when to call it (`src/linger/agents/muse/tools.py`).
+- **Typed output, never free text.** Every run returns a Pydantic model. A validator that rejects the output sends the error back to the model, which retries up to the skill's limit of one to three times.
+- **Declining is an output.** Serendipity can return `ConnectionDecline`, Sculptor `NoCurationProposal`, and memory surfacing `Defer` or `DoNotSurface`. A model never has to invent a result to satisfy the schema.
+- **Input ordered by trust.** Provenance's review input separates policy and reading scope from frozen evidence and from untrusted tool outcomes (`src/linger/agents/provenance/models.py`).
+- **Effort per task.** Muse drafts, Provenance candidate review, and Serendipity run at medium reasoning effort. Other live tasks use the shared low setting.
+- **Fingerprinted prompts.** Each skill's digest covers its instructions, schemas, tools, validators, and retry limits. Every traced run records the digest (Section 6.2). Section 7.6 reports the contract tests for skill selection and fingerprints.
+
 ---
 
 ## 4. Explainable and Responsible AI Practices
@@ -440,7 +467,7 @@ The project has not run a persona-diversity evaluation testing whether equivalen
 | Operations management | Source audits and content hashing, automatic configuration digests, repeatable scenario replay, a fixed failure taxonomy, and release evidence bound to a commit and image identity |
 | Stakeholder interaction and communication | A visible notice for every committed capture, and consistent separation of the reader's words, source text, and the system's interpretation in every reply |
 
-**Table 9.** Alignment with the Model AI Governance Framework.
+**Table 10.** Alignment with the Model AI Governance Framework.
 
 The framework's generative-AI extension emphasises content provenance, which corresponds directly to the role of the Provenance agent and the evidence index.
 
@@ -469,7 +496,7 @@ Sixteen risks were identified using the OWASP Top 10 for LLM Applications. They 
 | R15 | Developer environment leaking into tests | Medium | Low | Not applicable | CI generates its own offline environment file | Observed once; tests should pin policy explicitly |
 | R16 | Account compromise | Low | High | LLM02 | Salted scrypt password hashes; bearer tokens; account derived from the token on every route | API tests; no password reset or verification |
 
-**Table 10.** AI security risk register. Likelihood and impact are the team's qualitative ratings. Evidence comes from Section 7.
+**Table 11.** AI security risk register. Likelihood and impact are the team's qualitative ratings. Evidence comes from Section 7.
 
 The evidence varies by risk and evaluated configuration. R1 to R3, R6, R7, and R9 have historical live-model evidence. R4, R5, R10, R11, R14, and R16 have offline contract evidence, which covers the tested cases rather than every possible model output. R4 also has an unresolved privacy-policy change in current main. R12 is checked by CI, but branch protection does not yet make successful CI a merge requirement. R13 has no dedicated secret scanning. R2 has a live counter-example: a release-gate run passed an uncited web claim that the reviewer should have sent back. R15 was discovered when tests inherited web-search policy from a developer's environment file. Section 7.8 records remaining implementation and evidence limits.
 
@@ -500,7 +527,7 @@ Continuous integration defines seven checks for pull requests and pushes to eith
 | Dependency security | Trivy scan of dependency locks; HIGH or CRITICAL findings block |
 | Image (amd64) | Container build, offline startup and persistence smoke test, image vulnerability scan |
 
-**Table 11.** Configured CI checks.
+**Table 12.** Configured CI checks.
 
 The AI-specific security tests are part of the contract suite: release-gate and curation risk-code grading, emotional-boundary and privacy checks, and injected-content cases. Live-model evaluations run manually or through enabled release checks. The retained component reports identify their date, model, and prompt digest; they measure those configurations rather than every later commit.
 
@@ -550,7 +577,7 @@ Agent quality is evaluated at two levels, both with live models.
 | Scale | 4 to 92 cases per agent, 3 to 5 repeats | 16 saved Scenarios |
 | What it is for | Finding which agent caused a failure | Showing the system works as it would for a real reader |
 
-**Table 12.** Two levels of agent evaluation.
+**Table 13.** Two levels of agent evaluation.
 
 **Why scenario replay is needed.** Contract tests and component evaluations each check one piece in isolation. Most failures a reader would notice happen between the pieces:
 
@@ -569,7 +596,7 @@ Results are measured as follows. Appendix A defines every metric.
 
 ### 7.2 Scenarios and Ground truth
 
-A Scenario is one synthetic reader with a history, a few test messages, and the outcome each message must produce. Table 13 shows two test messages from a real Scenario.
+A Scenario is one synthetic reader with a history, a few test messages, and the outcome each message must produce. Table 14 shows two test messages from a real Scenario.
 
 | | Test 1: reading position is clear | Test 2: reading position is unclear |
 |---|---|---|
@@ -579,7 +606,7 @@ A Scenario is one synthetic reader with a history, a few test messages, and the 
 | Must happen | Treat chapter 3 as her furthest point. Quote the Dodo's announcement exactly and use chapter 3 evidence only | Ask for a detail that tells the two bottle episodes apart. Give no book explanation until her position is known |
 | Must not happen | Move to the next chapter because she hears footsteps, or hint at how the story ends | Pick a bottle episode, guess a position, or name candidate events in the question |
 
-**Table 13.** Two test messages from the *Alice* reading-position Scenario.
+**Table 14.** Two test messages from the *Alice* reading-position Scenario.
 
 The two tests use the same reader and related book questions, but vary both memory clarity and the corresponding message. They check whether the system answers when progress is supported and clarifies when it is ambiguous. They are not a controlled comparison in which only memory changes.
 
@@ -611,7 +638,7 @@ Section 1.4 defines the Scenario terms used below.
 
 ### 7.3 Scenario replay results
 
-The latest full replay ran 12 Scenarios on 27 and 28 September with `gpt-6-luna`. Table 14 counts the outcome of every test message.
+The latest full replay ran 12 Scenarios on 27 and 28 September with `gpt-6-luna`. Table 15 counts the outcome of every test message.
 
 | What the reader does | Test messages | Passed | Agent made a wrong decision | Error, failed safely | Correct but marked as failed |
 |---|---:|---:|---:|---:|---:|
@@ -621,7 +648,7 @@ The latest full replay ran 12 Scenarios on 27 and 28 September with `gpt-6-luna`
 | Has a memory saved and tidied | 21 | 18 | 2 | 1 | 0 |
 | **Total** | **53** | **41** | **5** | **6** | **1** |
 
-**Table 14.** Scenario replay, 27 and 28 September. A fourth later-session message has no automatic check; a person judged its use of memory correct.
+**Table 15.** Scenario replay, 27 and 28 September. A fourth later-session message has no automatic check; a person judged its use of memory correct.
 
 The columns mean:
 
@@ -636,11 +663,11 @@ The five wrong decisions were:
 3. **Memory.** Muse marked slightly the wrong part of the reader's message to save, so the saved text did not match the message exactly and was not stored.
 4. **Memory.** When a fact changed over time, Sculptor grouped the old and new notes instead of summarising the current fact.
 
-The all-five-agent Scenario stalled during this September batch and produced no completed batch result. Separate targeted runs supplied the stage-level analysis in Section 7.5; they are not additional observations in Table 14. The table also predates later Muse revision and security changes. Serendipity's self-improvement instructions and role-specific medium-reasoning change remain on a separate branch, so their results do not measure the current main configuration.
+The all-five-agent Scenario stalled during this September batch and produced no completed batch result. Separate targeted runs supplied the stage-level analysis in Section 7.5; they are not additional observations in Table 15. The table also predates later Muse revision and security changes. Serendipity's self-improvement instructions and role-specific medium-reasoning change remain on a separate branch, so their results do not measure the current main configuration.
 
 ### 7.4 Component results
 
-Each agent was also evaluated on its own, with fixed inputs. Table 15 summarises retained component measurements by date and configuration. It is not a fresh benchmark of current main.
+Each agent was also evaluated on its own, with fixed inputs. Table 16 summarises retained component measurements by date and configuration. It is not a fresh benchmark of current main.
 
 | Agent | Suite, date, model | Headline result |
 |---|---|---|
@@ -653,7 +680,7 @@ Each agent was also evaluated on its own, with fixed inputs. Table 15 summarises
 | Muse | Turn triage, 92 cases × 3, 26 Sep, `gpt-6-luna` | Acceptable classification 0.99 to 1.00 |
 | Sculptor | No committed component suite | Evaluated through the Scenarios (Section 7.3) |
 
-**Table 15.** Retained component measurements. The Librarian live run predates two current skills. Serendipity's source is `evals/serendipity/reports/component-reliability-2026-09-24-prompt-3cf0760f.json`; its model differs from current main. The later 9 October score noted in Beads is excluded because its supporting artifact could not be recovered.
+**Table 16.** Retained component measurements. The Librarian live run predates two current skills. Serendipity's source is `evals/serendipity/reports/component-reliability-2026-09-24-prompt-3cf0760f.json`; its model differs from current main. The later 9 October score noted in Beads is excluded because its supporting artifact could not be recovered.
 
 The completed Sculptor retrieval-research experiment is a separate offline comparison. Its owner approved the analysis, researched specification, and evaluation-only implementation before scoring (`docs/evaluation/retrieval-research-experiment-4-2026-10-01.md`).
 
@@ -662,13 +689,13 @@ The completed Sculptor retrieval-research experiment is a separate offline compa
 | Stage 2 chapter-tag baseline | 17/20 | 16/20 | The initial candidate cutoff omitted useful passages |
 | Approved round 1, 20 candidates per planned part | 20/20 | 20/20 | The fixed pass mark was met with no losses, at higher reading cost |
 
-**Table 16.** Completed offline Sculptor retrieval-research comparison, 1 October 2026. The held-back set was reused.
+**Table 17.** Completed offline Sculptor retrieval-research comparison, 1 October 2026. The held-back set was reused.
 
 The comparison used the same Librarian model and prompt, with one selection call per need per condition. Practice evidence volume rose from 1,278 to 4,837 words per need, about 3.8 times, and input tokens rose about 2.5 times. The held-back set had already been evaluated in Experiment 3. The loop stopped after meeting its predefined pass mark; the larger candidate setting is not active for readers.
 
 ### 7.5 Where the system loses quality
 
-Table 17 follows each required book passage through the five-agent conversation: retrieved, kept by Librarian's assessment, passed to drafting, and cited in the reply.
+Table 18 follows each required book passage through the five-agent conversation: retrieved, kept by Librarian's assessment, passed to drafting, and cited in the reply.
 
 | Scene | Retrieved | Assessed | Passed on | Cited | Items |
 |---|---|---|---|---|---|
@@ -677,21 +704,21 @@ Table 17 follows each required book passage through the five-agent conversation:
 | 08 | 0.89 | 0.67 | 0.67 | 0.11 | 18 |
 | 06 to 08 | 0.97 | 0.85 | 0.85 | 0.53 | 72 |
 
-**Table 17.** Share of required book evidence surviving each stage, runs 6 to 15 excluding run 9.
+**Table 18.** Share of required book evidence surviving each stage, runs 6 to 15 excluding run 9.
 
-Retrieval is not the bottleneck. Almost every required passage is retrieved. About 12 points are lost in Librarian's assessment, and about 32 more between drafting and review. The losses happen where one agent hands evidence to the next. Table 18 groups every observed failure using the categories of Cemri et al. (2025).
+Retrieval is not the bottleneck. Almost every required passage is retrieved. About 12 points are lost in Librarian's assessment, and about 32 more between drafting and review. The losses happen where one agent hands evidence to the next. Table 19 groups every observed failure using the categories of Cemri et al. (2025).
 
 | Category | Observed failures in Linger |
 |---|---|
 | Specification and system design | Answer keys stricter than the requirement they encoded, later loosened and re-adopted; reviewer strictness about inferences such as "used to", which caused more recall failures than curation changed; instruction-only fixes that did not change model behaviour |
-| Inter-agent misalignment | Required evidence dropped between retrieval and citation (Table 17); Serendipity choosing an identity comparison over the passages the question needed; a Muse revision dropping sources the first review had accepted; a candidate omitting a mandatory evidence declaration |
+| Inter-agent misalignment | Required evidence dropped between retrieval and citation (Table 18); Serendipity choosing an identity comparison over the passages the question needed; a Muse revision dropping sources the first review had accepted; a candidate omitting a mandatory evidence declaration |
 | Task verification | A second review objecting to text the first review passed, with no revision left; the reviewer accepting a wrong speaker attribution; an uncited web claim passing review; hard-gate passes with semantic defects |
 
-**Table 18.** Observed failures, by the categories of Cemri et al. (2025).
+**Table 19.** Observed failures, by the categories of Cemri et al. (2025).
 
 ### 7.6 Testing the application
 
-These tests replace language models with stubs and check application contracts, validators, and known failure paths. Retrieval tests also exercise the real local embedding and reranker models. Passing tests establish the covered behavior; they do not establish live semantic reliability. At `main` commit `9a5c074`, CI on 14 October passed 3,481 core tests and seven embedding tests, 3,488 backend tests in total. Table 19 retains the earlier 6 October breakdown of 3,172 tests at `48f9524`; its area counts have not been recounted for the newer commit.
+These tests replace language models with stubs and check application contracts, validators, and known failure paths. Retrieval tests also exercise the real local embedding and reranker models. Passing tests establish the covered behavior; they do not establish live semantic reliability. At `main` commit `9a5c074`, CI on 14 October passed 3,481 core tests and seven embedding tests, 3,488 backend tests in total. Table 20 retains the earlier 6 October breakdown of 3,172 tests at `48f9524`; its area counts have not been recounted for the newer commit.
 
 | Area | Tests | What the group establishes |
 |---|---:|---|
@@ -705,9 +732,9 @@ These tests replace language models with stubs and check application contracts, 
 | Runtime skills and fingerprints | 72 | Skill selection is explicit; digests change with instructions, schemas, tools, validators, or retries |
 | Telemetry redaction | 32 | Exported payloads contain only contract-permitted fields; failures classify by exception type, not text |
 
-**Table 19.** Historical backend test breakdown at `48f9524`, 6 October 2026. These area counts sum to 3,172; current CI totals are stated above.
+**Table 20.** Historical backend test breakdown at `48f9524`, 6 October 2026. These area counts sum to 3,172; current CI totals are stated above.
 
-Table 20 lists every kind of test and where it runs.
+Table 21 lists every kind of test and where it runs.
 
 | Type | What it covers | Where it runs | Section |
 |---|---|---|---|
@@ -721,7 +748,7 @@ Table 20 lists every kind of test and where it runs.
 | End-to-end scenario replay | Whole conversations through the production chat-turn boundary against human-adopted Ground truth | Manual and release checks | 7.3 |
 | Release behavioural suite | 22 Scenes covering grounding, memory retrieval, connections, sensitive inference, memory injection, and direct attacks | Release checks, currently switched off | 6.2 |
 
-**Table 20.** Kinds of test and where they run.
+**Table 21.** Kinds of test and where they run.
 
 ### 7.7 Cost, speed, and load
 
@@ -736,11 +763,11 @@ Table 20 lists every kind of test and where it runs.
 | Turn triage latency | Median 1.45 s, p90 3.0 s | Triage suite |
 | Muse reflection instructions | About 6,900 words; Provenance candidate review about 5,700 words | Skill sizes |
 
-**Table 21.** Cost and latency per turn.
+**Table 22.** Cost and latency per turn.
 
 Most tokens go to the two roles that read the most: Muse and Provenance. Their instructions restate rules that code already enforces, which is the target of a planned cost reduction.
 
-A 29 September development record describes a load test with synthetic readers on `gpt-6-luna`. Table 22 reproduces its historical notes. The referenced harness and raw reports could not be recovered for this report, so its timing, cost, and isolation observations have not been independently rechecked. The test is not evidence of current-main capacity.
+A 29 September development record describes a load test with synthetic readers on `gpt-6-luna`. Table 23 reproduces its historical notes. The referenced harness and raw reports could not be recovered for this report, so its timing, cost, and isolation observations have not been independently rechecked. The test is not evidence of current-main capacity.
 
 | Recorded run | Answered | Safely declined | Median / p95 latency | Cost | Cross-reader data exposure reported |
 |---|---|---|---|---|---|
@@ -749,7 +776,7 @@ A 29 September development record describes a load test with synthetic readers o
 | 5 readers at once, light questions | 5 of 15 | 10 | 11 s / 52 s | US$0.03 | None reported |
 | 3 readers at once, light questions | 6 of 9 | 3 | 17 s / 28 s | US$0.02 | None reported |
 
-**Table 22.** Historical load observations from 29 September, retained in development notes and `linger-qt84`; raw artifacts are unavailable.
+**Table 23.** Historical load observations from 29 September, retained in development notes and `linger-qt84`; raw artifacts are unavailable.
 
 The notes attribute the concurrent declines to provider rate limits and report no cross-reader exposure. These observations indicate a service-reliability problem under concurrency. They do not isolate all application contributions or establish general account-isolation guarantees. Recovering reproducible load evidence and demonstrating a service fix remain open in `linger-qt84`.
 
@@ -774,7 +801,7 @@ Capture still needs server-owned durable event identity and verified nomination 
 | Moving answer keys | Some Ground truth was loosened and re-adopted during the project. Each adoption is hashed and identified, so results state which answer key they used, but a loosened key can make a later result look like an improvement |
 | No comparison condition | No single-agent or ablated architecture was evaluated, so the results show how the structure behaves, not how much better it is than an unstructured alternative |
 
-**Table 23.** Threats to validity.
+**Table 24.** Threats to validity.
 
 ---
 
@@ -824,7 +851,7 @@ Six items are listed in priority order.
 
 1. **Run the release suite live.** The memory-injection and direct-attack Scenarios have adopted Ground truth but no live run, and they are the strongest available test of the system's resistance to malicious input.
 2. **Repeat the single-run results.** Re-run the Provenance gates, the emotional preflight, and the Librarian live suite with repeats on the current model, and report them under pass^k.
-3. **Reduce evidence loss between agents.** Target Librarian's under-selection and the drafting stage's citation choices, the two places Table 17 shows evidence is lost, without loosening the reading boundary.
+3. **Reduce evidence loss between agents.** Target Librarian's under-selection and the drafting stage's citation choices, the two places Table 18 shows evidence is lost, without loosening the reading boundary.
 4. **Reduce over-refusal and cost together.** Move rules that code already enforces out of the Muse and Provenance instructions, accepting the change only if the repeated measurements do not regress.
 5. **Add a comparison condition.** Evaluate an ablated configuration, such as drafting without independent review, on the same Scenarios, so that the contribution of the structure can be measured rather than inferred.
 6. **Deploy and load-test.** Publish an approved image to a multi-account test environment, load-test beyond five readers with a higher provider rate limit, and configure alerting.
