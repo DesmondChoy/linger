@@ -348,7 +348,12 @@ def _summary(bundle: dict) -> str:
             for label, value in (("What failed", diagnosis.failure), ("Ground truth", diagnosis.ground_truth),
                                  ("Root cause", diagnosis.root_cause),
                                  ("Proposed solution", diagnosis.proposed_solution)):
-                lines.extend([f"**{label}.** {text(value)}", ""])
+                if not value.lstrip().startswith("- "):
+                    lines.extend([f"**{label}.** {text(value)}", ""])
+                    continue
+                points = [f"{'  ' if line[0].isspace() else ''}- {text(line.strip().removeprefix('- '))}"
+                          for line in value.splitlines() if line.strip()]
+                lines.extend([f"**{label}.**", "", *points, ""])
         lines.pop()
     for example in bundle.get("worked_examples", []):
         lines.extend(["", "## Worked example", "", f"Scene: `{text(example['scene_id'])}`.", ""])

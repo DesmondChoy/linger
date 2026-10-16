@@ -188,6 +188,21 @@ def test_summary_declares_failure_type_for_each_failed_scene(completed_run, tmp_
     assert "**Failure type: Architectural failure** (cause suspected)." in summary
     assert "**Root cause.** No stage re-checks the reflection after a factual repair." in summary
 
+    data["failure_diagnoses"][0]["root_cause"] = (
+        "- After revision:\n  - The fact was fixed.\n- No stage re-checks the reflection."
+    )
+    result_path.write_text(json.dumps(data))
+    render_bundle(result_path)
+    summary = (directory / "summary.md").read_text()
+    assert ("**Root cause.**\n\n- After revision:\n  - The fact was fixed.\n"
+            "- No stage re-checks the reflection.\n") in summary
+
+    data["failure_diagnoses"][0]["root_cause"] = "Revision fixed the fact\nbut nothing re-checks the reflection."
+    result_path.write_text(json.dumps(data))
+    render_bundle(result_path)
+    assert ("**Root cause.** Revision fixed the fact but nothing re-checks the reflection."
+            in (directory / "summary.md").read_text())
+
     diagnosis = data["failure_diagnoses"][0]
     passed = next(row["scene_id"] for row in data["scenes"] if row["scene_id"] != failed)
     for invalid in ([{**diagnosis, "scene_id": passed}], [{**diagnosis, "failure_type": "bad_luck"}],
