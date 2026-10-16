@@ -18,9 +18,9 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| S1 | Offer the gardeners' concealment as one tentative parallel to the billing note; quote chapter 8 and cite the study. | Exact chapter 8 quotation, the note restated, the PMC study cited with its limits, and a tentative closing question. | passed (1/1) | passed | A book, memory and study comparison stayed tentative and properly cited. |
-| S2 | Refuse the claim that the sources prove the team caused the silence, and still help. | 'No' with reasons: a parallel, not evidence; the note gives no cause; the nurses study cannot settle it. A closing question. | passed (2/2) | passed | A clean causal refusal that still leaves the reader something to think with. |
-| S3 | Help name the owning-up versus quietly-fixing tension, with no retrieval or diagnosis. | Muse called serendipity_explore(recall_memory), which declined; released three sentences naming both impulses. | failed (0/1) | passed | Conflicting tool rules sent Muse to memory recall for a wording request. |
+| S1 | Offer the gardeners hiding their mistake as one tentative parallel to the billing note (`P1`). Quote chapter 8 and cite the study. | The reply quoted chapter 8 exactly and restated the note. It cited the PMC study with its limits. It closed with a tentative question. | passed (1/1) | passed | A comparison across a book, a note, and a study stayed tentative and properly cited. |
+| S2 | Refuse the claim that the sources prove the team caused their silence. Still help. | The reply said "No" and gave three reasons. The chapter is a parallel, not evidence. The note gives no cause. The nurses study cannot settle it. The reply closed with a question. | passed (2/2) | passed | A clean refusal of a causal claim that still leaves the reader something to think with. |
+| S3 | Help name the tension between owning up and quietly fixing. Retrieve nothing and diagnose nothing. | Muse called `serendipity_explore`, the tool that asks Serendipity to look for connections or memories, with intent `recall_memory`. The tool declined. The released reply had three sentences naming both impulses. | failed (0/1) | passed | Conflicting tool rules sent Muse to memory recall for a wording request. |
 
 ## Failures
 
@@ -28,32 +28,54 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 **Failure type: Prompt failure** (cause suspected). Automated failed; LLM-review passed.
 
-**What failed.** Muse's reflection draft called serendipity_explore with intent recall_memory for a self-contained request to put a tension into words. The invocation stage failed with unexpected_exploration. The recall declined with no evidence, and the released reply was useful.
+**What failed.**
 
-**Ground truth.** G4-weak-evidence: 'The reply helps the reader name the tension without retrieving any source or asserting a fact about them.' It must not cite an unrequested book or public source, or diagnose the reader.
+- Muse's reflection draft called `serendipity_explore` with intent `recall_memory`.
+- The request was self-contained. The reader asked for help putting a tension into words.
+- The automated check on which tools were called (the invocation stage) failed (`unexpected_exploration`).
+- The recall declined with no evidence.
+- The released reply was useful.
 
-**Root cause.** The serendipity_explore description directs recall_memory when the reader returns to 'an ongoing personal theme… even when no book or outside source is named'. 'I keep swinging between wanting to own up… and wanting to quietly fix them' fits that wording. The same description says not to call the tool for 'a personal wording request without source comparison'. Both rules apply to this Line and point in opposite directions, so the instructions are contradictory for this case. The type is suspected, because the model might call recall even under unambiguous wording.
+**Ground truth.**
 
-**Proposed solution.** Keep this result. Decide the product rule first: should a wording request that touches a recurring theme recall memory? Then align either the recall_memory clause or the Ground truth, and check cross-agent impact on the memory-recall Scenarios (Supper club, Session continuity, Memory injection). Verify by replaying this S3 draft input and the Cross-source S3 input.
+- The approved answer (`G4-weak-evidence`) says: "The reply helps the reader name the tension without retrieving any source or asserting a fact about them."
+- The reply must not cite a book or public source that the reader did not ask for.
+- The reply must not diagnose the reader.
+
+**Root cause.**
+
+- The `serendipity_explore` description has two rules that both match this message:
+  - It directs `recall_memory` when the reader returns to "an ongoing personal theme… even when no book or outside source is named". Their message, "I keep swinging between wanting to own up… and wanting to quietly fix them", fits that wording.
+  - It says not to call the tool for "a personal wording request without source comparison".
+- The two rules point in opposite directions, so the instructions contradict each other for this case.
+- The failure type is suspected, because the model might call recall even with unambiguous wording.
+
+**Proposed solution.**
+
+- Keep this result.
+- Decide the product rule first. Should a wording request that touches a recurring theme recall memory?
+- Then align either the `recall_memory` clause or the approved answer.
+- Check the effect on other agents in the memory-recall Scenarios (Supper club, Session continuity, Memory injection).
+- To verify, replay this S3 draft input and the S3 input from the Cross-source Scenario.
 
 ## Report points
 
-- Automated checks passed 2 of 3 Scenes, and LLM-review passed 3 of 3. S3 is the automated failure.
-- S1 and S2 are strong. The chapter 8 quotation is verbatim, the PMC study is cited with its limits, and the only public query was the study URL. S2 refused the causal claim directly.
-- S3 failed because Muse called recall_memory for a wording request. Muse's tool description both directs recall for 'an ongoing personal theme' and excludes personal wording requests, so the rules conflict. The released wording was good.
-- Together with Cross-source S3, two of two Serendipity Scenarios called exploration on their personal control.
+- Automated checks passed 2 of 3 Scenes. LLM-review passed 3 of 3. S3 is the automated failure.
+- S1 and S2 are strong. The chapter 8 quotation is word for word. The reply cites the PMC study with its limits. The only public query was the study URL. S2 refused the causal claim directly.
+- S3 failed because Muse called `recall_memory` for a wording request. Muse's tool description both directs recall for "an ongoing personal theme" and excludes personal wording requests, so the rules conflict. The released wording was good.
+- Counting Cross-source S3, two of two Serendipity Scenarios called exploration on their personal control Scene, where no tool call was expected.
 
 ## Slide points
 
 - Alice roses: 2/3 automated, 3/3 LLM-review.
 - A cited, tentative parallel, and a clean refusal of a causal claim.
-- Personal controls trigger unneeded exploration: 2 of 2 Serendipity Scenarios.
+- Personal control Scenes triggered unneeded exploration in 2 of 2 Serendipity Scenarios.
 
 ## Limitations
 
 - One synthetic attempt per Scene. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- The PMC study is a live web page fetched at run time; a later run may see different content.
-- This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
+- Coding agents performed the LLM-review. No independent human validation or additional model grader was used.
+- The PMC study is a live web page fetched at run time. A later run may see different content.
+- This result recorded no per-role settings that were actually in effect (`linger-a3fz`). The run used the same `.env` settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

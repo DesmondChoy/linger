@@ -18,47 +18,47 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| scene-exact-duplicate | Link the two identical kiln-notebook records as duplicates. | Linked exactly the two records; both originals unchanged. | passed (1/1) | passed | The end-to-end proposal, review, apply and audit path works on the easiest case. |
-| scene-paraphrased-duplicate | Link two differently worded spare-key records as one fact. | Linked exactly the two paraphrases; both originals unchanged. | passed (1/1) | passed | Sculptor matched meaning, not wording. |
-| scene-evolving-fact-with-noise | Summarise the open-house date change from three records; ignore poster and tea records. | Cited only the three date records; the summary states 14 → 21 September, 2:00–5:00 p.m., with no noise. | passed (1/1) | passed | Sculptor kept related but irrelevant details out of a derived summary. |
-| scene-related-distinct-with-distractor | Group the ramp, large-print and quiet-room records as accessibility; leave out the bakery receipt. | Grouped exactly the three records as 'Pottery open house accessibility and visitor accommodations'. | passed (1/1) | passed | A shared event name did not pull the distractor into the topic. |
-| scene-superficial-similarity | Decline to curate a pottery 'rib' tool and a physiotherapy 'rib' stretch. | Returned no change, giving the reason that the shared word does not make the facts related. | passed (1/1) | passed | Shared wording alone did not trigger curation. The reason is not machine-graded. |
+| scene-exact-duplicate | Link the two identical kiln-notebook notes as duplicates. | Sculptor linked exactly those two notes. Both originals stayed unchanged. | passed (1/1) | passed | The full path works on the easiest case. Sculptor proposes, Provenance reviews, the change is applied, and the audit record is checked. |
+| scene-paraphrased-duplicate | Link two spare-key notes, worded differently, as one fact. | Sculptor linked exactly the two reworded notes. Both originals stayed unchanged. | passed (1/1) | passed | Sculptor matched meaning, not wording. |
+| scene-evolving-fact-with-noise | Summarise the open-house date change from three notes. Leave out the poster and tea notes. | Sculptor cited only the three date notes. The summary says the date moved from 14 to 21 September, 2:00–5:00 p.m., with no unrelated details. | passed (1/1) | passed | Sculptor kept related but irrelevant details out of the summary note. |
+| scene-related-distinct-with-distractor | Group the ramp, large-print and quiet-room notes under accessibility. Leave out the bakery receipt. | Sculptor grouped exactly those three notes as 'Pottery open house accessibility and visitor accommodations'. | passed (1/1) | passed | A shared event name did not pull the bakery receipt, a note that should be left out, into the group. |
+| scene-superficial-similarity | Propose no change for two notes that share the word 'rib': a pottery tool and a physiotherapy stretch. | Sculptor proposed no change. Its reason was that the shared word does not make the facts related. | passed (1/1) | passed | A shared word alone did not trigger curation. No automated check covers the reason. |
 
 ## Worked example
 
 Scene: `scene-evolving-fact-with-noise`.
 
-Request: Five open-house records: the original date, the move, the confirmation, the poster-ink choice and the tea order.
+Request: Five open-house notes: the original date, the move, the confirmation, the poster-ink choice and the tea order.
 
 Before revision: The original date was 14 September at 2:00–5:00 p.m. The event was moved to 21 September, and the community center confirmed 21 September at the same time.
 
-Repair instruction: Sculptor proposed update_derived_summary citing only the three date records. Provenance allowed it.
+Repair instruction: Sculptor proposed a summary note (`update_derived_summary`) that cites only the three date notes. Provenance allowed it.
 
 Released answer: “…moved to Saturday, September 21; the community center confirmed the September 21 event, still from 2:00 to 5:00 p.m.”
 
-Lesson: The derived summary follows the evolving fact and leaves out same-event noise. All five originals stay intact and retrievable.
+Lesson: The summary note follows the date as it changed and leaves out unrelated notes about the same event. All five original notes stay intact, and search can still find them.
 
 
 ## Report points
 
-- All five bounded-curation Scenes passed the automated checks and LLM-review in one run.
-- Sculptor chose the expected action for each case: two duplicate links, a derived summary, a topic group and one no-change decision.
-- Distractors that shared the event name, such as the poster ink, tea order and bakery receipt, were excluded at the source-identifier level.
-- Source hashes were identical before and after every Scene. Curation added derived records and never rewrote the originals.
+- All five curation Scenes passed the automated checks and LLM-review in one run.
+- Sculptor chose the expected action in each Scene: two duplicate links, one summary note, one topic group and one decision to change nothing.
+- Some notes shared the event name but did not belong, such as the poster ink, the tea order and the bakery receipt. Sculptor left their IDs out of its proposals.
+- Each original note's hash, a fingerprint of its content, was the same before and after every Scene. Curation added new notes built from the originals and never rewrote the originals.
 - Provenance allowed all four proposals. The no-change Scene needed no Provenance review.
-- This run exercised Sculptor and Provenance only. The linger-mio6 Muse/Provenance revision fix does not affect its curation contract.
+- This run used only Sculptor and Provenance. The `linger-mio6` fix concerns how Muse revises a reply after Provenance asks for a revision. It does not affect the curation steps this run tests.
 
 ## Slide points
 
 - Pottery curation: 5/5 automated, 5/5 LLM-review.
-- Right action every time, including a no-change control for a shared word.
-- Originals never change. Curation only adds linked or derived records.
+- Sculptor chose the right action every time, including no change for two notes that only share a word.
+- Original notes never change. Curation only adds links or new notes built from the originals.
 
 ## Limitations
 
-- One synthetic attempt: five Scenes executed once. Repeatability has not been established.
-- LLM-review was performed by coding agents. No independent human validation or additional model grader was used.
-- The no-change reason category is not machine-graded. Its correctness rests on LLM-review.
-- The curation replay recorded no effective per-role configuration, so Sculptor's reasoning effort for this run is not captured in the bundle.
+- One attempt on synthetic data. Each of the five Scenes ran once. Repeatability has not been established.
+- Coding agents did the LLM-review. No person checked it independently, and no extra grader model was used.
+- No automated check covers the kind of reason Sculptor gives for proposing no change. Its correctness rests on LLM-review.
+- The curation replay did not record the settings each agent actually ran with. This result therefore does not show Sculptor's reasoning effort for this run.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

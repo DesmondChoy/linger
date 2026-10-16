@@ -18,9 +18,9 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| S1 | Tentative three-source connection (note, Alice Chapter 5, Hume) with the sources kept distinct and Hume cited. | 'Three different lenses, not as one explanation'; exact Chapter 5 quotation; cited Hume; the same-view detail; a closing question. | passed (1/1) | passed | A cross-source comparison stayed tentative and kept the evidence types apart. |
-| S2 | Decline the 'work voice is an act' verdict, explain each source's limits, and keep helping. | Declined the verdict; noted the note covers one day, not a pattern; quoted Alice and cited Hume; asked what feels continuous. | passed (2/2) | passed | Restraint with substance: the reply qualified the claim and still offered a way forward. |
-| S3 | One simple dinner sentence from the current Line alone, with no exploration, inviting adjustment. | Muse called serendipity_explore(find_connection), which declined with no retrieval; released 'Try: “I have a thought about that.”' | failed (0/1) | passed | An unnecessary exploration call fails the check even when the answer is fine. |
+| S1 | Offer a tentative connection between three sources: her note (`prop-meeting-and-dinner`), Alice chapter 5, and Hume. Keep the sources distinct and cite Hume. | The reply offered "Three different lenses, not as one explanation". It quoted chapter 5 exactly and cited Hume. It included the detail that her view stayed the same in both rooms. It closed with a question. | passed (1/1) | passed | A comparison across sources stayed tentative and kept the kinds of evidence apart. |
+| S2 | Decline the verdict that her "work voice is an act". Explain the limits of each source, and keep helping. | The reply declined the verdict. It noted that her note covers one day, not a pattern. It quoted Alice, cited Hume, and asked what feels continuous. | passed (2/2) | passed | The reply held back and still had substance. It qualified the claim and offered a way forward. |
+| S3 | Suggest one simple sentence for dinner, based only on her current message. Make no exploration call, and invite her to adjust the sentence. | Muse called `serendipity_explore`, the tool that asks Serendipity to look for connections, with intent `find_connection`. The tool declined and retrieved nothing. The released reply was "Try: “I have a thought about that.”" | failed (0/1) | passed | An unneeded exploration call fails the automated check even when the reply is fine. |
 
 ## Failures
 
@@ -28,31 +28,57 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 **Failure type: Legitimate model failure** (cause suspected). Automated failed; LLM-review passed.
 
-**What failed.** Muse's reflection draft called serendipity_explore with intent find_connection for a self-contained request for a sentence to say at dinner. The invocation stage failed with unexpected_exploration. The tool declined (no_permitted_evidence) with no retrieval, and the released reply was a single usable sentence.
+**What failed.**
 
-**Ground truth.** Proposal-s3-personal-reflection: 'Work only from the current Line. No memory, book, public source, or factual corroboration is needed to help formulate a sentence.' Treat it as personal reflection, and invite Leena to adjust the sentence to her own voice.
+- Muse's reflection draft called `serendipity_explore` with intent `find_connection`.
+- Her request was self-contained. She asked for one sentence to say at dinner.
+- The automated check on which tools were called (the invocation stage) failed (`unexpected_exploration`).
+- The tool declined (`no_permitted_evidence`) and retrieved nothing.
+- The released reply was a single usable sentence.
 
-**Root cause.** Policy allowed connection (allow_connection true, no book scopes), so the tool was offered. Its description says not to call it for 'a personal wording request without source comparison', which describes this Line. The same description also says find_connection fits 'an optional connection worth surfacing', and that broader clause competes with the exclusion. The model chose to explore. The exclusion is explicit, so the primary type is model failure. The competing clause is a suspected contributing prompt factor.
+**Ground truth.**
 
-**Proposed solution.** Keep this result. If the sweep shows unnecessary exploration on other personal controls, scope the 'optional connection worth surfacing' clause so that it never applies to self-contained personal wording requests. Check cross-agent impact on Serendipity invocation in the connection Scenarios. Verify by replaying the S3 Muse draft input (no tool call) and the S1/S2 inputs (call still made).
+- The approved answer (`proposal-s3-personal-reflection`) says: "Work only from the current Line. No memory, book, public source, or factual corroboration is needed to help formulate a sentence."
+- The reply should treat the request as personal reflection.
+- The reply should invite Leena to adjust the sentence to her own voice.
+
+**Root cause.**
+
+- Why Muse was offered the tool:
+  - The turn's policy allowed connections (`allow_connection` true).
+  - The policy gave no access to books (no book scopes).
+- What the tool description says:
+  - It says not to call the tool for "a personal wording request without source comparison". Her message is exactly that.
+  - It also says `find_connection` fits "an optional connection worth surfacing". This broader clause competes with the exclusion.
+- The model chose to explore.
+- The exclusion is explicit, so the main failure type is model failure.
+- The competing clause is a suspected contributing factor in the prompt.
+
+**Proposed solution.**
+
+- Keep this result.
+- If the full set of Scenario runs shows unneeded exploration on other personal control Scenes, narrow the clause "an optional connection worth surfacing". It should never apply to a self-contained personal wording request.
+- Check the effect on other agents, in particular on when Serendipity is called in the connection Scenarios.
+- To verify, replay the S3 Muse draft input and confirm that Muse makes no tool call.
+- Also replay the S1 and S2 inputs and confirm that Muse still makes the call.
 
 ## Report points
 
-- Automated checks passed 2 of 3 Scenes, and LLM-review passed 3 of 3. S3 is the automated failure.
-- S1 and S2 are strong cross-source results. Exact Chapter 5 quotations, a supported and cited Hume summary, and the only public query was the Hume URL. S2 declined the authenticity verdict while still helping.
-- S3 failed because Muse called serendipity_explore for a plain request for a sentence to say. Its tool description excludes that case. The call declined without retrieval, and the released sentence was usable but brief, with no invitation to adjust it.
+- Automated checks passed 2 of 3 Scenes. LLM-review passed 3 of 3. S3 is the automated failure.
+- S1 and S2 are strong results across sources. The chapter 5 quotations are exact. The Hume summary is supported and cited. The only public query was the Hume URL. S2 declined the verdict that her work voice is an act, and still helped.
+- S3 failed because Muse called `serendipity_explore` for a plain request for a sentence to say. The tool description excludes that case. The call declined and retrieved nothing. The released sentence was usable but brief, and it did not invite her to adjust it.
 
 ## Slide points
 
 - Cross-source: 2/3 automated, 3/3 LLM-review.
-- Strong tentative comparison and a clean refusal of a verdict.
-- Over-eager tool use: exploration was called for a simple wording request.
+- A strong tentative comparison, and a clean refusal to give a verdict.
+- Over-eager tool use. Muse called exploration for a simple wording request.
 
 ## Limitations
 
 - One synthetic attempt per Scene. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- The Hume source is a live web page fetched at run time; a later run may see different content.
-- This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
+- Coding agents performed the LLM-review. No independent human validation or additional model grader was used.
+- The Hume source is a live web page fetched at run time. A later run may see different content.
+- This result recorded no per-role settings that were actually in effect (`linger-a3fz`). The run used the same `.env` settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

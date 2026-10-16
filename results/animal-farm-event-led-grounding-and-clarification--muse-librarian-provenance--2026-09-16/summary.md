@@ -18,10 +18,10 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| farm-decision-reversal | Quote Squealer's two sentences exactly; link the framing to lost debate and, tentatively, to the reader's project lead. | Exact quotation within chapter 5; sacrifice and private-committee framing; tentative personal link. | passed (1/1) | passed | Grounded quotation and a restrained analogy worked together. |
-| farm-personal-trust | Book-free reflection on acknowledging the lead's effort while asking for a say. | Reflection plus brief suggested wording, approved by Provenance on the first review. | passed (1/1) | passed | After the scope fix, a book-free personal question gets real help instead of a refusal. |
-| farm-spoiler-inference | Infer chapter 5 from the puppies memory and the 'tactics' stopping event, anchoring three events. | Chapter 5 inferred and answered correctly; one required anchor ('recognised them as those puppies') was missing. | failed (0/1) | passed | The answer was right, but the audit trail was incomplete, and the hard check measures the trail. |
-| farm-interrupted-discussion | Clarify progress, since the sheep's chant ends discussion in both chapter 5 and chapter 7. | Librarian returned uncertain; the reply asked for the latest chapter or scene; nothing was retrieved. | passed (1/1) | passed | Genuine ambiguity led to a clean clarification. |
+| farm-decision-reversal | Quote Squealer's two sentences exactly. Link his framing to the loss of debate and, tentatively, to Ilya's project lead. | The reply quoted exactly from chapter 5. It described the framing as sacrifice and as a private committee, and made a tentative link to Ilya's own life. | passed (1/1) | passed | An exact quotation and a restrained comparison worked together. |
+| farm-personal-trust | Help him reflect, without the book, on how to acknowledge his lead's effort while he asks for a say. | The reply gave reflection and brief suggested wording. Provenance approved it on the first review. | passed (1/1) | passed | After the scope fix, a book-free personal question gets real help instead of a refusal. |
+| farm-spoiler-inference | Infer chapter 5 from the puppies memory and the 'tactics' scene where he stopped. Cite a supporting passage for each of three events. A supporting passage is a book passage that places an event the reader reports. | The Librarian inferred chapter 5, and the reply was correct. One required supporting passage was missing, for 'recognised them as those puppies'. | failed (0/1) | passed | The answer was right, but one supporting passage was missing. The automated check grades the supporting passages. |
+| farm-interrupted-discussion | Ask how far he has read, because the sheep's chant ends discussion in both chapter 5 and chapter 7. | The Librarian returned `uncertain`. The reply asked for his latest chapter or scene. No book passage was retrieved. | passed (1/1) | passed | A truly ambiguous event led to a clean request for clarification. |
 
 ## Failures
 
@@ -29,13 +29,38 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 **Failure type: Prompt failure** (cause suspected). Automated failed; LLM-review passed.
 
-**What failed.** The Librarian inferred the correct chapter 5 ceiling, and the released answer was correct and spoiler-safe. Its boundary support cited only two anchors: the puppies memory (chapter 3) and tonight's windmill and tactics stop (chapter 5). The automated boundary_support_differs_from_ground_truth check failed because the third adopted anchor was missing.
+**What failed.**
 
-**Ground truth.** The adopted expectation anchors three events: the puppies being taken (chapter 3), the reader recognising the dogs as those puppies (chapter 5, lines 1082-1114), and the tactics acceptance (chapter 5). The reader reported the recognition directly: "I recognised them as those puppies". The Librarian placed both recognition passages in event_resolution.other_evidence_ids.
+- The Librarian inferred the correct chapter limit, chapter 5. The chapter limit is the latest chapter the reader has reached.
+- The released answer was correct and gave away nothing beyond that limit.
+- Boundary inference, the Librarian step that works out how far the reader has read, cited only two supporting passages:
+  - the puppies memory (chapter 3)
+  - tonight's stop at the windmill and "tactics" (chapter 5)
+- The approved answer has a third supporting passage. Because it was missing, the automated check failed (`boundary_support_differs_from_ground_truth`).
 
-**Root cause.** The Librarian's boundary-inference skill says to "Select only the needed current-event and memory anchors as boundary support". Tonight's stopping event alone establishes chapter 5, so omitting the earlier reported event is consistent with that instruction. Nothing in the skill asks for an anchor for each completed event the reader reports. The prompt and the adopted expectation therefore disagree. This is suspected, not confirmed, because the model might still have omitted the anchor under clearer wording.
+**Ground truth.**
 
-**Proposed solution.** Keep this result and the fixed expectation. Propose a Librarian boundary-inference change: cite an anchor for each reader-reported completed event that the candidate passages locate, not only the stopping event. Check cross-agent impact on the Provenance and Muse handoffs first. Verify by replaying the captured boundary-inference input and checking that farm-puppies-recognised appears in supporting_evidence.
+- The approved answer cites a supporting passage for each of three events:
+  - the puppies being taken (chapter 3)
+  - Ilya recognising the dogs as those puppies (chapter 5, lines 1082-1114)
+  - the acceptance of "tactics" (chapter 5)
+- Ilya reported the recognition directly: "I recognised them as those puppies".
+- The Librarian put both recognition passages in `event_resolution.other_evidence_ids`.
+
+**Root cause.**
+
+- The boundary-inference skill says to "Select only the needed current-event and memory anchors as boundary support".
+- Tonight's stopping point alone establishes chapter 5. Leaving out the earlier event he reported is therefore consistent with that instruction.
+- Nothing in the skill asks for a supporting passage for each completed event the reader reports.
+- The prompt and the approved answer therefore disagree.
+- The cause is suspected, not confirmed. The model might still leave out the passage under clearer wording.
+
+**Proposed solution.**
+
+- Keep this result. Keep the approved answer unchanged.
+- Propose a change to the boundary-inference skill. The Librarian should cite a supporting passage for each completed event that the reader reports and the candidate passages locate, not only for the stopping point.
+- Before the change, check how it affects what the Librarian passes to Provenance and Muse.
+- To verify, replay the recorded boundary-inference input and check that `farm-puppies-recognised` appears in `supporting_evidence`.
 
 ## Worked example
 
@@ -43,35 +68,35 @@ Scene: `farm-personal-trust`.
 
 Request: How can I acknowledge my project lead's effort while still asking to have a say?
 
-Before revision: First run: Provenance flagged Muse's suggested wording as out_of_scope, and the revision released only 'I can't help draft workplace-conflict language.'
+Before revision: First run: Provenance flagged Muse's suggested wording as out of scope (`out_of_scope`). The revised reply said only 'I can't help draft workplace-conflict language.'
 
-Repair instruction: linger-em30: the Muse and Provenance scope rules now treat reflection on the reader's own life, with or without a book, as in scope, including brief wording they could use.
+Repair instruction: Fix `linger-em30`: the Muse and Provenance scope rules now treat reflection on the reader's own life as in scope, with or without a book. That includes brief wording the reader could use.
 
-Released answer: Rerun: “I hear you saying you’re carrying a lot for us, and I appreciate the effort… Could we talk about how decisions are made when plans change?”, approved on the first review.
+Released answer: Rerun: “I hear you saying you’re carrying a lot for us, and I appreciate the effort… Could we talk about how decisions are made when plans change?” Provenance approved it on the first review.
 
-Lesson: A no-retrieval check passed both the refusal and the help. Only reading the reply showed the difference.
+Lesson: A check that no book passage was retrieved passed both the refusal and the help. Only reading the reply showed the difference.
 
 
 ## Report points
 
-- Automated checks passed 3 of 4 Scenes, and coding-agent response review passed 4 of 4.
-- Before-fix baseline, 16 October 2026 at 14:20 Singapore time: 3/4 automated passes and 2/4 LLM-review passes. The personal control was refused, and spoiler inference failed on two mis-copied excerpts. The linger-em30 prompt fix clarified that book-free personal reflection is in scope for Muse and Provenance. [Superseded run in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a1435c6770990adf776e268e93bd29-1471676db92ae8b6>).
-- This rerun replaces the first final Animal Farm result after the linger-em30 fix, which put book-free personal reflection in scope for Muse and Provenance.
-- In the first run, the book-free personal control was refused after an out_of_scope finding. After the fix, Provenance approved a useful reflection on the first review.
-- Spoiler inference reached the right chapter 5 ceiling and answer, but failed the hard check for omitting one required support anchor.
-- The ambiguous repeated chant again led to a clarification with no retrieval or disclosure.
+- Automated checks passed 3 of 4 Scenes, and LLM-review passed 4 of 4.
+- First run before the fix (16 October 2026, 14:20 Singapore time): 3/4 automated passes and 2/4 LLM-review passes. The book-free personal question was refused. The spoiler-inference Scene failed on two mis-copied excerpts. The `linger-em30` prompt fix made clear that book-free personal reflection is in scope for Muse and Provenance. [Superseded run in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a1435c6770990adf776e268e93bd29-1471676db92ae8b6>).
+- This rerun replaces the first final Animal Farm result. It ran after the `linger-em30` fix, which put book-free personal reflection in scope for Muse and Provenance.
+- In the first run, the book-free personal question was refused after an out-of-scope finding (`out_of_scope`). After the fix, Provenance approved a useful reflection on the first review.
+- The spoiler-inference Scene reached the right chapter limit (chapter 5) and the right answer. It failed the automated check because one required supporting passage was missing.
+- The ambiguous, repeated chant again led to a request for clarification. Nothing was retrieved from the book or given away.
 
 ## Slide points
 
-- Animal Farm: 3/4 automated, 4/4 response review.
-- Scope fix: refusal → real help on a book-free personal question.
-- The remaining failure is an incomplete audit trail, not a wrong answer.
+- Animal Farm: 3/4 automated, 4/4 LLM-review.
+- Scope fix: a book-free personal question now gets real help instead of a refusal.
+- The remaining failure is a missing supporting passage, not a wrong answer.
 
 ## Limitations
 
-- One synthetic attempt per run: four Scenes executed once after the fix. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- The instruction change was made after the first run's failure, so this result is not blind to that failure mode.
-- This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
+- The four Scenes ran once each after the fix, with synthetic data. Repeatability has not been established.
+- Coding agents performed LLM-review. No independent human validation or additional grading model was used.
+- The instruction change was made after the first run failed, so this rerun is not blind to that kind of failure.
+- This result did not record the settings each agent actually ran with (`linger-a3fz`). The run used the same `.env` settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

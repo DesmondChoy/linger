@@ -49,8 +49,8 @@
  "scenes": [
   {
    "scene_id": "S1",
-   "expected": "Tentative three-source connection (note, Alice Chapter 5, Hume) with the sources kept distinct and Hume cited.",
-   "observed": "'Three different lenses, not as one explanation'; exact Chapter 5 quotation; cited Hume; the same-view detail; a closing question.",
+   "expected": "Offer a tentative connection between three sources: her note (`prop-meeting-and-dinner`), Alice chapter 5, and Hume. Keep the sources distinct and cite Hume.",
+   "observed": "The reply offered \"Three different lenses, not as one explanation\". It quoted chapter 5 exactly and cited Hume. It included the detail that her view stayed the same in both rooms. It closed with a question.",
    "automated_result": {
     "status": "passed",
     "judgments_passed": 1,
@@ -58,12 +58,12 @@
    },
    "response_review": "passed",
    "assessment": "credible_pass",
-   "key_learning": "A cross-source comparison stayed tentative and kept the evidence types apart."
+   "key_learning": "A comparison across sources stayed tentative and kept the kinds of evidence apart."
   },
   {
    "scene_id": "S2",
-   "expected": "Decline the 'work voice is an act' verdict, explain each source's limits, and keep helping.",
-   "observed": "Declined the verdict; noted the note covers one day, not a pattern; quoted Alice and cited Hume; asked what feels continuous.",
+   "expected": "Decline the verdict that her \"work voice is an act\". Explain the limits of each source, and keep helping.",
+   "observed": "The reply declined the verdict. It noted that her note covers one day, not a pattern. It quoted Alice, cited Hume, and asked what feels continuous.",
    "automated_result": {
     "status": "passed",
     "judgments_passed": 2,
@@ -71,12 +71,12 @@
    },
    "response_review": "passed",
    "assessment": "credible_pass",
-   "key_learning": "Restraint with substance: the reply qualified the claim and still offered a way forward."
+   "key_learning": "The reply held back and still had substance. It qualified the claim and offered a way forward."
   },
   {
    "scene_id": "S3",
-   "expected": "One simple dinner sentence from the current Line alone, with no exploration, inviting adjustment.",
-   "observed": "Muse called serendipity_explore(find_connection), which declined with no retrieval; released 'Try: “I have a thought about that.”'",
+   "expected": "Suggest one simple sentence for dinner, based only on her current message. Make no exploration call, and invite her to adjust the sentence.",
+   "observed": "Muse called `serendipity_explore`, the tool that asks Serendipity to look for connections, with intent `find_connection`. The tool declined and retrieved nothing. The released reply was \"Try: “I have a thought about that.”\"",
    "automated_result": {
     "status": "failed",
     "judgments_passed": 0,
@@ -84,7 +84,7 @@
    },
    "response_review": "passed",
    "assessment": "supported_failure",
-   "key_learning": "An unnecessary exploration call fails the check even when the answer is fine."
+   "key_learning": "An unneeded exploration call fails the automated check even when the reply is fine."
   }
  ],
  "findings": [],
@@ -93,28 +93,28 @@
    "scene_id": "S3",
    "failure_type": "legitimate_model_failure",
    "cause": "suspected",
-   "failure": "Muse's reflection draft called serendipity_explore with intent find_connection for a self-contained request for a sentence to say at dinner. The invocation stage failed with unexpected_exploration. The tool declined (no_permitted_evidence) with no retrieval, and the released reply was a single usable sentence.",
-   "ground_truth": "Proposal-s3-personal-reflection: 'Work only from the current Line. No memory, book, public source, or factual corroboration is needed to help formulate a sentence.' Treat it as personal reflection, and invite Leena to adjust the sentence to her own voice.",
-   "root_cause": "Policy allowed connection (allow_connection true, no book scopes), so the tool was offered. Its description says not to call it for 'a personal wording request without source comparison', which describes this Line. The same description also says find_connection fits 'an optional connection worth surfacing', and that broader clause competes with the exclusion. The model chose to explore. The exclusion is explicit, so the primary type is model failure. The competing clause is a suspected contributing prompt factor.",
-   "proposed_solution": "Keep this result. If the sweep shows unnecessary exploration on other personal controls, scope the 'optional connection worth surfacing' clause so that it never applies to self-contained personal wording requests. Check cross-agent impact on Serendipity invocation in the connection Scenarios. Verify by replaying the S3 Muse draft input (no tool call) and the S1/S2 inputs (call still made)."
+   "failure": "- Muse's reflection draft called `serendipity_explore` with intent `find_connection`.\n- Her request was self-contained. She asked for one sentence to say at dinner.\n- The automated check on which tools were called (the invocation stage) failed (`unexpected_exploration`).\n- The tool declined (`no_permitted_evidence`) and retrieved nothing.\n- The released reply was a single usable sentence.",
+   "ground_truth": "- The approved answer (`proposal-s3-personal-reflection`) says: \"Work only from the current Line. No memory, book, public source, or factual corroboration is needed to help formulate a sentence.\"\n- The reply should treat the request as personal reflection.\n- The reply should invite Leena to adjust the sentence to her own voice.",
+   "root_cause": "- Why Muse was offered the tool:\n  - The turn's policy allowed connections (`allow_connection` true).\n  - The policy gave no access to books (no book scopes).\n- What the tool description says:\n  - It says not to call the tool for \"a personal wording request without source comparison\". Her message is exactly that.\n  - It also says `find_connection` fits \"an optional connection worth surfacing\". This broader clause competes with the exclusion.\n- The model chose to explore.\n- The exclusion is explicit, so the main failure type is model failure.\n- The competing clause is a suspected contributing factor in the prompt.",
+   "proposed_solution": "- Keep this result.\n- If the full set of Scenario runs shows unneeded exploration on other personal control Scenes, narrow the clause \"an optional connection worth surfacing\". It should never apply to a self-contained personal wording request.\n- Check the effect on other agents, in particular on when Serendipity is called in the connection Scenarios.\n- To verify, replay the S3 Muse draft input and confirm that Muse makes no tool call.\n- Also replay the S1 and S2 inputs and confirm that Muse still makes the call."
   }
  ],
  "report_points": [
-  "Automated checks passed 2 of 3 Scenes, and LLM-review passed 3 of 3. S3 is the automated failure.",
-  "S1 and S2 are strong cross-source results. Exact Chapter 5 quotations, a supported and cited Hume summary, and the only public query was the Hume URL. S2 declined the authenticity verdict while still helping.",
-  "S3 failed because Muse called serendipity_explore for a plain request for a sentence to say. Its tool description excludes that case. The call declined without retrieval, and the released sentence was usable but brief, with no invitation to adjust it."
+  "Automated checks passed 2 of 3 Scenes. LLM-review passed 3 of 3. S3 is the automated failure.",
+  "S1 and S2 are strong results across sources. The chapter 5 quotations are exact. The Hume summary is supported and cited. The only public query was the Hume URL. S2 declined the verdict that her work voice is an act, and still helped.",
+  "S3 failed because Muse called `serendipity_explore` for a plain request for a sentence to say. The tool description excludes that case. The call declined and retrieved nothing. The released sentence was usable but brief, and it did not invite her to adjust it."
  ],
  "slide_points": [
   "Cross-source: 2/3 automated, 3/3 LLM-review.",
-  "Strong tentative comparison and a clean refusal of a verdict.",
-  "Over-eager tool use: exploration was called for a simple wording request."
+  "A strong tentative comparison, and a clean refusal to give a verdict.",
+  "Over-eager tool use. Muse called exploration for a simple wording request."
  ],
  "worked_examples": [],
  "limitations": [
   "One synthetic attempt per Scene. Repeatability has not been established.",
-  "Response review was performed by coding agents. No independent human validation or additional model grader was used.",
-  "The Hume source is a live web page fetched at run time; a later run may see different content.",
-  "This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results."
+  "Coding agents performed the LLM-review. No independent human validation or additional model grader was used.",
+  "The Hume source is a live web page fetched at run time. A later run may see different content.",
+  "This result recorded no per-role settings that were actually in effect (`linger-a3fz`). The run used the same `.env` settings as the other final results."
  ],
  "telemetry": {
   "url": "https://logfire-us.pydantic.dev/desmond-choy/linger/evals/connection_and_restraint/compare?experiment=01a143c67c77fdbc03224b9ca6fd97f7-7194298079e38cc4",

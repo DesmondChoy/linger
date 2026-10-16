@@ -18,27 +18,27 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| keller-grounded | Quote the 'My disappointment was bitter' sentence exactly within Part I, Chapter 10 and reflect on arranging the sister's flat. | Exact quotation attributed to Keller; a tentative comparison ending with a question. | passed (1/1) | passed | Explicit-chapter grounding works; attribution survived review this time. |
-| keller-personal | Book-free help offering support while leaving the flat's choices to the sister. | No retrieval; three phrasings that leave the choice with her. | passed (1/1) | passed | The personal control stayed book-free. |
-| keller-spoiler-inference | Infer Chapter 10 from the Perkins memory and the crab stop, then answer without the later Frost King discovery. | Chapter 10 accepted on the second call with the Perkins and crab anchors; exact quotation; no Frost King. | passed (1/1) | passed | The fix turned a correct-but-rejected decision into a released answer. The first call's remaining fault was a memory ID, not the inventory. |
-| keller-uncertain | Clarify, because a vanished kept pet fits the canary and the crab. | Uncertain; the reply asked for the latest chapter or scene; nothing retrieved. | passed (1/1) | passed | Ambiguity handled safely. |
+| keller-grounded | Quote the 'My disappointment was bitter' sentence exactly, within Part I, Chapter 10. Reflect on arranging their sister's flat. | The reply quoted exactly and attributed the words to Keller. It made a tentative comparison and ended with a question. | passed (1/1) | passed | Quoting from a chapter the reader names works. The attribution survived review this time. |
+| keller-personal | Help without the book. Offer support while leaving the choices about the flat to their sister. | No book passage was retrieved. The reply gave three phrasings that leave the choice with her. | passed (1/1) | passed | The personal question stayed book-free. |
+| keller-spoiler-inference | Infer Chapter 10 from the Perkins memory and the crab scene where Jun stopped. Then answer without the later Frost King discovery. | The Librarian gave Chapter 10 and cited book passages that place the Perkins memory and the crab scene. Its second call was accepted. The reply quoted exactly and did not mention the Frost King. | passed (1/1) | passed | The fix turned a correct but rejected decision into a released answer. The first call still failed, on a memory ID, not on the list of candidate passage IDs. |
+| keller-uncertain | Ask for clarification, because a kept pet that vanished fits both the canary and the crab. | The Librarian returned `uncertain`. The reply asked for Jun's latest chapter or scene. No book passage was retrieved. | passed (1/1) | passed | The ambiguity was handled safely. |
 
 ## Report points
 
-- Rerun after the Librarian boundary inventory fix (3e8a422c), which made the application derive the candidate inventory and merge repeated support anchors.
-- Automated checks passed 4 of 4 Scenes, and LLM-review passed 4 of 4, up from 3 of 4 each.
-- keller-spoiler-inference now passes: Librarian inferred Chapter 10 with the right anchors and the reply quoted the crab sentence exactly.
-- In the previous run the same decision was rejected twice for mis-copied inventory IDs and a duplicate support ID; both fault types are now handled by the application.
+- This is a rerun after the candidate-list fix to boundary inference (`3e8a422c`). Boundary inference is the Librarian step that works out how far the reader has read. The fix makes the application, not the model, build the list of candidate passage IDs. It also merges supporting passages that the model repeats. A supporting passage is a book passage that places an event the reader reports.
+- Automated checks passed 4 of 4 Scenes, and LLM-review passed 4 of 4. Both were 3 of 4 in the previous run.
+- `keller-spoiler-inference` now passes. The Librarian inferred Chapter 10 with the right supporting passages, and the reply quoted the crab sentence exactly.
+- In the previous run, the same decision was rejected twice. The model had mis-copied candidate passage IDs and repeated one supporting passage ID. The application now handles both kinds of fault.
 
 ## Slide points
 
 - Helen Keller: 4/4 automated, 4/4 LLM-review (was 3/4).
-- Same decision, now accepted: the application derives the ID inventory.
+- The same decision is now accepted, because the application builds the list of candidate passage IDs.
 
 ## Limitations
 
-- One synthetic attempt per Scene. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
+- Each Scene ran once, with synthetic data. Repeatability has not been established.
+- Coding agents performed LLM-review. No independent human validation or additional grading model was used.
+- This result did not record the settings each agent actually ran with (`linger-a3fz`). The run used the same `.env` settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

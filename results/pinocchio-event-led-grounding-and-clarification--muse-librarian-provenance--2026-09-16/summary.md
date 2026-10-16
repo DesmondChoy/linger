@@ -18,10 +18,10 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| pinocchio-promises-and-book | Exact quotation plus the imagined-coat/sale contrast and a manageable personal action, within chapter 9. | Exact quote and tentative reflection; the adopted contextual contrast and action are absent. | passed (1/1) | failed | The hard check covers quotation and permitted evidence; the broader adopted response recipe needs separate review. |
-| pinocchio-personal-study | Offer one small way to honour the sister's help, without book facts, shame or assumed resentment. | Suggests a specific thank-you and separates a missed study block from character. No book retrieval; memory recall returned no evidence. | passed (1/1) | passed | A book-free personal request received useful help, and an empty memory lookup introduced no invented recall. |
-| pinocchio-spoiler-inference | Infer chapter 9 from the coat memory and sale stop, then give the requested bounded answer. | Both candidates chose chapter 9 but altered a source excerpt; repair exhausted and only clarification was released. | failed (0/1) | failed | Correct chapter prediction does not authorize disclosure when its required source anchors fail validation. |
-| pinocchio-school-detour | Leave ambiguous progress unresolved and ask a useful question without response retrieval or plot hints. | Successful uncertain judgment; asks for the latest completed chapter or scene. No ceiling, evidence or spoiler was released. | passed (1/1) | passed | A genuine ambiguity and a failed inference produced the same visible clarification; the traces distinguish their causes. |
+| pinocchio-promises-and-book | Quote Pinocchio's words exactly, staying within chapter 9. Contrast the coat he imagines buying his father with his sale of the A-B-C book. Suggest one manageable action for her. | The reply quoted exactly and reflected tentatively. It left out the coat-and-sale contrast and the action that the approved answer asks for. | passed (1/1) | failed | The automated check covers only the quotation and the permitted passages. The rest of the approved answer needs a separate review. |
+| pinocchio-personal-study | Offer one small way to honour her sister's help. Use no book facts and no shame, and do not assume her sister resents her. | The reply suggested a specific thank-you. It separated a missed study block from her character. No book passages were retrieved, and the memory search found no notes. | passed (1/1) | passed | A personal request with no book in it got useful help. The empty memory search led to no invented memories. |
+| pinocchio-spoiler-inference | Work out that she has read to chapter 9, from her note about the coat and the sale where she stopped. Then answer her request using only passages up to chapter 9. | Both Librarian attempts chose chapter 9, but each altered a passage it quoted from the source. The one allowed retry was used up, and only a clarifying question was released. | failed (0/1) | failed | A correct chapter guess does not open the book to the reply when the quoted passages that support the guess fail validation. |
+| pinocchio-school-detour | Her message fits more than one place in the book, so leave her reading position unresolved. Ask a useful question. Retrieve no passages for the reply and give no plot hints. | Boundary inference correctly judged her position uncertain. The reply asked for the latest chapter or scene she has finished. No chapter limit was set, and no passage or spoiler was released. | passed (1/1) | passed | A real ambiguity here and a failed inference in `pinocchio-spoiler-inference` produced the same clarifying question. Only the traces show the different causes. |
 
 ## Failures
 
@@ -29,62 +29,124 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 **Failure type: Prompt failure** (cause suspected). Automated passed; LLM-review failed.
 
-**What failed.** The automated pass conceals omissions against the fixed adopted expectation: no imagined future coat, ragpicker sale, narrator's sacrifice reminder or manageable action. The exact quotation and tentative exploration of Ada's gap are correct; failure to answer the visible Line itself is not established.
+**What failed.**
 
-**Ground truth.** pinocchio-grounded-proposal.expected_outcomes[1] requires pinocchio-future-coat and pinocchio-ragpicker-sale to distinguish hopes from the narrator's reminder; expected_outcomes[2] asks for a manageable action. The actual reply moves from the exact quotation to "Perhaps the future milestone makes repayment feel far off" and ends by asking what happens before studying drops out.
+- The automated pass hides gaps against the approved answer, which stays fixed. The reply left out:
+  - the future coat that Pinocchio imagines
+  - the sale of the book to the ragpicker
+  - the narrator's reminder of Geppetto's sacrifice
+  - a manageable action for her
+- The exact quotation is correct. The tentative look at the gap she described is also correct.
+- It is not established that the reply failed the request in her message itself.
 
-**Root cause.** The first narrowing appears in evidence.evaluation.data.scenes[0].agent_exchanges[3]: book-request plans only the explicit quotation. The evidence assessment at [4] selects E1 and marks that need sufficient; E1 contains the imagined coat but ends before the sale. Muse uses only the self-talk; Provenance checks those supplied claims and passes. The current book-request and evidence-assessment prompts discourage inferred extra themes and richer context that adds no explicit book requirement. A runtime/adopted-expectation scope mismatch is therefore suspected. The grader at evals/synthetic_journals/book_replay.py:1034-1065 requires an exact quote and permitted support, not every contextual item.
+**Ground truth.**
 
-**Proposed solution.** Retain this run and record the mismatch as a limitation. linger-ztu9 asks the owner to decide whether the coat/sale/action recipe is a product requirement for this unchanged Line. If yes, clarify generic contextual-support and completion responsibilities before a future comparison, with the cross-agent impact recorded in that task. Verify the complete contrast and action, exact quotation, bounded evidence and personal-only control. Any revised expectation needs a successor and independent adoption; no repair or rerun was made.
+- The approved answer (`pinocchio-grounded-proposal`) sets two requirements that matter here:
+  - `expected_outcomes[1]` requires the passages `pinocchio-future-coat` and `pinocchio-ragpicker-sale`, used to separate Pinocchio's hopes from the narrator's reminder.
+  - `expected_outcomes[2]` asks for a manageable action.
+- The actual reply moves from the exact quotation to "Perhaps the future milestone makes repayment feel far off".
+- It ends by asking what happens before studying drops out.
+
+**Root cause.**
+
+- The request first narrows in the Librarian's book-request plan, the step that decides what to look up (`evidence.evaluation.data.scenes[0].agent_exchanges[3]`). The plan covers only the quotation she asked for.
+- Next, the Librarian's evidence assessment (`agent_exchanges[4]`) selects passage `E1` and marks that need as "sufficient".
+- `E1` contains the imagined coat but ends before the sale.
+- Muse uses only Pinocchio's words to himself. Provenance checks those supplied claims and passes them.
+- The current book-request and evidence-assessment prompts discourage extra themes that the model infers. They also discourage richer context that adds no explicit book requirement.
+- So the suspected cause is a mismatch in scope. The approved answer expects more than the runtime is built to fetch.
+- The automated grader (`evals/synthetic_journals/book_replay.py:1034-1065`) requires an exact quote and permitted passages. It does not require every piece of context.
+
+**Proposed solution.**
+
+- Keep this run, and record the mismatch as a limitation.
+- Beads `linger-ztu9` asks the owner to decide one question. Should the reply to this unchanged message have to include the coat, the sale, and an action?
+- If yes, clarify in general terms which step supplies supporting context and which step makes the answer complete. Do this before a future comparison, and record the effect on other agents in that task.
+- Then verify the full contrast and action, the exact quotation, the chapter limit on passages, and the personal-only control Scene.
+- Any revised expectation needs a new Scenario, and a person must approve it again.
+- No repair or rerun was made.
 
 ### pinocchio-spoiler-inference
 
 **Failure type: Legitimate model failure** (cause confirmed). Automated failed; LLM-review failed.
 
-**What failed.** Librarian boundary inference could not return a valid source-bound judgment. The application granted no chapter ceiling and released only "What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?" Five automated mismatches stem from that single failed judgment; the requested quotation and reflection were not delivered.
+**What failed.**
 
-**Ground truth.** pinocchio-boundary-proposal.expected_outcomes[0] and book_scene_facts[1] require chapter 9 from the prior coat/gratitude memory and current sale/reminder, anchored to the canonical passages. Those passages were present in the captured input. The correct source says "Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school," before the narration. The repaired output instead joins "tomorrow I’ll go to school," directly to "decided the little rascal", deleting the second sentence.
+- Boundary inference is the Librarian step that works out how far the reader has read. Here it could not return a valid judgment tied to the source text.
+- So the application set no chapter limit, which caps the chapters the reply may use.
+- The only released reply was "What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?"
+- Five automated mismatches all come from that one failed judgment.
+- She did not get the quotation or the reflection she asked for.
 
-**Root cause.** Confirmed in evidence.evaluation.data.scenes[2].agent_exchanges[4]. Both model outputs predict chapter 9 but alter the literal source excerpt. The first also omits eight candidate inventory IDs and duplicates one; the repair fixes that inventory but still supplies a non-contiguous excerpt. The boundary prompt and retry explicitly require exact source copying. The offline probe retained under diagnostics["boundary-offline-validation.json"] runs the actual validator and replays the two captured outputs with FunctionModel against the exact captured input, reproducing UnexpectedModelBehavior: Exceeded maximum output retries (1). Validation and safe fallback behaved as specified; no provider outage is established.
+**Ground truth.**
 
-**Proposed solution.** Keep this legitimate failure. Evidence is attached to linger-3ury. For a separately authorized future comparison, compare Librarian low and medium reasoning on frozen source-binding failures and genuine ambiguity controls, retaining strict excerpt checks, the same repair budget and all outcomes. Verify literal anchors, complete inventories, valid scope grants and bounded answers. This is a proposed comparison; no default, prompt, validator or answer key was changed.
+- The approved answer requires chapter 9 (`pinocchio-boundary-proposal.expected_outcomes[0]` and `book_scene_facts[1]`).
+- Chapter 9 follows from two things:
+  - her earlier note about the coat and Pinocchio's gratitude
+  - the sale and the reminder of Geppetto, where she stopped this time
+- The judgment must be tied to the book's own passages. Those passages were in the captured input.
+- The source text says "Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school," before the narration.
+- The output after the retry joins "tomorrow I’ll go to school," directly to "decided the little rascal". It deletes the second sentence.
+
+**Root cause.**
+
+- Confirmed in `evidence.evaluation.data.scenes[2].agent_exchanges[4]`.
+- Both model outputs choose chapter 9, but both alter the exact text they quote from the source.
+- The first output has a second fault. It must list every candidate passage it was given exactly once. It left out eight passage IDs and listed one twice.
+- The retry fixes that list but still quotes text that is not continuous in the source.
+- The boundary prompt and the retry both say to copy the source exactly.
+- An offline check, kept in `diagnostics["boundary-offline-validation.json"]`, reproduced the failure:
+  - It runs the real validator.
+  - It replays the two captured outputs with `FunctionModel` against the exact captured input.
+  - It reproduces `UnexpectedModelBehavior: Exceeded maximum output retries (1)`.
+- Validation and the safe fallback behaved as specified. No provider outage is established.
+
+**Proposed solution.**
+
+- Keep this as a legitimate failure. The evidence is attached to Beads `linger-3ury`.
+- Proposed future comparison, which needs separate approval:
+  - Run the Librarian at low and at medium reasoning effort.
+  - Use saved cases where the quoted source text failed validation, and control cases with genuine ambiguity.
+  - Keep the strict quotation checks, the same retry budget, and all outcomes.
+  - Verify exact quoted passages, complete candidate lists, valid chapter limits, and answers that stay within the limit.
+- This is a proposal only. No default, prompt, validator, or approved answer was changed.
 
 ## Worked example
 
 Scene: `pinocchio-spoiler-inference`.
 
-Request: The reader gives the coat memory and ragpicker-sale stop, then asks for the exact school-tomorrow quotation and a reflection on protected study time.
+Request: She has an earlier note about the coat. Her message says she stopped at the ragpicker sale. She asks for Pinocchio's exact words about going to school tomorrow, and for a reflection on her protected study time.
 
-Before revision: The first boundary output selects chapter 9 but claims this exact source excerpt: “Today I’ll follow the pipes, and tomorrow I’ll go to school.”
+Before revision: The first boundary-inference output chooses chapter 9. It gives this as an exact quote from the source: “Today I’ll follow the pipes, and tomorrow I’ll go to school.”
 
-Repair instruction: Validation asks for an exact contiguous source excerpt, eight missing candidate inventory entries and removal of a duplicate. The repair fixes the inventory but joins source phrases across a deleted sentence.
+Repair instruction: Validation asks for an exact, continuous quote from the source. It also asks for the eight missing candidate passages and the removal of one duplicate. The retry fixes the candidate list but joins two phrases of the source across a deleted sentence.
 
-Released answer: What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?
+Released answer: "What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?"
 
-Lesson: The application withholds scope because a correct chapter number cannot replace valid canonical support. The offline captured-output replay reproduces the one-retry limit without a provider call.
+Lesson: The application withholds the book from the reply, because a correct chapter number cannot replace valid quotes from the source. The offline replay of the captured outputs reproduces the one-retry limit without a provider call.
 
 
 ## Report points
 
-- One confirmed openai:gpt-6-luna run completed four Scenes. Automated results: 3 passed and 1 failed, across four judgments. LLM-review: 2 passed and 2 failed. No inconclusive, unreviewed or incomplete Scene remains.
-- The exact-quotation Scene passed the hard checks but missed the broader adopted contrast/action recipe. The trace supports a suspected prompt/expectation scope mismatch; a failure to satisfy the visible reader request itself is not established. Follow-up: linger-ztu9.
-- The inference model twice selected the correct chapter but altered a canonical supporting excerpt. Strict source binding blocked the grant; offline captured-output replay reproduced repair exhaustion. Follow-up evidence is in linger-3ury.
-- The personal-only control offered a specific thank-you without shaming. The ambiguous school detour correctly requested completed progress without candidate plot hints.
-- Effective role and task settings are saved in run.configuration. Low reasoning applies by default, with medium for Serendipity, Muse reflection and Provenance candidate review.
+- One confirmed run with `openai:gpt-6-luna` completed four Scenes. Automated: 3 passed and 1 failed, across four checks. LLM-review: 2 passed and 2 failed. No Scene is left inconclusive, unreviewed, or incomplete.
+- The exact-quotation Scene passed the automated checks but missed the wider contrast and the action that the approved answer asks for. The trace supports a suspected mismatch in scope between the prompts and the approved answer. It is not established that the reply failed her actual request. Follow-up: `linger-ztu9`.
+- Boundary inference twice chose the correct chapter but altered a supporting passage it quoted from the book. The strict check that quotes match the source blocked access to the book. An offline replay of the captured outputs reproduced the used-up retry. Follow-up evidence is in `linger-3ury`.
+- In the personal-only control Scene, the reply offered a specific thank-you without shaming her. In the ambiguous school-detour Scene, the reply correctly asked how far she had read, without hints from the possible matching passages.
+- The settings each agent and task actually used are saved in `run.configuration`. Reasoning effort is low by default. It is medium for Serendipity, Muse's reflection (`muse.reflection`), and Provenance's review of the draft reply (`provenance.candidate-review`).
 
 ## Slide points
 
-- Pinocchio: 3/4 automated passes; 2/4 passed response review.
-- An exact quote can pass while the adopted contextual reflection is incomplete.
-- Correct chapter prediction still needs literal source anchors. Failed binding withheld permission and led to clarification.
+- Pinocchio: 3/4 automated passes. 2/4 passed LLM-review.
+- An exact quote can pass the automated checks while the reflection that the approved answer asks for is incomplete.
+- A correct chapter guess still needs exact quotes from the source. When the quotes failed, the application withheld the book and asked a clarifying question.
 
 ## Limitations
 
-- Four Scenes executed once. These are synthetic single-run observations; repeatability and human validation have not been established.
-- LLM-review was performed by coding agents against the fixed approved expectations. It leaves original automated outcomes unchanged and uses no additional semantic-grader API call.
-- The quotation Scene's prescribed coat/sale/action recipe is broader than its minimally explicit book request and the current evidence-selection policy. The recorded semantic failure reflects that adopted recipe; the intended product scope needs an owner decision before a repair.
-- The offline FunctionModel diagnostic reproduces rejection of the recorded outputs. It does not measure how often a live model would make or repair the same error.
-- Later-work passages were available privately to boundary inference. No later plot was observed in released responses or response-evidence retrieval; this is a scoped observation, not a general spoiler-safety guarantee.
-- The SDK returned a Logfire experiment URL and flushed exports. Remote visibility was not independently read back.
+- Each of the four Scenes ran once. These are single synthetic runs. Repeatability and human validation have not been established.
+- LLM-review was done by coding agents against the fixed approved answers. It leaves the original automated outcomes unchanged and makes no extra call to a grader model.
+- In the quotation Scene, the approved answer asks for the coat, the sale, and an action. That is broader than what her message explicitly asks of the book, and broader than the current rules for choosing passages. The recorded LLM-review failure reflects that approved answer. The owner must decide the intended product scope before any repair.
+- The offline `FunctionModel` check reproduces the rejection of the recorded outputs. It does not measure how often a live model would make or repair the same error.
+- Boundary inference had private access to passages from later in the book. No later plot appeared in the released replies or in the passages retrieved for them. This is an observation about this run only. It is not a general guarantee against spoilers.
+- The SDK returned a Logfire experiment URL and flushed its exports. Whether the traces are visible remotely was not checked independently.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.

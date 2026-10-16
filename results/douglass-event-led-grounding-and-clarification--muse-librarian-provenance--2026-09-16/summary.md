@@ -18,10 +18,10 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 | Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
-| douglass-grounded | Quote the 'It opened my eyes' sentence exactly within chapter 7 and reflect on seeing a problem versus finding an action. | Exact quotation in Chapter 7; a practical first step about tracing missing repair requests. | passed (1/1) | passed | Explicit-chapter grounding works end to end. |
-| douglass-personal | Book-free, practical help moving from reviewing requests to one action. | No retrieval; one concrete status request. | passed (1/1) | passed | The personal control stayed book-free. |
-| douglass-spoiler-inference | Infer chapter 7 from the earlier-lessons memory and the copybook stop, then quote the pit sentence and reflect, without the later New Bedford naming. | Boundary inference returned chapter 7 in one call with three correct anchors. The reply said it could not locate the pit sentence and reflected on a Chapter VI passage. | failed (0/1) | failed | The fix moved the failure downstream: the ceiling is now right, but the book-request plan dropped the reader's description of the sentence, so retrieval missed it. |
-| douglass-uncertain | Clarify, because the remembered return to Baltimore fits Chapters VIII and X. | Uncertain; the reply asked for the latest chapter or scene; nothing retrieved. | passed (1/1) | passed | Ambiguity handled safely; the question asks for a location, not a remembered detail. |
+| douglass-grounded | Quote the sentence that begins "It opened my eyes" exactly, staying within chapter 7. Reflect on the gap between seeing a problem and finding an action. | The reply quoted the sentence exactly from Chapter 7. It suggested a practical first step about tracing the missing repair requests. | passed (1/1) | passed | When she names her chapter, answering from the book works end to end. |
+| douglass-personal | Give practical help with no book in it, to move her from reviewing requests to one action. | Nothing was retrieved. The reply suggested one concrete step, which is to ask for the status of one request. | passed (1/1) | passed | The personal-only control Scene stayed free of the book. |
+| douglass-spoiler-inference | Work out that she has read to chapter 7, from her note about the earlier lessons and the copybook scene where she stopped. Then quote the pit sentence and reflect. Leave out the later scene in New Bedford where he gets the name Douglass. | Boundary inference returned chapter 7 in one call, citing three correct supporting passages. The reply said it could not find the pit sentence, and reflected on a passage from Chapter VI. | failed (0/1) | failed | The fix moved the failure to a later step. The chapter limit is now right. But the book-request plan dropped her description of the sentence, so the search missed it. |
+| douglass-uncertain | Ask a clarifying question, because the return to Baltimore she remembers fits both Chapter VIII and Chapter X. | Boundary inference judged her position uncertain. The reply asked for the latest chapter or scene she has completed. Nothing was retrieved. | passed (1/1) | passed | The ambiguity was handled safely. The question asks where she is in the book, not for a detail she remembers. |
 
 ## Failures
 
@@ -29,46 +29,76 @@ For LLM-review, **passed** means the review found the expectations met within it
 
 **Failure type: Legitimate model failure** (cause suspected). Automated failed; LLM-review failed.
 
-**What failed.** Automated failed boundary_support_differs_from_ground_truth. LLM-review failed because the reply omits the requested quotation: 'I couldn’t locate the exact “pit without a ladder” sentence in the passages available here.'
+**What failed.**
 
-**Ground truth.** douglass-proposal-boundary: infer the chapter 7 ceiling from douglass-prior-prohibition (sec09) and douglass-copybook-stop (sec10-ln1597-1629), withholding douglass-later-new-name. The reader also asks for the pit sentence exactly, which lies in sec10-ln1517-1552 (chapter 7).
+- The automated check failed because the passages cited for her reading position differ from the approved answer (`boundary_support_differs_from_ground_truth`).
+- LLM-review failed because the reply leaves out the quotation she asked for. It said "I couldn’t locate the exact “pit without a ladder” sentence in the passages available here."
 
-**Root cause.** Two separate causes. (1) Grader: boundary inference cited sec09-ln1346-1385, sec10-ln1597-1629 and sec10-ln1517-1552. The third is the pit passage the reader reports reading, so it is correct, but the key lists no optional anchors. This part is an expectation mismatch, the inverse of Animal Farm, where the key requires such anchors. (2) Model: the second Librarian book-request plan (agent_exchanges[6]) kept reader_spans 'quote that sentence exactly' but dropped 'he describes reading as showing him a pit without a ladder'. Retrieval returned only sec09-ln1346-1385 (chapter 6), evidence assessment marked the quotation unsupported (agent_exchanges[7]), and Muse said it could not find the sentence. Suspected, because the planner's choice of spans has no reasoning trace.
+**Ground truth.**
 
-**Proposed solution.** Not implemented. (1) In a successor key, list reader-reported completed events as optional boundary support, and choose one rule for Douglass and Animal Farm. (2) For a future comparison, check whether book-request planning keeps a quotation's descriptive span in reader_spans; verify by replaying this Line's planning input and checking that retrieval returns sec10-ln1517-1552.
+- The approved answer (`douglass-proposal-boundary`) expects chapter 7 as the limit on what the reply may use.
+- It infers that limit from two passages:
+  - `douglass-prior-prohibition` (`sec09`)
+  - `douglass-copybook-stop` (`sec10-ln1597-1629`)
+- It withholds `douglass-later-new-name`.
+- She also asks for the pit sentence exactly. That sentence is in `sec10-ln1517-1552` (chapter 7).
+
+**Root cause.**
+
+- There are two separate causes.
+- Cause 1, in the grader:
+  - Boundary inference, the Librarian step that works out how far she has read, cited three passages: `sec09-ln1346-1385`, `sec10-ln1597-1629`, and `sec10-ln1517-1552`.
+  - The third is the pit passage, which she says she has read. So citing it is correct.
+  - The approved answer lists no optional supporting passages.
+  - This part is a mismatch with the approved answer. It is the opposite of the Animal Farm Scenario, where the approved answer requires such passages.
+- Cause 2, in the model:
+  - The book-request plan is the Librarian step that picks the parts of her message to search with (`reader_spans`).
+  - The second plan (`agent_exchanges[6]`) kept "quote that sentence exactly" but dropped "he describes reading as showing him a pit without a ladder".
+  - The search returned only `sec09-ln1346-1385` (chapter 6).
+  - The Librarian's evidence assessment marked the quotation unsupported (`agent_exchanges[7]`).
+  - Muse then said it could not find the sentence.
+- Cause 2 is suspected, not confirmed, because the planner leaves no reasoning trace for the parts it keeps.
+
+**Proposed solution.**
+
+- Not implemented.
+- For cause 1, write a successor version of the approved answer. List the events she says she has finished as optional supporting passages.
+- Choose one rule for both the Douglass and Animal Farm Scenarios.
+- For cause 2, a future comparison should check whether the book-request plan keeps the words that describe a requested quotation in `reader_spans`.
+- To verify, replay the planning input for this message and check that the search returns `sec10-ln1517-1552`.
 
 ## Worked example
 
 Scene: `douglass-spoiler-inference`.
 
-Request: …Earlier in that account he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly…?
+Request: Part of her message: "…Earlier in that account he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly…?"
 
-Before revision: Previous run: two boundary attempts chose chapter 7 but failed the exactly-once inventory; the reader got a generic clarification.
+Before revision: Previous run: two boundary-inference attempts chose chapter 7. Both failed the rule that every candidate passage is listed exactly once. She got a generic clarifying question.
 
-Repair instruction: Fix 3e8a422c: the application derives the inventory.
+Repair instruction: Fix `3e8a422c`: the application builds the list of candidate passages itself.
 
-Released answer: This run: chapter 7 accepted in one call. The book-request plan searched with 'quote that sentence exactly' only, and the reply said it could not locate the sentence.
+Released answer: This run: chapter 7 was accepted in one call. The book-request plan searched only with "quote that sentence exactly". The reply said it could not find the sentence.
 
-Lesson: Removing one bottleneck exposed the next: the stage after boundary inference must carry the reader's description of what to retrieve.
+Lesson: Fixing one step exposed the next problem. The step after boundary inference must pass on her description of what to look up.
 
 
 ## Report points
 
-- Rerun after the Librarian boundary inventory fix (3e8a422c), which made the application derive the candidate inventory and merge repeated support anchors.
-- Automated checks passed 3 of 4 Scenes, and LLM-review passed 3 of 4. Both fail douglass-spoiler-inference, as before, but for different reasons.
-- The boundary fix worked here: Librarian inferred chapter 7 in one call with the right anchors, where the previous run exhausted its retry on inventory faults.
-- The automated failure now comes from one extra, correct anchor that the key does not allow.
-- The reader still did not get the quotation: a later book-request plan dropped the words describing the sentence, so retrieval missed it.
+- Rerun after the Librarian fix `3e8a422c`. With that fix, the application builds the list of candidate passages for boundary inference and merges repeated supporting passages.
+- Automated checks passed 3 of 4 Scenes, and LLM-review passed 3 of 4. Both fail `douglass-spoiler-inference`, as before, but for different reasons.
+- The fix worked here. The Librarian inferred chapter 7 in one call with the right supporting passages. The previous run used up its retry on faults in the candidate list.
+- The automated failure now comes from one extra supporting passage. That passage is correct, but the approved answer does not allow it.
+- She still did not get the quotation. A later book-request plan dropped the words that describe the sentence, so the search missed it.
 
 ## Slide points
 
 - Douglass: 3/4 automated, 3/4 LLM-review.
-- Boundary fixed; the failure moved to retrieval planning.
+- Boundary inference is fixed. The failure moved to planning what to search for.
 
 ## Limitations
 
 - One synthetic attempt per Scene. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- This bundle recorded no effective per-role configuration (linger-a3fz). The run used the same .env settings as the other final results.
+- LLM-review was done by coding agents. No independent human validation or additional model grader was used.
+- This bundle did not record the settings each agent actually used (`linger-a3fz`). The run used the same `.env` settings as the other final results.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.
