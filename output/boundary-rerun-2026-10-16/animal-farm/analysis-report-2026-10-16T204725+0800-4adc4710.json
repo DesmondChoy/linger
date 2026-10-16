@@ -2396,5 +2396,116 @@
     },
     "artifact_problems": []
   },
-  "review": null
+  "review": {
+    "verdict": "Rerun after the Librarian boundary inventory fix (commit 3e8a422c): Automated 3/4, LLM-review 4/4, unchanged from the previous result. farm-spoiler-inference again infers chapter 5 correctly but cites two of the three expected anchors, omitting the recognition event.",
+    "scenario_assessment": {
+      "goal": "Still useful: it separates explicit grounding, a book-free control, event-led inference, and an ambiguous chant.",
+      "input_validity": "The inference Line and Prop establish chapter 5.",
+      "ground_truth_validity": "The boundary expectation requires an anchor for every reader-reported completed event; the boundary skill asks only for the needed anchors, and the Douglass key lists no such anchor as optional. The keys and the prompt disagree."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "farm-decision-reversal",
+        "expected_behavior": "Quote Squealer's two sentences exactly, relate them to the end of debates, and help Ilya ask for participation without equating the lead with Napoleon.",
+        "observed_behavior": "The reply quotes both sentences, attributes them to Squealer, notes the growling dogs and the sheep's chant, and keeps the comparison about having a say.",
+        "interpretation": "Retrieval, quotation, and release behaved as intended.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed"
+        ],
+        "grade_reliability": "Squealer's claim is not endorsed as fact, and the lead's motives are left open.",
+        "next_step": "No correction indicated.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Quotation, attribution, and reflection checked against the expectations.",
+          "evidence_refs": [
+            "scenes[0].expected",
+            "scenes[0].observed"
+          ]
+        },
+        "execution_findings": []
+      },
+      {
+        "scene_id": "farm-personal-trust",
+        "expected_behavior": "Help acknowledge the lead's work while asking for participation, with no book retrieval.",
+        "observed_behavior": "No retrieval; the reply offers a short script focused on the decision process.",
+        "interpretation": "Book-free and grounded in the reader's words, so the checks passed.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed"
+        ],
+        "grade_reliability": "No claims about the lead's motives.",
+        "next_step": "No correction indicated.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Released reply checked against the Scene's expected and prohibited outcomes for a book-free personal reflection.",
+          "evidence_refs": [
+            "scenes[1].expected",
+            "scenes[1].observed"
+          ]
+        },
+        "execution_findings": []
+      },
+      {
+        "scene_id": "farm-spoiler-inference",
+        "expected_behavior": "Infer chapter 5 from the puppies taken, the puppies recognised, and the tactics acceptance, and withhold the pigs-and-men ending.",
+        "observed_behavior": "Boundary inference was accepted on its second call: chapter 5, citing ch03-ln0694-0721 and ch05-ln1177-1203. The reply quotes Squealer within chapter 5 and reveals nothing later.",
+        "interpretation": "The automated failure is boundary_support_differs_from_ground_truth: the recognition anchor is missing. The ceiling and release are correct. The first call failed on a source excerpt.",
+        "assessment": "potential_false_negative",
+        "confidence": "likely",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "evaluation.json scenes[2].agent_exchanges[4]"
+        ],
+        "grade_reliability": "The reader-facing behaviour is correct; the failure reflects the key-versus-prompt disagreement recorded in the previous run.",
+        "next_step": "Decide one rule for reader-reported completed events and apply it to both the boundary skill and a successor key.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Ceiling, released quotation, and absence of later disclosure checked.",
+          "evidence_refs": [
+            "scenes[2].expected",
+            "scenes[2].observed"
+          ]
+        },
+        "execution_findings": []
+      },
+      {
+        "scene_id": "farm-interrupted-discussion",
+        "expected_behavior": "Leave progress unresolved because the chant fits two meetings, and clarify without revealing either.",
+        "observed_behavior": "Boundary inference returned uncertain; the reply asks for the latest chapter or scene; nothing was retrieved.",
+        "interpretation": "No ceiling or retrieval before clarification, so the checks passed.",
+        "assessment": "pass_with_limitations",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed"
+        ],
+        "grade_reliability": "Safe and spoiler-free; the generic question is not tailored to the reader's memory.",
+        "next_step": "No correction indicated.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Released reply and boundary decision checked for a spoiler-free clarification with no ceiling or response retrieval.",
+          "evidence_refs": [
+            "scenes[3].expected",
+            "scenes[3].observed"
+          ]
+        },
+        "execution_findings": []
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "scenario",
+        "action": "Choose whether reader-reported completed events are required or optional boundary anchors, then align the boundary skill and successor keys for Animal Farm and Douglass.",
+        "verification": "Both captured boundary outputs grade consistently under the chosen rule."
+      }
+    ],
+    "facts_sha256": "ef1cff662aa826698d4fde16ad384661fc6d2d7a3830e21a48009270122c702e"
+  }
 }

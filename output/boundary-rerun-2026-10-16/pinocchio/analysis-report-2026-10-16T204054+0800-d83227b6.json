@@ -1464,5 +1464,146 @@
     },
     "artifact_problems": []
   },
-  "review": null
+  "review": {
+    "verdict": "Rerun after the Librarian boundary inventory fix (commit 3e8a422c): Automated 3/4, LLM-review 2/4, unchanged from the previous result. pinocchio-spoiler-inference still fails: both boundary attempts chose chapter 9 with no inventory fault, but both altered the 'Today I'll follow the pipes' source excerpt. pinocchio-promises-and-book again passes its checks while omitting the coat, sale, and manageable-action parts of the expectation.",
+    "scenario_assessment": {
+      "goal": "Still useful: it separates explicit grounding, a book-free control, event-led inference, and an ambiguous school detour.",
+      "input_validity": "The inference Line and Prop establish chapter 9; the detour Line omits the speaker and destination needed to choose.",
+      "ground_truth_validity": "The promises expectation asks for more context than the current book-request and evidence prompts plan (recorded as linger-ztu9). The boundary expectation is valid."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "pinocchio-promises-and-book",
+        "expected_behavior": "Quote the self-talk exactly, use the imagined coat and the ragpicker sale to contrast hope with action, and help Ada choose a manageable action.",
+        "observed_behavior": "The reply quotes 'Today I'll follow the pipes, and tomorrow I'll go to school. There's always plenty of time to go to school,' and asks what happens at the start of study evenings. It omits the coat, the sale, the narrator's reminder, and an action.",
+        "interpretation": "The grader checks the exact quotation and permitted support, not each contextual item, so the omissions pass.",
+        "assessment": "potential_false_positive",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed"
+        ],
+        "grade_reliability": "The automated pass conceals the missing contrast and action, as in the previous run.",
+        "next_step": "Resolve linger-ztu9 before treating this Scene as a quality signal.",
+        "semantic_review": {
+          "status": "failed",
+          "scope": "Reply checked against all three expected outcomes.",
+          "evidence_refs": [
+            "scenes[0].expected",
+            "scenes[0].observed"
+          ],
+          "findings": [
+            {
+              "kind": "missing_required_context",
+              "explanation": "No imagined coat, ragpicker sale, narrator's reminder, or manageable action, which expected_outcomes[1] and [2] require.",
+              "evidence_refs": [
+                "scenes[0].expected",
+                "scenes[0].observed"
+              ]
+            }
+          ]
+        },
+        "execution_findings": []
+      },
+      {
+        "scene_id": "pinocchio-personal-study",
+        "expected_behavior": "Help Ada choose one small present action respecting her sister's help, with no book retrieval.",
+        "observed_behavior": "No retrieval; the reply proposes a 15-minute start on one evening and a short thank-you to the sister.",
+        "interpretation": "Book-free, concrete, and non-judgemental, so the checks passed.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed"
+        ],
+        "grade_reliability": "No shaming and no assumed resentment.",
+        "next_step": "No correction indicated.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Released reply checked against the Scene's expected and prohibited outcomes for a book-free personal reflection.",
+          "evidence_refs": [
+            "scenes[1].expected",
+            "scenes[1].observed"
+          ]
+        },
+        "execution_findings": []
+      },
+      {
+        "scene_id": "pinocchio-spoiler-inference",
+        "expected_behavior": "Infer chapter 9 from the coat, gratitude, and sale occurrences and answer within it, withholding the transformation.",
+        "observed_behavior": "Both boundary attempts chose chapter 9. Attempt 1 cut the excerpt to '…tomorrow I'll go to school.”' with altered punctuation; attempt 2 joined '…go to school,”' to 'decided the little rascal', deleting a sentence. The stage failed and the reader got the generic clarification.",
+        "interpretation": "Excerpt binding rejected both attempts within the one-retry budget. The inventory faults from the previous run did not recur, so the remaining cause is literal excerpt copying.",
+        "assessment": "supported_failure",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "evaluation.json scenes[2].agent_exchanges[4]"
+        ],
+        "grade_reliability": "All five automated failures follow from the single stage failure, and the excerpt check correctly rejects altered source text.",
+        "next_step": "Compare having the model name a span (start and end words) that the application extracts, instead of copying the excerpt.",
+        "semantic_review": {
+          "status": "failed",
+          "scope": "Released reply checked against the reader's request.",
+          "evidence_refs": [
+            "scenes[2].expected",
+            "scenes[2].observed"
+          ],
+          "findings": [
+            {
+              "kind": "missing_required_claim",
+              "explanation": "The reader received a location question instead of the requested quotation and reflection.",
+              "evidence_refs": [
+                "scenes[2].expected",
+                "scenes[2].observed"
+              ]
+            }
+          ]
+        },
+        "execution_findings": [
+          {
+            "category": "post_call_rejection",
+            "source": "offline_validation",
+            "confidence": "confirmed",
+            "detail": "normalize_boundary_candidate plus boundary_candidate_inventory_errors on both captured outputs report only supporting_evidence[1].source_excerpt for pg500-v6bdc1734-ch09-ln0897-0939.",
+            "evidence_refs": [
+              "evaluation.json scenes[2].agent_exchanges[4].model_messages"
+            ]
+          }
+        ]
+      },
+      {
+        "scene_id": "pinocchio-school-detour",
+        "expected_behavior": "Leave the ceiling unresolved and ask a spoiler-free clarification about a participant, destination, or last certain stop.",
+        "observed_behavior": "Boundary inference returned uncertain; the reply asks for the latest chapter or scene; nothing was retrieved.",
+        "interpretation": "No ceiling or retrieval before clarification, so the checks passed.",
+        "assessment": "pass_with_limitations",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed"
+        ],
+        "grade_reliability": "Asking for the last stop satisfies the expectation's 'last certain stopping event' option; it is not tailored to the reader's memory.",
+        "next_step": "No correction indicated.",
+        "semantic_review": {
+          "status": "passed",
+          "scope": "Released reply and boundary decision checked for a spoiler-free clarification with no ceiling or response retrieval.",
+          "evidence_refs": [
+            "scenes[3].expected",
+            "scenes[3].observed"
+          ]
+        },
+        "execution_findings": []
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "application",
+        "action": "Evaluate replacing copied boundary excerpts with model-named spans the application extracts from the record.",
+        "verification": "Replaying this run's captured boundary input yields an accepted chapter 9 candidate while fabricated spans still fail."
+      }
+    ],
+    "facts_sha256": "75f9d8d4da77f436d099035a38c39e26799d19233258b061982d885ce3ed6e49"
+  }
 }
