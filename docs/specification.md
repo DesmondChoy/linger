@@ -1189,11 +1189,11 @@ their tasks, independently of the HTTP request limit.
 ### 6.8 Message normalisation
 
 The reader's message is normalised once, at ingestion, before session history,
-prompts, capture offsets, the self-harm and instruction-leak detectors, or
+prompts, capture binding, the self-harm and instruction-leak detectors, or
 inspection read it. HTTP is the only reader-facing entry point and both `POST
 /api/chat` and `POST /api/chat/stream` take the same request body, so one
-normalisation at that boundary covers every consumer, and capture's
-codepoint offsets index the normalised string.
+normalisation at that boundary covers every consumer, and capture binds the nominated text by exact
+containment in the normalised message.
 
 Line endings collapse to `\n`, and three classes of character are removed:
 C0/C1 control characters other than tab and newline; every character Unicode

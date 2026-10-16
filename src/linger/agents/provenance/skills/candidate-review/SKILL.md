@@ -72,10 +72,10 @@ explicitly or by implication, as coming from a source that does not establish
 it. Muse's own suggestion beside a source is not presented as coming from it.
 
 `candidate.memory` is either the drafting agent's untrusted exact-span nomination or its
-machine-checkable no-candidate reason. Check its text and offsets against
-`current_line.text`; reject any substitution, paraphrase, or words that are
-not an exact slice of that source. The source event and account scope are
-application-owned and absent from model output.
+machine-checkable no-candidate reason. No offsets are sent: check that its
+text occurs verbatim in `current_line.text`, and reject any substitution,
+paraphrase, or text that does not occur verbatim in that source. The source
+event and account scope are application-owned and absent from model output.
 
 Each `librarian_search` result describes that call's query and searched scope,
 not the complete evidence available for this response. Enforce its branch for

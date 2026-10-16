@@ -125,7 +125,8 @@ CORE_EVERY_TURN = (
     # Memory nomination
     "exactly one `memory_candidate` or `no_memory_candidate`",
     "reason `automatic_capture_disabled`",
-    "Unicode-codepoint slice of `muse_turn.user_message`",
+    "No offsets are needed",
+    "shortest span that makes sense on its own",
     '"Remember this" is not a save command',
     # Safety and role limits
     "reason `emotional_boundary`",

@@ -3,7 +3,7 @@
   "case_id": "muse-review-d-memory-considered-v1",
   "owner": "muse",
   "primary_behavior": "reflect_without_book_context",
-  "description": "Memory nomination with capture on: a considered, stable reading preference and intention. A memory_candidate is expected, copied as an exact codepoint slice of the current message.",
+  "description": "Memory nomination with capture on: a considered, stable reading preference and intention. A memory_candidate is expected, copied verbatim from the current message.",
   "input": {
     "reader_message": "I've realised I always read poetry, never novels, on Sunday mornings. It has become my way of starting the week gently, and I want to keep that ritual going. Is that an odd habit?",
     "reader_context": {
