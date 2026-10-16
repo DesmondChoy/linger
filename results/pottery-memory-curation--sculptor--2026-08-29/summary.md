@@ -4,19 +4,19 @@ Final run. 2026-10-16T14:02:32.082447+08:00. Model `openai:gpt-6-luna`.
 
 Execution status: **completed**.
 
-Automated results: **5/5 Scenes passed**. Response review: **5 passed**.
+Automated results: **5/5 Scenes passed**. LLM-review: **5/5 Scenes passed** (5 passed).
 
 ## How to read the results
 
 **Automated** reports the Scenario runner's implemented checks, such as quotation accuracy and permitted evidence. A pass means those checks passed. The checks may cover only part of the reader's request.
 
-**Response review** is a coding-agent judgment of the released answer against the reader's full request and the approved Scenario expectations. The reviewer inspects the saved answer, supporting evidence, and relevant agent exchanges after the run. This review is separate from Linger's five agents and is not independent human validation.
+**LLM-review** is the coding assistant's assessment of the released answer against the reader's full request and the approved Scenario expectations. The assistant reviews the saved answer, supporting evidence, and relevant agent exchanges after the run. It is separate from Linger's five runtime agents. No additional grader model is called, and this is not independent human validation.
 
-For response review, **passed** means the review found the expectations met within its scope. **Failed** means it found a material omission or violation. **Inconclusive** means the evidence did not support a decision. **Unreviewed** means no response assessment was recorded. Response review does not change the automated result.
+For LLM-review, **passed** means the review found the expectations met within its scope. **Failed** means it found a material omission or violation. **Inconclusive** means the evidence did not support a decision. **Unreviewed** means no response assessment was recorded. LLM-review does not change the automated result.
 
 [Open the traces in Logfire](<https://logfire-us.pydantic.dev/desmond-choy/linger/evals/bounded_memory_curation/compare?experiment=01a1434db4332b51405131c0064d5cea-d18049eade857b0e>) (visibility unverified).
 
-| Scene | Expected | Observed | Automated | Response review | Key learning |
+| Scene | Expected | Observed | Automated | LLM-review | Key learning |
 | --- | --- | --- | --- | --- | --- |
 | scene-exact-duplicate | Link the two identical kiln-notebook records as duplicates. | Linked exactly the two records; both originals unchanged. | passed (1/1) | passed | The end-to-end proposal, review, apply and audit path works on the easiest case. |
 | scene-paraphrased-duplicate | Link two differently worded spare-key records as one fact. | Linked exactly the two paraphrases; both originals unchanged. | passed (1/1) | passed | Sculptor matched meaning, not wording. |
@@ -41,23 +41,24 @@ Lesson: The derived summary follows the evolving fact and leaves out same-event 
 
 ## Report points
 
-- All five bounded-curation Scenes passed the automated checks and response review in one run.
+- All five bounded-curation Scenes passed the automated checks and LLM-review in one run.
 - Sculptor chose the expected action for each case: two duplicate links, a derived summary, a topic group and one no-change decision.
 - Distractors that shared the event name, such as the poster ink, tea order and bakery receipt, were excluded at the source-identifier level.
 - Source hashes were identical before and after every Scene. Curation added derived records and never rewrote the originals.
 - Provenance allowed all four proposals. The no-change Scene needed no Provenance review.
+- This run exercised Sculptor and Provenance only. The linger-mio6 Muse/Provenance revision fix does not affect its curation contract.
 
 ## Slide points
 
-- Pottery curation: 5/5 automated, 5/5 response review.
+- Pottery curation: 5/5 automated, 5/5 LLM-review.
 - Right action every time, including a no-change control for a shared word.
 - Originals never change. Curation only adds linked or derived records.
 
 ## Limitations
 
 - One synthetic attempt: five Scenes executed once. Repeatability has not been established.
-- Response review was performed by coding agents. No independent human validation or additional model grader was used.
-- The no-change reason category is not machine-graded. Its correctness rests on response review.
+- LLM-review was performed by coding agents. No independent human validation or additional model grader was used.
+- The no-change reason category is not machine-graded. Its correctness rests on LLM-review.
 - The curation replay recorded no effective per-role configuration, so Sculptor's reasoning effort for this run is not captured in the bundle.
 
 The nested `result.json` contains the original evaluation, analysis, adopted inputs, and diagnostics. Report and slide points are editable; recorded outcomes are checked against the original analysis.
