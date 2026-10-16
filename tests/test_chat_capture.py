@@ -48,12 +48,9 @@ def muse_candidate(source: str, *, nominated: str | None) -> MuseCandidate:
             reason_code="transient_or_low_signal",
         )
     else:
-        start = source.index(nominated)
         memory = MemoryCandidate(
             kind="memory_candidate",
             text=nominated,
-            start_codepoint=start,
-            end_codepoint=start + len(nominated),
             reason_code="durable_reflection",
         )
     return MuseCandidate(reply="A reviewed reply.", memory=memory)
@@ -359,7 +356,6 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         source = "I want to pause before I answer."
         candidate = muse_candidate(source, nominated=source).model_dump(mode="json")
         candidate["memory"]["text"] = ""
-        candidate["memory"]["end_codepoint"] = 0
 
         with patch.object(
             self.service, "save_automatic", wraps=self.service.save_automatic

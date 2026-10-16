@@ -520,7 +520,7 @@ def test_sensitive_response_observation_records_final_provenance_disposition() -
             ),
         ),
         ("wrong_reason", ("capture_reason_code_mismatch",)),
-        ("wrong_offsets", ("nominated_span_mismatch",)),
+        ("wrong_nomination", ("nominated_span_mismatch",)),
         ("wrong_binding", ("capture_binding_mismatch",)),
     ],
 )
@@ -551,12 +551,10 @@ def test_capture_replay_grades_expected_veto(
     async def chat_handler(request, service, account):
         if request.message != veto_line:
             return _no_capture_response()
-        offset_error = int(fault == "wrong_offsets")
+        nominated_text = span.text[:-1] if fault == "wrong_nomination" else span.text
         response = _no_capture_response(MemoryCandidate(
             kind="memory_candidate",
-            text=span.text,
-            start_codepoint=span.start_codepoint + offset_error,
-            end_codepoint=span.end_codepoint + offset_error,
+            text=nominated_text,
             reason_code="durable_reflection",
         ))
         if fault in {"storage", "approval_and_storage"}:
@@ -600,7 +598,7 @@ def test_capture_replay_grades_expected_veto(
     [
         ("none", None),
         ("revised_nomination", None),
-        ("wrong_offsets", "nominated_span_mismatch"),
+        ("wrong_nomination", "nominated_span_mismatch"),
         ("wrong_text", "stored_text_mismatch"),
         ("wrong_review", "capture_review_mismatch"),
         ("wrong_binding", "capture_binding_mismatch"),
@@ -632,18 +630,13 @@ def test_capture_replay_grades_observed_outcomes(
         nomination = MemoryCandidate(
             kind="memory_candidate",
             text=span.text,
-            start_codepoint=span.start_codepoint,
-            end_codepoint=span.end_codepoint,
             reason_code="durable_reflection",
         )
-        wrong_nomination = nomination.model_copy(update={
-            "start_codepoint": span.start_codepoint + 1,
-            "end_codepoint": span.end_codepoint + 1,
-        })
+        wrong_nomination = nomination.model_copy(update={"text": span.text[:-1]})
         if fault == "revised_nomination":
             _no_capture_response(wrong_nomination)
         response = _no_capture_response(
-            wrong_nomination if fault == "wrong_offsets" else nomination,
+            wrong_nomination if fault == "wrong_nomination" else nomination,
             stage="revision" if fault == "revised_nomination" else "draft",
         )
         candidate = AutomaticMemoryCandidate(
@@ -871,8 +864,6 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
             memory = MemoryCandidate(
                 kind="memory_candidate",
                 text=span.text,
-                start_codepoint=span.start_codepoint,
-                end_codepoint=span.end_codepoint,
                 reason_code="durable_reflection",
             )
         else:

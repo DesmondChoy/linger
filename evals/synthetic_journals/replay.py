@@ -836,11 +836,7 @@ def _capture_failures(
         pass
     elif isinstance(expected.nomination, CaptureCandidate):
         span = expected.nomination.span
-        if not isinstance(nomination, MemoryCandidate) or (
-            nomination.text,
-            nomination.start_codepoint,
-            nomination.end_codepoint,
-        ) != (span.text, span.start_codepoint, span.end_codepoint):
+        if not isinstance(nomination, MemoryCandidate) or nomination.text != span.text:
             failures.append("nominated_span_mismatch")
     elif isinstance(expected.nomination, UnavailableCandidate):
         pass
