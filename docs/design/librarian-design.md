@@ -2,6 +2,11 @@
 
 Status: **Five registered corpora with bounded chapter, reading-unit, and exact-passage retrieval**
 
+Source snapshot: 14 October 2026, `librarian-attempts` at `cac9477`, based on
+`main` at `9a5c074`. This document describes the current runtime. The
+[design history](../reports/librarian-experiments-2026-09-24/design-history.md)
+records the experiments, reversions, and reasons for earlier changes.
+
 Historical measurements below retain their original dates and scope. They do
 not evaluate every aspect of the current implementation.
 
@@ -19,6 +24,15 @@ memory-backed chapter ceilings and session-supported exact paragraphs.
 Explicit completed-chapter progress persists per account and work, and routing
 can reuse it after identifying the book. Application code validates every
 grant before a separate evidence search and deterministic release checks.
+
+The current evidence path plans exact reader spans before retrieval. It keeps
+four candidates per planned query in matching books and two per original-text
+fallback query in every allowed book, then caps the merged pool at twenty per
+book. The assessor receives full canonical records under temporary `E1`, `E2`
+labels and selects at most five records across the search. Application code
+restores canonical IDs and checks requested-part coverage before release.
+Muse receives a fixed reason for `sufficient` results. Serendipity and the
+recorded Librarian assessment retain the model's reason.
 
 The corpus lifecycle prepares five books, including section-based works.
 Preparation does not register a book for runtime use. The versioned-memory
@@ -129,51 +143,45 @@ chapters.
 ### 2.2 Online retrieval flow
 
 ```text
-User request + transient conversation context
+Original reader message + earlier reader statements
                     ↓
-Reading declaration or full-title answer?
-        └─ Shared identity resolver → registered identity only
+Application resolves the work from a declaration or Muse's librarian_route
+                    ├─ unresolved identity → focused clarification
                     ↓
-Explicit completion for the selected book in this request?
-        ├─ yes → Application validates chapter ceiling ────────────┐
-        └─ no  → Muse judges book intent                           │
-                    ↓ (lookup needed)                             │
-                 librarian_route                                  │
-                    ↓                                             │
-                 Shared identity resolver                         │
-                 (catalogue cues only if no name signal)          │
-                    ├─ unresolved → Exact identity clarification   │
-                    ├─ no match → Ask for title if needed          │
-                    └─ resolved work                              │
-                           ↓                                      │
-                 Private boundary inference                       │
-                 (current Line + earlier reader statements        │
-                  + eligible account memories                     │
-                  + main-part numbered-chapter candidates)        │
-                           ↓                                      │
-                 Independent current-event check                  │
-                 (chapter candidates only)                        │
-                           ↓                                      │
-                 Application validates chapter or passage grant   │
-                    ├─ uncertain → Exact boundary clarification    │
-                    └─ validated ─────────────────────────────────┤
-                                                                  ↓
-                                                  Eligible catalogue only
-                                                                  ↓
-                                                  Plan focused needs + original-text fallback
-                                                                  ↓
-                                                  Bounded private candidate search (up to 20)
-                                                                  ↓
-                                                  Rerank candidate evidence
-                                                                  ↓
-                                                  Resolve canonical passages, then assess support
-                                                                  ↓
-                                                  Typed result to Muse
+Validate current, carried, or saved permission for that work and part
+        ├─ confirmed → keep the validated scope
+        └─ missing → private main-part localization
+                           ↓
+                     Boundary inference
+                     + independent event check for a chapter candidate
+                           ↓
+                     Validate chapter or exact-passage grant
+                           ├─ uncertain → focused clarification
+                           ↓
+Librarian plans focused needs without seeing passages
+                    ↓
+Application gathers evidence inside the grant
+        ├─ chapter/unit scope → search and rerank each focused query
+        │                       + original-text fallback queries
+        │                       ↓
+        │                 Retain four per planned query in matching books
+        │                 + two per fallback query in every granted book
+        │                       ↓
+        │                 Merge up to 20 canonical records per book
+        └─ exact passages → fetch only the granted paragraph IDs
+                    ↓
+Librarian assesses full records under temporary E1, E2 labels
+                    ↓
+Application checks selected IDs, coverage, and shared final limit of five
+                    ↓
+Restore canonical IDs; return selected records and evidence strength
+                    ↓
+Muse receives a fixed sufficient-result reason; Serendipity keeps the reason
 ```
 
-The benchmark search indexes supply candidate passages between catalogue
-filtering and chapter reading. They do not change the boundary or the source of
-truth, and non-selected indexes need not remain in the production path.
+Search indexes supply candidates only from the validated chapter or unit scope.
+Exact-passage grants fetch fixed canonical records instead. Neither path changes
+the boundary or the authoritative source text.
 
 ### 2.3 Component ownership
 
@@ -188,7 +196,7 @@ truth, and non-selected indexes need not remain in the production path.
 | Application boundary | Supplies the original reader message and access scope, resolves identity, validates chapter or exact-passage scope, and enforces reply release |
 | Librarian agent | Runs one of four assigned skills: boundary inference, independent event identification, request planning, or evidence assessment |
 | Retrieval and reranker services | Localize events privately in main-part numbered chapters, or search inside a granted answer scope; they are not model tools granted to Librarian |
-| Sculptor | Has implemented curation and offline surfacing skills. Semantic corpus-metadata proposals remain an unimplemented target; deterministic tooling builds the catalogue |
+| Sculptor | Proposes chapter cues, retrieval error analyses, and research specifications in offline experiments. Owner-approved changes use temporary corpora or explicit experiment options; production search remains passage-only. Deterministic tooling builds the catalogue |
 | Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
 | Serendipity | Proposes connections; has no book-registration or identity-resolution responsibility |
 
@@ -927,6 +935,13 @@ assesses the original request alongside
 the plan, including omitted needs. An oversized or invalid selection fails
 closed instead of silently truncating the evidence behind its verdict.
 
+For example, a comparison with three granted books can supply up to sixty
+private records to one assessment. The caller's five-record limit still applies
+to the final selection across those books. If those five records cannot support
+every requested part, the assessor must return `weak` with the missing support,
+or `none` when no useful support exists. The per-book cap does not promise
+complete recall for every multipart request.
+
 Both callers receive `sufficient`, `weak`, or `none`, with a reason and
 limitations. Only judge-selected canonical records return to the caller. A
 rejection returns no evidence. Retrieval or judge failure returns a typed
@@ -961,6 +976,15 @@ evidence IDs. The index identity includes cue metadata when this option is
 enabled. Production defaults to passage-only search. The
 [offline evaluation commands](../../evals/librarian/README.md#chapter-cue-and-retrieval-research-experiments)
 use temporary corpus copies for approved cue revisions.
+
+Sculptor's offline `chapter-cues`, `retrieval-error-analysis`, and
+`retrieval-research` skills propose changes for these experiments. Approved
+research specifications bind experiment identities; they do not configure the
+interactive application. The `round1` condition uses approved Stage 2 cues and
+twenty windows per planned part, while retaining the twenty-record cap per book.
+See [Sculptor's assigned skills](../../src/linger/agents/sculptor/skills.py),
+the [experiment runner](../../evals/librarian/chapter_cue_recall.py), and the
+[Experiment 4 report](../evaluation/retrieval-research-experiment-4-2026-10-01.md).
 
 ### 4.5 Reranking versus evidence strength
 
@@ -1034,12 +1058,29 @@ scope, source identities, or the caller's evidence authority. Exact passage
 grants use the same planner and assessor over their fixed records. They never
 trigger broader retrieval.
 
+The assessor sees short labels such as `E1` and `E2` in place of long evidence
+IDs. Every other field, including the complete passage, source hash, and line
+range, stays intact. After validating the assessment, application code maps
+selected labels back to canonical IDs. Labels mentioned in reasons or
+limitations become readable source locations. These labels are private to one
+assessment and never become persistent evidence identities.
+
+Planning and assessment each permit one output repair and at most two model
+requests. Unknown tool calls cannot extend those request budgets. The
+application repeats domain validation after the Agent returns, so injected
+agents and captured replay results must satisfy the same checks.
+
 Muse does not receive Librarian's free-text reason for a `sufficient` result.
 The `librarian_search` adapter replaces `strength_reason` with one fixed
-application sentence and leaves every other field as judged. `weak` and `none`
-results keep the model's reason, which Muse states only for `weak` evidence.
+application sentence: "The selected records were judged sufficient for the
+reader's request." Every other field stays as judged. `weak` and `none` results
+keep the model's reason, which Muse states only for `weak` evidence.
 Provenance reviews the tool result Muse saw; Serendipity and Librarian's own
 recorded assessment keep the full reason.
+
+Librarian does not supply a separate list of stated answers or run a fifth
+answer-extraction skill. The October 12 answer-list experiment was reverted.
+Muse drafts from the returned source records, and Provenance reviews that draft.
 
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
@@ -1054,9 +1095,10 @@ pg11-v01b38ea4-ch05-ln0974-0981
 │    │          │    └─ inclusive lines in the immutable source
 │    │          └────── chapter number
 │    └───────────────── prefix of the full source SHA-256
-└────────────────────── immutable book-version ID
+└────────────────────── stable work ID
 ```
 
+The work ID and source-hash prefix together identify the immutable book revision.
 The evidence record also carries the full source hash. A shortened-hash
 collision is a hard failure. Candidate-window IDs may exist inside a derived
 index, but Muse and Provenance receive the final canonical line-based evidence
@@ -1173,20 +1215,20 @@ does not schedule a retry.
 
 ### 4.9 Online verification
 
-Before the online path is considered complete, tests must cover:
+These source and test pairs cover the current contracts. They are regression
+coverage, not a new provider-quality benchmark.
 
-- the clarification/result/failure union and Muse handling for each branch;
-- Chapter 5 `started` exposing only Chapters 1–4 and `completed` exposing 1–5;
-- catalogue filtering before agent exposure;
-- direct chapter selection for names, events, quotations, and themes;
-- later chapters never reaching tools or model context;
-- exact quotation and source-location resolution;
-- sufficient, weak, and absent evidence behaviour, including evidence details
-  on weak results;
-- duplicate fusion and stable canonical evidence IDs;
-- retrieval/reranker thresholds not being confused with evidence strength;
-- prompt instructions in book text remaining untrusted data; and
-- every degraded path retaining the same scope.
+| Behavior | Implementation | Focused checks |
+|---|---|---|
+| Exact reader spans, recovered needs, coverage, short labels, and repair | [Request models](../../src/linger/agents/librarian/models.py), [assessment dispatch](../../src/linger/orchestration/evidence_strength.py) | [Request plans](../../tests/test_librarian_request_plan.py), [evidence strength](../../tests/test_evidence_strength.py) |
+| Separate planned queries, original-text fallback, and per-book budgets | [Candidate gathering](../../src/linger/orchestration/book_evidence.py) | [Request recall](../../tests/test_book_request_recall.py), [part-scoped retrieval](../../tests/test_part_scoped_retrieval.py), [multi-book selection](../../tests/test_serendipity_book_selection.py) |
+| Four retrieval streams, partial-overlap retention, and independent fallback | [Candidate gathering](../../src/linger/orchestration/book_evidence.py), [hybrid retrieval](../../apps/backend/hybrid_librarian.py) | [Candidate retention](../../tests/test_book_candidate_retention.py) |
+| Full text reaches token-window reranking, including intermediate and tail windows | [Token-window reranker](../../apps/backend/rerank_windows.py) | [Reranker windows](../../tests/test_rerank_windows.py) |
+| Each nested Librarian call stops at its own request budget | [Assessment dispatch](../../src/linger/orchestration/evidence_strength.py) | [Usage limits](../../tests/test_usage_limits.py) |
+| Canonical evidence, chapter and part boundaries, and exact-passage grants | [Hybrid retrieval](../../apps/backend/hybrid_librarian.py), [grounding](../../src/linger/orchestration/grounding.py) | [Hybrid retrieval](../../tests/test_hybrid_librarian.py), [mixed-book retrieval](../../tests/test_mixed_book_retrieval.py), [passage grounding](../../tests/test_passage_grounding.py) |
+| Explicit progress persists per account and work without granting inferred progress | [Progress store](../../apps/backend/progress_store.py), [saved-progress application](../../apps/backend/chat_turn.py) | [Reading progress](../../tests/test_reading_progress.py), [durable progress](../../tests/test_progress_store.py) |
+| Only Muse's sufficient-result reason changes; evidence and other outcomes survive | [Muse tools](../../src/linger/agents/muse/tools.py) | [Search reason](../../tests/test_muse_search_reason.py), [route and release](../../tests/test_librarian_route_e2e.py) |
+| Offline chapter cues affect search without entering canonical excerpts | [Hybrid retrieval](../../apps/backend/hybrid_librarian.py), [experiment runner](../../evals/librarian/chapter_cue_recall.py) | [Hybrid retrieval](../../tests/test_hybrid_librarian.py), [chapter-cue replay](../../tests/test_chapter_cue_recall.py) |
 
 ## 5. Downstream integration
 
@@ -1254,6 +1296,17 @@ production_final_selection:
   default_records: 5
   maximum_records: 5
 
+book_request_and_assessment:
+  max_planned_parts: 8
+  output_repairs_per_run: 1
+  model_requests_per_run: 2
+  assessment_evidence_labels: E1, E2, ...
+
+offline_options:
+  read_chapter_cues_default: false
+  round1_candidates_per_planned_part: 20
+  round1_max_merged_candidates_per_book: 20
+
 private_boundary:
   part_id: main
   numbered_chapters_only: true
@@ -1275,6 +1328,10 @@ The milestones and measurements in this section are historical. They do not
 establish that all current native scenarios pass or that new runtime paths have
 been benchmarked. Current code is the authority for behavior; Beads tracks
 remaining work.
+
+The [design history](../reports/librarian-experiments-2026-09-24/design-history.md)
+and its [interactive view](../reports/librarian-experiments-2026-09-24/design-history.html)
+cover later experiments and the changes present after the October 14 rebase.
 
 ### 7.1 Initial product milestones
 
@@ -1425,6 +1482,10 @@ No new provider evaluation was performed for this documentation update.
 | Ambiguous boundary | Typed clarification after optional private localization; no answer-evidence search is authorized |
 | Completed retrieval | Typed result with sufficient, weak, or none strength |
 | Weak result | Includes exact evidence details plus limitations |
+| Sufficient result shown to Muse | Replaces only `strength_reason` with a fixed application sentence; Serendipity and recorded assessments keep the original reason |
+| Assessment labels | Temporary `E1`, `E2` labels map back to canonical IDs after validation |
+| Answer-list experiment | Reverted on October 12; current Librarian has four assigned skills and returns evidence, strength, reason, and limitations |
+| Offline cue and retention experiments | Opt-in only; production searches passage text and retains four candidates per planned query |
 | Corpus identity | Stable work ID plus immutable source-revision ID |
 | Evidence identity | Book version + chapter + canonical source lines |
 | Derived windows | 350-word target with 60-word overlap; whole paragraphs stay inside a canonical unit |
