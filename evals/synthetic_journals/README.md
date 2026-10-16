@@ -54,8 +54,10 @@ which the skill supplies only after explicit user confirmation.
 | `menu` | Optional `--output PATH` selects the saved numbered menu. |
 | `inspect` | Required `--menu PATH` and `--number N`; optional `--model provider:model` selects the configuration to inspect. |
 | `check` | Required `--menu PATH` and `--number N`; optional `--model provider:model` checks readiness without invoking providers. |
-| `run` | Required `--menu PATH`, `--number N`, and `--confirmed-model provider:model`; `--timeout-seconds N` defaults to 1800. |
-| `report` | Required `--analysis PATH` validates and renders a completed review. |
+| `run` | Required `--menu PATH`, `--number N`, and `--confirmed-model provider:model`; `--timeout-seconds N` defaults to 1800. Optional `--output-directory PATH` chooses a fresh run directory. |
+| `report` | Use `--analysis PATH` for an original analysis or `--result PATH` to render a consolidated summary. |
+| `bundle` | Required `--run-directory results/NAME` consolidates a reviewed attempt into two files, with no provider calls. |
+| `extract` | Required `--result PATH` and `--output PATH` restore the original evaluation bytes for debugging. |
 
 To render a completed review from its saved JSON without a model call, run:
 
@@ -68,6 +70,66 @@ This command rejects incomplete reviews, omitted Scenes, and assessments that
 contradict the recorded grade. The skill's
 [analysis instructions](../../.agents/skills/run-scenario/references/analysis-report.md)
 define the review fields and the checks for misleading passes and failures.
+
+## Results for reports and slides
+
+Use a fresh `results/<scenario>-<attempt>` directory for each guided run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario run \
+  --menu MENU_FILE --number NUMBER --confirmed-model PROVIDER:MODEL \
+  --output-directory results/SCENARIO-ATTEMPT
+```
+
+Complete and validate every Scene's analysis first. Then consolidate that run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario bundle \
+  --run-directory results/SCENARIO-ATTEMPT
+```
+
+The run directory then contains two files:
+
+- `summary.md` presents outcomes, a Scene comparison table, key learning,
+  worked examples, report points, slide points, and the Logfire link.
+- `result.json` contains structured outcomes and the complete nested evidence.
+  `evidence.evaluation.data` holds the original captured agent exchanges and
+  model messages. `evidence.analysis.data` retains the original facts and review.
+  Adopted source snapshots and detailed diagnostics remain nested in the JSON.
+
+The helper checks the original evaluation hash and the facts/review binding,
+saves a recovery archive outside `results/`, and replaces the original files
+only after the consolidated evidence validates. Exact duplicate Scene
+transcripts are omitted. Reviewed failed and incomplete attempts retain their
+recorded status. Latest verified Logfire visibility is shown separately from
+the original export-time metadata.
+
+After consolidation, edit the concise Scene descriptions, `report_points`,
+`slide_points`, and `worked_examples` in `result.json` to prepare evidence for
+writing. Keep each claim within the reviewed observations and identify its
+supporting Scene or captured exchange. Regenerate the summary without a model:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario report \
+  --result results/SCENARIO-ATTEMPT/result.json
+```
+
+**LLM-review** is the coding assistant's assessment of saved answers and evidence
+against the reader's request and approved expectations after the run. It is
+separate from Linger's runtime agents and is not independent human validation.
+The stored `response_review` and `semantic_review` fields hold these judgments.
+Recorded outcomes remain bound to the original analysis. Changing the
+presentation cannot change automated grades or LLM-review status.
+For focused tools that require an original evaluation JSON, restore it outside
+the report directory:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario extract \
+  --result results/SCENARIO-ATTEMPT/result.json --output /tmp/evaluation.json
+```
+
+Extraction preserves the original bytes and refuses to overwrite an existing
+file. Bundling, rendering, and extraction make no provider calls.
 
 ## Scenario contract
 

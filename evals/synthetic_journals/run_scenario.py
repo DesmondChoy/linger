@@ -81,11 +81,13 @@ def run_selected(
     *,
     repository_root: Path = REPOSITORY_ROOT,
     timeout_seconds: float = 1800,
+    output_directory: Path | None = None,
 ) -> dict[str, Any]:
     scenario, entry = read_selection(menu_path, number, repository_root)
     return run_path(
         scenario, entry, confirmed_model, repository_root=repository_root,
         timeout_seconds=timeout_seconds,
+        output_directory=output_directory,
     )
 
 
@@ -238,7 +240,14 @@ def main(argv: list[str] | None = None) -> int:
     menu = subcommands.add_parser("menu", help="Discover scenarios and save the numbered selection.")
     menu.add_argument("--output", type=Path)
     report = subcommands.add_parser("report", help="Validate and render a completed analysis without running models.")
-    report.add_argument("--analysis", type=Path, required=True)
+    report_source = report.add_mutually_exclusive_group(required=True)
+    report_source.add_argument("--analysis", type=Path)
+    report_source.add_argument("--result", type=Path, help="Render a consolidated result.json summary.")
+    bundle = subcommands.add_parser("bundle", help="Consolidate a reviewed results run into two files without model calls.")
+    bundle.add_argument("--run-directory", type=Path, required=True)
+    extract = subcommands.add_parser("extract", help="Restore an original evaluation for focused offline debugging.")
+    extract.add_argument("--result", type=Path, required=True)
+    extract.add_argument("--output", type=Path, required=True)
     for action in ("inspect", "check", "run"):
         command = subcommands.add_parser(action)
         command.add_argument("--menu", type=Path, required=True)
@@ -246,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
         if action == "run":
             command.add_argument("--confirmed-model", required=True, help="Exact provider:model explicitly confirmed by the user for this run.")
             command.add_argument("--timeout-seconds", type=float, default=1800)
+            command.add_argument("--output-directory", type=Path, help="Fresh run directory, for example results/alice-diagnostic-01.")
         else:
             command.add_argument("--model")
     args = parser.parse_args(argv)
@@ -260,10 +270,28 @@ def main(argv: list[str] | None = None) -> int:
             print(f"SCENARIO_MENU_FILE={path}")
             return 0
         if args.action == "report":
-            report_path = render_analysis_report(args.analysis)
-            result = {"analysis_report": str(report_path), "analysis_data": str(args.analysis.resolve())}
+            if args.result:
+                from .result_bundle import render_bundle
+
+                report_path = render_bundle(args.result)
+                result = {"summary": str(report_path), "result": str(args.result.resolve())}
+            else:
+                report_path = render_analysis_report(args.analysis)
+                result = {"analysis_report": str(report_path), "analysis_data": str(args.analysis.resolve())}
+        elif args.action == "bundle":
+            from .result_bundle import bundle_run
+
+            result = bundle_run(args.run_directory)
+        elif args.action == "extract":
+            from .result_bundle import extract_evaluation
+
+            path = extract_evaluation(args.result, args.output)
+            result = {"evaluation": str(path)}
         elif args.action == "run":
-            result = run_selected(args.menu, args.number, args.confirmed_model, timeout_seconds=args.timeout_seconds)
+            result = run_selected(
+                args.menu, args.number, args.confirmed_model,
+                timeout_seconds=args.timeout_seconds, output_directory=args.output_directory,
+            )
         else:
             scenario, entry = read_selection(args.menu, args.number, REPOSITORY_ROOT)
             result = preflight(scenario, entry, REPOSITORY_ROOT, args.model)
