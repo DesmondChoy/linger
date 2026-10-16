@@ -222,9 +222,10 @@ a confirmed `no_attempt`.
 every model step and narrows the `intent` enum. The `serendipity_explore`
 adapter rejects any other intent with a retry before Serendipity runs. Exposure
 grants nothing: `allow_connection`, scopes, Provenance, and release validation
-apply unchanged. A triage error, timeout, or exhausted request budget falls
-back to the book tools plus whatever ran in this session's earlier released
-turns, withholding `serendipity_explore`'s web and memory reach unless an
+apply unchanged. A timed-out triage is retried once, since one slow provider
+call should not cost the turn its memory reach. A triage error, a second
+timeout, or an exhausted request budget falls back to the book tools plus
+whatever ran in this session's earlier released turns, withholding `serendipity_explore`'s web and memory reach unless an
 earlier released turn already used it; the fault is recorded and never fails
 the turn. The result, offered tools, and pinned intent appear on the
 `chat.tool_exposure` span, in `inspection.tool_exposure`, in a `Router` trace,

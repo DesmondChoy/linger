@@ -133,6 +133,9 @@ settings = get_settings()
 triage_model = build_triage_model()
 # Triage only narrows Muse's tools, so a slow or failed call is abandoned.
 TRIAGE_TIMEOUT_SECONDS = 10.0
+# A timeout is usually one slow provider call, and abandoning triage costs the
+# turn its memory reach, so a timed-out triage gets one more attempt.
+TRIAGE_ATTEMPTS = 2
 
 CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\b", re.IGNORECASE)
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
@@ -1215,15 +1218,20 @@ async def _turn_tool_exposure(
     """Triage the reader message once and fix the tools Muse is offered this turn."""
     started = perf_counter()
     with logfire.span("chat.tool_exposure") as span:
-        try:
-            needs = await asyncio.wait_for(
-                triage_turn(request.message, muse=muse_chat_agent, model=triage_model),
-                timeout=TRIAGE_TIMEOUT_SECONDS,
-            )
-        except Exception:
-            # A triage fault must never fail the reader's turn; `expose_tools`
-            # narrows rather than widens exposure when it has no needs.
-            needs = None
+        # A triage fault must never fail the reader's turn; `expose_tools`
+        # narrows rather than widens exposure when it has no needs.
+        needs = None
+        for _ in range(TRIAGE_ATTEMPTS):
+            try:
+                needs = await asyncio.wait_for(
+                    triage_turn(request.message, muse=muse_chat_agent, model=triage_model),
+                    timeout=TRIAGE_TIMEOUT_SECONDS,
+                )
+            except TimeoutError:
+                continue
+            except Exception:
+                pass
+            break
         previously_called = sessions.called_tools(request.session_id)
         # A ceiling carried from an earlier turn says nothing about this message's needs.
         book_override = (

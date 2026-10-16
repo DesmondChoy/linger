@@ -308,6 +308,35 @@ def test_failed_triage_falls_back_to_book_tools_and_still_releases(turns, failur
     ]
 
 
+def test_a_timed_out_triage_is_retried_once_and_keeps_the_recall_tool(turns) -> None:
+    turns.monkeypatch.setattr(chat_turn, "TRIAGE_TIMEOUT_SECONDS", 0.05)
+    delays = [5, 0]
+
+    async def triage_turn(current_line, **_):
+        turns.triaged.append(current_line)
+        await asyncio.sleep(delays.pop(0))
+        return RECALL
+
+    turns.monkeypatch.setattr(chat_turn, "triage_turn", triage_turn)
+    response = turns.run(
+        turns.muse(ToolCallPart("serendipity_explore", {"intent": "recall_memory"})),
+        message="Which night did I say I host supper club now?",
+    )
+
+    assert len(turns.triaged) == 2
+    assert turns.offered[0] == {"tools": ["serendipity_explore"], "intents": ["recall_memory"]}
+    assert turns.explored == ["recall_memory"]
+    assert response.inspection.tool_exposure["triage_failed"] is False
+
+
+def test_a_triage_error_is_not_retried(turns) -> None:
+    turns.triage(RuntimeError("provider down"))
+    response = turns.run(turns.muse())
+
+    assert len(turns.triaged) == 1
+    assert response.inspection.tool_exposure["triage_failed"] is True
+
+
 def test_failed_triage_keeps_previously_called_reach_but_grants_nothing_new(turns) -> None:
     """A triage fault must not hand out `serendipity_explore` (web/memory reach)
     on its own, but must not strip access an earlier released turn already used."""
