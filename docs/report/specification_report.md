@@ -335,9 +335,9 @@ The local front end also mounts two developer tools that a product build would o
 
 *Figure 10. The Reader tool listing the five registered works. Browsing here grants no reading progress to the chat.*
 
-![Saved-evaluation view: scenario "Alice kitchen spoiler boundary", scene "scene-kitchen-boundary", the invented persona Priya Nadar, the memory placed in the account before the run, the fixed reader message, and the route this build actually took](images/ui-07-saved-evaluation.png)
+![Saved-evaluation view: scenario "Alice event-led grounding and clarification", Scene 3 "alice-spoiler-inference", the memories placed in the account before the run, the fixed reader message, the route this build actually took, and the adopted answer key](images/ui-07-saved-evaluation.png)
 
-*Figure 11. A saved evaluation case in the explorer: the synthetic persona, the memory placed before the run, the fixed reader message, and the route the build actually took. The banner states that it is not a live conversation. Section 4.1 defines the evaluation vocabulary.*
+*Figure 11. A saved evaluation case in the persona replay: the synthetic persona, the memories placed before the run, the fixed reader message, the route the build actually took, and the adopted answer key. The footer states that the run is recorded and read-only. Section 4.1 defines the evaluation vocabulary.*
 
 Continuous integration runs in GitHub Actions on every pull request and push, and the build produces an installable wheel that bundles the prompt catalogue and all skill resources. Containerisation, a deployment job, the multi-account test deployment, and the load test called for by the specification are not yet implemented. Section 8 describes the pipeline.
 
@@ -446,19 +446,15 @@ Table 5 lists the Scenarios saved under this process.
 
 | Scenario (short name) | Book | Agents exercised | Scenes | What it tests |
 |---|---|---|---|---|
-| Alice Caterpillar | *Alice* | Muse, Librarian, Provenance | 3 | Grounded quotation within a chapter-5 ceiling; clarification when progress is ambiguous; personal reflection without retrieval |
-| Alice quotation | *Alice* | Muse, Librarian, Provenance | 2 | Retrieve only when a quotation is asked for; skip retrieval for a personal reflection |
-| Alice kitchen | *Alice* | Muse, Librarian, Provenance | 2 | Infer a chapter boundary from remembered events; ask before answering when size changes leave progress ambiguous |
 | Pigeon | *Alice* | Muse, Librarian, Provenance | 3 | Quote the Pigeon exchange exactly within supported progress; clarify an uncertain later growth episode |
 | Event-led (Alice) | *Alice* | Muse, Librarian, Provenance | 4 | Boundary inference from the reader's description of an event; spoiler inference; ambiguity handling |
 | Animal Farm, Douglass, Helen Keller, Pinocchio | one work each | Muse, Librarian, Provenance | 4 each | The same event-led grounding and clarification design applied to the other four works |
-| Identity connections | *Alice* and a public essay | Muse, Librarian, Serendipity, Provenance | 3 | Tentative cross-source connection; decline an unsupported conclusion about personality change |
 | Roses | *Alice* and a public source | Muse, Librarian, Serendipity, Provenance | 3 | Distinguish reflection from causal proof when comparing concealment across memory, book, and research |
 | Cross-source | *Alice* and a public essay | Muse, Librarian, Serendipity, Provenance | 3 | Tentative comparison across memory, book, and essay; reject the conclusion that one social self is the authentic one |
 | Reviewed capture | none | Muse, Sculptor, Provenance | 16 | Selective automatic capture at a 1:10 durable-to-low-signal mix; source-preserving curation |
 | Pottery | none | Sculptor | 5 | Offline curation: exact and paraphrased duplicates, an evolving fact, a topic group, and a superficial similarity |
 
-*Table 5. Saved evaluation Scenarios. The Alice Caterpillar, quotation, and kitchen Scenarios use a historical schema and were not in the iteration-18 batch; the batch ran Pigeon, Event-led (Alice), Animal Farm, Douglass, Helen Keller, Pinocchio, Roses, and Cross-source.*
+*Table 5. Saved evaluation Scenarios. The iteration-18 batch ran Pigeon, Event-led (Alice), Animal Farm, Douglass, Helen Keller, Pinocchio, Roses, and Cross-source.*
 
 ### 4.4 How results are reported
 
@@ -900,7 +896,7 @@ Replay results are also written to Logfire's Evals view as a dataset, an experim
 
 *Figure 18. The one failing Scene. Sculptor declined to curate where the adopted Ground truth expected a topic group over three records. The case records that the source records were unchanged and that a semantic review is still required. A hard-gate failure is never silently upgraded or downgraded.*
 
-The scenario index in the repository lists ten saved scenarios, nine with independent Ground-truth adoption records. Three early *Alice* scenarios use a historical schema and need migration before a graded replay. The index's "current live result" column has not yet been updated from this batch.
+The scenario index in the repository lists every saved scenario, each with an independent Ground-truth adoption record. The index's "current live result" column has not yet been updated from this batch.
 
 The batch's value lies as much in its documented failures as in its passes. *Douglass* fails safely: after a wrong-record repair and then a duplicate inventory repair both failed, Muse withheld rather than answering. *Animal Farm* grants the correct Chapter 5 ceiling, but the candidate omits a mandatory recognition-evidence declaration and Provenance's output is filtered during repair. That is a mapping defect, not a leak. *Roses* Scene 2 is blocked by a review that the human reviewers judged questionable, because it rejected a bounded statement about the limits of the evidence. The batch also records one potentially misleading pass, in *Pinocchio*, where a source-dependent interpretation was not declared even though the expected outcome occurred. That is precisely the class of result the run-scenario tooling exists to surface. The reviewers further noted that the identity-change release attracted unnecessary review objections to inner quoted spans already covered by a full contiguous declaration. Taken together with the Provenance results in Section 5.4, the picture is consistent. The system's failures are over-caution and bookkeeping, and no Scene released a fabricated quotation or a post-boundary fact.
 

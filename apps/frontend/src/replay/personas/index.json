@@ -187,33 +187,6 @@
       ]
     },
     {
-      "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13",
-      "title": "Reviewed capture and bounded curation",
-      "dated": "2026-09-13",
-      "description": "Evaluate selective memory capture and source-preserving curation by storing durable content, leaving low-signal content unstored, and distinguishing duplicate, evolving, related, and unrelated records.",
-      "family": "conversation_and_memory",
-      "runs": [
-        {
-          "id": "be92470455ef4c9d8a94f7638cd44b89",
-          "startedAt": "2026-09-27T14:12:02.059467+08:00",
-          "passed": 13,
-          "failed": 3,
-          "ungraded": 0,
-          "total": 16,
-          "executionFailures": 3
-        },
-        {
-          "id": "a598b0d4930d4e54b313a04bab4ed182",
-          "startedAt": "2026-09-23T19:38:14.819990+08:00",
-          "passed": 15,
-          "failed": 1,
-          "ungraded": 0,
-          "total": 16,
-          "executionFailures": 0
-        }
-      ]
-    },
-    {
       "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21",
       "title": "Reviewed capture and bounded curation",
       "dated": "2026-09-21",

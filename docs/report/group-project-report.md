@@ -234,7 +234,7 @@ The product interface provides account access and chat. The local development in
 
 ![Saved evaluation view with the persona's Backstory, the Prop, the fixed Line, and the route taken](images/ui-07-saved-evaluation.png)
 
-**Figure 7.** A saved evaluation reopened in the interface: the synthetic reader, the memory placed in the account before the run, the fixed test message, and the route this build took.
+**Figure 7.** A saved evaluation reopened in the interface: the synthetic reader, the memory placed in the account before the run, the fixed test message, the route this build took, and the adopted answer key.
 
 ![Ground-truth review application showing a Scene's Line beside the proposed Ground truth, with Needs changes and Approve controls](images/ground-truth-review.png)
 
@@ -535,7 +535,7 @@ Two operational loops remain specified future work: human-reviewed promotion of 
 This section answers two questions. The main one is whether the agents make good decisions (Sections 7.1 to 7.5). The supporting one is whether the application code enforces its rules (Section 7.6).
 
 - **Measured boundary checks held in the retained replay batch.** It recorded no spoiler exposure, invented quotation, or unreviewed memory write. These results do not resolve the semantic counter-examples or outstanding boundary defects in Section 7.8.
-- **54 of 69 test messages were handled correctly** in the latest full replay. Of the other 15, 5 were wrong decisions by an agent; the rest were provider or software errors that failed safely, plus one grading mistake.
+- **41 of 53 test messages were handled correctly** in the latest full replay. Of the other 12, 5 were wrong decisions by an agent; the rest were provider or software errors that failed safely, plus one grading mistake.
 - **The system is slow and does not yet handle several readers at once** (Section 7.7).
 
 ### 7.1 How agent quality is evaluated
@@ -547,7 +547,7 @@ Agent quality is evaluated at two levels, both with live models.
 | Question | Does one agent decide well when its inputs are fixed? | Does the whole system respond correctly across a conversation? |
 | What runs | One agent | All agents, through `run_chat_turn`, as in production |
 | Inputs | Fixed evidence for each case | Messages from a synthetic reader, with memories placed beforehand |
-| Scale | 4 to 92 cases per agent, 3 to 5 repeats | 21 saved Scenarios |
+| Scale | 4 to 92 cases per agent, 3 to 5 repeats | 16 saved Scenarios |
 | What it is for | Finding which agent caused a failure | Showing the system works as it would for a real reader |
 
 **Table 12.** Two levels of agent evaluation.
@@ -555,7 +555,7 @@ Agent quality is evaluated at two levels, both with live models.
 **Why scenario replay is needed.** Contract tests and component evaluations each check one piece in isolation. Most failures a reader would notice happen between the pieces:
 
 - Librarian retrieves the right passage, but Muse cites a different one.
-- A reader describes the pepper kitchen in *Alice*. The system has to work out that she has reached chapter 6 and must not mention chapter 7. That needs the stored memory, Librarian's reading-position inference, Muse's draft, and Provenance's review to agree.
+- A reader describes the Caucus-race in *Alice* and stops where Alice sits alone, hearing footsteps. The system has to work out that she has reached the end of chapter 3 and must not mention later chapters. That needs the stored memory, Librarian's reading-position inference, Muse's draft, and Provenance's review to agree.
 - A memory saved in one turn has to be found again in a later one.
 
 Real readers' conversations were not available, and would be private if they were. Scenario replay therefore uses synthetic readers whose correct outcomes are decided in advance, and sends their messages through the same `run_chat_turn` function a real reader's messages go through.
@@ -573,11 +573,11 @@ A Scenario is one synthetic reader with a history, a few test messages, and the 
 
 | | Test 1: reading position is clear | Test 2: reading position is unclear |
 |---|---|---|
-| Reader | Priya, a music teacher reading *Alice* slowly, who hates spoilers | Same reader |
-| Memory placed beforehand | Her earlier description of the pepper kitchen, the baby that turns into a pig, and the grinning cat giving directions | Her complaint that Alice keeps growing and shrinking, in several places |
-| Test message | "Is the pepper doing something in the book, or is it just noise? And why does the cat get to be so calm about all of it?" | "Can we talk about the growing and shrinking? … What is actually going on with it?" |
-| Must happen | Treat chapter 6 as her furthest point. Answer from chapter 6 only, and cite only chapter 6. Do not ask where she has stopped | Ask one short question to find where she is. Give no book detail until that is known |
-| Must not happen | Describe the tea party, the Queen, or the trial, which she has not reached | Guess her position, or explain the size changes using later chapters |
+| Reader | Mara, an arts administrator who reads *Alice* in short stretches on her commute | Same reader |
+| Memory placed beforehand | Her note that she stopped reading when Alice and the animals swam ashore from the pool of tears | Her note about Alice drinking from a bottle and ending up the wrong size, with the setting forgotten |
+| Test message | "I carried on … the Dodo's race, Alice giving out the sweets and getting her own thimble back … I've just stopped with her alone, hearing footsteps … Could you quote the Dodo's exact announcement about who won and who gets prizes?" | "… she drinks from a bottle and her size gets in the way again … I can't place which bottle episode this is. Why does her attempt to make things easier leave her stuck?" |
+| Must happen | Treat chapter 3 as her furthest point. Quote the Dodo's announcement exactly and use chapter 3 evidence only | Ask for a detail that tells the two bottle episodes apart. Give no book explanation until her position is known |
+| Must not happen | Move to the next chapter because she hears footsteps, or hint at how the story ends | Pick a bottle episode, guess a position, or name candidate events in the question |
 
 **Table 13.** Two test messages from the *Alice* reading-position Scenario.
 
@@ -596,7 +596,7 @@ Section 1.4 defines the Scenario terms used below.
 3. **Adopt.** A reviewer independent of the generator adopts or flags every expected outcome in the review application (Figure 8). Adoption records a hash of the approved text, so any later change to an answer key is visible.
 4. **Replay.** The application sends each Line through `run_chat_turn`, grades the result against the adopted Ground truth, and writes an analysis report for every run, including runs where everything passed (Figure 7).
 
-**What the Scenarios cover.** The 21 saved Scenarios test:
+**What the Scenarios cover.** The 16 saved Scenarios test:
 
 - answering questions about each of the five books without spoilers, and asking for the reading position when it is unclear
 - connections across books, memories, and the web, and declining when no good connection exists
@@ -611,15 +611,15 @@ Section 1.4 defines the Scenario terms used below.
 
 ### 7.3 Scenario replay results
 
-The latest full replay ran 13 Scenarios on 27 and 28 September with `gpt-6-luna`. Table 14 counts the outcome of every test message.
+The latest full replay ran 12 Scenarios on 27 and 28 September with `gpt-6-luna`. Table 14 counts the outcome of every test message.
 
 | What the reader does | Test messages | Passed | Agent made a wrong decision | Error, failed safely | Correct but marked as failed |
 |---|---:|---:|---:|---:|---:|
 | Asks about a book they are reading (all five books) | 23 | 16 | 1 | 5 | 1 |
 | Asks for a connection, or talks about something that needs none | 6 | 4 | 2 | 0 | 0 |
 | Comes back in a later session | 3 | 3 | 0 | 0 | 0 |
-| Has a memory saved and tidied | 37 | 31 | 2 | 4 | 0 |
-| **Total** | **69** | **54** | **5** | **9** | **1** |
+| Has a memory saved and tidied | 21 | 18 | 2 | 1 | 0 |
+| **Total** | **53** | **41** | **5** | **6** | **1** |
 
 **Table 14.** Scenario replay, 27 and 28 September. A fourth later-session message has no automatic check; a person judged its use of memory correct.
 
@@ -773,7 +773,6 @@ Capture still needs server-owned durable event identity and verified nomination 
 | Synthetic data | Scenarios are authored by a model and adopted by people, not collected from readers, and the corpus is five old public-domain works |
 | Moving answer keys | Some Ground truth was loosened and re-adopted during the project. Each adoption is hashed and identified, so results state which answer key they used, but a loosened key can make a later result look like an improvement |
 | No comparison condition | No single-agent or ablated architecture was evaluated, so the results show how the structure behaves, not how much better it is than an unstructured alternative |
-| Stale evaluation assets | Scenario schemas changed more than once, leaving three early Scenarios on a historical schema that needs migration before replay |
 
 **Table 23.** Threats to validity.
 

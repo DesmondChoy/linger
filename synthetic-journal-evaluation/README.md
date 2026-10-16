@@ -19,25 +19,16 @@ and expected responses differ.
 | Scenario | Schema | Independent adoption |
 | --- | --- | --- |
 | [Cross-source connections and restraint](scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Valid | Recorded |
-| [Alice Caterpillar grounding and spoilers](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/) | Incompatible with current schema | Recorded |
-| [Alice identity connections and restraint](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/) | Valid | Missing |
-| [Alice kitchen spoiler boundary](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/) | Incompatible with current schema | Recorded |
 | [Alice Pigeon grounding and spoilers](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/) | Valid | Recorded |
-| [Alice quotation grounding](scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/) | Incompatible with current schema | Recorded |
 | [Alice roses, concealment, and restraint](scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Valid | Recorded |
 | [Pottery memory curation](scenarios/pottery-memory-curation--sculptor--2026-08-29/) | Valid | Recorded |
-| [Reviewed capture and bounded curation, September 13](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/) | Valid | Recorded |
-| [Reviewed capture and bounded curation, September 21](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/) | Valid | Recorded |
+| [Reviewed capture and bounded curation](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/) | Valid | Recorded |
 | [Memory curation and cross-source connections](scenarios/memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/) | Valid | Recorded |
 | [Session continuity and longitudinal retrieval](scenarios/session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/) | Valid | Recorded |
 | [Memory injection and matched recall controls](scenarios/memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29/) | Valid | Recorded |
 | [Direct Line attacks and memory capture](scenarios/line-attack-response-and-capture--muse-provenance--2026-10-01/) | Valid | Recorded |
 | [Sensitive inference and capture veto](scenarios/sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/) | Valid | Recorded |
 | [Supper club curation, then recall](scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/) | Valid | Recorded |
-
-The Caterpillar, quotation, and kitchen scenarios require schema migration and
-fresh adoption of changed Ground truth before a graded replay. The
-identity-connection scenario validates but has no adoption record.
 
 Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
 
