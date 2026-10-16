@@ -43,7 +43,7 @@ from pydantic_ai.models import Model
 
 from evals.muse.harness import MuseEvalCase, StrictModel, load_muse_eval_cases, load_review_cases
 
-# Not Muse's gpt-6-luna. A different provider would be more independent, but
+# A different provider would be more independent, but
 # the configured Google key is free tier: Pro models have no quota,
 # gemini-2.5-* is closed to new users, and gemini-3-flash allows 20 requests
 # a day, too few for one pack. Pass `--judge-model google:...` where a paid
@@ -277,7 +277,6 @@ async def review(
     return {
         "grader": "evals.muse.blind_review",
         "judge_model": f"{judge_model.system}:{judge_model.model_name}",
-        # `prompt.digest` identifies the judge instructions.
         "prompt": {"template_id": "muse.blind_review", "digest": JUDGE_DIGEST},
         "seed": seed,
         "runs": 1,

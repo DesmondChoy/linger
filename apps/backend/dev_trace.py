@@ -74,7 +74,6 @@ class DevTraceSink:
 
     def record_connection_event(self, event: ConnectionEvaluationEvent) -> None:
         fields = {key: value for key, value in asdict(event).items() if value not in (None, (), "")}
-        # Evidence and decisions arrive as JSON text; parse them so Inspect shows structure.
         if "evidence_json" in fields:
             fields["evidence"] = [json.loads(item) for item in fields.pop("evidence_json")]
         if "decision_json" in fields:

@@ -357,7 +357,6 @@ const CURATION_SUMMARIES: Record<string, string> = {
   failed: 'Sculptor curation failed; the saved memory is unaffected.',
 }
 
-/** Content hashes make IDs long; the full ID stays one hover away. */
 function MemoryId({ id }: { id: string }) {
   return id.length > 20 ? <code title={id}>{id.slice(0, 16)}…</code> : <code>{id}</code>
 }
@@ -717,7 +716,6 @@ function TurnOutcome({ turn }: { turn: TurnRecord }) {
   )
 }
 
-/** Pretty-print a JSON string so it reads as lines, not one long row. */
 function readableJson(text: string): string {
   try {
     return JSON.stringify(JSON.parse(text), null, 2)

@@ -187,9 +187,6 @@ def load_revision_cases(directory: Path = CASES_DIR) -> tuple[RevisionCase, ...]
     return cases
 
 
-# --- production-shaped inputs ------------------------------------------------
-
-
 def _records(case: RevisionCase):
     from src.linger.contracts.librarian import EvidenceRecord
 
@@ -422,9 +419,6 @@ async def draft_messages(case: RevisionCase) -> list[ModelMessage]:
     return result.new_messages()
 
 
-# --- grading -----------------------------------------------------------------
-
-
 def _normalized(text: str) -> str:
     return " ".join(text.split())
 
@@ -603,7 +597,6 @@ def retry_categories(messages: list[ModelMessage]) -> list[list[str]]:
             categories = []
             for error in errors:
                 text, path = str(error.get("error", "")), str(error.get("path", ""))
-                # Label expansion errors name their own kind.
                 category = error.get("label_error") or next(
                     (name for marker, name in _RETRY_CATEGORIES if marker in text), None)
                 if category is None:
@@ -665,9 +658,6 @@ def _tool_calls(messages: list[ModelMessage]) -> list[str]:
         part.tool_name for message in messages for part in getattr(message, "parts", ())
         if isinstance(part, ToolCallPart) and part.tool_name != "final_result"
     ]
-
-
-# --- measurement -------------------------------------------------------------
 
 
 async def run_case(case: RevisionCase, model: Model) -> dict[str, Any]:

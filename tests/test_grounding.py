@@ -390,7 +390,6 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
             strength_judge=self._judge("sufficient", ("e1",)),
         )
 
-        # Round-trips through the discriminated adapter without error.
         LIBRARIAN_RESPONSE_ADAPTER.validate_python(response.model_dump(mode="json"))
 
     async def test_strength_judge_can_return_sufficient(self) -> None:

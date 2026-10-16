@@ -44,7 +44,6 @@ def test_a_failed_triage_falls_back_to_the_book_tools_only() -> None:
     exposure = expose_tools(None, previously_called=frozenset(), book_override=False)
     assert exposure.tools == frozenset({"librarian_route", "librarian_search"})
     assert exposure.pinned_intent is None
-    # A triage fault reports `unknown`, not a confirmed clean turn.
     assert exposure.override_attempt == "unknown"
 
 

@@ -891,8 +891,6 @@ def test_a_finding_quote_found_only_inside_longer_words_names_and_disputes_them(
     assert added_source_errors(revised, marks, review(quoted("Pigeon")).response_findings) == []
 
 
-# --- a sentence whose text occurs more than once ------------------------------------
-
 LAMP = "The lamp goes out."
 REPEATED = f"{LAMP} {FLAGGED} {LAMP} {QUESTION}"
 

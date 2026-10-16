@@ -249,8 +249,6 @@ def _o200k_tokens(text: str) -> int | None:
     return len(tiktoken.get_encoding("o200k_base").encode(text))
 
 
-# --- provider rate limits and errors ---------------------------------------
-
 # The OpenAI SDK retries a 429 itself (twice, with backoff) before an error
 # reaches Muse; count those hidden retries per case run from its debug log.
 _SDK_RETRIES: contextvars.ContextVar[Counter | None] = contextvars.ContextVar(
@@ -296,9 +294,6 @@ class _RunFailed(Exception):
         super().__init__(type(error).__name__)
         self.error = error
         self.partial = partial
-
-
-# --- first Muse -------------------------------------------------------------
 
 
 def _first_prompt(case: MuseEvalCase) -> str:
@@ -404,9 +399,6 @@ async def _run_first(case: MuseEvalCase, model: Model, instructions: str) -> dic
         _first_prompt(case), message_history=_history(case),
     )
     return {"reply": result.output, "tool_calls": _tool_calls(result), "usage": result.usage}
-
-
-# --- current Muse -----------------------------------------------------------
 
 
 def _current_input(case: MuseEvalCase):
@@ -773,7 +765,6 @@ async def _run_current(case: MuseEvalCase, model: Model) -> dict:
         "pinned_intent": observed["pinned_intent"],
         "serendipity_intents": _serendipity_intents(result),
         "retry_prompts": _retry_prompts(result),
-        # Review additions; the fields above keep their original meaning.
         "fixed_exposure": observed["fixed_exposure"],
         "reflection_modules": modules,
         "retry_categories": _retry_categories(result, tool_names),
@@ -791,9 +782,6 @@ def _tool_calls_in(messages: Sequence[ModelMessage]) -> list[str]:
         for part in getattr(message, "parts", ())
         if isinstance(part, ToolCallPart)
     ]
-
-
-# --- measurement ------------------------------------------------------------
 
 
 async def _attempt(

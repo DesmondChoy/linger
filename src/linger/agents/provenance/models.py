@@ -55,7 +55,6 @@ SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
     }
 )
 
-# One review reports at most this many findings.
 MAX_FINDINGS = 20
 
 DecisionScope = Literal["response", "capture"]

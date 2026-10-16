@@ -155,7 +155,6 @@ class LibrarianTests(unittest.TestCase):
         self.assertIsNone(decision)
 
     def test_word_boundary_prevents_substring_false_positive(self) -> None:
-        # "alice" inside "Malice", "pigeon" inside "pigeonholing" must not match.
         decision = self.librarian.route_work(
             "Malice and pigeonholing at work today.",
             (BOOK_VERSION_ID,),

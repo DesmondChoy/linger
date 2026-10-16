@@ -41,7 +41,6 @@ function genericStep(run: AgentExchange): string {
   return `${run.role} ran ${stageName(run)}.`
 }
 
-// ---------------------------------------------------------------- Provenance
 
 const PREFLIGHT_DECISIONS: Record<string, string> = {
   continue_reflection: 'found no sign of distress, so the turn carried on as normal.',
@@ -129,7 +128,6 @@ function curationReviewStory(runs: AgentExchange[]): Story {
   }
 }
 
-// ---------------------------------------------------------------------- Muse
 
 const BOOK_NEEDS: Record<string, string> = {
   yes: 'needs text from the book',
@@ -257,7 +255,6 @@ function museStory(runs: AgentExchange[], turn: TurnRecord): Story {
   return { summary, steps }
 }
 
-// ----------------------------------------------------------------- Librarian
 
 const UNCERTAIN_REASONS: Record<string, string> = {
   insufficient_context: 'there was not enough to go on',
@@ -322,7 +319,6 @@ function librarianStory(runs: AgentExchange[], turn: TurnRecord): Story {
   }
 }
 
-// ------------------------------------------------------------------ Sculptor
 
 function curationStep(out: Fields): string {
   if (out.kind === 'no_curation_proposal') {

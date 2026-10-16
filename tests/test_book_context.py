@@ -209,7 +209,6 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual(5, context.chapter_max)
         self.assertIsNotNone(sessions.book_selection("context-test"))
 
-        # The book must still be known on the next, bookless follow-up.
         follow_up = resolve_reading_context(ChatRequest(
             session_id="context-test",
             message="Is there a comparison to real life politics?",

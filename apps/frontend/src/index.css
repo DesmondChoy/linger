@@ -125,7 +125,6 @@ textarea::placeholder {
 .event-card summary { cursor: pointer; padding: 0.9rem; }
 .event-summary { display: grid; gap: 0.3rem; }
 .event-details { padding: 0 0.9rem 0.9rem; }
-/* One turn: headline facts, stage timeline, agent decisions */
 .turn-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.6rem; margin: 0.9rem 0 0; }
 .turn-facts > div { padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 0.6rem; background: var(--panel); }
 .turn-facts dt { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
@@ -175,7 +174,6 @@ textarea::placeholder {
   .decision-list li { grid-template-columns: 1fr; gap: 0.25rem; }
 }
 
-/* Provenance review findings */
 .review-findings { margin-top: 0.5rem; }
 .finding-codes { display: grid; gap: 0.4rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
 .finding-codes li { display: grid; grid-template-columns: minmax(9rem, 12rem) 1fr; gap: 0.6rem; align-items: baseline; padding: 0.45rem 0.6rem; border-left: 3px solid var(--border); border-radius: 0 0.4rem 0.4rem 0; background: var(--panel); font-size: 0.8rem; }
@@ -723,7 +721,6 @@ textarea::placeholder {
 .tray-evaluations .tray-count { color: var(--muted); }
 .tray-evaluations:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--border); }
 
-/* Muted supporting text. */
 .subtle { color: var(--muted); font-size: 0.74rem; }
 
 /* A guided path: optional ordered steps; any step can be filled at any time. */

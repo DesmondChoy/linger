@@ -77,7 +77,6 @@ function sourceName(source: string | undefined): string {
   return SOURCES[source ?? ''] ?? formatMachineLabel(source ?? 'a source')
 }
 
-/** A fetched page's title, from the "Title: …" line its excerpt starts with. */
 function pageTitle(excerpt: string | undefined): string {
   const title = excerpt?.match(/^Title:\s*(.+)$/m)?.[1]
   return quote(title ?? excerpt, 90)

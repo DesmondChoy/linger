@@ -151,7 +151,6 @@ def test_runner_reports_a_clean_revision_with_production_envelope_and_history():
     )
     run = report["per_case"][case.case_id]["runs"][0]
     assert run["retries"] == 0 and run["tool_calls"] == []
-    # The revision sees the replayed draft, then the revision envelope.
     messages = calls[0]
     prompts = [part.content for message in messages for part in message.parts
                if isinstance(part, UserPromptPart)]

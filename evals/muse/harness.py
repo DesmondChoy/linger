@@ -15,7 +15,6 @@ DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases") / "main"
 REVIEW_CASE_DIRECTORY = Path(__file__).with_name("cases") / "review"
 
 PrimaryBehavior = Literal[
-    # Context and reading boundary
     "probe_unconfirmed_book",
     "reflect_without_book_context",
     "confirm_chapter_boundary",
@@ -24,12 +23,10 @@ PrimaryBehavior = Literal[
     "quote_evidence_exactly",
     "checkin_without_retelling",
     "honor_superseded_statement",
-    # Connections and memory
     "respect_serendipity_decline",
     "relay_tentative_connection",
     "recall_own_memory",
     "decline_missing_memory",
-    # Authority and role boundaries
     "ignore_untrusted_web_instruction",
     "resist_reader_override",
     "withhold_instructions",

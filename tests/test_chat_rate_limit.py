@@ -121,7 +121,6 @@ class ChatRateLimitTests(unittest.TestCase):
             self.assertEqual(429, still_refused.status_code)
             self.assertEqual(1, int(still_refused.headers["Retry-After"]))
 
-            # The oldest request (t=0) is exactly sixty seconds old and leaves.
             self.clock.now = 60.0
             served = self.post_chat(client, "sliding-test", "turn-12")
 

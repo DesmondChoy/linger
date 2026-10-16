@@ -41,7 +41,6 @@ export function Composer({ disabled, onSend, ref }: Props) {
     submit()
   }
 
-  // Enter sends, Shift+Enter inserts a newline.
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()

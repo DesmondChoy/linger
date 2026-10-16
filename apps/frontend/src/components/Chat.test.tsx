@@ -9,7 +9,6 @@ describe('Chat page', () => {
   it('shows the conversation and the analysis surface on one page', () => {
     expect(html).toContain('Reflection chat')
     expect(html).toContain('How this works')
-    // No turn has run yet, so the map stands by rather than drawing a route.
     expect(html).toContain('No turn to map yet')
   })
 

@@ -127,9 +127,6 @@ def raw(reply: str, *uses: dict) -> dict:
     return {"reply": reply, "evidence_uses": list(uses), "memory": NO_MEMORY}
 
 
-# --- round trip ------------------------------------------------------------------
-
-
 @pytest.mark.parametrize("joiner", [" ", "\n", "", "  \n "])
 @pytest.mark.parametrize("data", [PIGEON, MIXED], ids=["quotation-split", "mixed-shapes"])
 def test_every_label_reproduces_the_draft_exactly(data, joiner):
@@ -185,9 +182,6 @@ def test_a_claim_across_two_sentences_is_carried_whole_or_clipped_to_the_kept_on
                                                           "She tells Oren before the boat leaves.")
 
 
-# --- lossless labelling ----------------------------------------------------------
-
-
 def test_sentences_sharing_a_quotation_form_one_unit_kept_or_dropped_together():
     draft = MuseCandidate.model_validate(PIGEON)
     sentences = sentences_for(draft)
@@ -217,9 +211,6 @@ def test_a_sentence_whose_limit_or_quote_could_not_be_carried_whole_has_no_label
     assert labels(book("a", "Marta sees the storm.", limits=["The passage does not say."])
                   ) == ["{{SENTENCE_1}}", None, "{{SENTENCE_3}}"]
     assert labels(book("a", reply, quote="storm. The passage")) == [None, None, "{{SENTENCE_3}}"]
-
-
-# --- the reviewed draft ------------------------------------------------------------
 
 
 def test_labels_are_unusable_without_one_accepted_draft_that_rebuilds_the_sentences():
@@ -272,9 +263,6 @@ def test_a_draft_reply_with_outer_whitespace_still_labels_and_expands():
     assert expanded.reply == "Marta sees the storm first. She tells Oren before the boat leaves."
 
 
-# --- no candidate holds a label ---------------------------------------------------
-
-
 @pytest.mark.parametrize("token", ["{{SENTENCE_2}}", "SENTENCE_2", "{{S2}}", "｛｛x｝｝", "&#123;&#123;x", "&lbrace;x"])
 @pytest.mark.parametrize("field", ["reply", "claim", "limit", "quote", "session_quote", "memory"])
 def test_no_candidate_can_be_built_with_a_label(field, token):
@@ -311,9 +299,6 @@ def test_a_draft_output_with_a_label_is_retried():
     result = asyncio.run(_draft_run(case, [bad], then=[case.draft], keep_result=True))
     assert sum(isinstance(part, RetryPromptPart) for m in result.new_messages() for part in m.parts) == 1
     assert result.output.model_dump(mode="json") == MuseCandidate.model_validate(case.draft).model_dump(mode="json")
-
-
-# --- end to end with a scripted model ----------------------------------------------
 
 
 async def _draft_run(case: RevisionCase, final: list[dict], then=(), keep_result=False):
@@ -554,9 +539,6 @@ def test_the_reply_limit_applies_after_expansion():
     assert len(bad["reply"]) < 20_000
     run, _ = _run(case, bad, case.reference_revision)
     assert run["retry_categories"][0] == ["schema"] and run["retries"] == 1 and run["hard_pass"]
-
-
-# --- Muse redeclaring a labelled sentence --------------------------------------------
 
 
 def test_a_labelled_claim_redeclared_under_its_draft_source_is_not_duplicated():
