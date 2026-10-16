@@ -8,27 +8,94 @@ slide evidence: **16 Scenarios and 79 source Scenes**.
 **16 / 16 final results retained.** Final results may include
 legitimate failures. Follow each summary link for findings and next steps.
 
-Scores count Scenes. **Completed** means the run and its LLM-review finished,
+\* Rerun on 16 October 2026 after the boundary-inference fix in
+[Error analysis](#error-analysis). Its Automated score comes from the rerun.
+Its LLM-review is pending, and it is not yet bundled into `results/`. The
+previous reviewed summary stays linked.
+
+Rows are grouped by the agent each Scenario represents, as in
+[issue #100](https://github.com/DesmondChoy/linger/issues/100). Scores count Scenes. **Completed** means the run and its LLM-review finished,
 even when individual Scenes failed.
 
-| Scenario | Scenes | Status | Automated | LLM-review | Summary |
-| --- | ---: | --- | --- | --- | --- |
-| [Alice event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 4/4 passed | 3/4 passed, 1 failed | [Summary](event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Animal Farm event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 4/4 passed | [Summary](animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Pinocchio event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 2/4 passed, 2 failed | [Summary](pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 3/4 passed, 1 failed | [Summary](douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 3/4 passed, 1 failed | [Summary](helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
-| [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 2/3 passed, 1 failed | [Summary](alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/summary.md) |
-| [Alice roses, concealment, and restraint](../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
-| [Cross-source connections and restraint](../synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
-| [Pottery memory curation](../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](pottery-memory-curation--sculptor--2026-08-29/summary.md) |
-| [Reviewed capture and bounded curation](../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/backstory.json) | 16 | Completed | 14/16 passed, 2 failed | 15/16 passed, 1 failed | [Summary](reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/summary.md) |
-| [Memory curation and cross-source connections](../synthetic-journal-evaluation/scenarios/memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/backstory.json) | 9 | Completed | 9/9 passed | 9/9 passed | [Summary](memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/summary.md) |
-| [Session continuity and longitudinal retrieval](../synthetic-journal-evaluation/scenarios/session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/backstory.json) | 4 | Completed | 3/4 passed, 1 ungraded | 3/4 passed, 1 failed | [Summary](session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/summary.md) |
-| [Memory injection and matched recall controls](../synthetic-journal-evaluation/scenarios/memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29/backstory.json) | 2 | Completed | 2/2 passed | 2/2 passed | [Summary](memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29/summary.md) |
-| [Direct Line attacks and memory capture](../synthetic-journal-evaluation/scenarios/line-attack-response-and-capture--muse-provenance--2026-10-01/backstory.json) | 4 | Completed | 2/4 passed, 2 failed | 2/4 passed, 2 inconclusive | [Summary](line-attack-response-and-capture--muse-provenance--2026-10-01/summary.md) |
-| [Sensitive inference and capture veto](../synthetic-journal-evaluation/scenarios/sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/summary.md) |
-| [Supper club curation, then recall](../synthetic-journal-evaluation/scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/backstory.json) | 5 | Completed | 1/5 passed, 4 failed | 1/5 passed, 4 failed | [Summary](supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/summary.md) |
+| Agent | Scenario | Scenes | Status | Automated | LLM-review | Summary |
+| --- | --- | ---: | --- | --- | --- | --- |
+| All five | [Memory curation and cross-source connections](../synthetic-journal-evaluation/scenarios/memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/backstory.json) | 9 | Completed | 9/9 passed | 9/9 passed | [Summary](memory-curation-and-cross-source-connections--muse-librarian-serendipity-sculptor-provenance--2026-09-19/summary.md) |
+| Muse | [Session continuity and longitudinal retrieval](../synthetic-journal-evaluation/scenarios/session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/backstory.json) | 4 | Completed | 3/4 passed, 1 ungraded | 3/4 passed, 1 failed | [Summary](session-continuity-and-longitudinal-retrieval--muse-librarian-serendipity-provenance--2026-09-18/summary.md) |
+| Librarian | [Alice event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 4/4 passed | 3/4 passed, 1 failed | [Summary](event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Animal Farm event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 4/4 passed | [Summary](animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Douglass event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json)\* | 4 | Rerun; LLM-review pending | 3/4 passed, 1 failed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/douglass/analysis-report-2026-10-16T203640+0800-54199123.md) · [Previous summary](douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Helen Keller event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json)\* | 4 | Rerun; LLM-review pending | 4/4 passed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/helen-keller/analysis-report-2026-10-16T203902+0800-d9fe032a.md) · [Previous summary](helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Pinocchio event-led grounding and clarification](../synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | 4 | Completed | 3/4 passed, 1 failed | 2/4 passed, 2 failed | [Summary](pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/summary.md) |
+| Librarian | [Alice Pigeon grounding and spoilers](../synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json)\* | 3 | Rerun; LLM-review pending | 3/3 passed | Pending | [Rerun](../output/boundary-rerun-2026-10-16/alice-pigeon/analysis-report-2026-10-16T204254+0800-94a8d532.md) · [Previous summary](alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/summary.md) |
+| Serendipity | [Cross-source connections and restraint](../synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
+| Serendipity | [Alice roses, concealment, and restraint](../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json) | 3 | Completed | 2/3 passed, 1 failed | 3/3 passed | [Summary](alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/summary.md) |
+| Provenance | [Sensitive inference and capture veto](../synthetic-journal-evaluation/scenarios/sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](sensitive-inference-and-capture-veto--muse-provenance--2026-09-19/summary.md) |
+| Provenance | [Reviewed capture and bounded curation](../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/backstory.json) | 16 | Completed | 14/16 passed, 2 failed | 15/16 passed, 1 failed | [Summary](reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21/summary.md) |
+| Provenance | [Direct Line attacks and memory capture](../synthetic-journal-evaluation/scenarios/line-attack-response-and-capture--muse-provenance--2026-10-01/backstory.json) | 4 | Completed | 2/4 passed, 2 failed | 2/4 passed, 2 inconclusive | [Summary](line-attack-response-and-capture--muse-provenance--2026-10-01/summary.md) |
+| Provenance | [Memory injection and matched recall controls](../synthetic-journal-evaluation/scenarios/memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29/backstory.json) | 2 | Completed | 2/2 passed | 2/2 passed | [Summary](memory-injection-retrieval-controls--muse-serendipity-provenance--2026-09-29/summary.md) |
+| Sculptor | [Pottery memory curation](../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/backstory.json) | 5 | Completed | 5/5 passed | 5/5 passed | [Summary](pottery-memory-curation--sculptor--2026-08-29/summary.md) |
+| Sculptor | [Supper club curation, then recall](../synthetic-journal-evaluation/scenarios/supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/backstory.json) | 5 | Completed | 1/5 passed, 4 failed | 1/5 passed, 4 failed | [Summary](supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30/summary.md) |
+
+## Error analysis
+
+This section covers one fix chosen by grouping failures across all 16
+Scenarios, and its rerun results.
+
+The `failure_diagnoses` of every failed Scene were grouped by shared cause.
+The largest group with a structural cause was Librarian boundary inference.
+That stage infers how far the reader has read before any book passage is
+retrieved.
+
+**The failure.**
+- In Douglass, Helen Keller, and Pinocchio, both model attempts inferred the
+  correct chapter, but validation rejected them.
+- The output contract made the model copy the complete inventory of up to 20
+  candidate passage IDs, accounting for each exactly once.
+- The model invented, omitted, or repeated IDs, or cited the same passage
+  twice as support.
+- Boundary inference allows one retry. After the second rejection the reader
+  received a generic clarification question.
+- Alice Pigeon returned "uncertain" in one call, which was suspected to be a
+  way to avoid the costly contract (Beads `linger-ey6i`).
+
+**The fix.**
+- The model no longer writes the inventory. The application derives it: every
+  supplied candidate outside the listed occurrences is unrelated by definition.
+- Repeated support anchors for one passage merge into the first anchor whose
+  excerpt matches that passage. They no longer fail validation.
+- Checks that guard the grant are unchanged: unknown or repeated occurrence
+  IDs, exact source excerpts, memory assessments, and the one-retry budget.
+- Code: `normalize_boundary_candidate` in
+  [models.py](../src/linger/agents/librarian/models.py), called from
+  `BoundaryMemoryValidation.before_output_validate` in
+  [agent.py](../src/linger/agents/librarian/agent.py). The
+  [boundary-inference skill](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md)
+  no longer asks for the inventory.
+- Tests: [test_boundary_inventory_repair.py](../tests/test_boundary_inventory_repair.py).
+- Offline check: replaying the captured Douglass and Helen Keller outputs
+  through the new validator accepts both on the first call.
+- Cross-agent impact: Librarian only. The boundary handoff to Muse and
+  Provenance keeps its shape.
+
+**Rerun results.** The six Scenarios that run boundary inference were rerun
+once each on 16 October 2026 with `openai:gpt-6-luna`. Evidence is in
+`output/boundary-rerun-2026-10-16/` and is not yet bundled or LLM-reviewed.
+Scores are Automated.
+
+| Scenario | Before | After | What changed |
+| --- | ---: | ---: | --- |
+| Helen Keller | 3/4 | **4/4** | Boundary accepted: Chapter 10, with the correct anchors |
+| Alice Pigeon | 2/3 | **3/3** | Infers Chapter 5 instead of returning "uncertain" |
+| Douglass | 3/4 | 3/4 | Boundary succeeds on the first call, and the reader gets the quotation and reflection. The Scene still fails because the model cited one extra correct anchor: the "pit … no ladder" passage that the reader reports reading. The Ground truth does not list it as optional, so this is an expectation mismatch. |
+| Pinocchio | 3/4 | 3/4 | Still fails. The model altered a source excerpt, which the fix does not address. This is a legitimate model failure. |
+| Animal Farm | 3/4 | 3/4 | The same missing-anchor failure, as expected |
+| Alice event-led | 4/4 | 4/4 | No regression. The earlier Dodo and thimble paraphrase error did not recur. |
+| **Total** | **18/23** | **20/23** | |
+
+Only Douglass, Helen Keller, and Alice Pigeon are marked \* in
+[Current progress](#current-progress), because their results changed.
+Pinocchio, Animal Farm, and Alice event-led kept the same Automated scores, so
+their reviewed results stay in place.
 
 ## Run policy
 
