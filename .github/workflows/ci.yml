@@ -79,7 +79,7 @@ jobs:
         run: uv run pytest -m embeddings --durations=25 --durations-min=1.0
 
   frontend-tests:
-    name: Frontend tests (vitest)
+    name: Frontend tests (Vitest and Playwright)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -105,6 +105,22 @@ jobs:
 
       - name: Run vitest
         run: pnpm test
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright browser tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-results
+          path: |
+            apps/frontend/playwright-report/
+            apps/frontend/test-results/
+          retention-days: 7
 
       - name: Test Ground truth reviewer
         run: pnpm --dir ../../.agents/skills/review-synthetic-ground-truth/ui test
