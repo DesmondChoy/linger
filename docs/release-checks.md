@@ -4,7 +4,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 
 ## CI checks
 
-`.github/workflows/ci.yml` runs full CI on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. Pull requests to `release-candidate` run only **Release promotion**, which validates the source and target branches. Merges into `main` do not repeat CI. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
+`.github/workflows/ci.yml` runs full CI on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. Pull requests to `release-candidate` run only **Release promotion**, which validates the source and target branches. Pushes to `main`, including merged pull requests, run only the two CodeQL checks. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
 
 | Required check on `main` PRs | Evidence |
 | --- | --- |
@@ -20,11 +20,11 @@ The branch policy requires reviewed, up-to-date PRs without direct pushes or byp
 
 ### Default-branch security results
 
-After this workflow reaches the default branch, a daily schedule runs only CodeQL on `main` at 19:17 UTC, or 03:17 Singapore time. It reuses both language analyses and their severity gate to refresh GitHub's default-branch code-scanning results. Backend tests, frontend tests, dependency scans, image builds, and release jobs do not run on this schedule. Release selection still requires successful `release-candidate` push CI, so scheduled scans cannot qualify a release.
+Each push to `main`, including a merged pull request, runs both CodeQL language analyses and their severity gate. These scans refresh GitHub's default-branch code-scanning results. Backend tests, frontend tests, dependency scans, image builds, and release jobs do not run on a `main` push. Release selection still requires successful `release-candidate` push CI, so these CodeQL-only runs cannot qualify a release.
 
-CodeQL results for `main` can lag behind merges until the next successful scheduled analysis. GitHub may delay scheduled runs. A manual CI dispatch on `main` refreshes the results sooner and runs the full suite. PR scans remain part of the required checks. See GitHub's [code-scanning trigger reference](https://docs.github.com/en/code-security/reference/code-scanning/workflow-configuration-options#scanning-on-push).
+There is no scheduled scan. Without an eligible pull request, push, or manual dispatch, no new scan runs. CodeQL results for `main` update after its push analysis succeeds. A manual CI dispatch on `main` also refreshes the results and runs the full suite. Updated CodeQL queries affect results only on the next applicable scan. PR scans remain part of the required checks. See GitHub's [code-scanning trigger reference](https://docs.github.com/en/code-security/reference/code-scanning/workflow-configuration-options#scanning-on-push).
 
-Trivy reports are JSON artifacts attached to full CI runs, not GitHub code-scanning alerts. Dependency and image vulnerabilities are rescanned on `main` PRs, `release-candidate` pushes, and manual CI runs. The CodeQL schedule does not refresh those artifacts or detect newly disclosed dependency vulnerabilities between full CI runs.
+Trivy reports are JSON artifacts attached to full CI runs, not GitHub code-scanning alerts. Dependency and image vulnerabilities are rescanned on `main` PRs, `release-candidate` pushes, and manual CI runs. CodeQL-only runs on `main` pushes do not refresh those artifacts. Newly disclosed dependency and image vulnerabilities are checked on the next full CI run.
 
 ### Full CI behavior
 

@@ -490,7 +490,7 @@ Sixteen risks were identified using the OWASP Top 10 for LLM Applications. They 
 | R9 | Over-refusal degrading usefulness | Medium | Medium | Not applicable | One bounded revision before decline; over-refusal reported as a first-class metric | Measured: 0.12 to 0.18 on responses, 0.11 to 0.33 on captures |
 | R10 | Telemetry leaking reader content | Low | High | LLM02 | Telemetry contract, typed projection, exported-payload test | Contract tests |
 | R11 | Prompt drift | Medium | Medium | Not applicable | SHA-256 configuration fingerprint on every span; reviewed prompt changes | Contract tests |
-| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Full CI runs on `main` pull requests and candidate pushes. CodeQL also runs daily. Both branches require checks, with candidate requirements still to align with Section 6.1 |
+| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Full CI runs on `main` pull requests and candidate pushes. CodeQL also runs on `main` pushes. Both branches require checks, with candidate requirements still to align with Section 6.1 |
 | R13 | Secrets exposure | Low | High | LLM02, LLM07 | Environment file excluded from version control and the image; dedicated protected release environments specified | Current release-environment protections remain unverified. No dedicated secret scanning |
 | R14 | Cost and latency abuse | Low | Medium | LLM10 | Ten requests per minute per account; per-role request and tool budgets | Contract tests; counters are per process |
 | R15 | Developer environment leaking into tests | Medium | Low | Not applicable | CI generates its own offline environment file | Observed once; tests should pin policy explicitly |
@@ -518,9 +518,11 @@ A read-only GitHub API check on 17 October 2026 shows both branches protected. `
 
 A maintained system specification records product scope, authority, release contracts, safeguards, and acceptance criteria. The separate telemetry contract defines what may be logged. Implementation proceeded through working slices: reviewed reflection, book grounding, connection discovery, capture and curation, then accounts, persistence, and release tooling.
 
-Continuous integration in `.github/workflows/ci.yml` runs seven checks on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. A push to `main` does not repeat CI. Pull requests to `release-candidate` run only **Release promotion**, which accepts only a same-repository promotion from `main`. Full CI then verifies the exact merged candidate commit before release can proceed.
+Continuous integration in `.github/workflows/ci.yml` runs seven checks on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. A push to `main`, including a merged pull request, runs only the two CodeQL checks. Pull requests to `release-candidate` run only **Release promotion**, which accepts only a same-repository promotion from `main`. Full CI then verifies the exact merged candidate commit before release can proceed.
 
-A daily schedule at 19:17 UTC, or 03:17 Singapore time, runs only the two CodeQL checks and cannot trigger release. These jobs make no paid model calls and use no provider secrets. All seven full CI checks passed for `main` commit `9a5c074` on 14 October 2026 ([CI run 38540172735](https://github.com/DesmondChoy/linger/actions/runs/38540172735)). That run is historical evidence for the named commit.
+CodeQL scans on `main` pushes refresh GitHub's default-branch security results and cannot trigger release. There is no scheduled scan. Without an eligible pull request, push, or manual dispatch, no new scan runs. Trivy's JSON workflow artifacts refresh on full CI runs, which also check newly disclosed dependency and image vulnerabilities.
+
+These jobs make no paid model calls and use no provider secrets. All seven full CI checks passed for `main` commit `9a5c074` on 14 October 2026 ([CI run 38540172735](https://github.com/DesmondChoy/linger/actions/runs/38540172735)). That run is historical evidence for the named commit.
 
 | Check | Evidence |
 |---|---|
@@ -748,7 +750,7 @@ Table 21 lists every kind of test and where it runs.
 | Retrieval regression tests | Retrieval with the real local embedding and reranker models | Full CI | 7.6 |
 | Front-end tests | Front-end behaviour, lint, and production build; the Ground-truth review application | Full CI | 6.1 |
 | AI security tests | Release-gate and curation risk codes, injection and policy-override classes, emotional boundary, privacy gate, instruction-leak and self-harm detectors | CI (mocked) and live component suites | 7.4, 7.6 |
-| Static and dependency security analysis | CodeQL for Python and TypeScript; Trivy for dependency locks and the container image | Full CI, plus daily CodeQL-only scans | 6.1 |
+| Static and dependency security analysis | CodeQL for Python and TypeScript; Trivy for dependency locks and the container image | Full CI, plus CodeQL-only scans on `main` pushes | 6.1 |
 | Container and deployment tests | Image build, offline startup and persistence, readiness checks, live HTTP and streaming turns | CI and release checks | 6.2 |
 | Component evaluations | Each agent's decisions with a live model and fixed evidence | Manual, reports committed | 7.4 |
 | End-to-end scenario replay | Whole conversations through the production chat-turn boundary against human-adopted Ground truth | Manual and release checks | 7.3 |
