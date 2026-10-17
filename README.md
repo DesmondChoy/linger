@@ -287,8 +287,10 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs backend and frontend checks for pull requests and pushes to
-`main` and `release-candidate`. Backend tests block model-provider requests.
+GitHub Actions runs backend and frontend checks for pull requests to `main` and
+`release-candidate`, and for pushes to `release-candidate`. Merges into `main`
+do not repeat CI. Both branches require reviewed PRs with up-to-date checks and
+no direct pushes or bypasses. Backend tests block model-provider requests.
 Separate jobs run `uv run pytest -m "not embeddings"` and
 `uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
 `embeddings` use real local embedding and reranker models, which CI caches.

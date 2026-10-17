@@ -4,7 +4,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 
 ## CI checks
 
-`.github/workflows/ci.yml` runs on pull requests to `main` or `release-candidate`, pushes to either branch, and manual dispatch. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
+`.github/workflows/ci.yml` runs on pull requests to `main` or `release-candidate`, pushes to `release-candidate`, and manual dispatch. Merges into `main` do not repeat CI. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
 
 | Required check | Evidence |
 | --- | --- |
@@ -16,7 +16,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
-Both `main` and `release-candidate` require up-to-date PR branches. The additional **Release promotion** check accepts only a same-repository PR from `main` to `release-candidate`. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+Both `main` and `release-candidate` require reviewed PRs with up-to-date checks, without direct pushes or bypasses, including for administrators. Repository administrators configure these protections through the [setup guide](releasing.md#configure-github-once). The additional **Release promotion** check accepts only a same-repository PR from `main` to `release-candidate`. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
 
 Both backend jobs report the 25 slowest tests that take at least one second.
 The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
