@@ -373,18 +373,15 @@ class RiskCodeCaseSetTests(unittest.TestCase):
                     "memory_candidate", case.review_input.candidate.memory.kind
                 )
 
-    def test_every_nomination_is_an_exact_slice_of_its_line(self) -> None:
-        """`candidate_from_review` re-slices the Line and fails binding otherwise."""
+    def test_every_nomination_is_contained_in_its_line(self) -> None:
+        """`candidate_from_review` requires containment and fails binding otherwise."""
         for case in self.case_set.cases:
             nomination = case.review_input.candidate.memory
             if nomination.kind != "memory_candidate":
                 continue
             line = case.review_input.current_line.text
             with self.subTest(case=case.case_id):
-                self.assertEqual(
-                    nomination.text,
-                    line[nomination.start_codepoint : nomination.end_codepoint],
-                )
+                self.assertIn(nomination.text, line)
 
     def test_decoupling_cases_hold_one_decision_while_the_other_moves(self) -> None:
         vetoed = self.by_behavior["capture_decoupled_clean_response_vetoed_capture"]

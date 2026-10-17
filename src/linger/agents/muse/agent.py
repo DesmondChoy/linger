@@ -57,8 +57,8 @@ def _available_evidence() -> dict[str, EvidenceRecord]:
     return dict(turn_evidence())
 
 
-def _revision_input(ctx: RunContext[None]):
-    """The revision envelope when this run is the single reviewed rewrite."""
+def _envelope(ctx: RunContext[None]) -> dict | None:
+    """The JSON envelope this run was prompted with, or None for plain prompts."""
     prompt = getattr(ctx, "prompt", None)
     if not isinstance(prompt, str):
         return None
@@ -66,11 +66,46 @@ def _revision_input(ctx: RunContext[None]):
         envelope = json.loads(prompt)
     except ValueError:
         return None
-    if not isinstance(envelope, dict) or envelope.get("mode") != "revision":
+    return envelope if isinstance(envelope, dict) else None
+
+
+def _revision_from(envelope: dict | None):
+    """The revision envelope when this run is the single reviewed rewrite."""
+    if envelope is None or envelope.get("mode") != "revision":
         return None
     from apps.backend.contracts import MuseRevisionInput
 
     return MuseRevisionInput.model_validate(envelope)
+
+
+def _revision_input(ctx: RunContext[None]):
+    return _revision_from(_envelope(ctx))
+
+
+def _user_message(envelope: dict | None) -> str | None:
+    """This turn's reader message from a draft or revision envelope."""
+    turn = envelope.get("muse_turn") if envelope else None
+    message = turn.get("user_message") if isinstance(turn, dict) else None
+    return message if isinstance(message, str) else None
+
+
+def memory_text_errors(output: MuseCandidate, user_message: str | None) -> list[dict]:
+    """A nomination must be a non-blank verbatim span of the reader's message."""
+    memory = output.memory
+    if not isinstance(memory, MemoryCandidate) or user_message is None:
+        return []
+    if memory.text.strip() and memory.text in user_message:
+        return []
+    return [{
+        "path": "memory.text",
+        "value": memory.text,
+        "problem": "The nominated text is blank or not a verbatim span of muse_turn.user_message.",
+        "repair": (
+            "Copy the words character for character from muse_turn.user_message, and choose "
+            "the shortest span that stands on its own, including whatever any pronoun in it "
+            "refers to. Do not paraphrase, shorten by dropping words, or nominate your reply."
+        ),
+    }]
 
 
 def validate_muse_output(
@@ -80,7 +115,9 @@ def validate_muse_output(
     errors = supported_claim_errors(output.reply, output.evidence_uses)
     errors.extend(source_application_errors(output.reply, output.evidence_uses))
     errors.extend(memory_attribution_errors(output.reply, output.evidence_uses))
-    revision = _revision_input(_ctx)
+    envelope = _envelope(_ctx)
+    errors.extend(memory_text_errors(output, _user_message(envelope)))
+    revision = _revision_from(envelope)
     if revision is not None:
         errors.extend(retained_claim_errors(output, revision.review.previously_accepted_claims))
         errors.extend(retained_source_errors(output, revision.review.retained_sources))
