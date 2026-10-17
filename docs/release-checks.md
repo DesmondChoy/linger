@@ -16,6 +16,8 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
+Both `main` and `release-candidate` require up-to-date PR branches. The additional **Release promotion** check accepts only a same-repository PR from `main` to `release-candidate`. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+
 Both backend jobs report the 25 slowest tests that take at least one second.
 The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
 The embedding job runs only that marker, caches fastembed models under
@@ -138,6 +140,8 @@ The current threshold of `95` has no calibration data behind it. Automatic publi
 | Release checks after candidate promotion | Successful `release-candidate` push CI | Uses the same checks and switch; no paid evaluation for ordinary `main` commits |
 | Release evidence and approval | Called by either entry point | Validates the candidate and protected environment, builds one AMD64 image, and runs Trivy and offline smoke; paid evaluation and HTTP inference smoke run only when enabled |
 | GHCR publication | Eligible evidence without blockers, followed by the selected approval route | Pushes the checked AMD64 image from the same release run without rebuilding; records its immutable registry digest |
+| Railway deployment | Successful publication in the automatic promotion run | Deploys the recorded public GHCR digest to the existing service, then verifies its active deployment, state mount, readiness, and frontend |
+| Railway deployment retry | Dispatch on `main` with the original automatic publication run and attempt | Reuses the publication artifact and published image without rebuilding, republishing, or rerunning evaluations |
 | Local deployment | Operator follows the release guide | Pulls the approved digest; never automatically updates a running service |
 
 The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The common setup check requires configured reviewers for `linger-release` in both evaluation modes. Operators must also configure the branch restrictions described in the [release guide](releasing.md#configure-github-once). The `linger-evaluations` environment and provider secrets are required only when live evaluations are enabled. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
@@ -150,11 +154,16 @@ The common build job saves its checked image as `release-image-<run>-<attempt>` 
 | `release-image-evidence-<sha>-<run>-<attempt>` | Configuration and image identities, `image-checks.json`, security reports, and the offline smoke log; also the intentionally skipped summary when live evaluations are disabled | 30 days |
 | `release-evidence-<sha>-<run>-<attempt>` | Common image evidence plus completed live behavioral evaluation and HTTP inference smoke evidence | 30 days |
 | `release-image-<run>-<attempt>` | The image archive used by evaluation and publication jobs in the same run | 7 days |
-| `release-publication-<sha>-<run>-<attempt>` | `publication.json` and `approved-release.json` | 30 days |
+| `release-publication-<sha>-<run>-<attempt>` | `publication.json`, `approved-release.json`, configuration snapshot, image checks, behavioral summary, and supporting evidence | 30 days |
+| `railway-deployment-<run>-<attempt>` | Deployment result, selected publication run and attempt, image digest, and verification or failure details | 30 days |
 
 `publication.json` binds the decision and configuration SHA to the checked image. Its `evaluation_status` is `skipped` for intentionally disabled evaluation or `completed` for eligible live results. `approved-release.json` includes that record under `authorization` and adds the published digest as `release_image`, the image identity, and the CI run. Human publication records GitHub approval history in either evaluation mode.
 
-Environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
+Railway consumes this publication artifact and reuses `publication_authorization` in `.github/scripts/release_candidate.py` to validate the retained evidence. It also verifies the selected run and attempt, successful publication job, candidate push CI, merged promotion, current `release-candidate` tip, and public image access. The published manifest must contain the tested image ID. Railway's production token is available only to the deployment job in `railway-production`.
+
+Deployment retries require the publication job to have succeeded, even when the original run later failed during deployment. The current candidate and retained evidence must still qualify. A newer candidate or expired publication artifact prevents a retry. See the [Railway deployment guide](railway.md#retry-deployment-without-rebuilding).
+
+Publication environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. The `railway-production` environment permits `main` only. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
 
 Security reports, release evidence, and approval records are retained for 30 days. The image artifact used between jobs expires after seven days. An expired image requires a new release run and a new approval decision. Keep approved release evidence and previous image digests outside the evidence expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
 

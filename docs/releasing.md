@@ -1,6 +1,6 @@
 # Release a Linger version
 
-Use this guide to promote a batch of changes from `main` to `release-candidate`, publish the approved image to GHCR, and run that image locally.
+Use this guide to promote a batch of changes from `main` to `release-candidate`, publish the approved image to GHCR, and deploy it to Railway or run it locally.
 
 Live evaluations and automatic publication are disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. With `live_evaluations_enabled=false`, a release run builds and checks the image, records that live evaluation was intentionally skipped, and waits for human approval. Approval publishes the checked image to GHCR without paid model calls. This route does not require the `linger-evaluations` environment or its secrets.
 
@@ -11,11 +11,12 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
 1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
+2. Keep the existing `release-candidate` branch, or create it from the merged `main` commit if absent. Protect both branches with reviewed pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). Require branches to be up to date and enforce the rules for administrators. Require **Release promotion** on `release-candidate` as well. If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
 3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 4. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
 5. Before enabling live evaluations, create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI. Skip this setup while live evaluations are disabled.
 6. If the team later enables automatic publication, create `linger-release-auto`. Restrict deployment branches to `main` and `release-candidate` and leave required human reviewers unset. Keep the protected `linger-release` environment for candidates that need human review.
+7. Complete the [Railway setup](railway.md#configure-github-once) for the existing production service. Railway Hobby requires the GHCR package to be public.
 
 GitHub runs the automatic `workflow_run` entry point in the default branch's context, `main`. Manual dispatch uses `release-candidate`. Both therefore need environment access, but candidate validation still accepts only successful `release-candidate` push CI. Environment access does not make `main` commits release candidates. Both evaluation modes require a correctly protected `linger-release` environment.
 
@@ -24,15 +25,42 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 ## Promote a batch of changes
 
 1. Merge ordinary changes into `main` through the normal PR checks.
-2. When the batch is ready, open a PR from `main` to `release-candidate`.
-3. Review and merge the promotion PR. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
-4. Open the candidate's **Release checks after candidate promotion** run. Inspect the candidate validation, image build, Trivy report, and offline startup and persistence checks.
-5. With live evaluations off, inspect `release-image-evidence-<sha>-<run>-<attempt>`. Confirm that `behavioral/summary.json` records `status: skipped` and `publication.score_scope: not_evaluated`. Its behavioral pass percentage and judgment counts must be `null`.
-6. Complete [review and approval](#review-and-approve-a-candidate). Approve the pending `linger-release` job to publish the checked image to GHCR.
+2. [Synchronize the branch history](#synchronize-the-branch-history) if `release-candidate` is not an ancestor of `main`.
+3. When the batch is ready, open a PR from `main` to `release-candidate`.
+4. Review the promotion PR and select **Create a merge commit**. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
+5. Open the candidate's **Release checks after candidate promotion** run. Inspect the candidate validation, image build, Trivy report, and offline startup and persistence checks.
+6. With live evaluations off, inspect `release-image-evidence-<sha>-<run>-<attempt>`. Confirm that `behavioral/summary.json` records `status: skipped` and `publication.score_scope: not_evaluated`. Its behavioral pass percentage and judgment counts must be `null`.
+7. Complete [review and approval](#review-and-approve-a-candidate). Approve the pending `linger-release` job to publish the checked image to GHCR.
+8. Inspect the Railway deployment in the same run. It consumes the publication artifact and deploys its exact image digest. Follow the [Railway guide](railway.md) for the first public-package setup, verification, or a deployment-only retry.
 
 Successful candidate CI starts a release run in either mode. The run builds one fresh Linux AMD64 image at the candidate commit, scans it, and checks offline startup and persistence. When enabled, live evaluations follow those checks. Publication uses the saved image without rebuilding it. The promotion's resulting commit SHA is the candidate identity.
 
 To stop a release, cancel its Actions run before publication. Setting `live_evaluations_enabled=false` selects publication with human approval and no live evaluation. It does not disable publication or cancel a run.
+
+### Synchronize the branch history
+
+Both protected branches require the PR branch to include the destination's current history. A promotion merge adds a commit to `release-candidate` that `main` does not yet contain. Before the next promotion, merge that history back through a reviewed PR into `main`.
+
+1. Use a clean checkout and fetch both branches:
+
+```bash
+	git fetch origin
+	git merge-base --is-ancestor origin/release-candidate origin/main
+```
+
+2. If the ancestry check exits `0`, continue with promotion. If it exits `1`, create a temporary branch from the current `main` and merge `release-candidate`. Choose a unique branch name:
+
+```bash
+	git switch -c codex/sync-release-candidate-YYYYMMDD origin/main
+	git merge --no-ff origin/release-candidate
+	git push -u origin HEAD
+```
+
+3. Open a PR from the synchronization branch to `main`. Resolve conflicts, obtain review, and wait for required CI to pass. If `main` advances, merge its updated history into the synchronization branch and rerun the required checks.
+4. Merge the synchronization PR with **Create a merge commit**. This preserves the `release-candidate` ancestry in `main`.
+5. Open the promotion PR from `main` to `release-candidate`. Merge that PR with **Create a merge commit** after review and CI.
+
+Use merge commits for both PRs. Squash or rebase merging loses the ancestry needed by the next promotion. Start the synchronization branch from current `main`, because a direct PR from `release-candidate` can be behind `main` after feature merges. The synchronization PR runs ordinary CI on `main`; the subsequent promotion starts the release flow.
 
 ## Enable live evaluations
 
@@ -58,6 +86,8 @@ Use manual dispatch to select a candidate in either evaluation mode.
 
 The run builds and tests a fresh image at the selected SHA. It saves that image for the approval and publication job in the same run. This image artifact expires after seven days. If it expires before publication, start a new release run and review its new image and evidence.
 
+Manual candidate selection publishes an image for operator deployment. Railway's automatic deployment and deployment-only retry accept evidence from **Release checks after candidate promotion**. Use the promotion flow to release through Railway.
+
 For a local preflight without model calls, use a clean candidate checkout and its actual Docker image ID:
 
 ```bash
@@ -82,7 +112,9 @@ To run the paid Scenario suite locally, replace `check` with `run` and choose an
 6. Confirm that the candidate SHA, configuration SHA, and image ID match the pending `linger-release` job. Approve that job after completing the applicable review.
 7. Save `publication.json`, `approved-release.json`, and the evidence with the project's release records. In `publication.json`, `evaluation_status` is `skipped` or `completed`. The same authorization appears under `authorization` in `approved-release.json`, alongside the published digest, image identity, and CI run. Human publication also records GitHub's approval history.
 
-With live evaluations off, every eligible candidate waits for approval regardless of the automatic-publication setting. With live evaluations on and automatic publication off, every eligible candidate also waits, including one with a 100% automated pass rate. Approval publishes the saved Linux AMD64 image to GHCR. Deployment remains a separate operator action. Use the immutable digest in `approved-release.json` for deployment, and keep the previous approved digest available for recovery.
+With live evaluations off, every eligible candidate waits for approval regardless of the automatic-publication setting. With live evaluations on and automatic publication off, every eligible candidate also waits, including one with a 100% automated pass rate. Approval publishes the saved Linux AMD64 image to GHCR. The automatic promotion run then deploys its immutable digest to the existing Railway service. A manual candidate run leaves deployment to the operator. Keep the previous approved digest available for recovery.
+
+For a Railway failure after successful publication, use [Retry deployment without rebuilding](railway.md#retry-deployment-without-rebuilding). Select the original publication run and attempt. The retry reuses the retained evidence and published image without rebuilding, republishing, or rerunning evaluations.
 
 ## Enable optional automatic publication
 

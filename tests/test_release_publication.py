@@ -163,6 +163,16 @@ def test_publication_loads_and_pushes_one_evaluated_image(publication_cli):
     assert record["github_run_attempt"] == "2"
 
 
+def test_publication_exports_the_recorded_digest_for_deployment(publication_cli, tmp_path):
+    run, _, evidence, digest = publication_cli
+    output = tmp_path / "publication-output"
+    result, _ = run(GITHUB_OUTPUT=str(output))
+    assert result.returncode == 0, result.stderr
+    record = json.loads((evidence / "approved-release.json").read_text())
+    assert f"release_image={digest}\n" in output.read_text()
+    assert record["release_image"] == digest
+
+
 def test_completed_live_evaluation_can_still_publish_automatically(publication_cli):
     run, _, evidence, digest = publication_cli
     authorization = authorize(publication_evidence(route="automatic", enabled=True))

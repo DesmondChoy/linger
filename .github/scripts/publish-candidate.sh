@@ -42,6 +42,9 @@ record = {key.lower(): os.environ[key] for key in (
 record["image"] = json.loads(Path("release-evidence/image.json").read_text())
 record["authorization"] = json.loads(Path("release-evidence/publication.json").read_text())
 Path("release-evidence/approved-release.json").write_text(json.dumps(record, indent=2) + "\n")
+if output := os.environ.get("GITHUB_OUTPUT"):
+    with open(output, "a") as stream:
+        stream.write(f"release_image={record['release_image']}\n")
 with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
     output.write(f"Published image: `{record['release_image']}`\n\nDeploy this digest with `LINGER_IMAGE`.\n")
 PYTHON

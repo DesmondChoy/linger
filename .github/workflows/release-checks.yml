@@ -15,6 +15,10 @@ on:
       model:
         default: openai:gpt-6-luna
         type: string
+    outputs:
+      release_image:
+        description: Approved immutable GHCR image reference.
+        value: ${{ jobs.publish.outputs.release_image }}
 
 permissions:
   contents: read
@@ -274,6 +278,8 @@ jobs:
       (needs.evaluate.outputs.publication_route == 'automatic' && needs.configuration.outputs.auto_enabled == 'true'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    outputs:
+      release_image: ${{ steps.publish.outputs.release_image }}
     environment:
       name: ${{ needs.configuration.outputs.live_enabled == 'true' && needs.evaluate.outputs.publication_route == 'automatic' && needs.configuration.outputs.auto_enabled == 'true' && 'linger-release-auto' || 'linger-release' }}
       url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -324,6 +330,7 @@ jobs:
           name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-image
       - name: Publish the authorized image without rebuilding
+        id: publish
         run: bash .github/scripts/publish-candidate.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
