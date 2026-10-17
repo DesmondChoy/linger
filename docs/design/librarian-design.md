@@ -436,6 +436,9 @@ A structural or integrity failure returns no ready corpus:
 
 ### 4.1 Book identity and contextual routing
 
+Rules: [Specification §6.1](../specification.md#61-spoilers). This section and
+§4.2–§4.3 describe how Librarian and the application implement them.
+
 Muse decides whether the requested answer needs a book fact, quotation,
 interpretation, an indirect book follow-up, or reading resumption, and then
 calls the argument-less
@@ -721,6 +724,97 @@ saved entry. Synthetic replay uses trusted supplied scopes and omits live
 account progress. `tests/test_reading_progress.py` covers session corrections;
 `tests/test_progress_store.py` covers durable storage, account isolation, saved
 routing, and comparison scopes.
+
+#### Declarations, retractions, and clarification follow-ups
+
+Rules: [Specification §6.1](../specification.md#61-spoilers).
+
+**What declares progress.** Only the reader's explicit completion statement or
+clarification answer declares a chapter. Questions, conditions, and explicit
+uncertainty about completion do not. Quoted, blockquoted, or fenced text
+declares nothing.
+
+**What retracts progress.** Any other turn that may speak to progress retracts
+the carried ceiling and fails closed. That covers:
+
+- a statement, or a question with a correcting or limiting cue such as "sorry",
+  "only", "not", "beyond", "stay within", or "stop at", that names an earlier
+  chapter's title or location;
+- a number within the book's chapters alongside a chapter word or such a cue,
+  or in a reply of four words or fewer;
+- progress language with no number, such as "I haven't met…", "don't spoil…",
+  or "a different book"; and
+- a parser clarification.
+
+Quotes do not shield a retraction. Lowering or retracting hides earlier reader
+statements from boundary inference and withholds earlier cited passages the
+ceiling no longer permits. Per-work corrections remain until a session reset or
+restart, so returning to a book cannot restore a retracted permission. A
+restart also hides restored reader statements from boundary inference.
+
+**Precedence.** A declaration in the current message outranks the session's
+declaration or retraction, which outranks saved progress. Direct restoration of
+saved progress records the `saved_progress` authorization basis. A saved chapter
+that no longer fits the registered, permitted work is ignored. A routed inferred
+ceiling never widens or replaces a boundary the reader confirmed this turn.
+
+**Unreadable memory storage.** The application binds an empty memory set and
+boundary inference proceeds without memories. A chapter ceiling still requires
+memory support; earlier reader statements may still support exact passages.
+
+**Chapter numbering.** Chapter numbering restarts where the source does, while
+canonical section IDs keep source order. Chapter 1 in Part I and Chapter 1 in
+Part III of *The Story of My Life* are distinct locations. `chapter_id` stores
+the canonical unit ID; `chapter_number` stores the literary chapter number, or
+`null` for named sections.
+
+**Cached indexes.** Cache scope identity is the work, revision, part, and
+chapter ceiling or exact unit IDs. Excessive ceilings are clamped to the part's
+registered maximum before lookup. Exact unit membership is validated even when
+an index is cached.
+
+**Below-cutoff grounding.** For direct grounding, if every fused candidate falls
+below the final reranker cutoff, the application may keep the highest-ranked
+eligible candidate for evidence-strength assessment. Only an accepted
+assessment admits it to the release index. Ordinary retrieval, connection
+search, and boundary inference keep their cutoffs.
+
+**Cross-book comparison.** When turn triage classifies a message as a connection
+request and the reader has confirmed two or more books, the turn runs as the
+unfocused `connection_book_scopes` comparison. Each book is granted at its own
+ceiling and none is primary. A book confirmed this turn replaces its saved
+value. An undeclared book is never searched.
+
+**Clarification release.** An unresolved routing or boundary clarification
+returns a typed `ClarificationRequest` from `librarian_route`. After Provenance
+passes the candidate, the application releases the validated question as
+`application_clarification`, replacing Muse's wording. Evidence declarations and
+non-route tool calls still fail validation, and an emotional boundary takes
+priority. Clarifications suppress capture with
+`clarification_capture_suppressed`. The released question and original reader
+message stay in session history with the pending clarification state.
+
+**Clarification answers.** A later reply that is only a chapter reference, such
+as "2", "two", "second", or "chapter two", counts as completed progress only
+when a clarification is pending and the chapter exists in the selected part. It
+resolves as `reader_confirmed` before Muse runs, and Muse re-issues the original
+book question through `librarian_search` under that ceiling. Hedged or
+question-shaped replies, unrelated text, and out-of-range answers keep the
+question pending. Unresolved identity or a book switch clears it. Direct search
+checks identity from the original message or validated session selection before
+recording a pending question.
+
+Only a memory-supported clarification that asks about a specific candidate
+chapter may retain that chapter for a follow-up affirmation. A generic progress
+question clears any earlier candidate. Naming the book or saying the chapter is
+unfinished does not confirm progress. When the same progress question stays
+unanswered for a single-part, chapter-based work, routing asks a closed question
+for a chapter number within range. Mixed section-based works keep the ordinary
+clarification.
+
+A routed work derives Provenance's review context after Muse runs. A
+`RoutedWork` result grants that reading context only when no boundary was
+already resolved.
 
 ### 4.4 Retrieval, fusion, and deduplication
 

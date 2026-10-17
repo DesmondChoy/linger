@@ -1,5 +1,16 @@
 # Synthetic scenario evaluation
 
+Rules: [Specification §7.2](../../docs/specification.md#72-scenario-first-synthetic-evaluation)
+defines the vocabulary, human gates, and supported Objective selections. This
+guide owns each runner's commands, inputs, and grading rules.
+
+Every chat replay writes a durable JSON transcript with each Line, the exact
+model-visible agent inputs and messages, typed outputs, tool calls and results,
+usage, release and capture decisions, and correlated Logfire trace and span IDs.
+Muse never receives the Backstory or proposed Ground truth. Provider thinking is
+omitted from the durable transcript; the evaluation-only Logfire path may show a
+thinking part when the provider returned one.
+
 ## Run a saved scenario
 
 Ask your coding agent to use
