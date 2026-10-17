@@ -267,6 +267,7 @@ class CaptureDefaultTests(unittest.TestCase):
 
 class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
     sessions_used = ("progress-day-one", "progress-day-two", "progress-other-reader")
+    RETRACTION = "Wait, I haven't finished chapter 2 yet."
 
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory()
@@ -310,6 +311,19 @@ class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
         # without writing the new conversation's slot.
         self.assertEqual({"session": alice, "saved": [alice]}, first.inspection.reading_state.model_dump())
         self.assertEqual({"session": None, "saved": [alice]}, second.inspection.reading_state.model_dump())
+
+    async def test_a_withdrawn_chapter_is_not_restored_in_a_new_conversation(self) -> None:
+        ROUTE_RESULTS.clear()
+        with muse_chat_agent.override(model=FunctionModel(_muse)):
+            with provenance_agent.override(model=FunctionModel(_provenance)):
+                await self._turn("progress-day-one", DECLARATION, "reader")
+                await self._turn("progress-day-one", self.RETRACTION, "reader")
+                ROUTE_RESULTS.clear()
+                second = await self._turn("progress-day-two", BOOK_QUESTION, "reader")
+
+        self.assertIsNone(self.store.get("reader", ALICE))
+        self.assertEqual([], second.inspection.reading_state.model_dump()["saved"])
+        self.assertFalse([r for r in ROUTE_RESULTS if r.get("max_chapter_inclusive") is not None])
 
     async def test_another_account_does_not_inherit_progress(self) -> None:
         self.store.record("reader", SavedProgress(ALICE, "main", 2))

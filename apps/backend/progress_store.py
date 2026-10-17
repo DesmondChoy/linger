@@ -2,7 +2,9 @@
 
 One row per account and book holds the latest chapter the reader said they
 completed. The newest statement wins, including a lower chapter, so a reader
-who restarts or corrects themselves is believed. Application inferences are
+who restarts or corrects themselves is believed. When a conversation withdraws
+the book's ceiling, the row is removed, so a later conversation cannot grant
+more than the reader's last word allowed. Application inferences are
 never stored here: only explicit reader progress may outlive its conversation.
 """
 
@@ -85,4 +87,12 @@ class ReadingProgressStore:
                     progress.chapter_max,
                     datetime.now(UTC).isoformat(),
                 ),
+            )
+
+    def forget(self, account_id: str, work_id: str) -> None:
+        """Remove the book's progress after the reader withdraws it."""
+        with self._connect() as conn:
+            conn.execute(
+                "DELETE FROM reading_progress WHERE account_id = ? AND work_id = ?",
+                (account_id, work_id),
             )
