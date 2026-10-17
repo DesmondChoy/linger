@@ -136,7 +136,7 @@ def test_direct_push_or_unmerged_pr_cannot_deploy(monkeypatch, pulls):
 
 
 @pytest.mark.parametrize("changes", [
-    {"head_sha": "b" * 40}, {"event": "pull_request"}, {"event": "workflow_dispatch"},
+    {"head_sha": "b" * 40}, {"event": "pull_request"}, {"event": "workflow_dispatch"}, {"event": "schedule"},
     {"conclusion": "failure"}, {"status": "in_progress"}, {"head_branch": "main"},
     {"path": ".github/workflows/other.yml"}, {"head_repository": {"full_name": "fork/linger"}},
 ])

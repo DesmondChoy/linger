@@ -291,7 +291,8 @@ GitHub Actions runs full CI for pull requests to `main` and pushes to
 `release-candidate`. Merges into `main` do not repeat CI. Pull requests to
 `release-candidate` run only the lightweight **Release promotion** check, which
 requires the source branch to be `main` in this repository. Both branches
-require reviewed, up-to-date PRs without direct pushes or bypasses.
+must be configured to require reviewed, up-to-date PRs without direct pushes or
+bypasses.
 Backend tests block model-provider requests.
 Separate jobs run `uv run pytest -m "not embeddings"` and
 `uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
@@ -301,6 +302,10 @@ them. Frontend CI also checks the Ground truth reviewer, lint, and the productio
 build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
 alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
 for the seven checks required on `main` PRs and before release.
+
+A daily CodeQL-only scan refreshes `main` security results at 03:17 Singapore
+time. It does not repeat the full CI suite or start a release. Trivy scans remain
+part of full CI; their JSON reports are stored as workflow artifacts.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they

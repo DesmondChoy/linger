@@ -95,7 +95,7 @@ Behind the uses above, five design decisions distinguish the solution:
 - **Independent review before every release.** Every reply is drafted as a typed candidate, reviewed by a Provenance agent that has no tools and no conversation history, and validated by application code against a request-scoped evidence index before any text reaches the reader. Any failure becomes a fixed, application-authored decline.
 - **Bounded book retrieval.** The application restricts answer-facing retrieval to the resolved reading position. Private boundary inference may inspect the full work, but its candidates do not become answer evidence without a validated grant. The measured retrieval runs had no spoiler exposures; handling retracted saved progress remains an open defect (Section 7.8).
 - **Typed, application-mediated hand-offs.** Agents never call one another. Every hand-off is a typed envelope carrying only what the next step needs, and every model run carries a fingerprint of its exact configuration.
-- **Evaluation and release pipeline.** Contract tests, component evaluations, and replay of synthetic conversations use human-adopted expected outcomes. CI runs tests and security scanning. A release workflow implements evidence and approval gates, but live release checks are disabled and the required hosted protections remain to be configured (Section 6.2).
+- **Evaluation and release pipeline.** Contract tests, component evaluations, and replay of synthetic conversations use human-adopted expected outcomes. CI runs tests and security scanning. With live evaluation disabled, the release workflow still checks an image and requires human approval before publication. Hosted protections and release evidence have verification limits described in Section 6.2.
 
 ### 1.3 Constraints and assumptions
 
@@ -168,7 +168,7 @@ For release, Docker builds one image:
 - One Linux AMD64 image on Ubuntu 24.04, running one non-root Uvicorn worker that also serves the built front end.
 - The image holds the corpus, the skills and prompts, and the local retrieval models with their file hashes. It excludes provider keys, account databases, private memories, and raw evaluation reports.
 - Health and readiness endpoints check configuration, storage, corpus, and models without making a paid model call.
-- The release workflow can publish an approved image to the GitHub Container Registry. Publication is currently disabled; deployment would be a separate operator step.
+- The release workflow can publish an approved image to the GitHub Container Registry. After candidate promotion, Railway deployment uses that exact published digest (Section 6.2).
 - Not provided: multi-user capacity, shared session storage across processes, and zero-downtime deployment.
 
 ### 2.4 Data and state
@@ -462,8 +462,8 @@ The project has not run a persona-diversity evaluation testing whether equivalen
 
 | Model AI Governance Framework heading | Linger practice |
 |---|---|
-| Internal governance structures | Written system specification and telemetry contract, issue tracking of decisions, and human review of prompt changes; protected branches and release-environment reviewers are specified but remain unconfigured |
-| Level of human involvement | Human review for Ground truth adoption, prompt changes, capture-policy changes, and self-improvement proposals; the release workflow requires reviewer setup before publication can be enabled |
+| Internal governance structures | Written system specification and telemetry contract, issue tracking of decisions, and human review of prompt changes. Both branches have required status checks, with the candidate requirements still to align with the promotion policy in Section 6.1 |
+| Level of human involvement | Human review for Ground truth adoption, prompt changes, capture-policy changes, and self-improvement proposals. The current release configuration requires approval in the protected `linger-release` environment before publication |
 | Operations management | Source audits and content hashing, automatic configuration digests, repeatable scenario replay, a fixed failure taxonomy, and release evidence bound to a commit and image identity |
 | Stakeholder interaction and communication | A visible notice for every committed capture, and consistent separation of the reader's words, source text, and the system's interpretation in every reply |
 
@@ -490,33 +490,37 @@ Sixteen risks were identified using the OWASP Top 10 for LLM Applications. They 
 | R9 | Over-refusal degrading usefulness | Medium | Medium | Not applicable | One bounded revision before decline; over-refusal reported as a first-class metric | Measured: 0.12 to 0.18 on responses, 0.11 to 0.33 on captures |
 | R10 | Telemetry leaking reader content | Low | High | LLM02 | Telemetry contract, typed projection, exported-payload test | Contract tests |
 | R11 | Prompt drift | Medium | Medium | Not applicable | SHA-256 configuration fingerprint on every span; reviewed prompt changes | Contract tests |
-| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Scanners run on pull requests and pushes; branch rules do not yet require successful checks before merge |
-| R13 | Secrets exposure | Low | High | LLM02, LLM07 | Environment file excluded from version control and the image; dedicated protected release environments specified | Release environments remain unconfigured; no dedicated secret scanning |
+| R12 | Supply-chain and code vulnerabilities | Medium | Medium | LLM03 | Locked dependencies; Trivy and CodeQL gates in CI; actions pinned to reviewed commits | Full CI runs on `main` pull requests and candidate pushes. CodeQL also runs daily. Both branches require checks, with candidate requirements still to align with Section 6.1 |
+| R13 | Secrets exposure | Low | High | LLM02, LLM07 | Environment file excluded from version control and the image; dedicated protected release environments specified | Current release-environment protections remain unverified. No dedicated secret scanning |
 | R14 | Cost and latency abuse | Low | Medium | LLM10 | Ten requests per minute per account; per-role request and tool budgets | Contract tests; counters are per process |
 | R15 | Developer environment leaking into tests | Medium | Low | Not applicable | CI generates its own offline environment file | Observed once; tests should pin policy explicitly |
 | R16 | Account compromise | Low | High | LLM02 | Salted scrypt password hashes; bearer tokens; account derived from the token on every route | API tests; no password reset or verification |
 
 **Table 11.** AI security risk register. Likelihood and impact are the team's qualitative ratings. Evidence comes from Section 7.
 
-The evidence varies by risk and evaluated configuration. R1 to R3, R6, R7, and R9 have historical live-model evidence. R4, R5, R10, R11, R14, and R16 have offline contract evidence, which covers the tested cases rather than every possible model output. R4 also has an unresolved privacy-policy change in current main. R12 is checked by CI, but branch protection does not yet make successful CI a merge requirement. R13 has no dedicated secret scanning. R2 has a live counter-example: a release-gate run passed an uncited web claim that the reviewer should have sent back. R15 was discovered when tests inherited web-search policy from a developer's environment file. Section 7.8 records remaining implementation and evidence limits.
+The evidence varies by risk and evaluated configuration. R1 to R3, R6, R7, and R9 have historical live-model evidence. R4, R5, R10, R11, R14, and R16 have offline contract evidence, which covers the tested cases rather than every possible model output. R4 also has an unresolved privacy-policy change in current main. R12 is checked by required CI jobs, with remaining branch-policy verification described in Section 6.1. R13 has no dedicated secret scanning. R2 has a live counter-example: a release-gate run passed an uncited web claim that the reviewer should have sent back. R15 was discovered when tests inherited web-search policy from a developer's environment file. Section 7.8 records remaining implementation and evidence limits.
 
 ---
 
 ## 6. LLMSecOps Pipeline
 
-The implemented workflows define a path from a change to a tested image and reviewed publication. Figure 11 shows the intended path; hosted setup and live release execution remain incomplete.
+The implemented workflows define a path from a change to a tested image, reviewed publication, and deployment. Figure 11 shows the current route with human approval. A complete release and deployment of the current implementation has not been verified.
 
-![LLMSecOps loop: change, pull request, CI, merge, promotion, CI on candidate, release checks, human approval, publish to GHCR, and operator deployment, with Logfire evidence feeding human review and proposals back to the next change](images/figure-llmsecops-loop.svg)
+![LLMSecOps loop: change, main pull request, CI, merge, checked promotion, candidate push CI, image checks, human approval, same-image GHCR publication, and Railway digest deployment, with release evidence feeding human review and proposals back to the next change](images/figure-llmsecops-loop.svg)
 
-**Figure 11.** Intended LLMSecOps flow. Branch protections and release environments remain unconfigured. Release checks are implemented but switched off, so release runs skip their image build, live evaluation, and publication. Ordinary CI still builds and scans an image.
+**Figure 11.** LLMSecOps sequence for the current manual publication route after candidate promotion. Full CI checks the merged candidate before the release workflow builds and checks an image. With live evaluation disabled, human approval in `linger-release` permits publication of that same image. After publication, the automatic promotion run deploys that digest to Railway. Sections 6.1 and 6.2 distinguish implemented checks from hosted settings and release evidence that remain unverified.
 
 ### 6.1 Change control and continuous integration
 
-The documented workflow uses reviewed pull requests for code, prompt, and skill changes. It promotes a reviewed batch from `main` to `release-candidate`, whose resulting commit identifies the candidate (`docs/releasing.md`). These are workflow requirements, but GitHub did not enforce them on 15 October 2026: both branches were unprotected and the `protect-main` ruleset was disabled. Branch and environment setup remains tracked in `linger-t1aw`; promotion of the current implementation remains tracked in `linger-bjog`.
+The documented workflow uses reviewed pull requests for code, prompt, and skill changes. It promotes a reviewed batch from `main` to `release-candidate`, whose resulting commit identifies the candidate (`docs/releasing.md`).
+
+A read-only GitHub API check on 17 October 2026 shows both branches protected. `main` requires the seven CI checks in Table 12. `release-candidate` still requires those seven plus **Release promotion**, while the intended policy requires only **Release promotion** before merge. Its external branch settings still need to match that policy. The available token could not verify review requirements, administrator enforcement, bypass permissions, or up-to-date requirements. Hosted setup remains tracked in `linger-t1aw`. Promotion of the current implementation remains tracked in `linger-bjog`.
 
 A maintained system specification records product scope, authority, release contracts, safeguards, and acceptance criteria. The separate telemetry contract defines what may be logged. Implementation proceeded through working slices: reviewed reflection, book grounding, connection discovery, capture and curation, then accounts, persistence, and release tooling.
 
-Continuous integration defines seven checks for pull requests and pushes to either branch, without paid model calls or provider secrets. All seven passed for `main` commit `9a5c074` on 14 October 2026 ([CI run 38540172735](https://github.com/DesmondChoy/linger/actions/runs/38540172735)). They are not yet configured as mandatory branch-protection checks.
+Continuous integration in `.github/workflows/ci.yml` runs seven checks on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. A push to `main` does not repeat CI. Pull requests to `release-candidate` run only **Release promotion**, which accepts only a same-repository promotion from `main`. Full CI then verifies the exact merged candidate commit before release can proceed.
+
+A daily schedule at 19:17 UTC, or 03:17 Singapore time, runs only the two CodeQL checks and cannot trigger release. These jobs make no paid model calls and use no provider secrets. All seven full CI checks passed for `main` commit `9a5c074` on 14 October 2026 ([CI run 38540172735](https://github.com/DesmondChoy/linger/actions/runs/38540172735)). That run is historical evidence for the named commit.
 
 | Check | Evidence |
 |---|---|
@@ -529,15 +533,17 @@ Continuous integration defines seven checks for pull requests and pushes to eith
 
 **Table 12.** Configured CI checks.
 
-The AI-specific security tests are part of the contract suite: release-gate and curation risk-code grading, emotional-boundary and privacy checks, and injected-content cases. Live-model evaluations run manually or through enabled release checks. The retained component reports identify their date, model, and prompt digest; they measure those configurations rather than every later commit.
+The AI-specific security tests are part of the contract suite: release-gate and curation risk-code grading, emotional-boundary and privacy checks, and injected-content cases. Live-model evaluations run manually or through release checks when live evaluation is enabled. The retained component reports identify their date, model, and prompt digest; they measure those configurations rather than every later commit.
 
 ### 6.2 Versioning and release
 
 Code is versioned in Git, and dependencies are locked in `uv.lock` and `pnpm-lock.yaml`. Corpus revisions are content-hashed, so a citation binds to an exact revision of an exact work. Every prompt and skill configuration carries a SHA-256 digest computed over its instructions, input and output schemas, tool permissions, validators, and retry limits, so any change to these alters the digest without anyone remembering to bump a version. Evaluation reports record the dataset digest, run identifier, model, and Git revision, adopted Ground truth records a hash of the approved bytes, and release evidence records the candidate commit and Docker image identity.
 
-The release workflow is implemented in `.github/workflows/` and described in `docs/release-checks.md`. Once its hosted environments are configured and live evaluations enabled, successful candidate CI can trigger a run that builds and scans a fresh image, proves offline startup and persistence, runs the 22-Scene behavioural suite, and makes live HTTP checks. Security failures, invalid adoption, missing observations, and missing evidence block publication. With automatic publication off, an eligible candidate requires human approval before the same tested image is published.
+The release workflow is implemented in `.github/workflows/release-auto.yml`, `release.yml`, and `release-checks.yml`, and described in `docs/release-checks.md`. Successful push CI on the exact `release-candidate` commit can trigger release. In both evaluation modes, the workflow validates the candidate, builds a fresh image, runs Trivy, and checks offline startup and persistence. With live evaluation disabled, it records an intentional skip without a score and requires human approval in `linger-release` before publishing the same checked image to GHCR. The disabled evaluation switch does not stop image checks or publication.
 
-This path has not completed for the current implementation. On 15 October 2026, `release-candidate` remained at `8b141992`; its only hosted CI run had failed. Only the `github-pages` environment existed, so neither `linger-release` nor `linger-evaluations` was configured. Both `live_evaluations_enabled` and `auto_publish_enabled` remain false in `.github/release-config.json`. No current-candidate release or deployment is claimed.
+When live evaluation is enabled, the workflow also runs the 22-Scene behavioural suite and live HTTP checks. Security failures, invalid adoption, missing observations, and missing evidence block publication. Human approval cannot override those blockers. `.github/release-config.json` currently sets both `live_evaluations_enabled` and `auto_publish_enabled` to false, with an uncalibrated automatic-publication threshold of 95. The current configuration therefore requires human approval for every eligible candidate.
+
+After publication in the automatic promotion run, `.github/workflows/railway-deploy.yml` deploys the exact published GHCR digest to the existing Railway service. It does not rebuild from source. Manual candidate publication leaves deployment to the operator. The workflow contracts are covered by `tests/test_release_workflow_modes.py` and `tests/test_railway_release.py`, within the offline evidence described in Section 7.6. Current hosted environment protections and a complete release deployment remain unverified. No current-candidate release or deployment is claimed.
 
 ### 6.3 Monitoring and audit logging
 
@@ -738,15 +744,15 @@ Table 21 lists every kind of test and where it runs.
 
 | Type | What it covers | Where it runs | Section |
 |---|---|---|---|
-| Unit and contract tests | Authority boundaries, validators, retry limits, retrieval scope, capture policy, account authorisation, telemetry redaction, with mocked models | CI, every pull request | 7.6 |
-| Retrieval regression tests | Retrieval with the real local embedding and reranker models | CI, every pull request | 7.6 |
-| Front-end tests | Front-end behaviour, lint, and production build; the Ground-truth review application | CI, every pull request | 6.1 |
+| Unit and contract tests | Authority boundaries, validators, retry limits, retrieval scope, capture policy, account authorisation, telemetry redaction, with mocked models | Full CI, on `main` pull requests, candidate pushes, and manual dispatch | 7.6 |
+| Retrieval regression tests | Retrieval with the real local embedding and reranker models | Full CI | 7.6 |
+| Front-end tests | Front-end behaviour, lint, and production build; the Ground-truth review application | Full CI | 6.1 |
 | AI security tests | Release-gate and curation risk codes, injection and policy-override classes, emotional boundary, privacy gate, instruction-leak and self-harm detectors | CI (mocked) and live component suites | 7.4, 7.6 |
-| Static and dependency security analysis | CodeQL for Python and TypeScript; Trivy for dependency locks and the container image | CI, every pull request | 6.1 |
+| Static and dependency security analysis | CodeQL for Python and TypeScript; Trivy for dependency locks and the container image | Full CI, plus daily CodeQL-only scans | 6.1 |
 | Container and deployment tests | Image build, offline startup and persistence, readiness checks, live HTTP and streaming turns | CI and release checks | 6.2 |
 | Component evaluations | Each agent's decisions with a live model and fixed evidence | Manual, reports committed | 7.4 |
 | End-to-end scenario replay | Whole conversations through the production chat-turn boundary against human-adopted Ground truth | Manual and release checks | 7.3 |
-| Release behavioural suite | 22 Scenes covering grounding, memory retrieval, connections, sensitive inference, memory injection, and direct attacks | Release checks, currently switched off | 6.2 |
+| Release behavioural suite | 22 Scenes covering grounding, memory retrieval, connections, sensitive inference, memory injection, and direct attacks | Release checks when live evaluation is enabled, currently disabled | 6.2 |
 
 **Table 21.** Kinds of test and where they run.
 

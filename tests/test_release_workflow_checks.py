@@ -39,7 +39,7 @@ def test_candidate_accepts_successful_release_candidate_push():
 
 @pytest.mark.parametrize("key,value", [
     ("head_sha", "c" * 40), ("head_branch", "main"), ("head_branch", "feature"), ("event", "pull_request"),
-    ("event", "workflow_dispatch"), ("status", "in_progress"), ("conclusion", "failure"),
+    ("event", "workflow_dispatch"), ("event", "schedule"), ("status", "in_progress"), ("conclusion", "failure"),
     ("path", ".github/workflows/untrusted.yml"),
     ("head_repository", {"full_name": "fork/linger"}),
     ("repository", {"full_name": "fork/linger"}),

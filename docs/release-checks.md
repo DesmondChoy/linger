@@ -6,7 +6,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 
 `.github/workflows/ci.yml` runs full CI on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. Pull requests to `release-candidate` run only **Release promotion**, which validates the source and target branches. Merges into `main` do not repeat CI. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
 
-| Full CI check | Evidence |
+| Required check on `main` PRs | Evidence |
 | --- | --- |
 | Backend tests (pytest) | Python regressions, including API authorization, privacy boundaries, source preservation, eval contracts, and release rejection cases |
 | Backend tests (embeddings) | Retrieval regressions marked `embeddings`, run against the real local embedding and reranker models |
@@ -16,7 +16,17 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
-Both branches require reviewed, up-to-date PRs without direct pushes or bypasses, including for administrators. The seven checks above are required before merging into `main`. On `release-candidate`, only **Release promotion** is required before merging. It accepts only a same-repository PR from `main` to `release-candidate`. The full CI jobs are skipped on that PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure these protections through the [setup guide](releasing.md#configure-github-once). Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+The branch policy requires reviewed, up-to-date PRs without direct pushes or bypasses, including for administrators. Configure the seven check names above as required checks on `main`. On `release-candidate`, require only **Release promotion** to match the promotion-only PR policy. It accepts only a same-repository PR from `main` to `release-candidate`. The full CI jobs are skipped on that PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure and verify these protections through the [setup guide](releasing.md#configure-github-once); workflow files do not apply the settings. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+
+### Default-branch security results
+
+After this workflow reaches the default branch, a daily schedule runs only CodeQL on `main` at 19:17 UTC, or 03:17 Singapore time. It reuses both language analyses and their severity gate to refresh GitHub's default-branch code-scanning results. Backend tests, frontend tests, dependency scans, image builds, and release jobs do not run on this schedule. Release selection still requires successful `release-candidate` push CI, so scheduled scans cannot qualify a release.
+
+CodeQL results for `main` can lag behind merges until the next successful scheduled analysis. GitHub may delay scheduled runs. A manual CI dispatch on `main` refreshes the results sooner and runs the full suite. PR scans remain part of the required checks. See GitHub's [code-scanning trigger reference](https://docs.github.com/en/code-security/reference/code-scanning/workflow-configuration-options#scanning-on-push).
+
+Trivy reports are JSON artifacts attached to full CI runs, not GitHub code-scanning alerts. Dependency and image vulnerabilities are rescanned on `main` PRs, `release-candidate` pushes, and manual CI runs. The CodeQL schedule does not refresh those artifacts or detect newly disclosed dependency vulnerabilities between full CI runs.
+
+### Full CI behavior
 
 Both backend jobs report the 25 slowest tests that take at least one second.
 The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
