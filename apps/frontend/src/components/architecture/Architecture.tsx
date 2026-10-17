@@ -14,6 +14,8 @@ type Props = {
   /** Stages observed so far for a turn that is still running. */
   progress: ProgressEvent[]
   pendingMessage: string | null
+  /** A recorded replay: hide the Memories panel, which reads and forgets the live account's memories. */
+  replay?: boolean
 }
 
 type Selection = { kind: 'node'; id: ComponentId } | { kind: 'edge'; id: string }
@@ -74,7 +76,7 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
  * component replaces the record's head with that component's data for THIS
  * turn — the contract it actually carried, not a description of its role.
  */
-export function Architecture({ timeline, progress, pendingMessage }: Props) {
+export function Architecture({ timeline, progress, pendingMessage, replay = false }: Props) {
   const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
   const [fullView, setFullView] = useState<'turns' | 'memories' | 'reading' | null>(null)
@@ -130,9 +132,11 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
               <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('turns')}>
                 All turns and contracts
               </button>
-              <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('memories')}>
-                Memories
-              </button>
+              {!replay && (
+                <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('memories')}>
+                  Memories
+                </button>
+              )}
               <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('reading')}>
                 Reading progress
               </button>
@@ -181,7 +185,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
         </Modal>
       )}
 
-      {fullView === 'memories' && (
+      {fullView === 'memories' && !replay && (
         <Modal label="Memories" className="full-view-modal" onClose={() => setFullView(null)}>
           <div className="full-view-head">
             <h2>Memories</h2>
