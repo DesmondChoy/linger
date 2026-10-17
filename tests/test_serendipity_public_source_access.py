@@ -112,10 +112,10 @@ def test_prior_reader_wording_never_reaches_public_client(operation, arguments):
     url = arguments.get("url", URL)
     client = FakeExaClient(page_url=url)
     ctx = context(urls=(url,), cue="I finished chapter five.")
-    ctx.deps.prior_reader_statements = (ReaderStatement(
+    ctx.deps.task = ctx.deps.task.model_copy(update={"prior_reader_statements": (ReaderStatement(
         statement_id="earlier-line",
         text="I privately call our reading group the brass fox behind our classroom cupboard.",
-    ),)
+    ),)})
 
     async def exercise():
         async with GuardedExaSearch(client=client).get_toolset() as toolset:
@@ -132,10 +132,10 @@ def test_prior_reader_wording_never_reaches_public_client(operation, arguments):
 def test_prior_reader_context_still_allows_a_general_public_query():
     client = FakeExaClient()
     ctx = context(cue="I finished chapter five.")
-    ctx.deps.prior_reader_statements = (ReaderStatement(
+    ctx.deps.task = ctx.deps.task.model_copy(update={"prior_reader_statements": (ReaderStatement(
         statement_id="earlier-line",
         text="I privately call our reading group the brass fox behind our classroom cupboard.",
-    ),)
+    ),)})
     query = "literary commentary symbolism reading"
 
     async def exercise():
@@ -197,9 +197,9 @@ def test_reader_supplied_public_url_can_be_opened(explicit_grant, url, cue):
 def test_exact_url_in_prior_reader_statement_can_be_opened():
     client = FakeExaClient()
     ctx = context(cue="Please compare that article with the book.")
-    ctx.deps.prior_reader_statements = (ReaderStatement(
+    ctx.deps.task = ctx.deps.task.model_copy(update={"prior_reader_statements": (ReaderStatement(
         statement_id="earlier-line", text=f"Please inspect {URL}.",
-    ),)
+    ),)})
 
     asyncio.run(_open_page(ctx, client, URL))
 
@@ -254,9 +254,9 @@ def test_reader_supplied_url_keeps_checks_against_private_wording(private_source
     if private_source == "cue":
         ctx.deps.task = ctx.deps.task.model_copy(update={"cue": private_text + " " + ctx.deps.task.cue})
     elif private_source == "prior_statement":
-        ctx.deps.prior_reader_statements = (ReaderStatement(
+        ctx.deps.task = ctx.deps.task.model_copy(update={"prior_reader_statements": (ReaderStatement(
             statement_id="earlier-line", text=private_text,
-        ),)
+        ),)})
     else:
         ctx.deps.memories = (CuratedMemory(
             memory_id="private-note", text=url if private_source == "memory_locator" else private_text,

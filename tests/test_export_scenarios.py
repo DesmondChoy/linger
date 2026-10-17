@@ -1,4 +1,4 @@
-"""The persona snapshot carries replayable turns and nothing private or local."""
+"""The scenario snapshot carries replayable turns and nothing private or local."""
 
 import importlib.util
 import json
@@ -6,27 +6,27 @@ import shutil
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "apps/frontend/scripts/export_personas.py"
-PERSONAS = SCRIPT.parent.parent / "src/replay/personas"
+SCRIPT = Path(__file__).resolve().parents[1] / "apps/frontend/scripts/export_scenarios.py"
+SCENARIO_SNAPSHOT = SCRIPT.parent.parent / "src/replay/scenarios"
 
 
 def load_exporter():
-    spec = importlib.util.spec_from_file_location("export_personas", SCRIPT)
+    spec = importlib.util.spec_from_file_location("export_scenarios", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-class PersonaExportTests(unittest.TestCase):
+class ScenarioExportTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         exporter = load_exporter()
-        index = json.loads((PERSONAS / "index.json").read_text())
+        index = json.loads((SCENARIO_SNAPSHOT / "index.json").read_text())
         cls.snapshot = {
             **index,
-            "personas": [
-                json.loads((PERSONAS / f"{persona['id']}.json").read_text())
-                for persona in index["personas"]
+            "scenarios": [
+                json.loads((SCENARIO_SNAPSHOT / f"{scenario['id']}.json").read_text())
+                for scenario in index["scenarios"]
             ],
         }
         cls.files = exporter.files(cls.snapshot)
@@ -36,25 +36,25 @@ class PersonaExportTests(unittest.TestCase):
         for forbidden in ('"model_messages"', '"input_prompt"', "/Users/"):
             self.assertNotIn(forbidden, self.text)
 
-    def test_every_persona_has_a_completed_run_covering_its_scenes(self) -> None:
-        self.assertTrue(self.snapshot["personas"])
-        for persona in self.snapshot["personas"]:
-            planned = {scene["id"] for scene in persona["scenes"]}
-            for run in persona["runs"]:
-                self.assertTrue(run["startedAt"], persona["id"])
-                self.assertEqual(planned, {scene["sceneId"] for scene in run["scenes"]}, persona["id"])
+    def test_every_scenario_has_a_completed_run_covering_its_scenes(self) -> None:
+        self.assertTrue(self.snapshot["scenarios"])
+        for scenario in self.snapshot["scenarios"]:
+            planned = {scene["id"] for scene in scenario["scenes"]}
+            for run in scenario["runs"]:
+                self.assertTrue(run["startedAt"], scenario["id"])
+                self.assertEqual(planned, {scene["sceneId"] for scene in run["scenes"]}, scenario["id"])
                 self.assertEqual(run["total"], len(run["scenes"]))
 
     def test_chat_scenes_carry_turns_and_curation_scenes_carry_a_response(self) -> None:
-        for persona in self.snapshot["personas"]:
-            for scene in persona["runs"][0]["scenes"]:
-                self.assertTrue(scene["turns"] or scene["curation"], f"{persona['id']} {scene['sceneId']}")
+        for scenario in self.snapshot["scenarios"]:
+            for scene in scenario["runs"][0]["scenes"]:
+                self.assertTrue(scene["turns"] or scene["curation"], f"{scenario['id']} {scene['sceneId']}")
                 for turn in scene["turns"]:
                     self.assertTrue(turn["userMessage"])
 
     def test_carries_the_recorded_contract_inputs_and_sources(self) -> None:
         chat_turns = [
-            turn for persona in self.snapshot["personas"] for scene in persona["runs"][0]["scenes"]
+            turn for scenario in self.snapshot["scenarios"] for scene in scenario["runs"][0]["scenes"]
             for turn in scene["turns"]
         ]
         drafted = [turn for turn in chat_turns if turn["museTurn"]]
@@ -65,17 +65,17 @@ class PersonaExportTests(unittest.TestCase):
         self.assertTrue(all(exchange["input"] for turn in drafted for exchange in turn["exchanges"]
                             if exchange["role"] == "Muse" and exchange["stage"] == "draft"))
 
-    def test_writes_a_small_index_and_one_file_per_persona(self) -> None:
+    def test_writes_a_small_index_and_one_file_per_scenario(self) -> None:
         index = json.loads(self.files["index.json"])
         self.assertEqual(
-            {f"{persona['id']}.json" for persona in index["personas"]} | {"index.json"},
+            {f"{scenario['id']}.json" for scenario in index["scenarios"]} | {"index.json"},
             set(self.files),
         )
-        self.assertNotIn("scenes", index["personas"][0])
+        self.assertNotIn("scenes", index["scenarios"][0])
 
-    def test_personas_are_grouped_by_catalog_family(self) -> None:
+    def test_scenarios_are_grouped_by_catalog_family(self) -> None:
         families = {family["id"] for family in self.snapshot["families"]}
-        self.assertTrue({persona["family"] for persona in self.snapshot["personas"]} <= families)
+        self.assertTrue({scenario["family"] for scenario in self.snapshot["scenarios"]} <= families)
 
 
 def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypatch):
@@ -122,15 +122,15 @@ def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypat
     monkeypatch.setattr(exporter, "CATALOG", catalog)
     snapshot = exporter.export()
 
-    assert [persona["id"] for persona in snapshot["personas"]] == [scenario_id]
-    persona = snapshot["personas"][0]
-    assert persona["family"] == "retrieval_and_grounding"
-    assert len(persona["runs"]) == 1
-    run = persona["runs"][0]
+    assert [scenario["id"] for scenario in snapshot["scenarios"]] == [scenario_id]
+    scenario = snapshot["scenarios"][0]
+    assert scenario["family"] == "retrieval_and_grounding"
+    assert len(scenario["runs"]) == 1
+    run = scenario["runs"][0]
     assert run["id"] == "fixture-run"
     assert run["startedAt"] == "2026-10-06T10:00:00+00:00"
     assert run["passed"] == run["total"] == len(backstory["scenes"])
-    for planned, recorded in zip(persona["scenes"], run["scenes"], strict=True):
+    for planned, recorded in zip(scenario["scenes"], run["scenes"], strict=True):
         assert recorded["sceneId"] == planned["id"]
         turn = recorded["turns"][0]
         assert turn["userMessage"] == " ".join(planned["lines"])
@@ -139,7 +139,7 @@ def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypat
         assert turn["exchanges"][0]["startMs"] == 0
     output = exporter.files(snapshot)
     assert set(output) == {"index.json", f"{scenario_id}.json"}
-    assert json.loads(output[f"{scenario_id}.json"]) == persona
+    assert json.loads(output[f"{scenario_id}.json"]) == scenario
 
 
 if __name__ == "__main__":

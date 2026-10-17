@@ -34,11 +34,11 @@ Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<age
 
 ## Replay recorded runs in the app
 
-The frontend's **Replay a persona** gallery presents exported synthetic runs
-in the chat and Inspect views. A persona includes its Backstory, Scenes,
+The frontend's **Replay a scenario** gallery presents exported synthetic runs
+in the chat and Inspect views. A scenario includes its Backstory, Scenes,
 recorded replies, available agent exchanges, and adopted answer key. Playback
 reads saved artifacts and makes no model calls. See
-[Synthetic personas](../apps/frontend/README.md#synthetic-personas) for the
+[Synthetic scenarios](../apps/frontend/README.md#synthetic-scenarios) for the
 export command, validation option, and artifact requirements.
 
 ## Five-book grounding and clarification

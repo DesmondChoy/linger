@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Graph, Icon } from '@linger/architecture-map'
 import type { ComponentId } from '@linger/architecture-map'
-import type { ProgressEvent, TurnRecord } from '../../types'
-import { Inspector, MemoryTable, ReadingStateTable, TurnSummary } from '../Inspector'
+import type { ProgressEvent, StoredMemory, TurnRecord } from '../../types'
+import { Inspector, MemoryTable, MemoryTableView, ReadingStateTable, TurnSummary } from '../Inspector'
 import { Modal } from '../Modal'
 import { buildLiveTurn } from './liveScene'
 import { MapResizer } from './MapResizer'
@@ -14,6 +14,8 @@ type Props = {
   /** Stages observed so far for a turn that is still running. */
   progress: ProgressEvent[]
   pendingMessage: string | null
+  /** A recorded run's memories, shown read-only instead of the signed-in reader's live table. */
+  recordedMemories?: { rows: StoredMemory[]; note: string }
 }
 
 type Selection = { kind: 'node'; id: ComponentId } | { kind: 'edge'; id: string }
@@ -74,7 +76,7 @@ function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: ()
  * component replaces the record's head with that component's data for THIS
  * turn — the contract it actually carried, not a description of its role.
  */
-export function Architecture({ timeline, progress, pendingMessage }: Props) {
+export function Architecture({ timeline, progress, pendingMessage, recordedMemories }: Props) {
   const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
   const [selection, setSelection] = useState<Selection | null>(null)
   const [fullView, setFullView] = useState<'turns' | 'memories' | 'reading' | null>(null)
@@ -126,7 +128,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
             {running ? 'Turn in progress' : 'Observed run'}
           </span>
           {timeline.length > 0 && (
-            <>
+            <div className="full-view-actions">
               <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('turns')}>
                 All turns and contracts
               </button>
@@ -136,7 +138,7 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
               <button type="button" className="quiet-button full-view-button" onClick={() => setFullView('reading')}>
                 Reading progress
               </button>
-            </>
+            </div>
           )}
           {!live && timeline.length > 1 && (
             <label className="turn-picker">
@@ -187,7 +189,9 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
             <h2>Memories</h2>
             <button type="button" className="quiet-button" onClick={() => setFullView(null)}>Close</button>
           </div>
-          <MemoryTable timeline={timeline} />
+          {recordedMemories
+            ? <MemoryTableView rows={recordedMemories.rows} timeline={timeline} note={recordedMemories.note} />
+            : <MemoryTable timeline={timeline} />}
         </Modal>
       )}
 

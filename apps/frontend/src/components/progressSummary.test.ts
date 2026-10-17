@@ -95,7 +95,7 @@ describe('toAgentSteps', () => {
 })
 
 describe('toAgentTotals', () => {
-  it('sums measured time per agent and flags unmeasured stages', () => {
+  it('sums measured time per agent and counts unmeasured stages', () => {
     const totals = toAgentTotals(toAgentSteps([
       event({ agent: 'Muse', stage: 'draft', status: 'running', elapsed_ms: 0 }),
       event({ agent: 'Muse', stage: 'draft', status: 'complete', elapsed_ms: 1000 }),
@@ -105,8 +105,8 @@ describe('toAgentTotals', () => {
     ]))
 
     expect(totals).toEqual([
-      { agent: 'Muse', durationMs: 2500, steps: 2, partial: false },
-      { agent: 'Serendipity', durationMs: 0, steps: 1, partial: true },
+      { agent: 'Muse', durationMs: 2500, waitingMs: 0, steps: 2 },
+      { agent: 'Serendipity', durationMs: 0, waitingMs: 0, steps: 1 },
     ])
   })
 })

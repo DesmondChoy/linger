@@ -13,7 +13,8 @@
   "props": [
     {
       "id": "P1",
-      "text": "Tuesday: I found the billing mistake was mine, fixed it over the weekend and said nothing on Monday. I keep telling myself it was already handled."
+      "text": "Tuesday: I found the billing mistake was mine, fixed it over the weekend and said nothing on Monday. I keep telling myself it was already handled.",
+      "recordedAt": null
     }
   ],
   "scenes": [

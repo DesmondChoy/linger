@@ -3,6 +3,7 @@ import type {
   ProgressEvent,
   Conversation,
   StoredMemory,
+  CurationHistoryEntry,
   TraceReference,
 } from './types'
 
@@ -214,6 +215,20 @@ export async function listMemories(): Promise<StoredMemory[]> {
   const response = await accountFetch(`${BASE_URL}/api/memories`)
   if (!response.ok) throw new Error(`Could not load memories (${response.status})`)
   return response.json() as Promise<StoredMemory[]>
+}
+
+/** Every curation applied to the signed-in reader's memories, oldest first. */
+export async function listCurationHistory(): Promise<CurationHistoryEntry[]> {
+  const response = await accountFetch(`${BASE_URL}/api/memories/curation`)
+  if (!response.ok) throw new Error(`Could not load curation history (${response.status})`)
+  return response.json() as Promise<CurationHistoryEntry[]>
+}
+
+/** Save a recorded scenario's Props in the signed-in reader's account; loading again saves nothing new. */
+export async function loadScenarioProps(scenarioId: string): Promise<{ loaded: number; already_saved: number }> {
+  const response = await accountFetch(`${BASE_URL}/api/scenarios/${encodeURIComponent(scenarioId)}/props`, { method: 'POST' })
+  if (!response.ok) throw new Error(`Could not load the scenario's memories (${response.status})`)
+  return response.json() as Promise<{ loaded: number; already_saved: number }>
 }
 
 /** Forget one saved memory, and every summary or topic group built over it. */

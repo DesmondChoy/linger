@@ -13,63 +13,78 @@
   "props": [
     {
       "id": "prop-exact-1",
-      "text": "I usually read for twenty minutes before bed."
+      "text": "I usually read for twenty minutes before bed.",
+      "recordedAt": null
     },
     {
       "id": "prop-exact-2",
-      "text": "I usually read for twenty minutes before bed."
+      "text": "I usually read for twenty minutes before bed.",
+      "recordedAt": null
     },
     {
       "id": "prop-paraphrase-1",
-      "text": "Sketching after work helps me settle down."
+      "text": "Sketching after work helps me settle down.",
+      "recordedAt": null
     },
     {
       "id": "prop-paraphrase-2",
-      "text": "I unwind in the evening by drawing for a while."
+      "text": "I unwind in the evening by drawing for a while.",
+      "recordedAt": null
     },
     {
       "id": "prop-evolving-1",
-      "text": "A short walk after work clears my head."
+      "text": "A short walk after work clears my head.",
+      "recordedAt": null
     },
     {
       "id": "prop-evolving-2",
-      "text": "Rain is fine, but I prefer walking without headphones."
+      "text": "Rain is fine, but I prefer walking without headphones.",
+      "recordedAt": null
     },
     {
       "id": "prop-evolving-3",
-      "text": "I now take the riverside path after work because the quieter route helps me reset."
+      "text": "I now take the riverside path after work because the quieter route helps me reset.",
+      "recordedAt": null
     },
     {
       "id": "prop-evolving-noise",
-      "text": "The number 14 bus was late this morning."
+      "text": "The number 14 bus was late this morning.",
+      "recordedAt": null
     },
     {
       "id": "prop-related-1",
-      "text": "A quiet cup of tea helps me shift out of work mode."
+      "text": "A quiet cup of tea helps me shift out of work mode.",
+      "recordedAt": null
     },
     {
       "id": "prop-related-2",
-      "text": "Reading fiction is another gentle end-of-day ritual."
+      "text": "Reading fiction is another gentle end-of-day ritual.",
+      "recordedAt": null
     },
     {
       "id": "prop-related-3",
-      "text": "A few minutes of sketching helps me ease into the evening."
+      "text": "A few minutes of sketching helps me ease into the evening.",
+      "recordedAt": null
     },
     {
       "id": "prop-related-noise",
-      "text": "I need to replace the kitchen tap washer."
+      "text": "I need to replace the kitchen tap washer.",
+      "recordedAt": null
     },
     {
       "id": "prop-superficial-1",
-      "text": "Alice showed me how to book the meeting room."
+      "text": "Alice showed me how to book the meeting room.",
+      "recordedAt": null
     },
     {
       "id": "prop-superficial-2",
-      "text": "The database book uses Alice as a sample user."
+      "text": "The database book uses Alice as a sample user.",
+      "recordedAt": null
     },
     {
       "id": "prop-superficial-3",
-      "text": "The Alice printout is beside the blue folder."
+      "text": "The Alice printout is beside the blue folder.",
+      "recordedAt": null
     }
   ],
   "scenes": [

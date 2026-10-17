@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { NOT_RECORDED, replayRun } from './adapter'
-import type { Persona } from './types'
+import type { Scenario } from './types'
 
-const files = import.meta.glob<Persona>(['./personas/*.json', '!./personas/index.json'], { eager: true, import: 'default' })
-const personas = Object.values(files)
-const byPrefix = (prefix: string) => personas.find((persona) => persona.id.startsWith(prefix))!
+const files = import.meta.glob<Scenario>(['./scenarios/*.json', '!./scenarios/index.json'], { eager: true, import: 'default' })
+const scenarios = Object.values(files)
+const byPrefix = (prefix: string) => scenarios.find((scenario) => scenario.id.startsWith(prefix))!
 
 describe('replaying a recorded run in the live UI shapes', () => {
   it('turns every chat Scene into feed messages and a turn record carrying its answer key', () => {
@@ -53,6 +53,29 @@ describe('replaying a recorded run in the live UI shapes', () => {
     expect(messages[0].content).toMatch(/^Offline curation task \(no reader message\)/)
     expect(messages[1].content).toMatch(/^Proposed link duplicates over/)
     expect(timeline[0].progress.some((event) => event.agent === 'Sculptor')).toBe(true)
+  })
+
+  it('lists the Props and each applied curation in the memory table shape', () => {
+    const pottery = byPrefix('pottery')
+    const { memories } = replayRun(pottery, pottery.runs[0])
+    const props = memories.filter((row) => row.source_prop_id !== null)
+    expect(props.map((row) => row.memory_id)).toEqual(pottery.props.map((prop) => prop.id))
+    const summary = memories.find((row) => row.kind === 'derived_summary')!
+    expect(summary.source_memory_ids).toEqual(['prop-summary-date-original', 'prop-summary-date-moved', 'prop-summary-date-confirmed'])
+    expect(summary.text).toMatch(/^The pottery open house was initially scheduled/)
+    expect(new Set(memories.map((row) => row.memory_id)).size).toBe(memories.length)
+    const linked = (id: string) => memories.find((row) => row.memory_id === id)!.duplicate_memory_ids
+    expect(linked('prop-exact-notebook-a')).toEqual(['prop-exact-notebook-b'])
+    expect(linked('prop-paraphrase-key-b')).toEqual(['prop-paraphrase-key-a'])
+  })
+
+  it('lists memories a chat Scene saved against the turn that saved them', () => {
+    const keller = structuredClone(byPrefix('helen-keller'))
+    keller.runs[0].scenes[0].turns[0].capturedMemory = { memoryId: 'mem_saved', text: 'I learned words by touch.' }
+    const { memories, timeline } = replayRun(keller, keller.runs[0])
+    const saved = memories.find((row) => row.memory_id === 'mem_saved')!
+    expect(saved.text).toBe('I learned words by touch.')
+    expect(saved.source_turn_id).toBe(timeline[0].inspection.muse_turn.turn_id)
   })
 
   it('keeps each turn of a multi-turn Scene, with the key on the last one only', () => {
