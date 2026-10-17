@@ -2,6 +2,7 @@
 
 import copy
 import base64
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -61,6 +62,14 @@ def settings(**changes):
     return {"live_evaluations_enabled": False, "auto_publish_enabled": False, "auto_publish_threshold": 95} | changes
 
 
+def configuration_snapshot(**changes):
+    return settings() | {"configuration_sha": "c" * 40} | changes
+
+
+def image_checks(**changes):
+    return {"candidate_sha": SHA, "image_id": IMAGE, "offline_smoke": "passed", "image_security": "passed"} | changes
+
+
 @pytest.mark.parametrize("value", [
     {}, settings(live_evaluations_enabled="true"), settings(auto_publish_enabled=1),
     settings(auto_publish_threshold=True), settings(auto_publish_threshold="95"),
@@ -97,7 +106,7 @@ def test_disabled_candidate_configuration_needs_no_release_environment(monkeypat
     candidate.emit(result)
     assert result == settings() | {"configuration_sha": configuration_sha}
     assert calls == [(REPO, "branches/release-candidate"), (REPO, f"contents/.github/release-config.json?ref={configuration_sha}")]
-    assert "Evaluation and publication jobs are skipped" in summary.read_text()
+    assert "Image checks and manual publication approval remain required" in summary.read_text()
     assert "live_evaluations_enabled=false\n" in outputs.read_text()
     assert f"configuration_sha={configuration_sha}\n" in outputs.read_text()
 
@@ -172,7 +181,12 @@ def authorize(summary=None, **changes):
         "auto_enabled": "false", "threshold": "95", "approvals": [
             {"state": "approved", "environments": [{"name": "linger-release"}]},
         ],
+        "image_checks": image_checks(),
     } | changes
+    arguments.setdefault("configuration", configuration_snapshot(
+        live_evaluations_enabled=arguments["live_enabled"] == "true",
+        auto_publish_enabled=arguments["auto_enabled"] == "true",
+    ))
     return candidate.publication_authorization(summary or publication_evidence(), **arguments)
 
 
@@ -180,6 +194,183 @@ def test_manual_publication_records_actual_environment_approval():
     record = authorize()
     assert record["publication"]["route"] == "manual"
     assert record["human_approvals"][0]["state"] == "approved"
+    assert record["evaluation_status"] == "completed"
+    assert record["image_checks"] == image_checks()
+
+
+@pytest.mark.parametrize("auto_enabled", [False, True])
+def test_disabled_live_evaluations_publish_only_after_manual_review(auto_enabled):
+    snapshot = configuration_snapshot(auto_publish_enabled=auto_enabled)
+    summary = candidate.skipped_evaluations(SHA, IMAGE, snapshot, image_checks())
+    record = authorize(summary, live_enabled="false", auto_enabled=str(auto_enabled).lower(), configuration=snapshot)
+    assert record["live_evaluations_enabled"] is False
+    assert record["evaluation_status"] == "skipped"
+    assert record["publication"]["route"] == "manual"
+    assert record["publication"]["automated_pass_percentage"] is None
+    assert record["human_approvals"][0]["state"] == "approved"
+    assert "runs" not in summary and "totals" not in summary
+
+
+@pytest.mark.parametrize("auto_enabled", [False, True])
+@pytest.mark.parametrize("approvals", [
+    [], [{"state": "rejected", "environments": [{"name": "linger-release"}]}],
+    [{"state": "approved", "environments": [{"name": "another-environment"}]}],
+])
+def test_disabled_live_evaluations_never_bypass_environment_approval(auto_enabled, approvals):
+    snapshot = configuration_snapshot(auto_publish_enabled=auto_enabled)
+    summary = candidate.skipped_evaluations(SHA, IMAGE, snapshot, image_checks())
+    with pytest.raises(ValueError, match="approval"):
+        authorize(summary, live_enabled="false", auto_enabled=str(auto_enabled).lower(),
+                  configuration=snapshot, approvals=approvals)
+
+
+def test_disabled_live_evaluations_cannot_claim_an_automatic_route():
+    snapshot = configuration_snapshot(auto_publish_enabled=True)
+    summary = candidate.skipped_evaluations(SHA, IMAGE, snapshot, image_checks())
+    summary["publication"]["route"] = "automatic"
+    with pytest.raises(ValueError, match="skipped-evaluation"):
+        authorize(summary, live_enabled="false", auto_enabled="true", route="automatic",
+                  configuration=snapshot, approvals=[])
+
+
+@pytest.mark.parametrize("change", [
+    {"status": "passed"}, {"totals": {"judgments_total": 0}}, {"runs": []},
+    {"configuration_sha": "d" * 40}, {"reason": "live evaluation failed; fallback"},
+    {"schema_version": True}, {"settings": settings(live_evaluations_enabled=0)},
+])
+def test_disabled_live_evaluations_require_the_exact_skipped_record(change):
+    summary = candidate.skipped_evaluations(SHA, IMAGE, configuration_snapshot(), image_checks()) | change
+    with pytest.raises(ValueError, match="skipped-evaluation"):
+        authorize(summary, live_enabled="false")
+
+
+def test_disabled_live_evaluation_record_cannot_fabricate_a_perfect_score():
+    summary = candidate.skipped_evaluations(SHA, IMAGE, configuration_snapshot(), image_checks())
+    summary["publication"]["automated_pass_percentage"] = 100
+    with pytest.raises(ValueError, match="skipped-evaluation"):
+        authorize(summary, live_enabled="false")
+
+
+@pytest.mark.parametrize("value", [True, "false", "False", 0, None])
+def test_skip_requires_an_explicit_json_false_switch(value):
+    with pytest.raises(ValueError):
+        candidate.skipped_evaluations(SHA, IMAGE, configuration_snapshot(live_evaluations_enabled=value), image_checks())
+
+
+@pytest.mark.parametrize("change", [
+    {"configuration_sha": "d" * 40}, {"configuration_sha": "release-candidate"},
+    {"live_evaluations_enabled": False}, {"auto_publish_enabled": True},
+    {"auto_publish_threshold": 94}, {"extra_setting": True},
+])
+def test_publication_configuration_snapshot_must_match_selected_policy(change):
+    with pytest.raises(ValueError):
+        authorize(configuration=configuration_snapshot(live_evaluations_enabled=True) | change)
+
+
+@pytest.mark.parametrize("switch", ["live_enabled", "auto_enabled"])
+@pytest.mark.parametrize("value", ["False", "0", "", False])
+def test_publication_rejects_ambiguous_switch_text(switch, value):
+    with pytest.raises(ValueError):
+        authorize(**{switch: value})
+
+
+def test_failed_live_evaluation_cannot_be_relabelled_as_skipped():
+    failed = publication_evidence() | {"status": "skipped"}
+    with pytest.raises(ValueError, match="Complete"):
+        authorize(failed)
+    with pytest.raises(ValueError, match="configuration snapshot"):
+        authorize(failed, live_enabled="false", configuration=configuration_snapshot(live_evaluations_enabled=True))
+    with pytest.raises(ValueError, match="skipped-evaluation"):
+        authorize(failed, live_enabled="false")
+
+
+@pytest.mark.parametrize("change", [
+    {"offline_smoke": "failed"}, {"image_security": "failed"}, {"offline_smoke": "skipped"},
+    {"candidate_sha": "d" * 40}, {"image_id": "sha256:" + "d" * 64},
+])
+def test_failed_or_mismatched_image_checks_block_both_publication_modes(change):
+    checks = image_checks(**change)
+    with pytest.raises(ValueError, match="image"):
+        authorize(image_checks=checks)
+    with pytest.raises(ValueError, match="image"):
+        candidate.skipped_evaluations(SHA, IMAGE, configuration_snapshot(), checks)
+
+
+@pytest.mark.parametrize("missing", ["candidate_sha", "image_id", "offline_smoke", "image_security"])
+def test_incomplete_image_checks_cannot_authorize_publication(missing):
+    checks = image_checks()
+    del checks[missing]
+    with pytest.raises(ValueError, match="image"):
+        authorize(image_checks=checks)
+
+
+def test_image_check_record_uses_successful_step_outcomes():
+    assert candidate.record_image_checks(SHA, IMAGE, "success", "success") == image_checks()
+
+
+@pytest.mark.parametrize("outcome", ["failure", "cancelled", "skipped", "passed", "", None])
+@pytest.mark.parametrize("check", ["offline", "security"])
+def test_image_check_record_rejects_any_non_successful_step(check, outcome):
+    arguments = {"offline_status": "success", "security_status": "success", f"{check}_status": outcome}
+    with pytest.raises(ValueError, match="successful"):
+        candidate.record_image_checks(SHA, IMAGE, **arguments)
+
+
+def skip_cli(monkeypatch, tmp_path):
+    snapshot, checks, summary = tmp_path / "configuration.json", tmp_path / "image-checks.json", tmp_path / "behavioral" / "summary.json"
+    snapshot.write_text(json.dumps(configuration_snapshot()))
+    checks.write_text(json.dumps(image_checks()))
+    monkeypatch.setattr(candidate.sys, "argv", [
+        "release_candidate.py", "skip-evaluations", "--sha", SHA, "--image-id", IMAGE,
+        "--configuration", str(snapshot), "--image-checks", str(checks), "--output", str(summary),
+    ])
+    return snapshot, checks, summary
+
+
+def test_skipped_cli_records_opt_out_and_manual_route_without_live_score(monkeypatch, tmp_path):
+    _, _, summary = skip_cli(monkeypatch, tmp_path)
+    outputs = tmp_path / "outputs"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(outputs))
+    assert candidate.main() == 0
+    assert json.loads(summary.read_text()) == candidate.skipped_evaluations(SHA, IMAGE, configuration_snapshot(), image_checks())
+    assert "publication_route=manual\n" in outputs.read_text()
+    assert "No evaluation score was produced" in summary.with_name("report.md").read_text()
+
+
+def test_skip_cli_never_overwrites_existing_failed_live_evidence(monkeypatch, tmp_path):
+    _, _, summary = skip_cli(monkeypatch, tmp_path)
+    summary.parent.mkdir()
+    failed = json.dumps(publication_evidence() | {"status": "failed"})
+    summary.write_text(failed)
+    with pytest.raises(SystemExit) as error:
+        candidate.main()
+    assert error.value.code == 1
+    assert summary.read_text() == failed
+
+
+@pytest.mark.parametrize("live_enabled", [False, True])
+def test_authorize_cli_distinguishes_skipped_record_from_evaluation_summary(monkeypatch, tmp_path, live_enabled):
+    snapshot, checks, summary = skip_cli(monkeypatch, tmp_path)
+    configuration = configuration_snapshot(live_evaluations_enabled=live_enabled)
+    snapshot.write_text(json.dumps(configuration))
+    summary.parent.mkdir()
+    evidence = publication_evidence() if live_enabled else candidate.skipped_evaluations(SHA, IMAGE, configuration, image_checks())
+    summary.write_text(json.dumps(evidence))
+    approvals, output = tmp_path / "approvals.json", tmp_path / "authorization.json"
+    approvals.write_text(json.dumps([{"state": "approved", "environments": [{"name": "linger-release"}]}]))
+    monkeypatch.setattr(candidate.sys, "argv", [
+        "release_candidate.py", "authorize", "--sha", SHA, "--image-id", IMAGE,
+        "--summary", str(summary), "--configuration", str(snapshot), "--image-checks", str(checks),
+        "--configuration-sha", "c" * 40, "--live-enabled", str(live_enabled).lower(),
+        "--auto-enabled", "false", "--threshold", "95", "--route", "manual",
+        "--approvals", str(approvals), "--output", str(output),
+    ])
+    assert candidate.main() == 0
+    record = json.loads(output.read_text())
+    expected = "evaluation_summary_sha256" if live_enabled else "skipped_evaluation_record_sha256"
+    excluded = "skipped_evaluation_record_sha256" if live_enabled else "evaluation_summary_sha256"
+    assert record[expected] == hashlib.sha256(summary.read_bytes()).hexdigest()
+    assert excluded not in record
 
 
 @pytest.mark.parametrize("changes", [
