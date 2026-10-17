@@ -23,7 +23,7 @@ from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
 
 
 class _Embedding:
-    def passage_embed(self, documents):
+    def passage_embed(self, documents, batch_size: int):
         return iter(np.ones((len(documents), 2)))
 
     def query_embed(self, query):

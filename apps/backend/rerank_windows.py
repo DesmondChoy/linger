@@ -9,6 +9,9 @@ from tokenizers import Tokenizer
 if TYPE_CHECKING:
     from fastembed.rerank.cross_encoder import TextCrossEncoder
 
+# ONNX memory grows with batch x sequence length squared; fastembed's default
+# batches of whole 512-token windows exceeded the 2 GB production container.
+MODEL_BATCH_SIZE = 4
 
 class TokenWindowReranker:
     """Aggregate overlapping local scores without changing canonical evidence."""
@@ -53,7 +56,9 @@ class TokenWindowReranker:
             destination.append(index)
         scores = [float("-inf")] * len(documents)
         if fitting:
-            raw_scores = self.encoder.rerank(query, [documents[index] for index in fitting])
+            raw_scores = self.encoder.rerank(
+                query, [documents[index] for index in fitting], batch_size=MODEL_BATCH_SIZE
+            )
             for index, score in zip(fitting, raw_scores, strict=True):
                 scores[index] = float(score)
         if not overflowing:
@@ -71,6 +76,6 @@ class TokenWindowReranker:
                         raise ValueError("Reranker pair exceeds its token budget")
                     windows.append(window)
                     owners.append(index)
-            for owner, score in zip(owners, self.encoder.rerank(query_window, windows), strict=True):
+            for owner, score in zip(owners, self.encoder.rerank(query_window, windows, batch_size=MODEL_BATCH_SIZE), strict=True):
                 scores[owner] = max(scores[owner], float(score))
         return scores
