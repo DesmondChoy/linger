@@ -10,8 +10,8 @@ permissions:
   contents: read
   actions: read
   packages: write
+  pull-requests: read
 
-# The reusable workflow reads the current release-candidate policy before starting.
 jobs:
   release:
     if: >-
@@ -24,3 +24,16 @@ jobs:
       ci_run_id: ${{ format('{0}', github.event.workflow_run.id) }}
       repetitions: ${{ vars.RELEASE_REPETITIONS || '1' }}
       model: ${{ vars.RELEASE_MODEL || 'openai:gpt-6-luna' }}
+
+  railway:
+    name: Deploy the published image
+    needs: release
+    if: needs.release.result == 'success' && needs.release.outputs.release_image != ''
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    uses: ./.github/workflows/railway-deploy.yml
+    with:
+      publication_run_id: ${{ format('{0}', github.run_id) }}
+      publication_attempt: ${{ format('{0}', github.run_attempt) }}

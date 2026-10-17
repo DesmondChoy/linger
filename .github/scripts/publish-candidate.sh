@@ -4,7 +4,15 @@ set -euo pipefail
 : "${CANDIDATE_SHA:?}" "${CI_RUN_ID:?}" "${GITHUB_REPOSITORY:?}" "${EVALUATED_IMAGE_ID:?}" "${PUBLICATION_ROUTE:?}"
 : "${GITHUB_RUN_ID:?}" "${GITHUB_RUN_ATTEMPT:?}"
 jq -e --arg sha "$CANDIDATE_SHA" --arg image "$EVALUATED_IMAGE_ID" --arg route "$PUBLICATION_ROUTE" \
-  '.candidate_sha == $sha and .image_id == $image and .publication.route == $route and .live_evaluations_enabled == true' \
+  '.candidate_sha == $sha and .image_id == $image and .publication.route == $route
+   and .image_checks == {candidate_sha: $sha, image_id: $image, offline_smoke: "passed", image_security: "passed"}
+   and ((.live_evaluations_enabled == true and .evaluation_status == "completed")
+     or (.live_evaluations_enabled == false and .evaluation_status == "skipped"
+       and $route == "manual" and .publication.automated_pass_percentage == null
+       and .publication.judgments_passed == null and .publication.judgments_total == null))
+   and (($route == "automatic" and .live_evaluations_enabled == true)
+     or ($route == "manual" and any(.human_approvals[]; .state == "approved"
+       and any(.environments[]; .name == "linger-release"))))' \
   release-evidence/publication.json > /dev/null
 
 docker load --input release-image/image.tar.gz
@@ -34,6 +42,9 @@ record = {key.lower(): os.environ[key] for key in (
 record["image"] = json.loads(Path("release-evidence/image.json").read_text())
 record["authorization"] = json.loads(Path("release-evidence/publication.json").read_text())
 Path("release-evidence/approved-release.json").write_text(json.dumps(record, indent=2) + "\n")
+if output := os.environ.get("GITHUB_OUTPUT"):
+    with open(output, "a") as stream:
+        stream.write(f"release_image={record['release_image']}\n")
 with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
     output.write(f"Published image: `{record['release_image']}`\n\nDeploy this digest with `LINGER_IMAGE`.\n")
 PYTHON
