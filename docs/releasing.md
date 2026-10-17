@@ -11,7 +11,7 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
 1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Keep the existing `release-candidate` branch, or create it from the merged `main` commit if absent. Protect both branches with reviewed pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). Require branches to be up to date and enforce the rules for administrators. Prohibit direct pushes and remove PR bypass permissions. Confirm these protections before removing CI on `main` pushes, because `main` relies on the PR checks. Require **Release promotion** on `release-candidate` as well. If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
+2. Keep the existing `release-candidate` branch, or create it from the merged `main` commit if absent. Protect both branches with reviewed, up-to-date pull requests. Enforce the rules for administrators, prohibit direct pushes, and remove PR bypass permissions. Require the seven CI checks listed in the [reference](release-checks.md#ci-checks) on `main`. Require only **Release promotion** on `release-candidate`; full CI runs after the promotion merges. Confirm these protections before using this CI policy. If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
 3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 4. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
 5. Before enabling live evaluations, create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI. Skip this setup while live evaluations are disabled.
@@ -27,7 +27,7 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 1. Merge ordinary changes into `main` through the normal PR checks.
 2. [Synchronize the branch history](#synchronize-the-branch-history) if `release-candidate` is not an ancestor of `main`.
 3. When the batch is ready, open a PR from `main` to `release-candidate`.
-4. Review the promotion PR and select **Create a merge commit**. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
+4. Review the promotion PR and wait for **Release promotion** to pass. The full CI jobs are skipped on this PR. Select **Create a merge commit**, then wait for full CI on the resulting `release-candidate` push to succeed.
 5. Open the candidate's **Release checks after candidate promotion** run. Inspect the candidate validation, image build, Trivy report, and offline startup and persistence checks.
 6. With live evaluations off, inspect `release-image-evidence-<sha>-<run>-<attempt>`. Confirm that `behavioral/summary.json` records `status: skipped` and `publication.score_scope: not_evaluated`. Its behavioral pass percentage and judgment counts must be `null`.
 7. Complete [review and approval](#review-and-approve-a-candidate). Approve the pending `linger-release` job to publish the checked image to GHCR.
@@ -58,7 +58,7 @@ Both protected branches require the PR branch to include the destination's curre
 
 3. Open a PR from the synchronization branch to `main`. Resolve conflicts, obtain review, and wait for required CI to pass. If `main` advances, merge its updated history into the synchronization branch and rerun the required checks.
 4. Merge the synchronization PR with **Create a merge commit**. This preserves the `release-candidate` ancestry in `main`.
-5. Open the promotion PR from `main` to `release-candidate`. Merge that PR with **Create a merge commit** after review and CI.
+5. Open the promotion PR from `main` to `release-candidate`. Merge that PR with **Create a merge commit** after review and a successful **Release promotion** check. Full CI runs on the resulting commit before release.
 
 Use merge commits for both PRs. Squash or rebase merging loses the ancestry needed by the next promotion. Start the synchronization branch from current `main`, because a direct PR from `release-candidate` can be behind `main` after feature merges. The synchronization PR runs ordinary CI on `main`; the subsequent promotion starts the release flow.
 

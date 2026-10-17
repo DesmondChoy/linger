@@ -287,10 +287,12 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs backend and frontend checks for pull requests to `main` and
-`release-candidate`, and for pushes to `release-candidate`. Merges into `main`
-do not repeat CI. Both branches require reviewed PRs with up-to-date checks and
-no direct pushes or bypasses. Backend tests block model-provider requests.
+GitHub Actions runs full CI for pull requests to `main` and pushes to
+`release-candidate`. Merges into `main` do not repeat CI. Pull requests to
+`release-candidate` run only the lightweight **Release promotion** check, which
+requires the source branch to be `main` in this repository. Both branches
+require reviewed, up-to-date PRs without direct pushes or bypasses.
+Backend tests block model-provider requests.
 Separate jobs run `uv run pytest -m "not embeddings"` and
 `uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
 `embeddings` use real local embedding and reranker models, which CI caches.
@@ -298,7 +300,7 @@ Their first local run needs the model files in cache or permission to download
 them. Frontend CI also checks the Ground truth reviewer, lint, and the production
 build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
 alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
-for the seven required checks.
+for the seven checks required on `main` PRs and before release.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
