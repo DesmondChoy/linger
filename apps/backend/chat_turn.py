@@ -1187,6 +1187,14 @@ def _saved_progress_to_record(resolution: ContextResolution) -> SavedProgress | 
     return SavedProgress(resolution.work_id, resolution.part_id, resolution.chapter_max)
 
 
+def _forget_withdrawn_progress(session_id: str, account: AccountContext, store: ReadingProgressStore) -> None:
+    """A withdrawn chapter must not return in another conversation as saved progress."""
+    for saved in store.list_for(account.account_id):
+        progress = sessions.reading_progress_for(session_id, saved.work_id)
+        if progress is not None and progress.chapter_max is None:
+            store.forget(account.account_id, saved.work_id)
+
+
 def _progress_entry(work_id: str, part_id: str, chapter_max: int | None) -> ReadingProgressEntry:
     registration = registry.CORPORA.get(work_id)
     return ReadingProgressEntry(
@@ -1584,6 +1592,8 @@ async def _run_chat_pipeline(
         reading_progress.commit(
             request.session_id, pending_progress, release.release_source
         )
+    if progress_store is not None:
+        _forget_withdrawn_progress(request.session_id, account, progress_store)
     inspection.reading_state = _reading_state_inspection(request.session_id, account, progress_store)
     return inspection, release, capture
 
