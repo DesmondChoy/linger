@@ -287,10 +287,11 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs full CI for pull requests to `main` and pushes to
-`release-candidate`. Merges into `main` do not repeat CI. Pull requests to
-`release-candidate` run only the lightweight **Release promotion** check, which
-requires the source branch to be `main` in this repository. Both branches
+GitHub Actions runs full CI for pull requests to `main`, pushes to
+`release-candidate`, and manual dispatch. Pushes to `main`, including merges,
+run only CodeQL. Pull requests to `release-candidate` run only the lightweight
+**Release promotion** check, which requires the source branch to be `main` in
+this repository. Both branches
 must be configured to require reviewed, up-to-date PRs without direct pushes or
 bypasses.
 Backend tests block model-provider requests.
@@ -303,9 +304,11 @@ build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
 alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
 for the seven checks required on `main` PRs and before release.
 
-A daily CodeQL-only scan refreshes `main` security results at 03:17 Singapore
-time. It does not repeat the full CI suite or start a release. Trivy scans remain
-part of full CI; their JSON reports are stored as workflow artifacts.
+CodeQL scans on pushes to `main` refresh its GitHub security results without
+starting a release. There is no scheduled scan. Without an eligible pull request,
+push, or manual dispatch, no new scan runs. Trivy scans remain part of full CI,
+with JSON reports stored as workflow artifacts. Newly disclosed dependency and
+image vulnerabilities are checked on the next full CI run.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
