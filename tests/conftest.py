@@ -28,7 +28,7 @@ class TermEmbedding:
             vector[zlib.crc32(term.encode()) % 256] += 1
         return vector
 
-    def passage_embed(self, documents: list[str]):
+    def passage_embed(self, documents: list[str], batch_size: int):
         return iter([self._vector(document) for document in documents])
 
     def query_embed(self, query: str):
