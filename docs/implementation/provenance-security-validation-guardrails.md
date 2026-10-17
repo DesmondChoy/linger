@@ -1,5 +1,9 @@
 # Runtime security validation guardrails
 
+Rules: [Specification §6.4](../specification.md#64-untrusted-content-and-privacy),
+[§6.8](../specification.md#68-message-normalisation), and
+[§6.9](../specification.md#69-english-only-reader-message-guard).
+
 ## Focus
 
 Apply DataFog's regex redaction for email addresses and phone numbers once to
@@ -157,6 +161,77 @@ The role impact is limited: Muse receives the redacted incoming message.
 Librarian, Serendipity, Provenance, and Sculptor receive that value through
 normal handoffs, while their own assembled prompts retain original book,
 memory, and tool text. All five roles keep the credential request guard.
+
+## Message normalisation
+
+Both `POST /api/chat` and `POST /api/chat/stream` take the same request body,
+so one normalisation at that boundary covers every consumer. Session history,
+prompts, capture binding, detectors, and inspection all read the normalised
+message. Capture binds the nominated text by exact containment in it.
+
+Normalisation applies these steps in order:
+
+1. Collapse line endings to `\n`.
+2. Remove C0/C1 control characters other than tab and newline.
+3. Remove every character Unicode defines as rendering as nothing. This covers
+   the zero-width space, word joiner, byte order mark, soft hyphen,
+   bidirectional override and isolate controls, and Unicode tag characters. It
+   also covers invisible characters outside the format category that an
+   enumerated deny-list misses, such as the combining grapheme joiner, the
+   Hangul fillers, and the variation selector supplement.
+4. Remove lone surrogates, which JSON parsing accepts but which cannot be
+   encoded back out.
+5. Keep the zero-width joiner and non-joiner only when both neighbouring
+   characters are non-ASCII, as Persian, Arabic, Indic scripts, and emoji
+   sequences require. Remove them next to an ASCII letter, where they only split
+   a word. Neighbours are read after step 3, so padding a joiner with zero-width
+   spaces cannot lend it a non-ASCII neighbourhood.
+6. Apply NFC, not NFKC, last. Combining sequences canonicalise without
+   rewriting compatibility forms the reader typed, such as ligatures,
+   full-width characters, and "…". Memory capture's exact-substring quoting
+   depends on this.
+
+Each removed class can hide instructions from a human reviewer while a model
+still reads them, or split a keyword past a deterministic detector. Variation
+selectors 1–16 are kept because an emoji's presentation is visible to the
+reader. Tag characters are removed unconditionally, which costs the England,
+Scotland, and Wales subdivision flags.
+
+Normalisation is idempotent. The length cap and emptiness check apply after it,
+so a message of only invisible characters is refused like an empty one.
+
+The self-harm, instruction-leak, and personal-data and secret detectors run on a
+further-folded copy (`fold_for_detection`, and `fold_for_self_harm` for the
+self-harm detector only). Folding strips combining marks, maps a small set of
+confusable homoglyphs to Latin letters, and casefolds before an NFKC pass. The
+self-harm path also folds leetspeak digits and spelled-out single letters. The
+folded copy exists only inside detection and is never stored, quoted, or shown.
+
+## English-only guard
+
+The guard is deterministic and model-free. It is biased toward false negatives,
+because refusing ordinary English is worse than missing a short non-English
+message. It never refuses a message that:
+
+- has fewer than 4 alphabetic words, or fewer than 20 letters and fewer than 8
+  CJK or Hangul characters (each such character counts as one word);
+- is mostly non-letters, such as numbers, punctuation, "Ch. 12", "p. 45", or a
+  bare "yes", "ok", or "hmm";
+- has its top language's confidence within a clear margin of English's, or no
+  classification; or
+- has less than half of its counted letters in confidently non-English windows,
+  so an isolated foreign title need not block an English message.
+
+Classification uses the compressed fastText `lid.176` model bundled with
+`fast-langdetect`, so detection is offline and deterministic (model licence CC
+BY-SA 3.0). Words are packed into windows of about 80 characters, and a short
+trailing window merges into the previous one. Each detector call reads at most
+80 characters. A window is non-English when its top language has at least 0.7
+confidence and a 0.5 margin over English among the top three results. English
+windows count toward the denominator; uncertain and non-prose windows do not.
+
+Inspection records `application_language_boundary`, marks every model trace
+skipped, and suppresses capture.
 
 ## Detector review notes
 
