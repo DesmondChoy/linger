@@ -6,6 +6,8 @@ on:
   push:
     branches: [release-candidate]
   workflow_dispatch:
+  schedule:
+    - cron: '17 19 * * *'
 
 permissions:
   contents: read
@@ -32,7 +34,7 @@ jobs:
 
   backend-tests:
     name: Backend tests (pytest)
-    if: github.event_name != 'pull_request' || github.base_ref == 'main'
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -60,7 +62,7 @@ jobs:
 
   backend-embeddings-tests:
     name: Backend tests (embeddings)
-    if: github.event_name != 'pull_request' || github.base_ref == 'main'
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -97,7 +99,7 @@ jobs:
 
   frontend-tests:
     name: Frontend tests (vitest)
-    if: github.event_name != 'pull_request' || github.base_ref == 'main'
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -186,7 +188,7 @@ jobs:
 
   dependencies:
     name: Dependency security
-    if: github.event_name != 'pull_request' || github.base_ref == 'main'
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -212,7 +214,7 @@ jobs:
 
   image:
     name: Image (amd64)
-    if: github.event_name != 'pull_request' || github.base_ref == 'main'
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.base_ref == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

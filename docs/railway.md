@@ -92,10 +92,14 @@ from a Railway-only failure.
 
 ## Configure GitHub once
 
-1. Protect `main` and `release-candidate` with one required approval, dismissal of
-   stale approvals, up-to-date required CI checks, and administrator enforcement.
-   Block force pushes and branch deletion. Require **Release promotion** on
-   `release-candidate` as well.
+1. Protect both branches with one required approval, dismissal of stale approvals,
+   up-to-date PRs, and administrator enforcement. Prohibit direct pushes and PR
+   bypasses. Block force pushes and branch deletion. Require the seven full CI
+   checks listed in the [reference](release-checks.md#ci-checks) on `main`.
+   Require only **Release promotion** on `release-candidate` to match its
+   promotion-only PR policy. Full CI runs on the resulting candidate commit
+   after merge and must pass before release. Verify the actual GitHub settings
+   against the [release setup guide](releasing.md#configure-github-once).
 2. Configure required human reviewers on **linger-release**. Permit `main` and
    `release-candidate` workflow contexts for image publication.
 3. Configure **railway-production** to allow `main` only. Automatic `workflow_run`
@@ -103,7 +107,8 @@ from a Railway-only failure.
    default branch, while validating the candidate commit independently.
 4. Store a Railway project token scoped to Linger's `production` environment as
    the **environment secret** `RAILWAY_TOKEN` in `railway-production`.
-5. Merge PR #107 into `main`, then promote `main` to `release-candidate`. Keep
+5. Merge the release and deployment workflows into `main`, then promote `main`
+   to `release-candidate`. Keep
    Railway GitHub auto-deploys and image auto-updates disabled so they cannot
    bypass successful publication and the selected immutable digest.
 
