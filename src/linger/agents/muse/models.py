@@ -124,16 +124,8 @@ class MemoryCandidate(StrictModel):
 
     kind: Literal["memory_candidate"]
     text: str = Field(min_length=1, max_length=8_000)
-    start_codepoint: int = Field(ge=0)
-    end_codepoint: int = Field(ge=1)
     reason_code: MemoryCandidateReasonCode
     evidence_ids: tuple[str, ...] = ()
-
-    @model_validator(mode="after")
-    def offsets_match_text_length(self) -> Self:
-        if self.end_codepoint - self.start_codepoint != len(self.text):
-            raise ValueError("candidate offsets must match the nominated text length")
-        return self
 
 
 class NoMemoryCandidate(StrictModel):

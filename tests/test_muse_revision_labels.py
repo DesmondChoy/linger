@@ -79,8 +79,7 @@ MIXED = {
         {"source_kind": "session_line", "quote": "I read the storm chapter twice",
          "supported_claims": ["You said you read it twice."]},
     ],
-    "memory": {"kind": "memory_candidate", "text": "I read the storm chapter twice", "start_codepoint": 0,
-               "end_codepoint": 30, "reason_code": "durable_reflection", "evidence_ids": []},
+    "memory": {"kind": "memory_candidate", "text": "I read the storm chapter twice", "reason_code": "durable_reflection", "evidence_ids": []},
 }
 
 
@@ -268,8 +267,7 @@ def test_a_draft_reply_with_outer_whitespace_still_labels_and_expands():
 def test_no_candidate_can_be_built_with_a_label(field, token):
     def candidate(text: str) -> dict:
         clean = "Marta sees the storm first."
-        memory = {"kind": "memory_candidate", "text": text, "start_codepoint": 0,
-                  "end_codepoint": len(text), "reason_code": "durable_reflection", "evidence_ids": []}
+        memory = {"kind": "memory_candidate", "text": text, "reason_code": "durable_reflection", "evidence_ids": []}
         return raw(clean) | {
             "reply": {"reply": text},
             "claim": {"evidence_uses": [book("a", text)]},

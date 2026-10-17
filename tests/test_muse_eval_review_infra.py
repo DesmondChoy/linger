@@ -397,14 +397,13 @@ class MemoryAndDeclarationGateTests(unittest.TestCase):
         raw["expected"].update({"memory_kind": "memory_candidate", "require_session_line": True})
         case = MuseEvalCase.model_validate(raw)
         message = case.input.reader_message
-        good = {"kind": "memory_candidate", "text": message[:10], "start_codepoint": 0,
-                "end_codepoint": 10, "reason_code": "x"}
+        good = {"kind": "memory_candidate", "text": message[:10], "reason_code": "x"}
         earlier = case.input.history[0].reader
         declared = [{"source_kind": "session_line", "quote": earlier[:12]}]
         grade = grade_additive(case, "Reply.", evidence_uses=declared, memory=good)
         self.assertEqual(((), ()), (grade.memory_failures, grade.reply_failures))
 
-        bad = {**good, "text": message[1:11]}
+        bad = {**good, "text": message[:10] + " (not in the message)"}
         grade = grade_additive(case, "Reply.", memory=bad)
         self.assertEqual(("memory_not_exact_slice",), grade.memory_failures)
         self.assertEqual(("missing_session_line",), grade.reply_failures)

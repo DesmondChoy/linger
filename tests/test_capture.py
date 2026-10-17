@@ -22,8 +22,6 @@ def nomination(text: str, *, evidence_ids: tuple[str, ...] = ()) -> MemoryCandid
     return MemoryCandidate(
         kind="memory_candidate",
         text=text,
-        start_codepoint=0,
-        end_codepoint=len(text),
         reason_code="durable_reflection",
         evidence_ids=evidence_ids,
     )
@@ -101,6 +99,16 @@ class CandidateFromReviewTests(unittest.TestCase):
                 source_text="Different words",
                 source_event_id="turn-4",
             )
+
+    def test_nomination_binds_anywhere_in_the_source(self) -> None:
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination("second sentence"),
+            source_text="First one. A second sentence here.",
+            source_event_id="turn-contained",
+        )
+        assert candidate is not None
+        self.assertEqual("second sentence", candidate.text)
 
     def test_unresolved_candidate_evidence_fails_binding(self) -> None:
         text = "A grounded reflection"
