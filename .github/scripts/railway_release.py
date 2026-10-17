@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from release_candidate import api, configuration, validate_repository_sha, validate_run
+from release_candidate import api, configuration, publication_authorization, validate_repository_sha, validate_run
 
 PROJECT = "6db691f2-f510-4018-aaaf-4be0ddef2b8a"
 ENVIRONMENT = "8c15d264-a440-439c-a75a-20e454e97745"
@@ -69,7 +69,7 @@ def approved(approvals: list) -> bool:
     ) for item in approvals)
 
 
-def validate_publication(record: dict, repository: str, run_id: str, attempt: str) -> dict:
+def validate_publication(record: dict, repository: str, run_id: str, attempt: str, evidence: Path) -> dict:
     sha = record.get("candidate_sha", "")
     validate_repository_sha(repository, sha)
     if record.get("github_run_id") != run_id or record.get("github_run_attempt") != attempt:
@@ -86,25 +86,27 @@ def validate_publication(record: dict, repository: str, run_id: str, attempt: st
     ci_run_id = record.get("ci_run_id", "")
     resolved = resolve(repository, sha, ci_run_id)
     policy = resolved["policy"]
-    mode = "live-evaluations" if policy["live_evaluations_enabled"] else "offline-ci"
-    if (record.get("evidence_mode") != mode or authorization.get("evidence_mode") != mode
-            or authorization.get("live_evaluations_enabled") is not policy["live_evaluations_enabled"]):
-        raise ValueError("Publication evidence mode differs from the reviewed release policy.")
+    if (json.loads((evidence / "image.json").read_text()) != image
+            or json.loads((evidence / "publication.json").read_text()) != authorization):
+        raise ValueError("Publication record differs from its retained image or authorization evidence.")
     route = authorization.get("publication", {}).get("route")
+    summary_bytes = (evidence / "behavioral/summary.json").read_bytes()
+    expected = publication_authorization(
+        json.loads(summary_bytes), sha=sha, image_id=image_id, route=route,
+        live_enabled=str(policy["live_evaluations_enabled"]).lower(),
+        auto_enabled=str(policy["auto_publish_enabled"]).lower(),
+        threshold=str(policy["auto_publish_threshold"]), configuration_sha=sha,
+        approvals=json.loads((evidence / "approvals.json").read_text()) if route == "manual" else [],
+        configuration=json.loads((evidence / "release-configuration.json").read_text()),
+        image_checks=json.loads((evidence / "image-checks.json").read_text()),
+    )
+    summary_hash = "evaluation_summary_sha256" if policy["live_evaluations_enabled"] else "skipped_evaluation_record_sha256"
+    expected[summary_hash] = hashlib.sha256(summary_bytes).hexdigest()
+    if authorization != expected:
+        raise ValueError("Publication authorization differs from the retained release evidence and current policy.")
     if route == "manual":
-        if not approved(authorization.get("human_approvals", [])) or not approved(
-                api(repository, f"actions/runs/{run_id}/approvals")):
+        if not approved(api(repository, f"actions/runs/{run_id}/approvals")):
             raise ValueError("Publication requires recorded human release approval.")
-    elif route != "automatic" or not policy["auto_publish_enabled"] or mode != "live-evaluations":
-        raise ValueError("Publication route is not authorized by release policy.")
-    if mode == "offline-ci" and (
-        policy["auto_publish_enabled"] or authorization.get("ci_run_id") != ci_run_id
-        or authorization.get("publication", {}).get("auto_publish_enabled") is not False
-        or authorization.get("checks") != {
-            "image_build": "passed", "offline_smoke": "passed", "image_security": "passed",
-        }
-    ):
-        raise ValueError("Offline publication requires complete CI evidence and manual approval.")
     return resolved
 
 
@@ -118,7 +120,7 @@ def load_publication(repository: str, run_id: str, attempt: str, destination: Pa
                    for key in ("repository", "head_repository"))):
         raise ValueError("Select an automatic release run from this repository's protected main branch.")
     jobs = api(repository, f"actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100")["jobs"]
-    publications = [job for job in jobs if job.get("name", "").split(" / ")[-1] == "Publish approved image"]
+    publications = [job for job in jobs if re.fullmatch(r"Publish approved [0-9a-f]{40}", job.get("name", "").split(" / ")[-1])]
     if len(publications) != 1 or publications[0].get("conclusion") != "success":
         raise ValueError("The selected attempt has no successful image publication job.")
     artifacts = api(repository, f"actions/runs/{run_id}/artifacts?per_page=100")["artifacts"]
@@ -129,10 +131,11 @@ def load_publication(repository: str, run_id: str, attempt: str, destination: Pa
     command("gh", "run", "download", run_id, "--repo", repository,
             "--name", matches[0]["name"], "--dir", str(destination))
     record = json.loads((destination / "approved-release.json").read_text())
-    validate_publication(record, repository, run_id, attempt)
+    validate_publication(record, repository, run_id, attempt, destination)
     expected = f"release-publication-{record['candidate_sha']}-{run_id}-{attempt}"
-    if matches[0]["name"] != expected:
-        raise ValueError("Publication artifact and recorded candidate differ.")
+    if (matches[0]["name"] != expected
+            or publications[0]["name"].split(" / ")[-1] != f"Publish approved {record['candidate_sha']}"):
+        raise ValueError("Publication artifact, successful job, and recorded candidate differ.")
     return record
 
 
@@ -244,13 +247,13 @@ def deploy(repository: str, run_id: str, attempt: str, output: Path) -> dict:
     try:
         with tempfile.TemporaryDirectory(prefix="railway-publication-") as directory:
             publication = load_publication(repository, run_id, attempt, Path(directory))
-        reference, sha = publication["release_image"], publication["candidate_sha"]
-        record.update({"candidate_sha": sha, "release_image": reference, "ci_run_id": publication["ci_run_id"],
-                       "evidence_mode": publication["evidence_mode"]})
-        record["registry"] = public_image(reference, publication["image"]["image_id"])
-        preflight()
-        # Check the current release tip again after waiting for production concurrency and registry/API reads.
-        validate_publication(publication, repository, run_id, attempt)
+            reference, sha = publication["release_image"], publication["candidate_sha"]
+            record.update({"candidate_sha": sha, "release_image": reference, "ci_run_id": publication["ci_run_id"],
+                           "evaluation_status": publication["authorization"]["evaluation_status"]})
+            record["registry"] = public_image(reference, publication["image"]["image_id"])
+            preflight()
+            # Recheck the release tip and policy after waiting for concurrency and registry/API reads.
+            validate_publication(publication, repository, run_id, attempt, Path(directory))
         # The image entrypoint repairs volume ownership, then drops to UID/GID 10001.
         # Saving this variable must not start a deployment of the previous source.
         initialized = railway_api("mutation($input:VariableUpsertInput!){variableUpsert(input:$input)}", {
@@ -262,7 +265,7 @@ def deploy(repository: str, run_id: str, attempt: str, output: Path) -> dict:
         updated = railway_api("""mutation($service:String!,$environment:String!,$input:ServiceInstanceUpdateInput!){
           serviceInstanceUpdate(serviceId:$service,environmentId:$environment,input:$input)
         }""", {"service": SERVICE, "environment": ENVIRONMENT,
-                 "input": {"source": {"image": reference, "repo": None}, "requiredMountPath": "/var/lib/linger"}})
+                 "input": {"source": {"image": reference, "repo": None}}})
         if not updated["serviceInstanceUpdate"] or (service().get("source") or {}).get("image") != reference:
             raise ValueError("Railway did not save the approved image source.")
         result = railway_api("""mutation($service:String!,$environment:String!){

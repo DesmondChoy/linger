@@ -10,31 +10,42 @@ its `production` environment, `linger` service, and `linger-state` volume.
 ## Promote and deploy a release
 
 1. Merge feature PRs into `main` after review and CI.
-2. Open a promotion PR from this repository's `main` to `release-candidate`.
-3. Obtain the required approval and use **Create a merge commit**. Both branches
+2. [Synchronize the branch history](releasing.md#synchronize-the-branch-history)
+   if `release-candidate` is not an ancestor of `main`. Complete this step before
+   each subsequent promotion.
+3. Open a promotion PR from this repository's `main` to `release-candidate`.
+4. Obtain the required approval and use **Create a merge commit**. Both branches
    require the seven application and security checks. `release-candidate` also
    requires **Release promotion** to verify the PR source.
-4. Wait for CI on the resulting `release-candidate` commit to succeed.
-5. Open **Release checks after candidate promotion**. The release job builds one
+5. Wait for CI on the resulting `release-candidate` commit to succeed.
+6. Open **Release checks after candidate promotion**. The release job builds one
    Linux AMD64 image, scans it, and checks offline startup and persistent state.
    It saves that image for publication. Paid evaluations stay disabled in
    [`.github/release-config.json`](../.github/release-config.json).
-6. Review the retained build evidence and approve **linger-release**. The publish
+7. Review the retained build evidence and approve **linger-release**. The publish
    job loads and publishes the saved image to `ghcr.io/desmondchoy/linger`, without
    rebuilding. Its `approved-release.json` records the immutable image digest,
-   candidate commit, CI run, approval, and `offline-ci` evidence mode.
-7. The deployment job verifies that the exact image can be pulled anonymously,
+   candidate commit, CI run, and publication authorization. The authorization's
+   `evaluation_status` is `skipped` while live evaluations are disabled.
+8. The deployment job verifies that the exact image can be pulled anonymously,
    updates the existing Railway service's image source, and deploys it. Railway
-   runs the published image directly. It does not upload source or run Railpack.
-8. Inspect the `railway-deployment` artifact. The job waits for the specific new
+   runs the published image directly.
+9. Inspect the `railway-deployment` artifact. The job waits for the specific new
    deployment ID, verifies its image digest and state mount, confirms it is
    active on the existing service, and checks public HTML and `/api/ready`.
 
-The offline route requires both release switches to remain `false` and human
-publication approval. Enabling paid evaluations adds the existing live evidence
-requirements before publication. A disabled paid suite is recorded as disabled;
-its results are never claimed as passed. Post-deployment HTTP checks make no
-model or search calls.
+Live evaluations and automatic publication are currently disabled. Disabled live
+evaluations always require human publication approval, including when the
+automatic-publication switch is enabled. The behavioral summary records
+`status: skipped`, `publication.score_scope: not_evaluated`, and `null` scores.
+Enabling paid evaluations adds the existing live evidence requirements before
+publication. Post-deployment HTTP checks make no model or search calls.
+
+Railway consumes `release-publication-<sha>-<run>-<attempt>`, produced by the
+existing [publication workflow](release-checks.md#triggers-and-approval).
+The deployment helper reuses its publication validator to check the saved
+configuration, image checks, behavioral summary, and authorization. Publication
+remains responsible for the approval decision and the tested image.
 
 The source, offline smoke, image scan, optional live checks, and publication all
 refer to the same saved release image. The separate image built by ordinary CI

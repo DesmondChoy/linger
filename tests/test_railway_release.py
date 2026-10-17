@@ -12,6 +12,8 @@ import threading
 
 import pytest
 
+from tests.test_release_workflow_checks import candidate, publication_evidence
+
 SCRIPT = Path(__file__).resolve().parents[1] / ".github/scripts/railway_release.py"
 spec = importlib.util.spec_from_file_location("railway_release", SCRIPT)
 railway = importlib.util.module_from_spec(spec)
@@ -32,23 +34,43 @@ def promotion():
     }
 
 
-def publication():
-    return {
+def publication(evidence=None, *, live=False, automatic=False):
+    """Produce the existing publication contract using the shared release policy."""
+    configuration = {"live_evaluations_enabled": live, "auto_publish_enabled": automatic,
+                     "auto_publish_threshold": 95, "configuration_sha": SHA}
+    checks = candidate.record_image_checks(SHA, IMAGE, "success", "success")
+    summary = (publication_evidence(route="automatic" if automatic else "manual", enabled=automatic)
+               if live else candidate.skipped_evaluations(SHA, IMAGE, configuration, checks))
+    route = summary["publication"]["route"]
+    approvals = copy.deepcopy(APPROVALS) if route == "manual" else []
+    authorization = candidate.publication_authorization(
+        summary, sha=SHA, image_id=IMAGE, route=route, live_enabled=str(live).lower(),
+        auto_enabled=str(automatic).lower(), threshold="95", configuration_sha=SHA,
+        configuration=configuration, image_checks=checks, approvals=approvals,
+    )
+    summary_text = json.dumps(summary, indent=2) + "\n"
+    summary_hash = "evaluation_summary_sha256" if live else "skipped_evaluation_record_sha256"
+    authorization[summary_hash] = hashlib.sha256(summary_text.encode()).hexdigest()
+    record = {
         "candidate_sha": SHA, "ci_run_id": "42", "github_run_id": "100", "github_run_attempt": "2",
-        "release_image": REFERENCE, "evidence_mode": "offline-ci",
+        "release_image": REFERENCE,
         "image": {"candidate_sha": SHA, "image_id": IMAGE, "platform": "linux/amd64"},
-        "authorization": {
-            "candidate_sha": SHA, "configuration_sha": SHA, "ci_run_id": "42", "image_id": IMAGE,
-            "evidence_mode": "offline-ci", "live_evaluations_enabled": False,
-            "publication": {"route": "manual", "auto_publish_enabled": False},
-            "human_approvals": copy.deepcopy(APPROVALS),
-            "checks": {"image_build": "passed", "offline_smoke": "passed", "image_security": "passed"},
-        },
+        "authorization": authorization,
     }
+    if evidence is not None:
+        for name, value in {
+            "approved-release.json": record, "publication.json": authorization, "image.json": record["image"],
+            "release-configuration.json": configuration, "image-checks.json": checks,
+            "approvals.json": approvals,
+        }.items():
+            (evidence / name).write_text(json.dumps(value, indent=2) + "\n")
+        (evidence / "behavioral").mkdir(exist_ok=True)
+        (evidence / "behavioral/summary.json").write_text(summary_text)
+    return record
 
 
 def github_api(monkeypatch, *, tip=SHA, policy_changes=None, pulls=None, ci_changes=None,
-               release_changes=None, publish_status="success", expired=False):
+               release_changes=None, publish_status="success", publish_sha=SHA, expired=False, approvals=None):
     policy = {"live_evaluations_enabled": False, "auto_publish_enabled": False,
               "auto_publish_threshold": 95} | (policy_changes or {})
     ci = {
@@ -77,11 +99,11 @@ def github_api(monkeypatch, *, tip=SHA, policy_changes=None, pulls=None, ci_chan
         if path == "actions/runs/100/attempts/2":
             return release
         if path == "actions/runs/100/attempts/2/jobs?per_page=100":
-            return {"jobs": [{"name": "release / Publish approved image", "conclusion": publish_status}]}
+            return {"jobs": [{"name": f"release / Publish approved {publish_sha}", "conclusion": publish_status}]}
         if path == "actions/runs/100/artifacts?per_page=100":
             return {"artifacts": [{"name": f"release-publication-{SHA}-100-2", "expired": expired}]}
         if path == "actions/runs/100/approvals":
-            return copy.deepcopy(APPROVALS)
+            return copy.deepcopy(APPROVALS if approvals is None else approvals)
         pytest.fail(f"Unexpected GitHub request: {path}")
 
     monkeypatch.setattr(railway, "api", api)
@@ -133,26 +155,71 @@ def test_old_candidate_cannot_replace_newer_release_tip(monkeypatch):
 @pytest.mark.parametrize("field,value", [
     ("release_image", "ghcr.io/desmondchoy/linger:latest"),
     ("release_image", "ghcr.io/attacker/linger@sha256:" + "c" * 64),
-    ("github_run_attempt", "1"), ("github_run_id", "999"), ("evidence_mode", "live-evaluations"),
+    ("github_run_attempt", "1"), ("github_run_id", "999"), ("ci_run_id", "0"),
 ])
-def test_publication_identity_is_not_user_selectable(monkeypatch, field, value):
+def test_publication_identity_is_not_user_selectable(monkeypatch, tmp_path, field, value):
     github_api(monkeypatch)
-    record = publication() | {field: value}
+    record = publication(tmp_path) | {field: value}
     with pytest.raises(ValueError):
-        railway.validate_publication(record, REPO, "100", "2")
+        railway.validate_publication(record, REPO, "100", "2", tmp_path)
 
 
 @pytest.mark.parametrize("field,value", [
     ("human_approvals", []), ("image_id", "sha256:" + "d" * 64),
-    ("configuration_sha", "d" * 40), ("ci_run_id", "99"), ("checks", {}),
+    ("configuration_sha", "d" * 40), ("image_checks", {}), ("evaluation_status", "completed"),
+    ("skipped_evaluation_record_sha256", "d" * 64),
     ("publication", {"route": "automatic", "auto_publish_enabled": True}),
 ])
-def test_offline_evidence_needs_exact_image_checks_ci_and_approval(monkeypatch, field, value):
+def test_offline_evidence_needs_exact_image_checks_and_approval(monkeypatch, tmp_path, field, value):
     github_api(monkeypatch)
-    record = publication()
+    record = publication(tmp_path)
     record["authorization"][field] = value
+    (tmp_path / "publication.json").write_text(json.dumps(record["authorization"]))
     with pytest.raises(ValueError):
-        railway.validate_publication(record, REPO, "100", "2")
+        railway.validate_publication(record, REPO, "100", "2", tmp_path)
+
+
+@pytest.mark.parametrize("live,automatic", [(False, False), (False, True), (True, False), (True, True)])
+def test_consumer_accepts_both_existing_publication_modes(monkeypatch, tmp_path, live, automatic):
+    github_api(monkeypatch, policy_changes={"live_evaluations_enabled": live, "auto_publish_enabled": automatic})
+    record = publication(tmp_path, live=live, automatic=automatic)
+    assert "evidence_mode" not in record
+    assert railway.validate_publication(record, REPO, "100", "2", tmp_path)["candidate_sha"] == SHA
+    if not live:
+        assert record["authorization"]["publication"]["route"] == "manual"
+        assert record["authorization"]["publication"]["automated_pass_percentage"] is None
+
+
+@pytest.mark.parametrize("name,field,value", [
+    ("image.json", "image_id", "sha256:" + "d" * 64),
+    ("image-checks.json", "offline_smoke", "failed"),
+    ("release-configuration.json", "auto_publish_threshold", 90),
+    ("behavioral/summary.json", "status", "passed"),
+    ("publication.json", "evaluation_status", "completed"),
+])
+def test_retained_evidence_must_match_publication(monkeypatch, tmp_path, name, field, value):
+    github_api(monkeypatch)
+    record = publication(tmp_path)
+    path = tmp_path / name
+    path.write_text(json.dumps(json.loads(path.read_text()) | {field: value}))
+    with pytest.raises(ValueError):
+        railway.validate_publication(record, REPO, "100", "2", tmp_path)
+
+
+def test_summary_bytes_must_match_hash_in_authorization(monkeypatch, tmp_path):
+    github_api(monkeypatch)
+    record = publication(tmp_path)
+    with (tmp_path / "behavioral/summary.json").open("a") as stream:
+        stream.write("\n")
+    with pytest.raises(ValueError, match="authorization differs"):
+        railway.validate_publication(record, REPO, "100", "2", tmp_path)
+
+
+def test_manual_publication_requires_live_approval_history(monkeypatch, tmp_path):
+    github_api(monkeypatch, approvals=[])
+    record = publication(tmp_path)
+    with pytest.raises(ValueError, match="human release approval"):
+        railway.validate_publication(record, REPO, "100", "2", tmp_path)
 
 
 def test_retry_accepts_failed_original_run_when_its_publication_succeeded(monkeypatch, tmp_path):
@@ -161,7 +228,7 @@ def test_retry_accepts_failed_original_run_when_its_publication_succeeded(monkey
 
     def command(*args):
         commands.append(args)
-        (tmp_path / "approved-release.json").write_text(json.dumps(publication()))
+        publication(tmp_path)
         return ""
 
     monkeypatch.setattr(railway, "command", command)
@@ -181,6 +248,13 @@ def test_retry_rejects_untrusted_unpublished_or_expired_sources(monkeypatch, tmp
     github_api(monkeypatch, **options)
     monkeypatch.setattr(railway, "command", lambda *_: pytest.fail("No artifact download permitted"))
     with pytest.raises(ValueError):
+        railway.load_publication(REPO, "100", "2", tmp_path)
+
+
+def test_publication_job_must_name_the_exact_recorded_candidate(monkeypatch, tmp_path):
+    github_api(monkeypatch, publish_sha="d" * 40)
+    monkeypatch.setattr(railway, "command", lambda *_: publication(tmp_path))
+    with pytest.raises(ValueError, match="successful job"):
         railway.load_publication(REPO, "100", "2", tmp_path)
 
 
@@ -305,7 +379,8 @@ def test_deploy_reuses_published_image_and_records_id_before_public_checks(monke
     assert result["deployment_id"] == "new-deployment"
     assert result["release_image"] == REFERENCE
     assert mutations[0][1]["input"]["skipDeploys"] is True
-    assert mutations[1][1]["input"]["source"] == {"image": REFERENCE, "repo": None}
+    # ServiceInstanceUpdateInput accepts source; volume mount requirements are checked separately.
+    assert mutations[1][1]["input"] == {"source": {"image": REFERENCE, "repo": None}}
     assert mutations[2][1] == {"service": railway.SERVICE, "environment": railway.ENVIRONMENT}
 
 
