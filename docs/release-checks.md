@@ -15,6 +15,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | CodeQL (javascript-typescript) | JavaScript and TypeScript source analysis with the same severity gate |
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
+| Release promotion (required on `release-candidate`) | Same-repository `main` → `release-candidate` PR source; skipped for ordinary `main` changes |
 
 Both backend jobs report the 25 slowest tests that take at least one second.
 The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
@@ -52,7 +53,11 @@ CI checks its image and discards it. Release selection requires the entire CI ru
 
 The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables evaluations or publication.
 
-![End-to-end release flow, from development checks and candidate promotion to optional evaluations, publication approval, and operator deployment](release-flow-end-to-end.png)
+With both switches off, the automatic workflow deploys native source to the existing Railway service after successful candidate push CI. It also requires a merged promotion PR and the current release tip. Enabling either switch stops that CI-only deployment route. See the [Railway guide](railway.md) for its credential scope and retained deployment evidence.
+
+The diagram below describes the optional image evaluation and publication route:
+
+![Optional image release flow, from development checks and candidate promotion to evaluations, publication approval, and operator deployment](release-flow-end-to-end.png)
 
 ## Behavioral release suite
 
@@ -130,7 +135,8 @@ The current threshold of `95` has no calibration data behind it. Automatic publi
 | Entry point | Trigger | Default behavior |
 | --- | --- | --- |
 | Release checks (manual) | Dispatch on `release-candidate` with a successful candidate SHA | Respects the committed live-evaluation switch; one repetition by default |
-| Release checks after candidate promotion | Successful `release-candidate` push CI | Respects the same switch; no paid evaluation for ordinary `main` commits |
+| Release checks after candidate promotion | Successful `release-candidate` push CI | With both switches off, deploys the reviewed current candidate to Railway using Railpack; otherwise the native deployment stops |
+| Native Railway deployment | Successful configuration checks and exact candidate CI, with both switches off | Requires a merged `main` promotion PR, serializes production jobs, retains build identity, and checks public HTML and readiness without paid calls |
 | Release evidence and approval | Called by either entry point | Candidate validation, a fresh AMD64 build with scan and offline smoke, paid evaluations and HTTP smoke, then publication routing; skipped while live evaluations are disabled |
 | GHCR publication | Complete evidence without blockers, followed by the selected approval route | Pushes the tested AMD64 image from the same release run without rebuilding; records its immutable registry digest |
 | Local deployment | Operator follows the release guide | Pulls the approved digest; never automatically updates a running service |
@@ -141,11 +147,13 @@ The evaluation job saves its tested image in an artifact for the publication job
 
 The `release-publication-<sha>-<run>-<attempt>` artifact contains `publication.json` and `approved-release.json`. `publication.json` binds the decision and configuration SHA to the evaluated image. `approved-release.json` adds the published registry digest and image identity.
 
-Environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
+The optional image environments permit both `main` and `release-candidate`. The native `railway-production` environment permits `main` only. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual image dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
 
 Security reports, release evidence, and approval records are retained for 30 days. The image artifact used between jobs expires after seven days. An expired image requires a new release run and a new approval decision. Keep approved release evidence and previous image digests outside the evidence expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
 
 ## Deployment contract
+
+The native Railway route builds the reviewed source with Railpack and preserves the existing state volume. Its build digest identifies the Railway build, rather than the separate image tested by the optional paid release workflow. The contract below describes the application and optional Compose image.
 
 | Setting | Behavior |
 | --- | --- |

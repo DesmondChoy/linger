@@ -39,7 +39,61 @@ The build configuration sets the frontend, model-cache, state, and memory paths.
 Accounts, transcripts, reading progress, and account memories live on the
 volume. Corpus files and local models remain in the application build.
 
-## Deploy the source
+## Deploy through GitHub
+
+The production flow is:
+
+```text
+feature push → PR + CI → main → promotion PR + CI → release-candidate
+             → successful push CI at that exact commit → native Railway deployment
+```
+
+Both branches require one approving review and the seven application and security
+CI checks. `release-candidate` also requires **Release promotion**, which accepts
+only a PR from this repository's `main` branch. Merge promotion PRs with **Create
+a merge commit** to preserve ancestry for the next promotion.
+
+After candidate push CI succeeds, **Release checks after candidate promotion**
+reads the release policy and deploys the approved source through the official
+Railway CLI. It uses the existing `linger` service, production environment, and
+state volume. Keep Railway's direct GitHub auto-deploy source disconnected so it
+cannot start a second deployment before CI completes.
+
+The deployment requires both switches in
+[`.github/release-config.json`](../.github/release-config.json) to remain `false`.
+Paid evaluations and GHCR publication stay disabled. Enabling either switch
+stops this native CI-only route until the team explicitly integrates the new
+release gate. The existing image evaluation and publication workflows remain
+available separately; their approved image is not the native Railway build.
+
+The workflow rejects stale candidates and commits without a merged promotion PR.
+Production jobs are serialized. Immediately before upload, the job rechecks CI,
+the release tip, policy, and the clean candidate checkout. It records the commit,
+CI run, promotion PR, Railway deployment ID, and native build digest in the
+`railway-deployment` artifact. It waits for that specific deployment to succeed,
+checks Railpack and the state mount, then checks public HTML and `/api/ready`.
+These automated HTTP checks make no model or search calls.
+
+### Configure GitHub once
+
+1. Protect `main` and `release-candidate` with one required approval, dismissal of
+   stale approvals, up-to-date required CI checks, and administrator enforcement.
+   Block force pushes and branch deletion. Require **Release promotion** on
+   `release-candidate` as well.
+2. Create the `railway-production` GitHub environment. Allow the `main` deployment
+   branch only: GitHub executes `workflow_run` in the default branch's context,
+   while the helper separately validates and uploads `release-candidate`.
+3. Create a Railway project token scoped to Linger's `production` environment.
+   Store it as the **environment secret** `RAILWAY_TOKEN` in `railway-production`.
+   Keep runtime provider keys in Railway's private variables.
+4. Merge the deployment implementation PR into `main`, then open and merge a
+   `main` → `release-candidate` promotion PR. Opening the implementation PR alone
+   does not deploy production.
+
+See [the release guide](releasing.md#promote-a-batch-of-changes) for the normal
+promotion steps.
+
+## Bootstrap or recover with a source upload
 
 Install the [official Railway CLI](https://docs.railway.com/cli), then run these
 commands from the repository root:
@@ -53,8 +107,10 @@ commands from the repository root:
 [`.railwayignore`](../.railwayignore) limits the upload to application source,
 the corpus, and build configuration. Local credentials, databases, memories,
 reports, development environments, and Docker build files are excluded.
-The initial deployment uses CLI uploads. A Git push does not deploy the service.
-Run `railway up` again after a verified update.
+The initial deployment used a CLI upload. Normal updates use the gated GitHub
+workflow above. Reserve direct operator uploads for bootstrap or deliberate
+recovery, after verifying the selected commit and CI; they bypass GitHub's job
+gate. Keep the same service and state volume.
 
 Generate a Railway domain with target port `8000`:
 
@@ -76,7 +132,8 @@ Readiness checks provider configuration, writable state, database integrity,
 corpus files, model checksums, local inference, and the built frontend.
 It returns `{"status":"ready"}` after those checks pass.
 
-Create a test account through the website and send this book question:
+For a separate manual check that incurs provider usage, create a test account
+through the website and send this book question:
 
 > I have finished Chapter 3 of Alice's Adventures in Wonderland. What does the
 > Dodo announce about the winners and prizes?

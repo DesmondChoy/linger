@@ -1,8 +1,8 @@
 # Release a Linger version
 
-Use this guide to promote a batch of changes from `main` to `release-candidate`, review the candidate, and run an approved image locally.
+Use this guide to promote a batch of changes from `main` to `release-candidate` and deploy the website with Railway's native Railpack build. The later sections cover the optional paid image evaluation and publication route.
 
-Live evaluations and publication are disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. While `live_evaluations_enabled` is `false`, CI still runs, but release runs skip their image build, live calls, and publication. Keep this setting off until the team is ready to run paid evaluations.
+Live evaluations and publication are disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. With both switches off, release runs skip their image build, live calls, and publication, then deploy the CI-approved source to the existing Railway service. Keep both settings off until the team is ready to integrate paid evaluations with native deployment.
 
 The [release checks reference](release-checks.md) describes the checks, publication rules, evidence, and limits. Both security datasets have human-approved Ground truth. Their live runs are intentionally deferred while live evaluations are off.
 
@@ -10,12 +10,14 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
-1. Merge the release workflows into `main`. Keep both `live_evaluations_enabled` and `auto_publish_enabled` set to `false`.
-2. Create `release-candidate` from the merged `main` commit. Protect both branches with pull requests and the seven CI checks listed in the [reference](release-checks.md#ci-checks). If CodeQL default setup already exists, coordinate its replacement with the advanced workflow.
-3. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
-4. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
-5. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
-6. If the team later enables automatic publication, create `linger-release-auto`. Restrict deployment branches to `main` and `release-candidate` and leave required human reviewers unset. Keep the protected `linger-release` environment for candidates that need human review.
+Follow the [Railway setup](railway.md#configure-github-once): protect both existing branches with PR reviews and the seven CI checks listed in the [reference](release-checks.md#ci-checks), require **Release promotion** on `release-candidate`, and configure the production environment secret. Keep both release policy switches `false` and Railway's direct GitHub auto-deploy source disconnected.
+
+The following setup is needed only before enabling the optional paid image route:
+
+1. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
+2. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
+3. Enable GitHub Packages publication for Actions. The publication job uses its own `GITHUB_TOKEN` with package write permission.
+4. If the team later enables automatic publication, create `linger-release-auto`. Restrict deployment branches to `main` and `release-candidate` and leave required human reviewers unset. Keep the protected `linger-release` environment for candidates that need human review.
 
 GitHub runs the automatic `workflow_run` entry point in the default branch's context, `main`. Manual dispatch uses `release-candidate`. Both therefore need environment access, but candidate validation still accepts only successful `release-candidate` push CI. Environment access does not make `main` commits release candidates.
 
@@ -25,14 +27,16 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 
 1. Merge ordinary changes into `main` through the normal PR checks.
 2. When the batch is ready, open a PR from `main` to `release-candidate`.
-3. Review and merge the promotion PR. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
-4. Open the candidate's **Release checks after candidate promotion** run. With live evaluations off, the run reports that release testing is disabled and skips the release image build, evaluations, and publication.
+3. Obtain the required approval and merge the promotion PR with **Create a merge commit**. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
+4. Open the candidate's **Release checks after candidate promotion** run. With both release switches off, it skips paid image testing and publication, then deploys the exact commit to Railway with Railpack. Inspect the **Deploy native Railway website** job and its `railway-deployment` artifact for the deployment ID and public readiness checks.
+
+A direct candidate push, fork PR, stale candidate, or unsuccessful CI cannot deploy through this workflow. Production deployment checks make no model calls. The [Railway guide](railway.md) describes service configuration, state preservation, and recovery.
 
 When live evaluations are enabled, successful candidate CI starts a release run automatically. The run builds a fresh Linux AMD64 image at that commit, scans it, and checks offline startup and persistence before live testing. Approval publishes that tested image without rebuilding it. The promotion's resulting commit SHA is the candidate identity.
 
 ## Enable live evaluations
 
-1. Complete the GitHub setup above.
+1. Complete the optional paid image setup above and agree how its evidence will gate the native Railway build. Enabling paid evaluation or image publication stops the CI-only Railway route; publishing an image does not deploy it to Railway.
 2. In `.github/release-config.json`, change `live_evaluations_enabled` to `true`. Leave `auto_publish_enabled` at `false` for human approval of every candidate.
 3. Review and merge the configuration change into `main`, then promote it to `release-candidate` with the next batch.
 4. Inspect the release run after candidate CI succeeds. Expect paid model calls and synthetic evaluation traces in the configured Logfire project.
