@@ -143,7 +143,8 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         response = await self.turn(UNCERTAIN_COMPLETIONS[0])
 
         self.assertIsNone(response.inspection.muse_turn["reading_context"])
-        self.assertEqual(2, self.store.get(self.account.account_id, ALICE).chapter_max)
+        # Withdrawing the ceiling here also erases it for later conversations.
+        self.assertIsNone(self.store.get(self.account.account_id, ALICE))
         self.assertIsNone(sessions.reading_progress(self.session_id).chapter_max)
 
     async def test_qualified_completion_cannot_raise_persisted_progress(self):
@@ -153,7 +154,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
                 await self.turn("I've finished chapter 2 of Alice's Adventures in Wonderland.")
                 response = await self.turn(message)
                 self.assertIsNone(response.inspection.muse_turn["reading_context"])
-                self.assertEqual(2, self.store.get(self.account.account_id, ALICE).chapter_max)
+                self.assertIsNone(self.store.get(self.account.account_id, ALICE))
                 await self.turn("Actually, I've finished chapter 3.")
                 self.assertEqual(3, self.store.get(self.account.account_id, ALICE).chapter_max)
 
