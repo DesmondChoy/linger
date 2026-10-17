@@ -4,9 +4,9 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 
 ## CI checks
 
-`.github/workflows/ci.yml` runs on pull requests to `main` or `release-candidate`, pushes to `release-candidate`, and manual dispatch. Merges into `main` do not repeat CI. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
+`.github/workflows/ci.yml` runs full CI on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. Pull requests to `release-candidate` run only **Release promotion**, which validates the source and target branches. Merges into `main` do not repeat CI. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
 
-| Required check | Evidence |
+| Full CI check | Evidence |
 | --- | --- |
 | Backend tests (pytest) | Python regressions, including API authorization, privacy boundaries, source preservation, eval contracts, and release rejection cases |
 | Backend tests (embeddings) | Retrieval regressions marked `embeddings`, run against the real local embedding and reranker models |
@@ -16,7 +16,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
-Both `main` and `release-candidate` require reviewed PRs with up-to-date checks, without direct pushes or bypasses, including for administrators. Repository administrators configure these protections through the [setup guide](releasing.md#configure-github-once). The additional **Release promotion** check accepts only a same-repository PR from `main` to `release-candidate`. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+Both branches require reviewed, up-to-date PRs without direct pushes or bypasses, including for administrators. The seven checks above are required before merging into `main`. On `release-candidate`, only **Release promotion** is required before merging. It accepts only a same-repository PR from `main` to `release-candidate`. The full CI jobs are skipped on that PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure these protections through the [setup guide](releasing.md#configure-github-once). Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
 
 Both backend jobs report the 25 slowest tests that take at least one second.
 The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
