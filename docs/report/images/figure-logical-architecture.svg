@@ -75,6 +75,7 @@
 <path d="M360,420 L360,500" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <path d="M495,420 L495,455 L385,455 L385,500" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <path d="M535,420 L535,500" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
-<path d="M575,420 L575,455 L800,455 L800,500" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<path d="M575,420 L575,465" fill="none" stroke="#111" stroke-width="1.1"/>
+<path d="M410,420 L410,449 A6,6 0 0 1 410,461 L410,465 L529,465 A6,6 0 0 1 541,465 L800,465 L800,500" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 <path d="M970,275 L1015,275 L1015,530 L900,530" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
 </svg>

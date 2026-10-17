@@ -3,8 +3,9 @@
 Status: **Canonical telemetry contract**
 
 This document is the sole authority for what Linger records in Pydantic
-Logfire. The product and architecture specification links here instead of
-duplicating this contract.
+Logfire. The product and architecture specification
+([§8.1](specification.md#81-agent-telemetry-and-debugging)) links here instead
+of duplicating this contract.
 
 ## 1. Purpose
 
