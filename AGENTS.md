@@ -30,14 +30,6 @@ task contracts. Preserve each role's tool, context, validation, release, and
 storage authority boundaries. Follow the maintained
 [agent runtime skills architecture](docs/agent-skills.md).
 
-### Specification scope
-
-`docs/specification.md` states rules, authority boundaries, and acceptance
-criteria. When syncing docs with code, put mechanisms, thresholds, field lists,
-commands, and evaluation-runner behaviour in the owning design doc, agent
-README, or evaluation guide, and link to it from the spec's **Detail** line. A
-change that only adds implementation detail should not grow the spec.
-
 ### Cross-agent impact
 
 Whenever you propose a solution that changes agent behavior, include a brief,

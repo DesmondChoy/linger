@@ -123,8 +123,7 @@ is available at <http://127.0.0.1:8000/docs>.
 
 The collaboration map, saved evaluations, Reader, and Inspect are local
 developer tools for corpus interaction and backend debugging. They are outside
-the user-facing frontend contract. Rules:
-[Specification §4.2.4](../docs/specification.md#424-developer-corpus-and-inspection-tools).
+the user-facing frontend contract.
 
 - The **collaboration map** follows the server's content-free progress stream
   while a turn runs. A completed turn combines that stream with released
@@ -151,14 +150,8 @@ the user-facing frontend contract. Rules:
   copies a Logfire filter for that turn. With `LINGER_DEV_INSPECT=true`, completed
   records also contain agent task inputs, tool calls and results, outputs,
   Serendipity search events, and captured or cited memory text. The account's
-  saved turn retains this content in `LINGER_STATE_DIR/transcripts.sqlite3`.
-  The trace reuses the evaluation transcript hooks, which observe without
-  changing agent behaviour, and is never sent to telemetry. Disabling the
-  setting stops future collection and does not redact earlier saved records.
-  For a failed stage, Inspect records whether the failure came from
-  application code, a model call, or deterministic validation, and whether it
-  is retryable. Stage durations come from paired start and completion events;
-  an unpaired event leaves its duration unavailable.
+  saved turn retains this content. Disabling the setting stops future
+  collection and does not redact earlier saved records.
 
 These developer tools cannot authorize retrieval, release, capture, or storage.
 

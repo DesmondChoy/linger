@@ -1,7 +1,5 @@
 # Session-supported exact passages
 
-Rules: [Specification §6.1](../specification.md#61-spoilers).
-
 ## Scope
 
 Private Librarian inference receives the current reader message, bounded
