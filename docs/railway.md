@@ -1,30 +1,121 @@
 # Deploy Linger on Railway
 
-Deploy the website and Python API together from source with Railway's Railpack
-builder. Visitors open one HTTPS URL. FastAPI serves the built React files and
-handles `/api` requests on the same origin.
+The website and Python API run together at
+[Linger](https://linger-production-b81b.up.railway.app). FastAPI serves the built
+React files and `/api` requests from one origin.
 
-The current website is [Linger](https://linger-production-b81b.up.railway.app).
-Its [Railway project](https://railway.com/project/6db691f2-f510-4018-aaaf-4be0ddef2b8a)
-uses the `production` environment and `linger` service.
+Production uses the existing [Linger Railway project](https://railway.com/project/6db691f2-f510-4018-aaaf-4be0ddef2b8a),
+its `production` environment, `linger` service, and `linger-state` volume.
 
-The build uses [`railpack.json`](../railpack.json) to install Python and Node,
-build the frontend, and download the embedding and reranking models. Startup
-uses those packaged models with Hugging Face network access disabled.
-No local Docker installation is required.
+## Promote and deploy a release
 
-## Configure the service
+1. Merge feature PRs into `main` after review and CI.
+2. Open a promotion PR from this repository's `main` to `release-candidate`.
+3. Obtain the required approval and use **Create a merge commit**. Both branches
+   require the seven application and security checks. `release-candidate` also
+   requires **Release promotion** to verify the PR source.
+4. Wait for CI on the resulting `release-candidate` commit to succeed.
+5. Open **Release checks after candidate promotion**. The release job builds one
+   Linux AMD64 image, scans it, and checks offline startup and persistent state.
+   It saves that image for publication. Paid evaluations stay disabled in
+   [`.github/release-config.json`](../.github/release-config.json).
+6. Review the retained build evidence and approve **linger-release**. The publish
+   job loads and publishes the saved image to `ghcr.io/desmondchoy/linger`, without
+   rebuilding. Its `approved-release.json` records the immutable image digest,
+   candidate commit, CI run, approval, and `offline-ci` evidence mode.
+7. The deployment job verifies that the exact image can be pulled anonymously,
+   updates the existing Railway service's image source, and deploys it. Railway
+   runs the published image directly. It does not upload source or run Railpack.
+8. Inspect the `railway-deployment` artifact. The job waits for the specific new
+   deployment ID, verifies its image digest and state mount, confirms it is
+   active on the existing service, and checks public HTML and `/api/ready`.
 
-1. Create a Railway project and an empty service named `linger`.
-2. Select **Railpack** as the builder. Keep the root directory at the repository
-   root and leave custom build and start commands empty.
-3. Attach a persistent volume named `linger-state` at `/var/lib/linger`.
-4. Use one replica in Singapore, with limits of 2 vCPUs and 2 GB RAM. The
-   application runs one Uvicorn worker because
-   active sessions and rate limits are held in process memory.
-5. Set the healthcheck path to `/api/ready` and its timeout to `600` seconds.
-   Use **On Failure** with five restart attempts and a 60-second draining period.
-6. Add these private service variables:
+The offline route requires both release switches to remain `false` and human
+publication approval. Enabling paid evaluations adds the existing live evidence
+requirements before publication. A disabled paid suite is recorded as disabled;
+its results are never claimed as passed. Post-deployment HTTP checks make no
+model or search calls.
+
+The source, offline smoke, image scan, optional live checks, and publication all
+refer to the same saved release image. The separate image built by ordinary CI
+is discarded. Production uses the image checked by the release workflow.
+
+## Make the GHCR package public
+
+Railway Hobby can pull public images. It cannot use private registry credentials.
+GitHub creates the first GHCR package as private even when its source repository
+is public. [GitHub visibility documentation](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility)
+explains the package setting.
+
+After the first approved publication:
+
+1. Open the [Linger container package](https://github.com/DesmondChoy/linger/pkgs/container/linger).
+2. Open **Package settings**, then **Change visibility** and choose **Public**.
+   Public visibility cannot be reversed. The image contains application source,
+   corpus, and packaged models; runtime provider keys, accounts, and memories
+   remain outside the image.
+3. Run the deployment-only retry below using that publication's run ID and
+   attempt. The anonymous-pull guard refuses to change Railway while the image
+   is private or unavailable.
+
+Use the recorded `ghcr.io/desmondchoy/linger@sha256:...` reference. Mutable tags
+such as `latest` do not identify an approved release.
+
+## Retry deployment without rebuilding
+
+Use **Actions → Deploy published image to Railway → Run workflow** on `main`.
+Enter the original automatic release run ID and the attempt that successfully
+published the image. The default attempt is `1`.
+
+The retry downloads that attempt's retained publication evidence. It verifies
+that the publication job succeeded even if the overall run failed during
+Railway deployment. It then rechecks the current candidate tip, successful push
+CI, merged promotion PR, approval, and anonymous registry access. It runs no image
+build, publication, model evaluation, or paid HTTP smoke.
+
+Automatic deployments and retries share the `railway-production` concurrency
+group. A retry cannot replace a newer release candidate. Publication evidence is
+retained for 30 days; expired evidence prevents a retry. Keep approved release
+records before their expiry. Do not rerun the whole release workflow to recover
+from a Railway-only failure.
+
+## Configure GitHub once
+
+1. Protect `main` and `release-candidate` with one required approval, dismissal of
+   stale approvals, up-to-date required CI checks, and administrator enforcement.
+   Block force pushes and branch deletion. Require **Release promotion** on
+   `release-candidate` as well.
+2. Configure required human reviewers on **linger-release**. Permit `main` and
+   `release-candidate` workflow contexts for image publication.
+3. Configure **railway-production** to allow `main` only. Automatic `workflow_run`
+   jobs and deployment-only retries execute trusted helpers from the protected
+   default branch, while validating the candidate commit independently.
+4. Store a Railway project token scoped to Linger's `production` environment as
+   the **environment secret** `RAILWAY_TOKEN` in `railway-production`.
+5. Merge PR #107 into `main`, then promote `main` to `release-candidate`. Keep
+   Railway GitHub auto-deploys and image auto-updates disabled so they cannot
+   bypass successful publication and the selected immutable digest.
+
+## Preserve the existing service and state
+
+Keep the service at one replica in Singapore, with limits of 2 vCPUs and 2 GB RAM.
+Keep the volume `da3aff80-4c28-42c3-8317-5eb51fc85c7c` attached to service
+`7283294a-c4d8-4908-b7ae-8c5e2fa40913` at `/var/lib/linger`. Keep `/api/ready` as the
+healthcheck path, its timeout at 600 seconds, On Failure with five restart
+attempts, and a 60-second draining period.
+
+The deployment helper checks the project has only its expected production
+environment because Railway's instance update can propagate to other non-fork
+environments. Review that isolation check before adding environments.
+
+The previous Railpack build may leave root-owned state. The workflow saves
+`RAILWAY_RUN_UID=0` without triggering a deployment, then switches the image.
+The image entrypoint repairs ownership only inside the state directory, drops to
+UID and GID `10001`, and starts the application. The application runs without
+root privileges. The image smoke checks this migration using populated,
+root-owned state and verifies persistence across restart and replacement.
+
+Keep these private service variables:
 
 | Variable | Value |
 | --- | --- |
@@ -35,126 +126,12 @@ No local Docker installation is required.
 | `LINGER_DEV_INSPECT` | `false` |
 | `PORT` | `8000` |
 
-The build configuration sets the frontend, model-cache, state, and memory paths.
-Accounts, transcripts, reading progress, and account memories live on the
-volume. Corpus files and local models remain in the application build.
+The image defines the model-cache, frontend, state, and memory paths. Keep custom
+start commands empty so the image entrypoint and command run. Never copy the old
+Railpack model or frontend paths into service-variable overrides.
 
-## Deploy through GitHub
-
-The production flow is:
-
-```text
-feature push → PR + CI → main → promotion PR + CI → release-candidate
-             → successful push CI at that exact commit → native Railway deployment
-```
-
-Both branches require one approving review and the seven application and security
-CI checks. `release-candidate` also requires **Release promotion**, which accepts
-only a PR from this repository's `main` branch. Merge promotion PRs with **Create
-a merge commit** to preserve ancestry for the next promotion.
-
-After candidate push CI succeeds, **Release checks after candidate promotion**
-reads the release policy and deploys the approved source through the official
-Railway CLI. It uses the existing `linger` service, production environment, and
-state volume. Keep Railway's direct GitHub auto-deploy source disconnected so it
-cannot start a second deployment before CI completes.
-
-The deployment requires both switches in
-[`.github/release-config.json`](../.github/release-config.json) to remain `false`.
-Paid evaluations and GHCR publication stay disabled. Enabling either switch
-stops this native CI-only route until the team explicitly integrates the new
-release gate. The existing image evaluation and publication workflows remain
-available separately; their approved image is not the native Railway build.
-
-The workflow rejects stale candidates and commits without a merged promotion PR.
-Production jobs are serialized. Immediately before upload, the job rechecks CI,
-the release tip, policy, and the clean candidate checkout. It records the commit,
-CI run, promotion PR, Railway deployment ID, and native build digest in the
-`railway-deployment` artifact. It waits for that specific deployment to succeed,
-checks Railpack and the state mount, then checks public HTML and `/api/ready`.
-These automated HTTP checks make no model or search calls.
-
-### Configure GitHub once
-
-1. Protect `main` and `release-candidate` with one required approval, dismissal of
-   stale approvals, up-to-date required CI checks, and administrator enforcement.
-   Block force pushes and branch deletion. Require **Release promotion** on
-   `release-candidate` as well.
-2. Create the `railway-production` GitHub environment. Allow the `main` deployment
-   branch only: GitHub executes `workflow_run` in the default branch's context,
-   while the helper separately validates and uploads `release-candidate`.
-3. Create a Railway project token scoped to Linger's `production` environment.
-   Store it as the **environment secret** `RAILWAY_TOKEN` in `railway-production`.
-   Keep runtime provider keys in Railway's private variables.
-4. Merge the deployment implementation PR into `main`, then open and merge a
-   `main` → `release-candidate` promotion PR. Opening the implementation PR alone
-   does not deploy production.
-
-See [the release guide](releasing.md#promote-a-batch-of-changes) for the normal
-promotion steps.
-
-## Bootstrap or recover with a source upload
-
-Install the [official Railway CLI](https://docs.railway.com/cli), then run these
-commands from the repository root:
-
-```sh
-	railway login
-	railway link --project PROJECT_ID --environment production --service linger
-	railway up --detach --message "Deploy Linger website"
-```
-
-[`.railwayignore`](../.railwayignore) limits the upload to application source,
-the corpus, and build configuration. Local credentials, databases, memories,
-reports, development environments, and Docker build files are excluded.
-The initial deployment used a CLI upload. Normal updates use the gated GitHub
-workflow above. Reserve direct operator uploads for bootstrap or deliberate
-recovery, after verifying the selected commit and CI; they bypass GitHub's job
-gate. Keep the same service and state volume.
-
-Generate a Railway domain with target port `8000`:
-
-```sh
-	railway domain --port 8000
-```
-
-## Verify a deployment
-
-Check the public website and API:
-
-```sh
-	curl --fail https://YOUR_DOMAIN/
-	curl --fail https://YOUR_DOMAIN/api/health
-	curl --fail https://YOUR_DOMAIN/api/ready
-```
-
-Readiness checks provider configuration, writable state, database integrity,
-corpus files, model checksums, local inference, and the built frontend.
-It returns `{"status":"ready"}` after those checks pass.
-
-For a separate manual check that incurs provider usage, create a test account
-through the website and send this book question:
-
-> I have finished Chapter 3 of Alice's Adventures in Wonderland. What does the
-> Dodo announce about the winners and prizes?
-
-Confirm that a reply and book sources appear. Reload the page to check that the
-conversation is saved. Restart the Railway service, then sign in again and
-verify that the account and conversation remain.
-
-The existing reading-progress parser can reject declarations with trailing
-clauses or a title and progress in separate sentences. Bead `linger-6ts5`
-tracks the two forms found during deployment verification. Keep the completed
-chapter and book title together as in the example above until that bug is fixed.
-
-The existing prototype has open signup and no password reset, email
-verification, or login lockout. Provider usage is charged to the configured
-keys. Review Railway resource usage and provider usage before sharing the URL
-beyond the intended testers.
-
-## Preserve state during updates
-
-Keep `linger-state` attached at `/var/lib/linger` when redeploying or restarting.
-Volume-backed deployments have a short interruption while Railway moves the
-volume to the new process. Back up the volume before changes to database
-schemas or stored memories. See [Railway volume backups](https://docs.railway.com/volumes/backups).
+Accounts, transcripts, reading progress, and account memories remain on the
+volume. Corpus files and packaged models remain in the image. Volume-backed
+updates have a short interruption while Railway moves the volume to the new
+process. Back up state before a schema or memory-storage change. See
+[Railway volume backups](https://docs.railway.com/volumes/backups).

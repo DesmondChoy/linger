@@ -10,8 +10,8 @@ permissions:
   contents: read
   actions: read
   packages: write
+  pull-requests: read
 
-# The reusable workflow reads the current release-candidate policy before starting.
 jobs:
   release:
     if: >-
@@ -26,64 +26,14 @@ jobs:
       model: ${{ vars.RELEASE_MODEL || 'openai:gpt-6-luna' }}
 
   railway:
-    name: Deploy native Railway website
+    name: Deploy the published image
     needs: release
-    if: >-
-      needs.release.result == 'success' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    if: needs.release.result == 'success' && needs.release.outputs.release_image != ''
     permissions:
       contents: read
       actions: read
       pull-requests: read
-    concurrency:
-      group: railway-production
-      cancel-in-progress: false
-    environment:
-      name: railway-production
-      url: https://linger-production-b81b.up.railway.app
-    env:
-      CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
-      CI_RUN_ID: ${{ github.event.workflow_run.id }}
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      # workflow_run uses the default branch. Keep privileged helpers there.
-      - name: Check out trusted deployment helpers
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - name: Verify CI, promotion PR, release tip, and disabled paid checks
-        run: >-
-          python3 .github/scripts/railway_release.py resolve
-          --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" --run-id "$CI_RUN_ID"
-      - name: Check out the exact approved source separately
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          path: release-source
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 22
-      - name: Install pinned official Railway CLI
-        run: |
-          npm install --prefix "$RUNNER_TEMP/railway-cli" --no-audit --no-fund @railway/cli@5.70.0
-          echo "$RUNNER_TEMP/railway-cli/node_modules/.bin" >> "$GITHUB_PATH"
-      - name: Deploy and verify the new deployment
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          test -n "$RAILWAY_TOKEN"
-          python3 .github/scripts/railway_release.py deploy \
-            --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" --run-id "$CI_RUN_ID" \
-            --source release-source --output "$RUNNER_TEMP/railway-deployment.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always()
-        with:
-          name: railway-deployment-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/railway-deployment.json
-          retention-days: 30
-          if-no-files-found: warn
+    uses: ./.github/workflows/railway-deploy.yml
+    with:
+      publication_run_id: ${{ format('{0}', github.run_id) }}
+      publication_attempt: ${{ format('{0}', github.run_attempt) }}

@@ -1,6 +1,6 @@
 # Linger
 
-For the hosted website and direct source deployment, see the
+For the hosted website and deployment of approved public GHCR images, see the
 [Railway guide](docs/railway.md).
 
 For tested images, release approval, and deployment with `compose.release.yaml`,
@@ -300,12 +300,14 @@ for the seven required checks.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
-are ready for release testing. When enabled, the release run builds, scans, and
-tests one Linux AMD64 image, then publishes that same image after the configured
-approval decision. Auto-publishing remains off until evaluation results justify
-a threshold. See the [release guide](docs/releasing.md) for the switches,
-required GitHub protections, and manual approval steps, and the
-[release flow diagram](docs/release-flow-end-to-end.png) for the full process.
+are ready for release. The release run builds, scans, and checks one Linux AMD64
+image, then publishes that same image after human approval. Railway deploys its
+public GHCR digest. Paid evaluations remain optional. Deployment-only retries
+reuse the recorded digest without rebuilding or repeating evaluations.
+Auto-publishing remains off until evaluation results justify a threshold.
+See the [release guide](docs/releasing.md) for the switches, required GitHub
+protections, and approval steps, and the
+[release flow diagram](docs/release-checks.md#release-configuration) for the process.
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported

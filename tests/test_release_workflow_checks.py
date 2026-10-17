@@ -97,7 +97,7 @@ def test_disabled_candidate_configuration_needs_no_release_environment(monkeypat
     candidate.emit(result)
     assert result == settings() | {"configuration_sha": configuration_sha}
     assert calls == [(REPO, "branches/release-candidate"), (REPO, f"contents/.github/release-config.json?ref={configuration_sha}")]
-    assert "Evaluation and publication jobs are skipped" in summary.read_text()
+    assert "Publication requires offline CI evidence and human approval" in summary.read_text()
     assert "live_evaluations_enabled=false\n" in outputs.read_text()
     assert f"configuration_sha={configuration_sha}\n" in outputs.read_text()
 
@@ -199,6 +199,56 @@ def test_automatic_publication_records_policy_without_fabricating_human_approval
     record = authorize(publication_evidence("automatic", True), route="automatic", auto_enabled="true", approvals=[])
     assert record["publication"]["route"] == "automatic"
     assert record["human_approvals"] == []
+
+
+def offline_evidence():
+    return {
+        "evidence_mode": "offline-ci", "candidate_sha": SHA, "image_id": IMAGE, "ci_run_id": "42",
+        "checks": {"image_build": "passed", "offline_smoke": "passed", "image_security": "passed"},
+    }
+
+
+def authorize_offline(evidence=None, **changes):
+    return candidate.offline_publication_authorization(evidence or offline_evidence(), **({
+        "sha": SHA, "image_id": IMAGE, "ci_run_id": "42", "live_enabled": "false", "auto_enabled": "false",
+        "configuration_sha": "c" * 40,
+        "approvals": [{"state": "approved", "environments": [{"name": "linger-release"}]}],
+    } | changes))
+
+
+def test_offline_publication_explicitly_records_disabled_evals_and_manual_approval():
+    record = authorize_offline()
+    assert record["evidence_mode"] == "offline-ci"
+    assert record["live_evaluations_enabled"] is False
+    assert record["ci_run_id"] == "42"
+    assert record["publication"] == {"route": "manual", "auto_publish_enabled": False}
+    assert record["checks"] == offline_evidence()["checks"]
+    assert "judgments_passed" not in record
+    assert "evaluation_summary_sha256" not in record
+
+
+@pytest.mark.parametrize("changes", [
+    {"live_enabled": "true"}, {"live_enabled": ""}, {"auto_enabled": "true"}, {"auto_enabled": ""},
+    {"sha": "release-candidate"}, {"sha": "d" * 40}, {"image_id": "linger:latest"},
+    {"image_id": "sha256:" + "d" * 64}, {"ci_run_id": "43"}, {"ci_run_id": ""}, {"ci_run_id": "0"},
+    {"configuration_sha": "release-candidate"}, {"approvals": []},
+    {"approvals": [{"state": "rejected", "environments": [{"name": "linger-release"}]}]},
+    {"approvals": [{"state": "approved", "environments": [{"name": "linger-evaluations"}]}]},
+])
+def test_offline_publication_rejects_changed_identity_flags_or_missing_approval(changes):
+    with pytest.raises(ValueError):
+        authorize_offline(**changes)
+
+
+@pytest.mark.parametrize("key,value", [
+    ("evidence_mode", "live-evaluations"), ("candidate_sha", "d" * 40), ("image_id", "linger:latest"),
+    ("ci_run_id", "43"), ("checks", {}),
+    ("checks", {"image_build": "passed", "offline_smoke": "failed", "image_security": "passed"}),
+    ("checks", {"image_build": "passed", "offline_smoke": "passed", "image_security": "failed"}),
+])
+def test_offline_publication_rejects_missing_or_failed_image_checks(key, value):
+    with pytest.raises(ValueError, match="Offline evidence"):
+        authorize_offline(offline_evidence() | {key: value})
 
 
 @pytest.mark.parametrize("status", ["ready", "blocked", "failed"])

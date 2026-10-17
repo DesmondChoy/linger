@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -83,7 +84,7 @@ def publication_cli(tmp_path):
     evidence.mkdir()
     (evidence / "publication.json").write_text(json.dumps({
         "candidate_sha": SHA, "image_id": IMAGE, "publication": {"route": "manual"},
-        "live_evaluations_enabled": True,
+        "live_evaluations_enabled": True, "evidence_mode": "live-evaluations",
     }))
     image_directory = tmp_path / "release-image"
     image_directory.mkdir()
@@ -114,6 +115,7 @@ elif args[0] not in {"tag", "push", "logout"}:
                        EVALUATED_IMAGE_ID=IMAGE, PUBLICATION_ROUTE="manual", GITHUB_RUN_ID="123",
                        GITHUB_RUN_ATTEMPT="2", GH_TOKEN="test-token", GITHUB_ACTOR="test-maintainer",
                        GITHUB_STEP_SUMMARY=str(tmp_path / "summary.md"), DOCKER_CALLS=str(tmp_path / "docker.jsonl"),
+                       GITHUB_OUTPUT=str(tmp_path / "outputs"),
                        IMAGE_INFO=json.dumps(image), REGISTRY_DIGESTS=json.dumps([digest]))
 
     def run(**overrides):
@@ -139,6 +141,56 @@ def test_publication_loads_and_pushes_one_evaluated_image(publication_cli):
     assert record["image"] == {"candidate_sha": SHA, "image_id": IMAGE, "platform": "linux/amd64"}
     assert record["release_image"] == digest
     assert record["github_run_attempt"] == "2"
+    assert record["evidence_mode"] == "live-evaluations"
+    outputs = dict(line.split("=", 1) for line in (evidence.parent / "outputs").read_text().splitlines())
+    assert outputs["release_image"] == digest
+    assert outputs["evidence_mode"] == "live-evaluations"
+
+
+def test_offline_authorization_cli_publishes_saved_image_without_paid_evaluations(publication_cli):
+    run, _, evidence, digest = publication_cli
+    offline = {
+        "evidence_mode": "offline-ci", "candidate_sha": SHA, "image_id": IMAGE, "ci_run_id": "42",
+        "checks": {"image_build": "passed", "offline_smoke": "passed", "image_security": "passed"},
+    }
+    (evidence / "offline-ci.json").write_text(json.dumps(offline))
+    (evidence / "approvals.json").write_text(json.dumps([
+        {"state": "approved", "environments": [{"name": "linger-release"}]},
+    ]))
+    script = Path(__file__).resolve().parents[1] / ".github/scripts/release_candidate.py"
+    authorization = subprocess.run([
+        sys.executable, str(script), "authorize-offline", "--sha", SHA, "--image-id", IMAGE,
+        "--ci-run-id", "42", "--live-enabled", "false", "--auto-enabled", "false",
+        "--configuration-sha", "c" * 40, "--evidence", str(evidence / "offline-ci.json"),
+        "--approvals", str(evidence / "approvals.json"), "--output", str(evidence / "publication.json"),
+    ], capture_output=True, text=True)
+    assert authorization.returncode == 0, authorization.stderr
+    result, calls = run()
+    assert result.returncode == 0, result.stderr
+    assert not any(call[0] in {"build", "run"} for call in calls)
+    record = json.loads((evidence / "approved-release.json").read_text())
+    assert record["release_image"] == digest
+    assert record["evidence_mode"] == "offline-ci"
+    assert record["authorization"]["live_evaluations_enabled"] is False
+    assert record["authorization"]["ci_run_id"] == "42"
+    assert len(record["authorization"]["offline_evidence_sha256"]) == 64
+    assert "evaluation_summary_sha256" not in record["authorization"]
+
+
+@pytest.mark.parametrize("changes", [
+    {"evidence_mode": "unknown"}, {"live_evaluations_enabled": True}, {"ci_run_id": "43"},
+    {"publication": {"route": "automatic", "auto_publish_enabled": False}},
+    {"publication": {"route": "manual", "auto_publish_enabled": True}},
+])
+def test_offline_publication_guard_rejects_changed_authorization_before_loading(publication_cli, changes):
+    run, _, evidence, _ = publication_cli
+    (evidence / "publication.json").write_text(json.dumps({
+        "candidate_sha": SHA, "image_id": IMAGE, "ci_run_id": "42", "evidence_mode": "offline-ci",
+        "live_evaluations_enabled": False, "publication": {"route": "manual", "auto_publish_enabled": False},
+    } | changes))
+    result, calls = run()
+    assert result.returncode != 0
+    assert calls == []
 
 
 @pytest.mark.parametrize("changes", [

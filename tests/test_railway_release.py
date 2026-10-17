@@ -1,15 +1,16 @@
-"""Native deployment must preserve the reviewed commit, CI gate, and persistent service."""
+"""Only an approved, publicly pullable image may reach the existing production service."""
 
 import base64
 import copy
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import threading
 
 import pytest
-
 
 SCRIPT = Path(__file__).resolve().parents[1] / ".github/scripts/railway_release.py"
 spec = importlib.util.spec_from_file_location("railway_release", SCRIPT)
@@ -17,6 +18,9 @@ railway = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(railway)
 SHA = "a" * 40
 REPO = "DesmondChoy/linger"
+IMAGE = "sha256:" + "b" * 64
+REFERENCE = "ghcr.io/desmondchoy/linger@sha256:" + "c" * 64
+APPROVALS = [{"state": "approved", "environments": [{"name": "linger-release"}]}]
 
 
 def promotion():
@@ -28,47 +32,73 @@ def promotion():
     }
 
 
-def candidate_api(monkeypatch, *, tip=SHA, policy=None, pulls=None, run_changes=None):
-    policy = policy or {
-        "live_evaluations_enabled": False, "auto_publish_enabled": False, "auto_publish_threshold": 95,
+def publication():
+    return {
+        "candidate_sha": SHA, "ci_run_id": "42", "github_run_id": "100", "github_run_attempt": "2",
+        "release_image": REFERENCE, "evidence_mode": "offline-ci",
+        "image": {"candidate_sha": SHA, "image_id": IMAGE, "platform": "linux/amd64"},
+        "authorization": {
+            "candidate_sha": SHA, "configuration_sha": SHA, "ci_run_id": "42", "image_id": IMAGE,
+            "evidence_mode": "offline-ci", "live_evaluations_enabled": False,
+            "publication": {"route": "manual", "auto_publish_enabled": False},
+            "human_approvals": copy.deepcopy(APPROVALS),
+            "checks": {"image_build": "passed", "offline_smoke": "passed", "image_security": "passed"},
+        },
     }
-    run = {
-        "head_sha": SHA, "head_branch": "release-candidate", "event": "push",
-        "status": "completed", "conclusion": "success", "path": ".github/workflows/ci.yml",
+
+
+def github_api(monkeypatch, *, tip=SHA, policy_changes=None, pulls=None, ci_changes=None,
+               release_changes=None, publish_status="success", expired=False):
+    policy = {"live_evaluations_enabled": False, "auto_publish_enabled": False,
+              "auto_publish_threshold": 95} | (policy_changes or {})
+    ci = {
+        "head_sha": SHA, "head_branch": "release-candidate", "event": "push", "status": "completed",
+        "conclusion": "success", "path": ".github/workflows/ci.yml",
+        "repository": {"full_name": REPO}, "head_repository": {"full_name": REPO}, "html_url": "https://example.test/ci/42",
+    } | (ci_changes or {})
+    release = {
+        "path": ".github/workflows/release-auto.yml", "event": "workflow_run", "head_branch": "main",
         "repository": {"full_name": REPO}, "head_repository": {"full_name": REPO},
-        "html_url": "https://github.com/DesmondChoy/linger/actions/runs/42",
-    } | (run_changes or {})
+        "status": "completed", "conclusion": "failure",
+    } | (release_changes or {})
+    calls = []
 
     def api(repository, path):
         assert repository == REPO
+        calls.append(path)
         if path == "actions/runs/42":
-            return run
+            return ci
         if path == "branches/release-candidate":
             return {"commit": {"sha": tip}}
         if path == f"contents/.github/release-config.json?ref={tip}":
-            return {"type": "file", "encoding": "base64",
-                    "content": base64.b64encode(json.dumps(policy).encode()).decode()}
+            return {"type": "file", "encoding": "base64", "content": base64.b64encode(json.dumps(policy).encode()).decode()}
         if path == f"commits/{SHA}/pulls?per_page=100":
             return [promotion()] if pulls is None else pulls
+        if path == "actions/runs/100/attempts/2":
+            return release
+        if path == "actions/runs/100/attempts/2/jobs?per_page=100":
+            return {"jobs": [{"name": "release / Publish approved image", "conclusion": publish_status}]}
+        if path == "actions/runs/100/artifacts?per_page=100":
+            return {"artifacts": [{"name": f"release-publication-{SHA}-100-2", "expired": expired}]}
+        if path == "actions/runs/100/approvals":
+            return copy.deepcopy(APPROVALS)
         pytest.fail(f"Unexpected GitHub request: {path}")
 
     monkeypatch.setattr(railway, "api", api)
-    # configuration is shared with the existing release helper and uses its own API binding.
     monkeypatch.setitem(railway.configuration.__globals__, "api", api)
+    return calls
 
 
-def test_accepts_reviewed_promotion_with_exact_successful_push_ci(monkeypatch):
-    candidate_api(monkeypatch)
-    result = railway.resolve(REPO, SHA, "42")
-    assert result["candidate_sha"] == SHA
-    assert result["promotion_url"].endswith("/123")
+def test_accepts_exact_candidate_ci_and_merged_promotion(monkeypatch):
+    github_api(monkeypatch)
+    assert railway.resolve(REPO, SHA, "42")["promotion_url"].endswith("/123")
 
 
 @pytest.mark.parametrize("side,key,value", [
     ("head", "ref", "feature"), ("head", "repo", {"full_name": "fork/linger"}),
     ("base", "ref", "main"), ("base", "repo", None),
 ])
-def test_promotion_check_blocks_wrong_branch_or_repository(side, key, value):
+def test_promotion_blocks_wrong_source(side, key, value):
     pull = promotion()
     pull[side][key] = value
     with pytest.raises(ValueError, match="same-repository"):
@@ -78,7 +108,7 @@ def test_promotion_check_blocks_wrong_branch_or_repository(side, key, value):
 @pytest.mark.parametrize("pulls", [[], [promotion() | {"merged_at": None}],
                                   [promotion() | {"merge_commit_sha": "b" * 40}]])
 def test_direct_push_or_unmerged_pr_cannot_deploy(monkeypatch, pulls):
-    candidate_api(monkeypatch, pulls=pulls)
+    github_api(monkeypatch, pulls=pulls)
     with pytest.raises(ValueError, match="merged"):
         railway.resolve(REPO, SHA, "42")
 
@@ -89,130 +119,213 @@ def test_direct_push_or_unmerged_pr_cannot_deploy(monkeypatch, pulls):
     {"path": ".github/workflows/other.yml"}, {"head_repository": {"full_name": "fork/linger"}},
 ])
 def test_unsuitable_ci_cannot_deploy(monkeypatch, changes):
-    candidate_api(monkeypatch, run_changes=changes)
+    github_api(monkeypatch, ci_changes=changes)
     with pytest.raises(ValueError):
         railway.resolve(REPO, SHA, "42")
 
 
-def test_completed_ci_for_an_older_release_tip_cannot_replace_a_newer_candidate(monkeypatch):
-    candidate_api(monkeypatch, tip="b" * 40)
+def test_old_candidate_cannot_replace_newer_release_tip(monkeypatch):
+    github_api(monkeypatch, tip="b" * 40)
     with pytest.raises(ValueError, match="stale"):
         railway.resolve(REPO, SHA, "42")
 
 
-@pytest.mark.parametrize("flag", ["live_evaluations_enabled", "auto_publish_enabled"])
-def test_native_route_stops_if_paid_or_image_publication_policy_is_enabled(monkeypatch, flag):
-    candidate_api(monkeypatch, policy={
-        "live_evaluations_enabled": False, "auto_publish_enabled": False,
-        "auto_publish_threshold": 95, flag: True,
-    })
-    with pytest.raises(ValueError, match="disabled"):
-        railway.resolve(REPO, SHA, "42")
-
-
-def deployment(message, status="SUCCESS"):
-    return {"id": "new-deployment", "status": status, "meta": {
-        "cliMessage": message, "imageDigest": "sha256:built-by-railpack",
-        "serviceManifest": {"build": {"builder": "RAILPACK"}},
-        "volumeMounts": ["/var/lib/linger"],
-    }}
-
-
-def test_wait_matches_exact_upload_and_waits_for_health(monkeypatch):
-    results = iter([
-        [deployment("earlier run")],
-        [deployment("this run", "BUILDING"), deployment("earlier run")],
-        [deployment("this run"), deployment("earlier run")],
-    ])
-    sleeps = []
-    monkeypatch.setattr(railway, "deployments", lambda: next(results))
-    monkeypatch.setattr(railway.time, "sleep", sleeps.append)
-    assert railway.wait_for_deployment("this run")["id"] == "new-deployment"
-    assert len(sleeps) == 2
-
-
-@pytest.mark.parametrize("change,reason", [
-    ({"status": "FAILED"}, "FAILED"), ({"status": "CRASHED"}, "CRASHED"),
-    ({"meta": {"cliMessage": "this run", "serviceManifest": {"build": {"builder": "DOCKERFILE"}}}}, "Railpack"),
-    ({"meta": {"cliMessage": "this run", "serviceManifest": {"build": {"builder": "RAILPACK"}}}}, "volume"),
+@pytest.mark.parametrize("field,value", [
+    ("release_image", "ghcr.io/desmondchoy/linger:latest"),
+    ("release_image", "ghcr.io/attacker/linger@sha256:" + "c" * 64),
+    ("github_run_attempt", "1"), ("github_run_id", "999"), ("evidence_mode", "live-evaluations"),
 ])
-def test_failed_build_wrong_builder_or_missing_volume_fails(monkeypatch, change, reason):
-    monkeypatch.setattr(railway, "deployments", lambda: [deployment("this run") | copy.deepcopy(change)])
-    with pytest.raises(ValueError, match=reason):
-        railway.wait_for_deployment("this run")
+def test_publication_identity_is_not_user_selectable(monkeypatch, field, value):
+    github_api(monkeypatch)
+    record = publication() | {field: value}
+    with pytest.raises(ValueError):
+        railway.validate_publication(record, REPO, "100", "2")
 
 
-def test_wait_expires_instead_of_accepting_an_old_healthy_deployment(monkeypatch):
-    ticks = iter([0, 0, 11])
-    monkeypatch.setattr(railway.time, "monotonic", lambda: next(ticks))
-    monkeypatch.setattr(railway.time, "sleep", lambda _: None)
-    monkeypatch.setattr(railway, "deployments", lambda: [deployment("earlier run")])
-    with pytest.raises(TimeoutError):
-        railway.wait_for_deployment("missing upload", timeout=10)
+@pytest.mark.parametrize("field,value", [
+    ("human_approvals", []), ("image_id", "sha256:" + "d" * 64),
+    ("configuration_sha", "d" * 40), ("ci_run_id", "99"), ("checks", {}),
+    ("publication", {"route": "automatic", "auto_publish_enabled": True}),
+])
+def test_offline_evidence_needs_exact_image_checks_ci_and_approval(monkeypatch, field, value):
+    github_api(monkeypatch)
+    record = publication()
+    record["authorization"][field] = value
+    with pytest.raises(ValueError):
+        railway.validate_publication(record, REPO, "100", "2")
 
 
-@pytest.mark.parametrize("http_ready", [True, False])
-def test_deploy_records_exact_upload_even_if_public_verification_fails(monkeypatch, tmp_path, http_ready):
-    source = tmp_path / "source"
-    source.mkdir()
-    for name in ("railpack.json", ".railwayignore"):
-        (source / name).touch()
-    calls = []
+def test_retry_accepts_failed_original_run_when_its_publication_succeeded(monkeypatch, tmp_path):
+    calls = github_api(monkeypatch)
+    commands = []
 
-    def command(*args, cwd=None):
-        calls.append((args, cwd))
-        if args[:3] == ("git", "rev-parse", "HEAD"):
-            return SHA
+    def command(*args):
+        commands.append(args)
+        (tmp_path / "approved-release.json").write_text(json.dumps(publication()))
         return ""
 
     monkeypatch.setattr(railway, "command", command)
-    monkeypatch.setattr(railway, "resolve", lambda *args: {"candidate_sha": SHA, "ci_run_id": "42"})
-    monkeypatch.setenv("GITHUB_RUN_ID", "100")
-    monkeypatch.setenv("GITHUB_RUN_ATTEMPT", "2")
-    message = f"GitHub release {SHA} run 100 attempt 2"
-    monkeypatch.setattr(railway, "wait_for_deployment", lambda value: deployment(value))
+    assert railway.load_publication(REPO, "100", "2", tmp_path)["release_image"] == REFERENCE
+    assert commands == [("gh", "run", "download", "100", "--repo", REPO, "--name",
+                         f"release-publication-{SHA}-100-2", "--dir", str(tmp_path))]
+    assert "actions/runs/100/attempts/2/jobs?per_page=100" in calls
+
+
+@pytest.mark.parametrize("options", [
+    {"publish_status": "failure"}, {"publish_status": "skipped"}, {"expired": True},
+    {"release_changes": {"path": ".github/workflows/untrusted.yml"}},
+    {"release_changes": {"event": "pull_request"}}, {"release_changes": {"head_branch": "feature"}},
+    {"release_changes": {"head_repository": {"full_name": "fork/linger"}}},
+])
+def test_retry_rejects_untrusted_unpublished_or_expired_sources(monkeypatch, tmp_path, options):
+    github_api(monkeypatch, **options)
+    monkeypatch.setattr(railway, "command", lambda *_: pytest.fail("No artifact download permitted"))
+    with pytest.raises(ValueError):
+        railway.load_publication(REPO, "100", "2", tmp_path)
+
+
+def test_registry_check_is_anonymous_and_binds_manifest_to_tested_image(monkeypatch):
+    body = json.dumps({"config": {"digest": IMAGE}}).encode()
+    digest = "sha256:" + hashlib.sha256(body).hexdigest()
+    requests = []
+
+    def open_url(request, **kwargs):
+        requests.append(request)
+        if isinstance(request, str):
+            assert request.startswith("https://ghcr.io/token?")
+            return io.BytesIO(b'{"token":"anonymous-pull-token"}')
+        assert request.get_header("Authorization") == "Bearer anonymous-pull-token"
+        assert request.full_url.endswith(digest)
+        return io.BytesIO(body)
+
+    monkeypatch.setenv("GH_TOKEN", "must-not-forward")
+    monkeypatch.setenv("RAILWAY_TOKEN", "must-not-forward")
+    monkeypatch.setattr(railway, "urlopen", open_url)
+    assert railway.public_image(f"ghcr.io/desmondchoy/linger@{digest}", IMAGE)["public"]
+    with pytest.raises(ValueError, match="public"):
+        railway.public_image(f"ghcr.io/desmondchoy/linger@{digest}", "sha256:" + "d" * 64)
+    assert len(requests) == 4
+
+
+def active_service():
+    return {"source": {"image": REFERENCE}, "healthcheckPath": "/api/ready",
+            "activeDeployments": [{"id": "new-deployment", "status": "SUCCESS"}]}
+
+
+@pytest.mark.parametrize("problem", ["extra-environment", "missing-volume", "wrong-volume", "healthcheck"])
+def test_preflight_refuses_topology_storage_or_healthcheck_drift(monkeypatch, problem):
+    environments = [{"node": {"id": railway.ENVIRONMENT}}]
+    volumes = [{"node": {"serviceId": railway.SERVICE, "volumeId": railway.VOLUME,
+                          "mountPath": "/var/lib/linger", "isPendingDeletion": False}}]
+    if problem == "extra-environment":
+        environments.append({"node": {"id": "another-environment"}})
+    elif problem == "missing-volume":
+        volumes = []
+    elif problem == "wrong-volume":
+        volumes[0]["node"]["volumeId"] = "replacement-volume"
+    value = {"project": {"environments": {"edges": environments}},
+             "environment": {"projectId": railway.PROJECT, "volumeInstances": {"edges": volumes}}}
+    monkeypatch.setattr(railway, "railway_api", lambda *_: value)
+    current = active_service()
+    if problem == "healthcheck":
+        current["healthcheckPath"] = None
+    monkeypatch.setattr(railway, "service", lambda: current)
+    with pytest.raises(ValueError):
+        railway.preflight()
+
+
+def deployment(status="SUCCESS"):
+    return {"id": "new-deployment", "projectId": railway.PROJECT, "environmentId": railway.ENVIRONMENT,
+            "serviceId": railway.SERVICE, "status": status,
+            "meta": {"imageDigest": REFERENCE.split("@")[1], "volumeMounts": ["/var/lib/linger"]}}
+
+
+@pytest.mark.parametrize("change,reason", [
+    ({"status": "FAILED"}, "FAILED"), ({"serviceId": "another-service"}, "another"),
+    ({"meta": {"imageDigest": "sha256:" + "d" * 64}}, "digest"),
+    ({"meta": {"imageDigest": REFERENCE.split("@")[1], "volumeMounts": []}}, "state mount"),
+])
+def test_exact_deployment_must_match_image_service_and_volume(monkeypatch, change, reason):
+    monkeypatch.setattr(railway, "railway_api", lambda *_: {"deployment": deployment() | change})
+    monkeypatch.setattr(railway, "service", active_service)
+    with pytest.raises(ValueError, match=reason):
+        railway.wait_for_deployment("new-deployment", REFERENCE)
+
+
+def test_wait_checks_exact_new_id_and_active_image(monkeypatch):
+    values = iter([deployment("DEPLOYING"), deployment()])
+    calls = []
+
+    def api(query, variables):
+        calls.append(variables)
+        return {"deployment": next(values)}
+
+    monkeypatch.setattr(railway, "railway_api", api)
+    monkeypatch.setattr(railway.time, "sleep", lambda _: None)
+    monkeypatch.setattr(railway, "service", active_service)
+    assert railway.wait_for_deployment("new-deployment", REFERENCE)["id"] == "new-deployment"
+    assert calls == [{"id": "new-deployment"}, {"id": "new-deployment"}]
+
+
+@pytest.mark.parametrize("http_ready", [True, False])
+def test_deploy_reuses_published_image_and_records_id_before_public_checks(monkeypatch, tmp_path, http_ready):
+    monkeypatch.setattr(railway, "load_publication", lambda *_: publication())
+    monkeypatch.setattr(railway, "public_image", lambda *_: {"public": True})
+    monkeypatch.setattr(railway, "preflight", lambda: None)
+    monkeypatch.setattr(railway, "validate_publication", lambda *_: {})
+    monkeypatch.setattr(railway, "service", active_service)
+    monkeypatch.setattr(railway, "wait_for_deployment", lambda *args: deployment())
+    monkeypatch.setattr(railway, "command", lambda *_: pytest.fail("Deployment must not build, upload source, or run evals"))
+    mutations = []
+
+    def api(query, variables):
+        mutations.append((query, variables))
+        if "serviceInstanceDeployV2" in query:
+            return {"serviceInstanceDeployV2": "new-deployment"}
+        if "serviceInstanceUpdate" in query:
+            return {"serviceInstanceUpdate": True}
+        return {"variableUpsert": True}
+
     def verify():
         if not http_ready:
             raise ValueError("Public API is not ready")
         return {"ready": True, "frontend": True, "provider_calls": 0}
 
+    monkeypatch.setattr(railway, "railway_api", api)
     monkeypatch.setattr(railway, "verify_site", verify)
     output = tmp_path / "evidence.json"
     if http_ready:
-        result = railway.deploy(REPO, SHA, "42", source, output)
+        result = railway.deploy(REPO, "100", "2", output)
         assert result["status"] == "success"
     else:
         with pytest.raises(ValueError, match="Public API"):
-            railway.deploy(REPO, SHA, "42", source, output)
+            railway.deploy(REPO, "100", "2", output)
         result = json.loads(output.read_text())
         assert result["status"] == "failed"
-    assert calls[-1] == ((
-        "railway", "up", "--project", railway.PROJECT, "--environment", railway.ENVIRONMENT,
-        "--service", railway.SERVICE, "--detach", "--yes", "--message", message,
-    ), source)
     assert result["deployment_id"] == "new-deployment"
-    assert json.loads(output.read_text()) == result
+    assert result["release_image"] == REFERENCE
+    assert mutations[0][1]["input"]["skipDeploys"] is True
+    assert mutations[1][1]["input"]["source"] == {"image": REFERENCE, "repo": None}
+    assert mutations[2][1] == {"service": railway.SERVICE, "environment": railway.ENVIRONMENT}
 
 
-@pytest.mark.parametrize("head,dirty,reason", [("b" * 40, "", "approved"), (SHA, " M source.py", "clean")])
-def test_wrong_or_dirty_checkout_never_uploads(monkeypatch, tmp_path, head, dirty, reason):
-    def command(*args, cwd=None):
-        assert args[0] == "git", "Railway must never be called for an unapproved checkout"
-        return head if args[1] == "rev-parse" else dirty
+def test_private_image_fails_before_any_railway_mutation(monkeypatch, tmp_path):
+    monkeypatch.setattr(railway, "load_publication", lambda *_: publication())
 
-    monkeypatch.setattr(railway, "command", command)
-    output = tmp_path / "evidence.json"
-    with pytest.raises(ValueError, match=reason):
-        railway.deploy(REPO, SHA, "42", tmp_path, output)
-    assert json.loads(output.read_text())["status"] == "failed"
+    def private(*_):
+        raise ValueError("GHCR package must be public")
+
+    monkeypatch.setattr(railway, "public_image", private)
+    monkeypatch.setattr(railway, "railway_api", lambda *_: pytest.fail("Railway must remain unchanged"))
+    with pytest.raises(ValueError, match="public"):
+        railway.deploy(REPO, "100", "2", tmp_path / "evidence.json")
 
 
 @pytest.mark.parametrize("ready,html,expected", [
-    ("ready", '<div id="root"></div>', True),
-    ("starting", '<div id="root"></div>', False),
+    ("ready", '<div id="root"></div>', True), ("starting", '<div id="root"></div>', False),
     ("ready", "unrelated site", False),
 ])
-def test_http_verification_checks_frontend_and_readiness_without_provider_calls(monkeypatch, ready, html, expected):
+def test_http_checks_never_invoke_provider(monkeypatch, ready, html, expected):
     paths = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -221,8 +334,7 @@ def test_http_verification_checks_frontend_and_readiness_without_provider_calls(
             self.send_response(200)
             self.send_header("Content-Type", "application/json" if self.path == "/api/ready" else "text/html")
             self.end_headers()
-            body = json.dumps({"status": ready}) if self.path == "/api/ready" else html
-            self.wfile.write(body.encode())
+            self.wfile.write((json.dumps({"status": ready}) if self.path == "/api/ready" else html).encode())
 
         def log_message(self, *_):
             pass
@@ -233,7 +345,7 @@ def test_http_verification_checks_frontend_and_readiness_without_provider_calls(
     monkeypatch.setattr(railway, "SITE", f"http://127.0.0.1:{server.server_port}")
     try:
         if expected:
-            assert railway.verify_site() == {"ready": True, "frontend": True, "provider_calls": 0}
+            assert railway.verify_site()["provider_calls"] == 0
         else:
             with pytest.raises(ValueError):
                 railway.verify_site()

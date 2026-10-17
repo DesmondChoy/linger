@@ -77,7 +77,7 @@ def configuration(repository: str, sha: str) -> dict:
             stream.write(f"## Release configuration from `{configuration_sha}` for candidate `{sha}`\n\n")
             stream.write("```json\n" + json.dumps(value, indent=2) + "\n```\n\n")
             if not value["live_evaluations_enabled"]:
-                stream.write("Live evaluations are disabled. Evaluation and publication jobs are skipped.\n")
+                stream.write("Live evaluations are disabled. Publication requires offline CI evidence and human approval.\n")
     return value
 
 
@@ -163,7 +163,45 @@ def publication_authorization(
         raise ValueError("Manual publication requires recorded linger-release approval.")
     return {
         "candidate_sha": sha, "image_id": image_id, "live_evaluations_enabled": True,
+        "evidence_mode": "live-evaluations",
         "configuration_sha": configuration_sha, "publication": decision, "human_approvals": approvals,
+    }
+
+
+def offline_publication_authorization(
+    evidence: dict, *, sha: str, image_id: str, ci_run_id: str,
+    live_enabled: str, auto_enabled: str, configuration_sha: str, approvals: list,
+) -> dict:
+    """Authorize a human-reviewed image without claiming paid evaluations ran."""
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("Candidate SHA must be a full Git commit identity.")
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
+        raise ValueError("Offline publication requires an exact image digest.")
+    if not re.fullmatch(r"[0-9a-f]{40}", configuration_sha):
+        raise ValueError("Publication requires an exact configuration commit identity.")
+    if live_enabled != "false" or auto_enabled != "false":
+        raise ValueError("Offline publication requires live evaluations and automatic publication disabled.")
+    if not ci_run_id.isdecimal() or int(ci_run_id) < 1:
+        raise ValueError("Offline publication requires the successful candidate CI run identity.")
+    if (evidence.get("evidence_mode") != "offline-ci"
+            or evidence.get("candidate_sha") != sha or evidence.get("image_id") != image_id
+            or evidence.get("ci_run_id") != ci_run_id
+            or evidence.get("checks") != {
+                "image_build": "passed", "offline_smoke": "passed", "image_security": "passed",
+            }):
+        raise ValueError("Offline evidence must bind the tested image and CI with all checks passed.")
+    if not any(
+        approval.get("state") == "approved"
+        and any(environment.get("name") == "linger-release" for environment in approval.get("environments", []))
+        for approval in approvals
+    ):
+        raise ValueError("Offline publication requires recorded linger-release approval.")
+    return {
+        "candidate_sha": sha, "image_id": image_id, "ci_run_id": ci_run_id,
+        "evidence_mode": "offline-ci", "live_evaluations_enabled": False,
+        "configuration_sha": configuration_sha,
+        "publication": {"route": "manual", "auto_publish_enabled": False},
+        "human_approvals": approvals, "checks": evidence["checks"],
     }
 
 
@@ -214,6 +252,15 @@ def main() -> int:
     authorize_parser.add_argument("--auto-enabled", required=True)
     authorize_parser.add_argument("--threshold", required=True)
     authorize_parser.add_argument("--configuration-sha", required=True)
+    offline_parser = commands.add_parser("authorize-offline")
+    offline_parser.add_argument("--evidence", type=Path, required=True)
+    offline_parser.add_argument("--approvals", type=Path, required=True)
+    offline_parser.add_argument("--output", type=Path, required=True)
+    offline_parser.add_argument("--image-id", required=True)
+    offline_parser.add_argument("--ci-run-id", required=True)
+    offline_parser.add_argument("--live-enabled", required=True)
+    offline_parser.add_argument("--auto-enabled", required=True)
+    offline_parser.add_argument("--configuration-sha", required=True)
     image_parser = commands.add_parser("image")
     image_parser.add_argument("--image-id", required=True)
     for child in commands.choices.values():
@@ -233,6 +280,16 @@ def main() -> int:
             )
             with args.summary.open("rb") as stream:
                 result["evaluation_summary_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
+            args.output.write_text(json.dumps(result, indent=2) + "\n")
+        elif args.action == "authorize-offline":
+            result = offline_publication_authorization(
+                json.loads(args.evidence.read_text()), sha=args.sha, image_id=args.image_id,
+                ci_run_id=args.ci_run_id, live_enabled=args.live_enabled, auto_enabled=args.auto_enabled,
+                configuration_sha=args.configuration_sha,
+                approvals=json.loads(args.approvals.read_text()),
+            )
+            with args.evidence.open("rb") as stream:
+                result["offline_evidence_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
             args.output.write_text(json.dumps(result, indent=2) + "\n")
         else:
             result = inspect_image(args.sha, args.image_id)

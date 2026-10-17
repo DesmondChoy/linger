@@ -1,8 +1,8 @@
 # Release a Linger version
 
-Use this guide to promote a batch of changes from `main` to `release-candidate` and deploy the website with Railway's native Railpack build. The later sections cover the optional paid image evaluation and publication route.
+Use this guide to promote changes from `main` to `release-candidate`, approve an image, and deploy that image to Railway. The same saved image passes release checks, publication, and deployment. The later sections also cover running an approved image locally.
 
-Live evaluations and publication are disabled in [`.github/release-config.json`](../.github/release-config.json). At run start, the workflow reads this file from the current `release-candidate` tip. With both switches off, release runs skip their image build, live calls, and publication, then deploy the CI-approved source to the existing Railway service. Keep both settings off until the team is ready to integrate paid evaluations with native deployment.
+Paid evaluations and automatic publication are disabled in [`.github/release-config.json`](../.github/release-config.json). With both switches off, the release workflow builds, scans, and smoke-tests an image without provider calls, then waits for human publication approval. After publication, Railway deploys the recorded public GHCR digest. Keep the switches off until the team is ready to run paid evaluations.
 
 The [release checks reference](release-checks.md) describes the checks, publication rules, evidence, and limits. Both security datasets have human-approved Ground truth. Their live runs are intentionally deferred while live evaluations are off.
 
@@ -10,9 +10,11 @@ The [release checks reference](release-checks.md) describes the checks, publicat
 
 These steps need a repository administrator. Repository files cannot configure branch protection, environment reviewers, secrets, or package permissions.
 
-Follow the [Railway setup](railway.md#configure-github-once): protect both existing branches with PR reviews and the seven CI checks listed in the [reference](release-checks.md#ci-checks), require **Release promotion** on `release-candidate`, and configure the production environment secret. Keep both release policy switches `false` and Railway's direct GitHub auto-deploy source disconnected.
+Follow the [Railway setup](railway.md#configure-github-once): protect both branches with PR reviews and the seven CI checks listed in the [reference](release-checks.md#ci-checks), require **Release promotion** on `release-candidate`, configure human reviewers on `linger-release`, and retain the production environment secret. Keep both switches `false`. Railway uses the published image source; keep direct GitHub auto-deploys and image auto-updates disabled.
 
-The following setup is needed only before enabling the optional paid image route:
+The publication job needs GitHub Packages write permission through its own `GITHUB_TOKEN`. The first GHCR package must be made public in its package settings before Railway Hobby can pull it. See [public image setup and deployment retries](railway.md#make-the-ghcr-package-public).
+
+The following setup is needed before enabling paid evaluations:
 
 1. Create the `linger-release` environment. Add at least one required human reviewer and restrict deployment branches to `main` and `release-candidate`. Disable administrator bypass.
 2. Create the `linger-evaluations` environment, restricted to `main` and `release-candidate`. Add `RELEASE_EVAL_OPENAI_API_KEY`, `RELEASE_EVAL_EXA_API_KEY`, and `RELEASE_EVAL_LOGFIRE_TOKEN`. Use a Logfire token for the synthetic evaluation project. For another provider, add `RELEASE_EVAL_ANTHROPIC_API_KEY` or `RELEASE_EVAL_GOOGLE_API_KEY` instead of the OpenAI key. Keep runtime accounts and memories out of CI.
@@ -28,15 +30,15 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 1. Merge ordinary changes into `main` through the normal PR checks.
 2. When the batch is ready, open a PR from `main` to `release-candidate`.
 3. Obtain the required approval and merge the promotion PR with **Create a merge commit**. Wait for all CI jobs on the resulting `release-candidate` push to succeed.
-4. Open the candidate's **Release checks after candidate promotion** run. With both release switches off, it skips paid image testing and publication, then deploys the exact commit to Railway with Railpack. Inspect the **Deploy native Railway website** job and its `railway-deployment` artifact for the deployment ID and public readiness checks.
+4. Open the candidate's **Release checks after candidate promotion** run. With both release switches off, it builds and checks one image without paid calls. Review the build evidence and approve `linger-release` to publish that saved image. The following deployment job verifies public access, deploys its exact digest to the existing Railway service, and retains its deployment ID and readiness results.
 
-A direct candidate push, fork PR, stale candidate, or unsuccessful CI cannot deploy through this workflow. Production deployment checks make no model calls. The [Railway guide](railway.md) describes service configuration, state preservation, and recovery.
+A direct candidate push, fork PR, stale candidate, unsuccessful CI, failed publication, or private image cannot deploy through this workflow. Production checks make no model calls. Use **Deploy published image to Railway** on `main` to retry a failed deployment from its original publication run ID and attempt. The retry builds nothing and repeats no evaluations. The [Railway guide](railway.md) covers evidence retention, public package setup, and state preservation.
 
 When live evaluations are enabled, successful candidate CI starts a release run automatically. The run builds a fresh Linux AMD64 image at that commit, scans it, and checks offline startup and persistence before live testing. Approval publishes that tested image without rebuilding it. The promotion's resulting commit SHA is the candidate identity.
 
 ## Enable live evaluations
 
-1. Complete the optional paid image setup above and agree how its evidence will gate the native Railway build. Enabling paid evaluation or image publication stops the CI-only Railway route; publishing an image does not deploy it to Railway.
+1. Complete the paid evaluation setup above. Railway continues to deploy the published image; the paid suite becomes an additional publication requirement.
 2. In `.github/release-config.json`, change `live_evaluations_enabled` to `true`. Leave `auto_publish_enabled` at `false` for human approval of every candidate.
 3. Review and merge the configuration change into `main`, then promote it to `release-candidate` with the next batch.
 4. Inspect the release run after candidate CI succeeds. Expect paid model calls and synthetic evaluation traces in the configured Logfire project.
@@ -47,7 +49,7 @@ Set the optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` 
 
 ## Select a candidate manually
 
-Use manual dispatch to select a tested candidate while live evaluations are enabled.
+Manual image release dispatch can select a tested candidate for image publication and local use. Production Railway deployment follows the automatic promotion run. To recover a Railway failure, use the deployment-only retry rather than rerunning this image release workflow.
 
 1. Copy the full 40-character SHA of a successful `release-candidate` push CI run. PR builds and `main` builds cannot qualify a release candidate.
 2. Open **Actions → Release checks (manual) → Run workflow**. Select `release-candidate` as the workflow branch.
@@ -79,7 +81,7 @@ To run the paid Scenario suite locally, replace `check` with `run` and choose an
 5. Confirm that the candidate SHA and image ID in the reports match the pending `linger-release` job. Approve the job after completing semantic review.
 6. Save `approved-release.json` and the evaluation reports with the project's release records. The record identifies the publication route, registry digest, tested image, and CI run. Human publication also records GitHub's approval history.
 
-With automatic publication off, every eligible candidate waits for approval, including a candidate with a 100% automated pass rate. Approval publishes the saved Linux AMD64 image to GHCR. Deployment remains a separate operator action. Keep the previous approved digest available for recovery.
+With automatic publication off, every eligible candidate waits for approval, including a candidate with a 100% automated pass rate. With paid evaluations disabled, review the offline build, security, persistence, and CI evidence instead; no behavioral pass rate is claimed. Approval publishes the saved Linux AMD64 image to GHCR. Automatic promotion runs then deploy that public digest to Railway. Keep the previous approved digest and publication evidence for recovery.
 
 ## Enable optional automatic publication
 

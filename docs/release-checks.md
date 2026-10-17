@@ -39,7 +39,7 @@ The same gates accept saved reports locally:
 
 The CodeQL argument accepts a SARIF file or a directory of `*.sarif` files. The Trivy argument accepts a JSON report. These commands inspect existing reports and do not run a scanner.
 
-CI checks its image and discards it. Release selection requires the entire CI run to have succeeded for the selected SHA. It rejects PR runs, forks, pushes to other branches, and commits no longer reachable on `release-candidate`. When live evaluations are enabled, the release run builds a fresh Linux AMD64 image at the selected SHA and records its Docker image ID. That build must pass Trivy scanning and the offline smoke before live evaluations begin.
+CI checks its image and discards it. Release selection requires the entire CI run to have succeeded for the selected SHA. It rejects PR runs, forks, pushes to other branches, and commits no longer reachable on `release-candidate`. The release run builds one Linux AMD64 image and records its image ID. It must pass Trivy scanning and the offline smoke. Optional paid evaluations, approved publication, and Railway deployment reuse that image.
 
 ## Release configuration
 
@@ -47,17 +47,25 @@ CI checks its image and discards it. Release selection requires the entire CI ru
 
 | Setting | Default | Behavior |
 | --- | --- | --- |
-| `live_evaluations_enabled` | `false` | Enables the release image build and paid evaluations after candidate CI. When false, automatic and manual release entry points skip the release build, live evaluation, and publication. |
+| `live_evaluations_enabled` | `false` | Adds paid Scenario and HTTP evaluations to the image release checks. When false, build, scan, offline smoke, and human-approved publication still run. |
 | `auto_publish_enabled` | `false` | When false, every eligible candidate requires human approval. When true, the automated percentage can select automatic publication. |
 | `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. The current value is an uncalibrated placeholder. |
 
 The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables evaluations or publication.
 
-With both switches off, the automatic workflow deploys native source to the existing Railway service after successful candidate push CI. It also requires a merged promotion PR and the current release tip. Enabling either switch stops that CI-only deployment route. See the [Railway guide](railway.md) for its credential scope and retained deployment evidence.
+With both switches off, the automatic workflow requires human publication approval after its offline checks. `approved-release.json` records `evidence_mode=offline-ci`, exact image identity, CI run, and approval. It does not claim paid behavioral results. The following deployment job verifies anonymous access to that published digest and runs it on the existing Railway service. See the [Railway guide](railway.md) for public package setup, credential scope, and retry evidence.
 
-The diagram below describes the optional image evaluation and publication route:
-
-![Optional image release flow, from development checks and candidate promotion to evaluations, publication approval, and operator deployment](release-flow-end-to-end.png)
+```mermaid
+flowchart LR
+    CI[Successful candidate CI] --> Build[Build, scan, offline smoke]
+    Build --> Paid[Optional paid checks]
+    Paid --> Approval[Release approval]
+    Approval --> Publish[Publish saved image]
+    Publish --> Deploy[Deploy public digest to Railway]
+    Deploy --> Health[Readiness and frontend checks]
+    Publish --> Evidence[Retained publication evidence]
+    Evidence -->|Deployment-only retry| Deploy
+```
 
 ## Behavioral release suite
 
@@ -135,25 +143,26 @@ The current threshold of `95` has no calibration data behind it. Automatic publi
 | Entry point | Trigger | Default behavior |
 | --- | --- | --- |
 | Release checks (manual) | Dispatch on `release-candidate` with a successful candidate SHA | Respects the committed live-evaluation switch; one repetition by default |
-| Release checks after candidate promotion | Successful `release-candidate` push CI | With both switches off, deploys the reviewed current candidate to Railway using Railpack; otherwise the native deployment stops |
-| Native Railway deployment | Successful configuration checks and exact candidate CI, with both switches off | Requires a merged `main` promotion PR, serializes production jobs, retains build identity, and checks public HTML and readiness without paid calls |
-| Release evidence and approval | Called by either entry point | Candidate validation, a fresh AMD64 build with scan and offline smoke, paid evaluations and HTTP smoke, then publication routing; skipped while live evaluations are disabled |
+| Release checks after candidate promotion | Successful `release-candidate` push CI | Builds and checks one image, requires release approval, publishes it, then deploys its public digest to Railway |
+| Railway deployment | Successful image publication | Requires a merged `main` promotion PR, current candidate tip, exact CI and public image identity, state mount, and active deployment health |
+| Deploy published image to Railway | Dispatch on `main` with original publication run ID and attempt | Verifies that publication succeeded even if deployment failed, reuses its retained digest, and repeats no builds or evaluations |
+| Release evidence and approval | Called by either release entry point | Candidate validation, one AMD64 build with scan and offline smoke, optional paid evaluations and HTTP smoke, then publication routing |
 | GHCR publication | Complete evidence without blockers, followed by the selected approval route | Pushes the tested AMD64 image from the same release run without rebuilding; records its immutable registry digest |
 | Local deployment | Operator follows the release guide | Pulls the approved digest; never automatically updates a running service |
 
-The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The setup check requires configured reviewers for the manual route before paid release evaluation. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
+The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The setup check requires configured reviewers before every release image build, including releases with paid evaluations disabled. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
 
-The evaluation job saves its tested image in an artifact for the publication job in the same run. The publication job checks the loaded image ID, Linux AMD64 platform, and candidate revision against the evaluation evidence before pushing. The workflow does not reuse images from earlier CI runs or rebuild the approved image.
+The build job saves its checked image in an artifact for optional evaluation and publication in the same run. The publication job checks the loaded image ID, Linux AMD64 platform, and candidate revision against the release evidence before pushing. The workflow does not reuse images from earlier CI runs or rebuild the approved image. Deployment-only retries reuse the published digest and retained publication evidence.
 
 The `release-publication-<sha>-<run>-<attempt>` artifact contains `publication.json` and `approved-release.json`. `publication.json` binds the decision and configuration SHA to the evaluated image. `approved-release.json` adds the published registry digest and image identity.
 
-The optional image environments permit both `main` and `release-candidate`. The native `railway-production` environment permits `main` only. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual image dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
+The image approval environments permit both `main` and `release-candidate`. `railway-production` permits `main` only. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual image dispatch uses the candidate branch. Deployment-only retries run on `main`. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
 
 Security reports, release evidence, and approval records are retained for 30 days. The image artifact used between jobs expires after seven days. An expired image requires a new release run and a new approval decision. Keep approved release evidence and previous image digests outside the evidence expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
 
 ## Deployment contract
 
-The native Railway route builds the reviewed source with Railpack and preserves the existing state volume. Its build digest identifies the Railway build, rather than the separate image tested by the optional paid release workflow. The contract below describes the application and optional Compose image.
+Railway runs the exact immutable GHCR digest recorded after publication, preserving the existing state volume. Its deployment job checks the returned deployment ID, reported image digest, and active service identity before public readiness checks. The same image can run locally with Compose.
 
 | Setting | Behavior |
 | --- | --- |

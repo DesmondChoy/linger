@@ -15,6 +15,22 @@ on:
       model:
         default: openai:gpt-6-luna
         type: string
+    outputs:
+      release_image:
+        description: Immutable GHCR image digest published after approval.
+        value: ${{ jobs.publish.outputs.release_image }}
+      candidate_sha:
+        description: Commit contained in the approved image.
+        value: ${{ jobs.candidate.outputs.sha }}
+      ci_run_id:
+        description: Successful release-candidate push CI run.
+        value: ${{ jobs.candidate.outputs.ci_run_id }}
+      publication_artifact:
+        description: Publication evidence retained for deployment retries.
+        value: ${{ jobs.publish.outputs.publication_artifact }}
+      evidence_mode:
+        description: offline-ci or live-evaluations.
+        value: ${{ jobs.publish.outputs.evidence_mode }}
 
 permissions:
   contents: read
@@ -58,7 +74,6 @@ jobs:
   candidate:
     name: Verify release candidate and reviewer setup
     needs: configuration
-    if: needs.configuration.outputs.live_enabled == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -77,23 +92,16 @@ jobs:
           python3 .github/scripts/release_candidate.py resolve \
             --repository "$GITHUB_REPOSITORY" --sha "$CANDIDATE_SHA" --run-id "$CI_RUN_ID"
 
-  evaluate:
-    name: Build and evaluate the release candidate
+  build:
+    name: Build and check the release image
     needs: [configuration, candidate]
-    if: needs.configuration.outputs.live_enabled == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 360
-    environment: linger-evaluations
+    timeout-minutes: 45
     outputs:
       image_id: ${{ steps.image.outputs.image_id }}
-      publication_route: ${{ steps.policy.outputs.publication_route }}
     env:
       CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
       CI_RUN_ID: ${{ needs.candidate.outputs.ci_run_id }}
-      LINGER_MODEL: ${{ inputs.model }}
-      REPETITIONS: ${{ inputs.repetitions }}
-      AUTO_PUBLISH_ENABLED: ${{ needs.configuration.outputs.auto_enabled }}
-      AUTO_PUBLISH_THRESHOLD: ${{ needs.configuration.outputs.threshold }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -117,13 +125,85 @@ jobs:
         run: bash docker/smoke.sh "$IMAGE_ID"
       - name: Install verified Trivy
         run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
-      - name: Scan the release image before live evaluation
+      - name: Scan the release image
         env:
           IMAGE_ID: ${{ steps.image.outputs.image_id }}
         run: |
           "$RUNNER_TEMP/trivy/trivy" image --scanners vuln --ignorefile /dev/null \
             --format json --output release-evidence/image-security.json "$IMAGE_ID"
           python3 .github/scripts/security_gate.py trivy release-evidence/image-security.json
+      - name: Record completed offline checks
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          evidence = {
+              "evidence_mode": "offline-ci", "candidate_sha": os.environ["CANDIDATE_SHA"],
+              "image_id": os.environ["IMAGE_ID"], "ci_run_id": os.environ["CI_RUN_ID"],
+              "checks": {"image_build": "passed", "offline_smoke": "passed", "image_security": "passed"},
+          }
+          Path("release-evidence/offline-ci.json").write_text(json.dumps(evidence, indent=2) + "\n")
+          PYTHON
+      - name: Save the checked image for evaluation and publication
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          mkdir -p release-image
+          docker save "$IMAGE_ID" | gzip -1 > release-image/image.tar.gz
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-image/image.tar.gz
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: release-build-evidence-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+          retention-days: 30
+          if-no-files-found: error
+
+  evaluate:
+    name: Evaluate the checked release image
+    needs: [configuration, candidate, build]
+    if: needs.configuration.outputs.live_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    environment: linger-evaluations
+    outputs:
+      publication_route: ${{ steps.policy.outputs.publication_route }}
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+      CI_RUN_ID: ${{ needs.candidate.outputs.ci_run_id }}
+      LINGER_MODEL: ${{ inputs.model }}
+      REPETITIONS: ${{ inputs.repetitions }}
+      AUTO_PUBLISH_ENABLED: ${{ needs.configuration.outputs.auto_enabled }}
+      AUTO_PUBLISH_THRESHOLD: ${{ needs.configuration.outputs.threshold }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-build-evidence-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-image
+      - name: Load the checked image without rebuilding
+        env:
+          IMAGE_ID: ${{ needs.build.outputs.image_id }}
+        run: |
+          docker load --input release-image/image.tar.gz
+          python3 .github/scripts/release_candidate.py image --sha "$CANDIDATE_SHA" \
+            --image-id "$IMAGE_ID" > release-evidence/image.json
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: '0.8.3'
@@ -133,7 +213,7 @@ jobs:
           printf '%s\n' "FASTEMBED_CACHE_PATH=$RUNNER_TEMP/fastembed" >> "$GITHUB_ENV"
       - name: Reuse the candidate's local model files
         env:
-          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+          IMAGE_ID: ${{ needs.build.outputs.image_id }}
         run: |
           container=$(docker create "$IMAGE_ID")
           trap 'docker rm -f "$container"' EXIT
@@ -141,7 +221,7 @@ jobs:
       - name: Preflight every Scenario, then run every repetition
         id: policy
         env:
-          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+          IMAGE_ID: ${{ needs.build.outputs.image_id }}
           OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
@@ -159,26 +239,13 @@ jobs:
       - name: Check live HTTP and streaming behavior in the same image
         timeout-minutes: 35
         env:
-          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+          IMAGE_ID: ${{ needs.build.outputs.image_id }}
           OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
           EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
           LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
         run: bash docker/live-smoke.sh "$IMAGE_ID"
-      - name: Save the evaluated image for this release run
-        env:
-          IMAGE_ID: ${{ steps.image.outputs.image_id }}
-        run: |
-          mkdir -p release-image
-          docker save "$IMAGE_ID" | gzip -1 > release-image/image.tar.gz
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
-          path: release-image/image.tar.gz
-          retention-days: 7
-          compression-level: 0
-          if-no-files-found: error
       - name: Show the release evidence and publication route
         if: always()
         run: |
@@ -194,12 +261,16 @@ jobs:
           if-no-files-found: error
 
   publish:
-    name: Publish ${{ needs.candidate.outputs.sha }} (${{ needs.evaluate.outputs.publication_route }})
-    needs: [configuration, candidate, evaluate]
+    name: Publish approved image
+    needs: [configuration, candidate, build, evaluate]
     if: >-
-      needs.configuration.outputs.live_enabled == 'true' &&
+      !cancelled() && needs.configuration.result == 'success' &&
+      needs.candidate.result == 'success' && needs.build.result == 'success' &&
+      ((needs.configuration.outputs.live_enabled == 'false' &&
+      needs.configuration.outputs.auto_enabled == 'false' && needs.evaluate.result == 'skipped') ||
+      (needs.configuration.outputs.live_enabled == 'true' && needs.evaluate.result == 'success' &&
       (needs.evaluate.outputs.publication_route == 'manual' ||
-      (needs.evaluate.outputs.publication_route == 'automatic' && needs.configuration.outputs.auto_enabled == 'true'))
+      (needs.evaluate.outputs.publication_route == 'automatic' && needs.configuration.outputs.auto_enabled == 'true'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
@@ -209,16 +280,20 @@ jobs:
       contents: read
       actions: read
       packages: write
+    outputs:
+      release_image: ${{ steps.publish.outputs.release_image }}
+      evidence_mode: ${{ steps.publish.outputs.evidence_mode }}
+      publication_artifact: release-publication-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
     env:
       CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
       CI_RUN_ID: ${{ needs.candidate.outputs.ci_run_id }}
       GH_TOKEN: ${{ github.token }}
-      PUBLICATION_ROUTE: ${{ needs.evaluate.outputs.publication_route }}
+      PUBLICATION_ROUTE: ${{ needs.evaluate.outputs.publication_route || 'manual' }}
       CONFIGURATION_SHA: ${{ needs.configuration.outputs.configuration_sha }}
       LIVE_EVALS_ENABLED: ${{ needs.configuration.outputs.live_enabled }}
       AUTO_PUBLISH_ENABLED: ${{ needs.configuration.outputs.auto_enabled }}
       AUTO_PUBLISH_THRESHOLD: ${{ needs.configuration.outputs.threshold }}
-      EVALUATED_IMAGE_ID: ${{ needs.evaluate.outputs.image_id }}
+      EVALUATED_IMAGE_ID: ${{ needs.build.outputs.image_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -226,16 +301,17 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: release-evidence-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ needs.configuration.outputs.live_enabled == 'true' && 'release-evidence' || 'release-build-evidence' }}-${{ needs.candidate.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-evidence
       - name: Record the human approval
-        if: needs.evaluate.outputs.publication_route == 'manual'
+        if: needs.evaluate.outputs.publication_route != 'automatic'
         run: |
           mkdir -p release-evidence
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/approvals" > release-evidence/approvals.json
           jq -e 'any(.[]; .state == "approved" and any(.environments[]; .name == "linger-release"))' \
             release-evidence/approvals.json
-      - name: Verify and record the publication authorization
+      - name: Authorize publication from live evaluation evidence
+        if: needs.configuration.outputs.live_enabled == 'true'
         run: |
           approval_args=()
           if [ "$PUBLICATION_ROUTE" = manual ]; then
@@ -246,11 +322,20 @@ jobs:
             --live-enabled "$LIVE_EVALS_ENABLED" --auto-enabled "$AUTO_PUBLISH_ENABLED" \
             --configuration-sha "$CONFIGURATION_SHA" --threshold "$AUTO_PUBLISH_THRESHOLD" --summary release-evidence/behavioral/summary.json \
             --output release-evidence/publication.json "${approval_args[@]}"
+      - name: Authorize reviewed publication with paid evaluations disabled
+        if: needs.configuration.outputs.live_enabled == 'false'
+        run: |
+          python3 .github/scripts/release_candidate.py authorize-offline \
+            --sha "$CANDIDATE_SHA" --image-id "$EVALUATED_IMAGE_ID" --ci-run-id "$CI_RUN_ID" \
+            --live-enabled "$LIVE_EVALS_ENABLED" --auto-enabled "$AUTO_PUBLISH_ENABLED" \
+            --configuration-sha "$CONFIGURATION_SHA" --evidence release-evidence/offline-ci.json \
+            --approvals release-evidence/approvals.json --output release-evidence/publication.json
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: release-image-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-image
       - name: Publish the authorized image without rebuilding
+        id: publish
         run: bash .github/scripts/publish-candidate.sh
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
