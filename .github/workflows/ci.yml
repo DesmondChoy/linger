@@ -79,7 +79,7 @@ jobs:
         run: uv run pytest -m embeddings --durations=25 --durations-min=1.0
 
   frontend-tests:
-    name: Frontend tests (Vitest and Playwright)
+    name: Frontend tests (vitest)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
