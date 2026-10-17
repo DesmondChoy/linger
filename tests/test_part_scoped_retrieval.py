@@ -90,8 +90,11 @@ def test_without_a_plan_the_whole_request_keeps_the_full_budget():
     assert labels_by_book(items) == {("pg11", "line"): 8, ("pg2397", "line"): 8}
 
 
-@pytest.mark.parametrize(("second", "kept"), [((1003, 1010), False), ((1005, 1020), True)])
-def test_a_window_mostly_repeated_by_a_better_ranked_one_is_dropped(second, kept):
+@pytest.mark.parametrize(("second", "kept"), [
+    ((1003, 1010), True), ((1005, 1020), True),
+    ((1003, 1009), False), ((1000, 1009), False),
+])
+def test_only_a_fully_contained_window_is_dropped(second, kept):
     class Overlapping:
         def retrieve_for_judgement(self, request):
             return EvidenceBundle(items=[
@@ -112,8 +115,10 @@ def test_captured_combined_scenario_plans_keep_every_required_passage():
 
     results = run()
     assert sum(result.found for result in results) == sum(result.required for result in results) > 0
-    # The old per-book merge sent 60 records for three named books.
-    assert max(result.pool_size for result in results if result.case_id.startswith("scene-07")) <= 20
+    # These frozen plans have at most four named queries and one whole-Line
+    # fallback across five books. Broadcasting named queries would exceed this.
+    named_pool_budget = 4 * PART_CANDIDATES + 5 * CONTEXT_CANDIDATES
+    assert max(result.pool_size for result in results if result.case_id.startswith("scene-07")) <= named_pool_budget
 
 
 def test_an_experiment_can_opt_into_more_windows_per_part():

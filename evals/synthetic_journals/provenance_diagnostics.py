@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview, RiskFinding
 
 from .transcript import AgentExchange

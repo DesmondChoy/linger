@@ -1,0 +1,28 @@
+[
+  {
+    "name": "round-1",
+    "pattern_gains": {
+      "recall": -2,
+      "restraint": 3,
+      "routing": 4,
+      "selection": 2
+    },
+    "best_on": [
+      "restraint",
+      "routing",
+      "selection"
+    ]
+  },
+  {
+    "name": "round-2",
+    "pattern_gains": {
+      "recall": 1,
+      "restraint": 0,
+      "routing": 0,
+      "selection": 0
+    },
+    "best_on": [
+      "recall"
+    ]
+  }
+]

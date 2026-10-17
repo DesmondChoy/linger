@@ -1,7 +1,9 @@
-# Librarian retrieval benchmark
+# Librarian retrieval evaluations
 
-This versioned benchmark compares the five required spoiler-bounded retrieval
-configurations on the same Alice query set. Direct canonical reads are the
+This directory contains the Alice retrieval benchmark, production release
+validation, multi-book part recall, and offline chapter-cue and retrieval
+research experiments. The versioned Alice benchmark compares five
+spoiler-bounded retrieval configurations. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
@@ -51,6 +53,36 @@ lines 191–192 establish the bottle's label, but the text gives no chemical
 reaction that explains shrinking. Retrieving all available supporting spans
 can earn full recall while the model must still acknowledge missing support
 for part of the question.
+
+Cited source lines show what a reply could have said, not what it says. A case
+can therefore declare `required_facts`: each has a `fact_id` and one or more
+case-insensitive regular-expression `patterns`, and any one pattern states the
+fact. Invalid or empty patterns and repeated fact IDs are rejected when the
+cases load. `pigeon-serpent` declares `long-neck` and `egg-eating-admission`;
+the second matches Alice or girls eating or having tasted eggs, not the
+Pigeon's eggs or serpents eating them. Live release validation grades the
+released reply text against these facts. Each case reports
+`reply_fact_recall`, the stated share of required facts, and
+`missing_reply_facts`. The recall is `null` and the list is empty when the case
+declares no facts or the turn did not release a Muse candidate. The summary
+reports the mean `reply_fact_recall` over graded cases,
+`reply_fact_graded_count`, and `reply_fact_complete_count`. This is a pattern
+gate: an unusual paraphrase can be reported missing, and wording that matches a
+pattern can still misstate the fact. It can err in either direction, so treat
+the result as a pre-sort and confirm it by reading the reply. It is report-only
+and does not affect `targets_pass`.
+
+Run the evidence-range, required-fact, and release-report checks without
+provider calls:
+
+```bash
+uv run pytest -q tests/test_librarian_benchmark.py \
+	tests/test_librarian_evaluation_integrity.py
+```
+
+These checks cover complete source ranges, alternative anchors, omitted facts,
+negated or hypothetical egg-eating statements, and report aggregation. They
+also verify that reply-fact recall leaves `targets_pass` unchanged.
 
 Historical reports retain their original grades. Earlier reports used partial
 overlap and a strength proxy derived from the expected label. Their scores are
@@ -137,3 +169,130 @@ when the SDK exposes it for every nested agent call. It contains no credentials.
 Indexes and model caches are derived artifacts. Canonical chapter or section
 Markdown remains the source of truth, and the query boundary filters eligible
 windows before BM25 scoring, semantic similarity, fusion, or reranking.
+
+## Multi-book part recall
+
+Run frozen request plans through local candidate gathering:
+
+```bash
+uv run python -m evals.librarian.part_recall
+```
+
+The command measures whether every required book passage, including accepted
+evidence alternatives, reaches the evidence-assessment pool. It prints recall,
+pool size, character count, and missing evidence IDs per case. It makes no
+provider calls and does not measure Librarian's final selection or the reply.
+Local embedding and reranking models must be available.
+
+| Option | Meaning |
+| --- | --- |
+| `--cases PATH` | Frozen plans and scenario reference; defaults to `evals/librarian/part_recall_cases.json`. |
+| `--read-chapter-cues` | Includes chapter metadata in search text. The default searches passage text only. |
+| `--part-candidates N` | Retains this many windows per planned part before the per-book merge. Defaults to the production value of 4. |
+
+For the Experiment 4 retention setting, use:
+
+```bash
+uv run python -m evals.librarian.part_recall \
+	--read-chapter-cues --part-candidates 20
+```
+
+The per-book pool remains capped at twenty records. Neither option changes
+production configuration.
+
+## Chapter-cue and retrieval-research experiments
+
+`chapter_cue_recall` evaluates Pinocchio retrieval against frozen reader needs
+and `BookRequestPlan` values. `score` measures whether a passage containing the
+expected quote reaches the private pool. `select` asks the production Librarian
+to choose at most five records, then checks whether a chosen record contains
+that quote. These are separate outcomes. Neither establishes a complete chat
+release result.
+
+The command reference is:
+
+| Command | Options and behavior |
+| --- | --- |
+| `freeze` | Calls the production planner once per practice and held-back need and writes `chapter_cue_plans.json`. Refuses an existing plan file. |
+| `propose` | Required `--stage 2` or `--stage 3`. Calls Sculptor with chapter text, current cues, a sixty-word cue budget per chapter, and earlier practice outcomes. Writes JSON, a readable comparison, and every attempt. |
+| `approve` | Required `--stage 2` or `--stage 3`. Records the owner's approval against the exact proposal hash. |
+| `score` | Required `--search`; optional `--set practice` or `--set sealed`, defaulting to `practice`. Runs local retrieval without a provider call. |
+| `select` | The same `--search` and `--set` options as `score`. Calls Librarian and records its selected evidence, failures, model usage, and pool size. |
+
+The `--search` values are:
+
+| Value | Search configuration |
+| --- | --- |
+| `today` | Passage text with production candidate retention. |
+| `stage1` | Existing chapter cues with production candidate retention. |
+| `stage2` or `stage3` | The corresponding owner-approved cue proposal, applied to a temporary corpus copy. |
+| `round1` | Approved Stage 2 cues with twenty windows per planned part and the approved Round 1 research specification. |
+
+For a condition whose prerequisites are present, score and select practice
+evidence with:
+
+```bash
+uv run python -m evals.librarian.chapter_cue_recall score \
+	--search round1 --set practice
+uv run python -m evals.librarian.chapter_cue_recall select \
+	--search round1 --set practice
+```
+
+The checked-in experiment artifacts are fixed observations. Selection refuses
+an existing result, checkpoints completed needs, and resumes only when the
+input identity and pool hashes match. Scoring refuses a pool that differs from
+an existing selection. Identities bind the needs, plans, cue approvals,
+retrieval implementation, candidate allowance, and any research specification.
+Stale results cannot supply the next experiment step.
+
+The first `score --set sealed` locks the needs, plans, and approved cue stages.
+Each held-back condition is scored once. After the lock exists, cue proposals
+and approvals are frozen. Stage 3 is available only if Stage 2 gains practice
+recall without losing a Stage 1 success. Held-back needs never reach Sculptor.
+
+Build practice traces from a scored and selected condition:
+
+```bash
+uv run python -m evals.librarian.chapter_cue_traces --search stage2
+```
+
+`--search` accepts the same five values. This local command writes
+`chapter_cue_runs/<search>-practice-traces.json` with the question, expected
+passage, chapter metadata, search ranks, pool, selected records, and failures.
+It makes no provider call.
+
+Experiment 4 uses those traces and
+[`retrieval_description.md`](retrieval_description.md) for Sculptor's error
+analysis and retrieval research. Each command requires `--round N`:
+
+```bash
+uv run python -m evals.librarian.research_loop analyse --round 1
+```
+
+After the owner reviews the analysis, record approval and run research:
+
+```bash
+uv run python -m evals.librarian.research_loop approve \
+	--round 1 --step analysis
+uv run python -m evals.librarian.research_loop research --round 1
+```
+
+After the owner reviews the specification, record its exact hash:
+
+```bash
+uv run python -m evals.librarian.research_loop approve \
+	--round 1 --step specification
+```
+
+`analyse` and `research` use the configured model with high reasoning effort.
+Research requires `EXA_API_KEY` and allows at most ten searches and ten page
+opens, restricted to URLs found in the run. It returns a specification for a
+developer to implement. The output grants no code-editing authority.
+`research_runs/round-N/` retains JSON, readable reports, approvals, searches,
+opened pages, retry requests, and failed attempts. Approved steps cannot be
+rerun. Later rounds also require the earlier approved analyses, specifications,
+and practice results.
+
+See the [self-improving memory-loop design](../../docs/design/self-improving-memory-loop.md)
+for experiment controls and interpretation. These commands do not enable
+chapter cues or research retention settings in production.

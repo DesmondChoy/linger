@@ -10,21 +10,22 @@ dependencies = [
     "numpy>=2.0.0",
     "polars>=1.43.2",
     "pydantic>=2.0.0",
-    "pydantic-ai>=2.26.0",
+    "pydantic-ai>=2.53.0",
     "pydantic-ai-harness[exa]>=0.18.1",
     "pydantic-settings>=2.15.0",
     "pyyaml>=6.0.3",
     "requests>=2.34.2",
-    "urllib3>=2.7.0",
+    "urllib3>=2.8.0",
     "uvicorn[standard]>=0.52.1",
     "fast-langdetect>=1.0.1",
+    "datafog==4.9.0",
 ]
 
 [dependency-groups]
 dev = [
     "ipykernel>=7.3.0",
     "ipython>=9.0.0",
-    "jupyterlab>=4.6.2",
+    "jupyterlab>=4.6.4",
     "pytest>=9.1.1",
 ]
 
@@ -36,7 +37,7 @@ build-backend = "setuptools.build_meta"
 include = ["src", "src.linger*", "apps.backend*"]
 
 [tool.setuptools.package-data]
-"*" = ["skills/*/SKILL.md"]
+"*" = ["skills/*/*.md"]
 "src.linger.prompts" = ["prompt_catalog.yaml"]
 
 [tool.pytest.ini_options]

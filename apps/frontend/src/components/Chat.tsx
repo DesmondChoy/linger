@@ -9,28 +9,24 @@ import type {
   TurnRecord,
 } from '../types'
 import { Architecture } from './architecture/Architecture'
-import { SavedEvaluation } from './architecture/SavedEvaluation'
 import { Composer, type ComposerHandle } from './Composer'
 import { InputTray } from './InputTray'
 import { MessageList } from './MessageList'
 import { Reader } from './Reader'
-import { playableScenarios } from '@linger/architecture-map'
-
-type Surface = 'live' | 'evaluation'
 
 type Props = {
   username: string
   onHome: () => void
   onSignOut: () => void
+  onOpenPersonas: () => void
 }
 
-export function Chat({ username, onHome, onSignOut }: Props) {
-  // Earlier conversations sit above in the same feed; the newest one continues.
+export function Chat({ username, onHome, onSignOut, onOpenPersonas }: Props) {
+  // Earlier conversations sit above in the same feed; each sign-in starts a new one.
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID())
   const [historyLoaded, setHistoryLoaded] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [timeline, setTimeline] = useState<TurnRecord[]>([])
-  const [surface, setSurface] = useState<Surface>('live')
   const [libraryOpen, setLibraryOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [progress, setProgress] = useState<ProgressEvent[]>([])
@@ -64,8 +60,6 @@ export function Chat({ username, onHome, onSignOut }: Props) {
           conversation.turns.flatMap((turn) => turn.details
             ? [{ ...turn.details.response, progress: turn.details.progress, sessionId: conversation.session_id }]
             : [])))
-        const latest = conversations.at(-1)
-        if (latest) setSessionId(latest.session_id)
       })
       .catch((caught: unknown) => {
         setError(caught instanceof Error ? caught.message : 'Could not load earlier chats.')
@@ -208,16 +202,15 @@ export function Chat({ username, onHome, onSignOut }: Props) {
         <InputTray
           disabled={pending}
           onFill={(text) => composer.current?.fill(text)}
-          onOpenEvaluations={() => setSurface('evaluation')}
-          evaluationCount={playableScenarios.reduce((total, item) => total + item.runs.length, 0)}
+          onNewChat={handleNewChat}
+          canStartNewChat={conversationHasTurns}
+          onOpenPersonas={onOpenPersonas}
         />
         <Composer ref={composer} disabled={pending || !historyLoaded} onSend={handleSend} />
       </section>
 
       <section className="analysis" aria-label="How this works">
-        {surface === 'live'
-          ? <Architecture timeline={timeline} progress={progress} pendingMessage={pendingMessage} />
-          : <SavedEvaluation onClose={() => setSurface('live')} />}
+        <Architecture timeline={timeline} progress={progress} pendingMessage={pendingMessage} />
       </section>
 
       {libraryOpen && (

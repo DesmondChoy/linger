@@ -8,7 +8,7 @@ from typing import Literal, Self
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.sculptor.models import CurationProposal
 
 CurationRiskCode = Literal[

@@ -342,8 +342,19 @@ policy-gated automatic capture, exact retry reuse, and immutable source records.
 The internal curation workflow binds a Sculptor proposal to source hashes,
 the account, and the current curation state. An independent Provenance `allow`
 review is required before the service appends an immutable curation event.
+Sculptor receives capture times when known and the existing duplicate links,
+retrieval tombstones, derived summaries, and topic groups for its selected
+records. The projection cannot reference an original outside that batch.
 `list_for_retrieval` materializes original memories, derived summaries, and
 topic groups. Duplicate links preserve source text in the retrieval view.
+
+After a successful automatic capture creates a record, chat selects that record
+and up to eleven earlier originals with positive token overlap for reviewed
+curation. A reused capture, or a capture with no matching prior record, does
+not invoke Sculptor. The released response is already settled; a curation
+failure leaves the source record intact. The
+[memory curation and recall evaluation](../../evals/synthetic_journals/README.md#memory-curation-and-recall-loop-replay)
+measures recall across cumulative curation rounds in isolated synthetic storage.
 
 This deferred versioned-memory contract requires:
 

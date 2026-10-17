@@ -8,6 +8,11 @@ from src.linger.agents.serendipity.models import (
     SerendipityResponse,
     SourceBundle,
 )
+from src.linger.agents.serendipity.self_review_models import (
+    SelfReviewInput,
+    SkillCorrection,
+    checked_correction,
+)
 from src.linger.agents.skills import RuntimeSkill, load_instructions
 from src.linger.prompts import load_prompt
 
@@ -63,4 +68,18 @@ SOURCE_GATHERING: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse] = 
     tool_retries=2,
 )
 
-SKILLS = (CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING)
+SELF_REVIEW: RuntimeSkill[SelfReviewInput, SkillCorrection] = RuntimeSkill(
+    role="Serendipity",
+    name="self-review",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(
+        "src.linger.agents.serendipity", "skills/self-review/SKILL.md"
+    ),
+    input_type=SelfReviewInput,
+    output_type=SkillCorrection,
+    output_validator=checked_correction,
+    validators=("src.linger.agents.serendipity.self_review_models.checked_correction",),
+    output_retries=2,
+)
+
+SKILLS = (CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING, SELF_REVIEW)

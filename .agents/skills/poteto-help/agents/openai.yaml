@@ -1,0 +1,4 @@
+interface:
+  display_name: "Poteto help"
+  short_description: "Choose and use this repo's pstack workflows"
+  default_prompt: "Use $poteto-help to choose the right pstack workflow for my task."

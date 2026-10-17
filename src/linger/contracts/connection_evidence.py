@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 
 # Untrusted-page delimiters (OWASP LLM01); no attribute, since evidence_id already carries the URL and a page could break out of one.
 _UNTRUSTED_WEB_PAGE_OPEN = "<untrusted_web_page>\n"

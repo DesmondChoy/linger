@@ -133,13 +133,17 @@ def approved_specification_sha256(search: str) -> str:
     return approval["sha256"]
 
 
-def _identity(search: str) -> dict[str, str | None]:
+def _identity(search: str) -> dict[str, str | int | None]:
     """What a score depends on, so later steps can refuse stale results."""
     stage = cue_stage(search)
+    repository = Path(__file__).resolve().parents[2]
     identity = {
         "needs_sha256": _sha256(NEEDS),
         "plans_sha256": _sha256(PLANS),
         "proposal_sha256": approved_sha256(stage) if stage else None,
+        "book_evidence_sha256": _sha256(repository / "src/linger/orchestration/book_evidence.py"),
+        "hybrid_librarian_sha256": _sha256(repository / "apps/backend/hybrid_librarian.py"),
+        "part_candidates": part_candidates(search),
     }
     if search in ROUND_PART_CANDIDATES:
         identity["specification_sha256"] = approved_specification_sha256(search)
@@ -147,7 +151,7 @@ def _identity(search: str) -> dict[str, str | None]:
 
 
 def _fresh(path: Path, search: str) -> dict[str, object]:
-    """Read a stored result only when it came from the current needs, plans, and approvals."""
+    """Require the current needs, plans, approvals, and retrieval implementation."""
     recorded = _read(path)
     if recorded.get("identity") != _identity(search):
         raise SystemExit(f"{path.name} is stale; score it again.")

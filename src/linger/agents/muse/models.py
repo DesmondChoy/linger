@@ -5,7 +5,13 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
+
+# What a revision label ({{SENTENCE_2}}) leaves when mangled: its stem, which prose never
+# contains, or a double-brace template wrapper in ASCII, fullwidth, or HTML-entity form.
+LABEL_TRACE = re.compile(
+    r"(?i:sentence_)|SENTENCE\W{0,2}\d|[{｛]{2}|[}｝]{2}|&(?i:#0*12[35]|#x0*7[bd]|[lr]brace|[lr]cub);"
+)
 
 MemoryCandidateReasonCode = Literal[
     "durable_reflection",
@@ -118,16 +124,8 @@ class MemoryCandidate(StrictModel):
 
     kind: Literal["memory_candidate"]
     text: str = Field(min_length=1, max_length=8_000)
-    start_codepoint: int = Field(ge=0)
-    end_codepoint: int = Field(ge=1)
     reason_code: MemoryCandidateReasonCode
     evidence_ids: tuple[str, ...] = ()
-
-    @model_validator(mode="after")
-    def offsets_match_text_length(self) -> Self:
-        if self.end_codepoint - self.start_codepoint != len(self.text):
-            raise ValueError("candidate offsets must match the nominated text length")
-        return self
 
 
 class NoMemoryCandidate(StrictModel):
@@ -161,7 +159,10 @@ class MuseCandidate(StrictModel):
         for use in data["evidence_uses"]:
             key = _record_key(use)
             first = first_by_record.get(key) if key else None
-            if first is not None and not use.get("supported_claims") and use.get("exact_quote") is None:
+            if (first is not None and not use.get("supported_claims") and use.get("exact_quote") is None
+                    # Claims or limits that are not a list are left for field validation to reject.
+                    and isinstance(use.get("supported_claims", ()), (list, tuple, type(None)))
+                    and all(isinstance(item.get("limit_claims") or (), (list, tuple)) for item in (first, use))):
                 limits = list(first.get("limit_claims") or ())
                 first["limit_claims"] = limits + [
                     claim for claim in use.get("limit_claims") or () if claim not in limits
@@ -172,12 +173,38 @@ class MuseCandidate(StrictModel):
             kept.append(use)
         return {**data, "evidence_uses": kept}
 
+    @model_validator(mode="after")
+    def reject_sentence_labels(self) -> Self:
+        """No candidate may carry a revision label; only the revision boundary expands them."""
+        texts = [self.reply, getattr(self.memory, "text", "")]
+        for use in self.evidence_uses:
+            texts += [*use.supported_claims, *limit_claim_texts(use),
+                      getattr(use, "exact_quote", None) or "", getattr(use, "quote", "")]
+        if any(LABEL_TRACE.search(text) for text in texts):
+            raise ValueError(
+                "text contains a sentence label, part of one, or {{ }} braces; in a revision copy only "
+                "labels listed in draft_sentences, exactly and standing alone, and otherwise write the text"
+            )
+        return self
+
 
 class RetainedSource(StrictModel):
     """A source the first review found supporting, which the revision must keep declared."""
 
     source_kind: Literal["book_corpus", "memory", "web"]
     evidence_id: str = Field(min_length=1, max_length=2_000)
+
+
+class SentenceMapping(StrictModel):
+    """One draft declaration whose mapped text falls in a draft sentence."""
+
+    source_kind: Literal["book_corpus", "memory", "web", "session_line"]
+    # The reader's quoted line identifies a session_line source.
+    evidence_id: str = Field(min_length=1, max_length=2_000)
+    mapped_text: str = Field(min_length=1, max_length=20_000)
+    # Which draft declaration and field hold the text, so a kept sentence's sources are carried exactly.
+    declaration_index: int = Field(ge=0)
+    field: Literal["supported_claims", "limit_claims", "exact_quote"]
 
 
 class DraftSentence(StrictModel):
@@ -187,6 +214,25 @@ class DraftSentence(StrictModel):
     flagged: bool = Field(description="A review finding names this sentence, so the revision may rewrite it.")
     needs_source: bool = Field(
         description="The review judged unmapped content here source-dependent: map it or delete it.",
+    )
+    finding_indexes: tuple[int, ...] = Field(
+        default=(),
+        description="The review findings that name this sentence; each must change at least one sentence it names.",
+    )
+    source_mappings: tuple[SentenceMapping, ...] = Field(
+        default=(),
+        description=(
+            "The sentence's draft mappings. A flagged sentence returned word for word with these is "
+            "unchanged; kept wording no finding disputes keeps these sources."
+        ),
+    )
+    label: str | None = Field(
+        default=None,
+        description=(
+            "Copy this value exactly, braces included, into the revised reply to keep the sentence word "
+            "for word with its draft sources. Sentences sharing a label are kept or deleted together; "
+            "flagged and needs_source sentences have none."
+        ),
     )
 
 

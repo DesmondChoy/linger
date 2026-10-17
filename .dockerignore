@@ -17,6 +17,7 @@
 !data/corpus/**
 !docker/
 !docker/cache_models.py
+!docker/entrypoint.py
 **/__pycache__/
 **/*.pyc
 **/node_modules/

@@ -85,12 +85,13 @@ After explicit model confirmation and a successful check:
 
 ```bash
 .venv/bin/python -m evals.synthetic_journals.run_scenario run \
-  --menu MENU_FILE --number NUMBER --confirmed-model PROVIDER:MODEL
+  --menu MENU_FILE --number NUMBER --confirmed-model PROVIDER:MODEL \
+  --output-directory results/SCENARIO-ATTEMPT
 ```
 
 Use the confirmed model. Poll until exit and give brief progress updates. The
 helper revalidates files, selects the registered production replay, uses isolated
-storage, and saves JSON, summary, and logs in a unique directory in the scenario.
+storage, and saves working evidence in the selected fresh results directory.
 No application server or frontend is required. Do not automatically repeat a
 failed run or add semantic-review API calls. Another evaluation needs a new user
 request with its model confirmed.
@@ -137,10 +138,43 @@ as completed. The deterministic renderer fixes format and recorded facts;
 different models can still reach different interpretations. Do not promise
 identical wording or judgments across models.
 
+## Consolidate results for reports and slides
+
+After completing and validating the review, consolidate the run without model calls:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario bundle \
+  --run-directory results/SCENARIO-ATTEMPT
+```
+
+Deliver two files per run. `summary.md` presents the outcomes, concise Scene
+comparisons, key learning, a worked example when useful, report points, slide
+points, and the Logfire link. `result.json` holds structured results and nested
+evidence. The helper preserves original evidence and review identities, saves
+a recovery archive outside `results/`, and removes redundant individual files.
+
+Curate `scenes[].expected`, `observed`, and `key_learning`, plus `report_points`,
+`slide_points`, `worked_examples`, and `limitations` in `result.json`. Add one
+`failure_diagnoses` entry per failed Scene (automated or LLM-review) with
+`scene_id`, `failure_type`, `cause`, `failure`, `ground_truth`, `root_cause`,
+and `proposed_solution`, following the failure types in `results/README.md`. Keep the
+summary useful for report and slide preparation. Keep recorded automated and
+semantic outcomes unchanged. Regenerate the summary with `report --result PATH`.
+Do not add per-Scene copies, separate transcript documents, or bookkeeping files.
+
+For later analysis, read the original evaluation at
+`evidence.evaluation.data`, the bound analysis at `evidence.analysis.data`, and
+supporting records under `evidence.inputs` and `diagnostics`. Latest telemetry
+verification lives at `telemetry`. Historical file paths inside the original
+analysis are provenance, not active output paths. A focused tool that requires
+an evaluation file can restore its exact bytes with `extract --result PATH
+--output /tmp/UNIQUE-evaluation.json`. These operations make no provider calls.
+
 ## Return the result
 
 Return the scenario, confirmed provider/model, execution outcome, deterministic
-Scene/judgment counts, analysis report link, and the most useful next action.
+Scene/judgment counts, analysis report link, and the most useful next action. For consolidated runs,
+link `summary.md` and `result.json`.
 Mention suspected misleading passes or failures when they affect interpretation.
 Keep counts separate from the report's confidence and assessment.
 

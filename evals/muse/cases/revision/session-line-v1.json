@@ -1,0 +1,60 @@
+{
+  "case_id": "muse-revision-session-line-v1",
+  "rules": [
+    "R16: a reader-sourced fact flagged as unattributed is repaired by attributing it to the reader in reply plus a matching session_line declaration; a conditional restatement does not repair it",
+    "C44/C45: the session_line quote is the reader's own earlier words, verbatim"
+  ],
+  "description": "The draft states the reader's meeting day, carried forward from an earlier turn, as a bare fact with no attribution or session-line declaration.",
+  "history": [
+    {
+      "reader": "I'm reading this one for my book club, and we meet next Thursday evening.",
+      "muse": "A club date can change how a book feels to read. How far along are you?"
+    }
+  ],
+  "reader_message": "I've got four chapters left. How should I pace them before we meet?",
+  "draft": {
+    "reply": "The meeting is next Thursday evening, so one chapter every other day would get you there with time to spare. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it. Which of the four do you expect to take longest?",
+    "evidence_uses": [],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "The meeting is next Thursday evening"
+        },
+        "explanation": "The meeting day comes from an earlier reader message, but the reply states it as fact without attributing it to the reader or declaring the reader's line as support."
+      }
+    ],
+    "needs_source_sentences": [0],
+    "previously_accepted_claims": [],
+    "retained_sources": [],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [0],
+    "repaired_sentences": [0],
+    "forbidden_patterns": ["\\bif (?:you mean|the meeting|it['’]s|your (?:club|meeting|group))\\b"],
+    "required_patterns": ["\\byou(?:['’]ve| have)? (?:said|mentioned|told me|noted|wrote|shared)\\b", "Thursday"],
+    "required_declarations": [
+      {"source_kind": "session_line", "claim_pattern": "Thursday"}
+    ],
+    "source_terms": ["Thursday", "club"]
+  },
+  "reference_revision": {
+    "reply": "You said your club meets next Thursday evening, so one chapter every other day would get you there with time to spare. You could leave the last chapter for the evening before, so the ending is fresh when you talk about it. Which of the four do you expect to take longest?",
+    "evidence_uses": [
+      {
+        "source_kind": "session_line",
+        "quote": "we meet next Thursday evening",
+        "supported_claims": ["You said your club meets next Thursday evening, so one chapter every other day would get you there with time to spare."]
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}

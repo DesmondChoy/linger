@@ -5,7 +5,6 @@ export { ScenarioSelect, ScenarioStage, useScenarioExplorer } from './ScenarioEx
 export { layoutScene } from './layout'
 export { components, objectiveScenes } from './scenarios'
 export { default as catalog } from './catalog.json'
-export { evaluations, playableScenarios } from './evaluations'
 export type {
   ComponentDefinition,
   ComponentId,
@@ -19,12 +18,3 @@ export type {
 } from './types'
 export type { Objective } from './Inspector'
 export type { ScenarioExplorerState } from './ScenarioExplorer'
-export type {
-  EvaluationGrade,
-  EvaluationObservation,
-  EvaluationProp,
-  EvaluationRun,
-  EvaluationRunScene,
-  EvaluationScenario,
-  EvaluationScene,
-} from './evaluations'

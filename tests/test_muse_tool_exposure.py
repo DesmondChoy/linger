@@ -167,6 +167,7 @@ def test_no_book_need_withholds_the_book_tools_and_blocks_a_call_to_them(turns) 
     assert response.inspection.tool_exposure == {
         "triage": {"book_content": "no", "memory": "none", "override_attempt": "no_attempt"},
         "triage_failed": False, "tools": [], "pinned_intent": None,
+        "book_override": False, "carried_tools": [],
     }
 
 
@@ -307,6 +308,35 @@ def test_failed_triage_falls_back_to_book_tools_and_still_releases(turns, failur
     ]
 
 
+def test_a_timed_out_triage_is_retried_once_and_keeps_the_recall_tool(turns) -> None:
+    turns.monkeypatch.setattr(chat_turn, "TRIAGE_TIMEOUT_SECONDS", 0.05)
+    delays = [5, 0]
+
+    async def triage_turn(current_line, **_):
+        turns.triaged.append(current_line)
+        await asyncio.sleep(delays.pop(0))
+        return RECALL
+
+    turns.monkeypatch.setattr(chat_turn, "triage_turn", triage_turn)
+    response = turns.run(
+        turns.muse(ToolCallPart("serendipity_explore", {"intent": "recall_memory"})),
+        message="Which night did I say I host supper club now?",
+    )
+
+    assert len(turns.triaged) == 2
+    assert turns.offered[0] == {"tools": ["serendipity_explore"], "intents": ["recall_memory"]}
+    assert turns.explored == ["recall_memory"]
+    assert response.inspection.tool_exposure["triage_failed"] is False
+
+
+def test_a_triage_error_is_not_retried(turns) -> None:
+    turns.triage(RuntimeError("provider down"))
+    response = turns.run(turns.muse())
+
+    assert len(turns.triaged) == 1
+    assert response.inspection.tool_exposure["triage_failed"] is True
+
+
 def test_failed_triage_keeps_previously_called_reach_but_grants_nothing_new(turns) -> None:
     """A triage fault must not hand out `serendipity_explore` (web/memory reach)
     on its own, but must not strip access an earlier released turn already used."""
@@ -374,8 +404,18 @@ def test_revision_reuses_the_draft_exposure_after_one_triage(turns) -> None:
     def provenance(messages, info: AgentInfo) -> ModelResponse:
         return next(reviews)(messages, info)
 
+    draft = turns.muse()
+
+    def muse(messages, info: AgentInfo) -> ModelResponse:
+        """Rewrite the flagged reply in the revision: an unchanged one is retried."""
+        response = draft(messages, info)
+        if any('"mode":"revision"' in str(part.content) for message in messages
+               for part in message.parts if isinstance(part, UserPromptPart)):
+            response.parts[0].args["reply"] = "It sounds like the rain stayed with you."
+        return response
+
     turns.triage(RECALL)
-    response = turns.run(turns.muse(), provenance=provenance)
+    response = turns.run(muse, provenance=provenance)
 
     assert response.inspection.release.provenance_verdicts == ("revise", "pass")
     assert turns.triaged == ["It rained today."]

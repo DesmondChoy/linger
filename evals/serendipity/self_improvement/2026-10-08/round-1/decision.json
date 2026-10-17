@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 124,
+  "practice_passes_candidate": 122,
+  "practice_runs": 165,
+  "gain": -2,
+  "case_losses": {
+    "serendipity-animal-farm-real-bridge-v3": 1,
+    "serendipity-animal-farm-route-book-relationship-v3": 1,
+    "serendipity-animal-farm-route-external-web-v3": 2,
+    "serendipity-decline-insufficient-bridge-v3": 1,
+    "serendipity-rank-tied-top-candidates-v3": 1,
+    "serendipity-recall-two-matching-records-v3": 1,
+    "serendipity-unsafe-evidence-leaves-too-little-v3": 3
+  },
+  "reasons": [
+    "practice gain -2 is below 10",
+    "cases lost more than 2 passes: ['serendipity-unsafe-evidence-leaves-too-little-v3']",
+    "stable cases fell below 4: ['serendipity-unsafe-evidence-leaves-too-little-v3']"
+  ],
+  "execution_errors_candidate": 0
+}

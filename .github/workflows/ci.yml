@@ -15,10 +15,60 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  release-promotion:
+    name: Release promotion
+    if: github.event_name == 'pull_request' && github.base_ref == 'release-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Require promotion from main
+        run: >-
+          python3 .github/scripts/railway_release.py promotion
+          --repository "$GITHUB_REPOSITORY" --event "$GITHUB_EVENT_PATH"
+
   backend-tests:
     name: Backend tests (pytest)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: '0.8.3'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --dev
+
+      # Import-time model construction needs these; conftest.py blocks provider requests.
+      - name: Configure offline settings
+        run: |
+          printf '%s\n' \
+            'LINGER_MODEL=openai:gpt-6-luna' \
+            'OPENAI_API_KEY=ci-offline-placeholder' > .env
+
+      - name: Run pytest
+        run: uv run pytest -m "not embeddings" --durations=25 --durations-min=1.0
+
+  backend-embeddings-tests:
+    name: Backend tests (embeddings)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -49,11 +99,15 @@ jobs:
       - name: Run pytest
         env:
           FASTEMBED_CACHE_PATH: ${{ runner.temp }}/fastembed
-        run: uv run pytest
+        run: uv run pytest -m embeddings --durations=25 --durations-min=1.0
 
   frontend-tests:
     name: Frontend tests (vitest)
-    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
@@ -79,6 +133,22 @@ jobs:
       - name: Run vitest
         run: pnpm test
 
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright browser tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-results
+          path: |
+            apps/frontend/playwright-report/
+            apps/frontend/test-results/
+          retention-days: 7
+
       - name: Test Ground truth reviewer
         run: pnpm --dir ../../.agents/skills/review-synthetic-ground-truth/ui test
 
@@ -90,6 +160,7 @@ jobs:
 
   codeql:
     name: CodeQL (${{ matrix.language }})
+    if: github.event_name != 'pull_request' || github.base_ref == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -124,6 +195,10 @@ jobs:
 
   dependencies:
     name: Dependency security
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -148,31 +223,26 @@ jobs:
           if-no-files-found: error
 
   image:
-    name: Image (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    name: Image (amd64)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     env:
-      ARCH: ${{ matrix.arch }}
-      CANDIDATE: linger-candidate:${{ github.sha }}-${{ matrix.arch }}
+      CANDIDATE: linger-candidate:${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Build candidate once
-        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag "$CANDIDATE" .
+      - name: Build the AMD64 image
+        run: docker build --platform linux/amd64 --build-arg VCS_REF="$GITHUB_SHA" --tag "$CANDIDATE" .
       - name: Prove offline startup and persistent state
         run: bash docker/smoke.sh "$CANDIDATE"
       - name: Install verified Trivy
         run: bash .github/scripts/install-trivy.sh "$RUNNER_TEMP/trivy"
-      - name: Scan candidate image
+      - name: Scan the image
         run: |
           mkdir -p security
           "$RUNNER_TEMP/trivy/trivy" image --scanners vuln --ignorefile /dev/null \
@@ -181,22 +251,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: image-security-${{ github.sha }}-${{ matrix.arch }}
+          name: image-security-${{ github.sha }}-amd64
           path: security
           retention-days: 30
-          if-no-files-found: error
-      - name: Save tested release candidate
-        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
-        run: |
-          mkdir -p candidate
-          docker save "$CANDIDATE" | gzip -1 > candidate/image.tar.gz
-          python3 .github/scripts/release_candidate.py create --sha "$GITHUB_SHA" \
-            --arch "$ARCH" --image "$CANDIDATE" --directory candidate
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: github.event_name == 'push' && github.ref == 'refs/heads/release-candidate'
-        with:
-          name: linger-candidate-${{ github.sha }}-${{ matrix.arch }}
-          path: candidate
-          retention-days: 30
-          compression-level: 0
           if-no-files-found: error

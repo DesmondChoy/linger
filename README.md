@@ -1,5 +1,8 @@
 # Linger
 
+For the hosted website and deployment of approved public GHCR images, see the
+[Railway guide](docs/railway.md).
+
 For tested images, release approval, and deployment with `compose.release.yaml`,
 see the [release guide](docs/releasing.md).
 
@@ -21,9 +24,10 @@ a small literary corpus.
 **Librarian** assesses reading boundaries and book evidence. **Serendipity**
 recalls saved memories and explores connections across memories, books, and
 authorised web sources.
-**Sculptor** proposes memory curation after a reviewed capture and, in offline
-evaluation only, memory surfacing decisions. **Provenance** reviews emotional boundaries, reply
-candidates, and curation proposals.
+**Sculptor** proposes memory curation after a reviewed capture. Its offline
+tasks evaluate memory surfacing, propose chapter search cues, analyse retrieval
+failures, and research retrieval improvements. **Provenance** reviews emotional
+boundaries, reply candidates, and curation proposals.
 
 Each role uses one reusable PydanticAI Agent with application-selected runtime
 skills. Typed task contracts keep each invocation's context and permissions
@@ -52,31 +56,75 @@ retain their own tools and context rules, including Muse's session history.
 
 ## Current prototype
 
-The local app places chat, a live agent map, and turn inspection on one page.
+The local app places English-language chat, a live agent map, and turn inspection
+on one page.
 It supports book-grounded reflection, recall from available account memories,
 and connections to memories, books, and optional public-web sources. A recall
 request can return one matching memory without requiring alternative candidates.
 General factual questions do not use private memories as reference material.
 
+After emotional preflight, Muse classifies the current message with its turn-triage skill.
+Application code uses that result and the available reading context to expose
+only the relevant specialist tools. Reflection instructions include the modules
+for those tools, plus revision guidance when a reply needs correction.
+
 Librarian breaks book questions into focused searches and assesses the evidence
 against the full request. Reading permission comes from explicit progress or
 validated inference from reader statements and eligible memories. Provenance
 reviews the complete reply, including quotations, attribution, and claim
-support. Bounded repairs check quotation text and retain source mappings for
-unchanged accepted claims before the application checks release.
+support. Muse's grounding instructions call for every reason or step the
+selected passages state in answer to the question. On a sufficient search,
+Muse receives the passages with a fixed status message; the Librarian's
+free-text assessment reason stays outside Muse's drafting context.
 
-Interactive memory capture is disabled by default, and the app exposes no
+A reply can receive one revision. Muse can preserve unflagged draft sentences
+by label, which carries their exact wording and source mappings into the
+revised candidate. Validation checks changes against the original findings,
+retains accepted mappings, and allows corrected claims to cite their supporting
+sources. Provenance reviews the complete revision and resolves every earlier
+response finding before the application checks release. Muse reflection and
+Provenance candidate review use medium reasoning effort for OpenAI Responses
+models; other calls use their configured settings. See the
+[Muse guide](src/linger/agents/muse/README.md) for the repair constraints and
+their limits.
+
+An explicit completed chapter carries across follow-ups about the same book
+and part. A correction can lower or retract that session's carried permission.
+The chapter the reader explicitly declares also persists per account and book after a
+released turn. A later declaration replaces it, including a lower chapter.
+Inferred boundaries and exact passage permissions stay within the session.
+Saved progress applies when a turn identifies the book and can supply separate
+reading limits for a comparison across books.
+A vague retraction leaves saved progress intact. The
+[book guide](docs/book-registration.md#identity-and-ambiguity) describes its
+reuse and correction limits.
+
+Interactive memory capture is on by default, and the app exposes no
 memory-management actions. Controlled workflows support reviewed capture,
 Sculptor curation, Provenance review, and application of approved derived
 changes while preserving original records. Memory surfacing runs only in
 offline evaluation.
 
-This is a prototype with username and password accounts. Accounts and
-per-account conversation history persist in local SQLite files under `data/`
-and survive restarts. Chat content
-is sent to the configured model provider. Optional backend telemetry records
-metadata rather than conversation content. Synthetic evaluations may also
+Readers sign up and log in with a username and password. Passwords are stored
+as salted scrypt hashes, and every chat, history, and session route takes the
+account from the bearer login token, so a reader sees and continues only their
+own conversations. Accounts, per-account conversation history, and declared
+reading progress persist in local SQLite files under `data/` and survive
+restarts. Signing in restores saved chats and continues the latest
+conversation. **New chat** starts another conversation while keeping earlier
+ones in the feed. **Delete** removes a conversation and its saved inspection
+details. This is still a prototype: there is no password reset, email
+verification, or multi-process deployment. Chat content is sent to the
+configured model provider. Optional backend telemetry records metadata rather
+than conversation content. Synthetic evaluations may also
 record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
+
+The chat entry point redacts detected email addresses and phone numbers before
+agent processing and conversation storage. Credential checks block detected
+secrets in incoming messages, agent context, generated replies, and storage
+writes. Three fixed instruction-override patterns can also stop a reader message
+before any agent runs. These checks supplement Provenance's semantic review.
+See the [app security checks](apps/README.md#security-checks) for the exact scope.
 
 The stack is Python, FastAPI, Pydantic AI, and React.
 
@@ -107,7 +155,10 @@ pnpm install --dir apps/frontend
 Edit `.env` to set `LINGER_MODEL` and the matching API key. The example selects
 `openai:gpt-6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
 prefix use `GOOGLE_API_KEY`; models with `anthropic:` use `ANTHROPIC_API_KEY`.
-Only the selected provider's key is needed.
+Only the selected provider's key is needed. The standard OpenAI model uses low
+reasoning effort, with medium effort for Muse reflection and Provenance
+candidate review. Turn triage uses the provider's configured small model, as
+described in the [app guide](apps/README.md#setup).
 
 Public-web discovery is optional and requires both `EXA_API_KEY` and
 `LINGER_WEB_SEARCH_ENABLED=true`. See [app configuration](apps/README.md#setup)
@@ -128,8 +179,9 @@ uv run uvicorn apps.backend.main:app --reload
 pnpm --dir apps/frontend dev
 ```
 
-Open <http://localhost:5173>. Interactive API documentation is available at
-<http://127.0.0.1:8000/docs>.
+Open <http://localhost:5173> and create an account or sign in to use live chat.
+The synthetic-persona path opens saved evaluations without sign-in or model
+calls. Interactive API documentation is available at <http://127.0.0.1:8000/docs>.
 
 ### Start with Docker Compose
 
@@ -141,7 +193,8 @@ docker compose up --build
 
 Open <http://localhost:5173>. The frontend proxies `/api` to the backend, which
 also remains available directly at <http://localhost:8000>. Account and
-transcript databases and account memories are stored in named Docker volumes.
+transcript and reading-progress databases and account memories are stored in
+named Docker volumes.
 Stop the stack with `docker compose down`; add `--volumes` only when you also
 intend to delete that persisted application data.
 
@@ -170,12 +223,37 @@ The default configuration enables these books:
 
 The local frontend includes developer tools alongside the conversation:
 
-- The live map follows agent activity. Select a component or completed turn to
-  inspect its context, outcomes, findings, release decision, and trace reference.
+- The live map follows agent activity. Select a component or handoff for its
+  details, or open **All turns and contracts** for the full Inspector. Turn
+  details include context, outcomes, findings, release decisions, trace
+  references, and captured or cited memory IDs.
 - **Library** opens the canonical Reader by chapter or named section. Browsing
   a book does not set reading progress for chat.
-- The prompt tray supplies example messages. Saved evaluation playback shows
-  exported scenario records and grades without invoking agents.
+- **Try a conversation** offers guided paths with book filters and alternative
+  wording. Select a prompt to place it in the composer, then send it. Paths
+  include spoiler boundaries, memory recall, public-web discovery, connections
+  across books, session continuity, declines, and safety.
+- Persona replay shows recorded synthetic runs, their answer keys, and review
+  assessments in the same chat and map UI, without invoking agents.
+
+`LINGER_DEV_INSPECT=true` attaches full agent exchanges and connection events
+to the Inspector and saved account history. These details can contain prompts,
+tool results, rejected outputs, and memory text. Use this setting only for local
+development or demos. It defaults to `false` and does not change the
+metadata-only Logfire policy.
+
+Inspect memory IDs on the server and check the committed persona exports:
+
+```bash
+	uv run python -m apps.backend.show_memories USERNAME
+	uv run python -m apps.backend.show_memories USERNAME MEMORY_ID
+	uv run python apps/frontend/scripts/export_personas.py --check
+```
+
+The memory command reads the repository's `memories/` directory. The persona
+exporter reads saved local evaluation runs. See the
+[frontend guide](apps/frontend/README.md#synthetic-personas) for export requirements
+and the command that writes the snapshots.
 
 These diagnostics are for local development and grant no runtime authority.
 See the [frontend guide](apps/frontend/README.md) for the controls and the
@@ -209,15 +287,39 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs the backend and frontend unit suites for pull requests and
-pushes to `main` and `release-candidate`. Backend tests block model-provider requests; tests marked
-`embeddings` use real local embedding and reranker models. To exclude those
-tests, run `uv run pytest -m "not embeddings"`.
+GitHub Actions runs full CI for pull requests to `main`, pushes to
+`release-candidate`, and manual dispatch. Pushes to `main`, including merges,
+run only CodeQL. Pull requests to `release-candidate` run only the lightweight
+**Release promotion** check, which requires the source branch to be `main` in
+this repository. Both branches
+must be configured to require reviewed, up-to-date PRs without direct pushes or
+bypasses.
+Backend tests block model-provider requests.
+Separate jobs run `uv run pytest -m "not embeddings"` and
+`uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
+`embeddings` use real local embedding and reranker models, which CI caches.
+Their first local run needs the model files in cache or permission to download
+them. Frontend CI also checks the Ground truth reviewer, lint, and the production
+build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
+alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
+for the seven checks required on `main` PRs and before release.
 
-Live release evaluations and automatic publication start disabled in
+CodeQL scans on pushes to `main` refresh its GitHub security results without
+starting a release. There is no scheduled scan. Without an eligible pull request,
+push, or manual dispatch, no new scan runs. Trivy scans remain part of full CI,
+with JSON reports stored as workflow artifacts. Newly disclosed dependency and
+image vulnerabilities are checked on the next full CI run.
+
+Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
-are ready for release testing. See the [release guide](docs/releasing.md) for
-the switches, required GitHub protections, and manual approval steps.
+are ready for release. The release run builds, scans, and checks one Linux AMD64
+image, then publishes that same image after human approval. Railway deploys its
+public GHCR digest. Paid evaluations remain optional. Deployment-only retries
+reuse the recorded digest without rebuilding or repeating evaluations.
+Auto-publishing remains off until evaluation results justify a threshold.
+See the [release guide](docs/releasing.md) for the switches, required GitHub
+protections, and approval steps, and the
+[release flow diagram](docs/release-checks.md#release-configuration) for the process.
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported
@@ -238,7 +340,41 @@ Individual agent evaluation guides cover [Muse](evals/muse/README.md),
 [Librarian](evals/librarian/README.md), [Provenance](evals/provenance/README.md),
 [Serendipity](evals/serendipity/README.md), and [Sculptor](evals/sculptor/README.md).
 The Provenance guide includes candidate risk-code, curation risk-code, and claim
-mapping commands. Live evaluation commands use the configured model provider.
+mapping commands. Candidate risk-code cases include second-review obligations
+for revised replies. Muse revision grading checks required answer content and
+its declared sources alongside structural validity. Librarian reports include
+`reply_fact_recall` for released answers when a case supplies `required_facts`;
+it remains separate from the retrieval acceptance result. Live evaluation
+commands use the configured model provider.
+
+The component and offline guides document these evaluation entry points:
+
+| Task | Command | Guide |
+|---|---|---|
+| Compare Muse drafts and review outcomes | `uv run python -m evals.muse.baseline_run --help` | [Muse evaluations](evals/muse/README.md) |
+| Test one revision against fixed findings | `uv run python -m evals.muse.revision_run --help` | [Muse evaluations](evals/muse/README.md) |
+| Judge paired replies with hidden model labels | `uv run python -m evals.muse.blind_review --help` | [Muse evaluations](evals/muse/README.md) |
+| Measure chapter-cue retrieval and selected evidence | `uv run python -m evals.librarian.chapter_cue_recall --help` | [Librarian evaluations](evals/librarian/README.md) |
+| Run Sculptor's retrieval analysis and research stages | `uv run python -m evals.librarian.research_loop --help` | [Librarian evaluations](evals/librarian/README.md) |
+| Compare recall before and after reviewed curation | `uv run python -m evals.synthetic_journals.memory_loop_replay --help` | [Synthetic evaluations](evals/synthetic_journals/README.md) |
+| Inspect release evidence checks and suite execution | `uv run python -m evals.release --help` | [Release checks](docs/release-checks.md) |
+
+To run selected Muse revision cases, repeat `--case` for each fixture:
+
+```bash
+	uv run python -m evals.muse.revision_run \
+		--case muse-revision-added-source-v1 \
+		--case muse-revision-misattributed-speaker-v1 \
+		--runs 3 --output /tmp/muse-revisions.json
+```
+
+Sculptor's retrieval experiments use fixed practice and held-back requests.
+Owners review each input and approve analyses and specifications before
+dependent stages run. Chapter cues and larger
+per-part candidate pools are opt-in evaluation settings. The
+[experiment design](docs/design/self-improving-memory-loop.md) and
+[retrieval research report](docs/evaluation/retrieval-research-experiment-4-2026-10-01.md)
+describe the method, recorded results, and limits.
 
 ## Documentation
 

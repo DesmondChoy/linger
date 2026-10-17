@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.orchestration.curation import CurationLoopResult, run_curation_loop
 from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
 

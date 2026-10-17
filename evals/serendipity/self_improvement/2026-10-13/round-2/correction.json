@@ -1,0 +1,90 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-decline-insufficient-bridge-v3",
+      "note": "In two failing repetitions, the run declined after finding one permitted passage but chose `unsupported_cue` because “this” was unclear; passing repetitions chose `insufficient_evidence` for the single-passage limit."
+    },
+    {
+      "case_id": "serendipity-decline-generic-bridge-v3",
+      "note": "In two failing repetitions, the run turned the size-only details into proposed bridges about vulnerability, agency, or self-judgment; passing repetitions declined because the evidence supported only a shared size motif."
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "note": "The run declined with `insufficient_evidence` because the vague “this” lacked a referent; passing repetitions used `unsupported_cue`."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "The run declined with `unsupported_cue` even though the relevant issue was that excluding the unusable record left only one sound passage; passing repetitions used `insufficient_evidence`."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "The failing runs expanded from web retrieval to `search_librarian`, which was not requested or needed for an outside recommendation, and then declined because the opened source descriptions did not explain the full rationale. Passing runs recommended a directly relevant page as a bounded starting point."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "The failing runs declined because the anti-literacy-law overview did not itself explain the laws’ motives, despite its direct topical relevance; passing runs recommended it as a limited starting point and identified that gap."
+    },
+    {
+      "case_id": "serendipity-recall-two-matching-records-v3",
+      "note": "In two failing repetitions, the run said no matching memory existed despite two returned records directly about sleep; passing repetitions returned both relevant records and excluded the unrelated chair note."
+    }
+  ],
+  "categories": [
+    {
+      "name": "External recommendations require the source to answer the whole question",
+      "definition": "A run declines an outside-reading recommendation because the accessible page description does not supply the requested explanation, even though the source is about the requested issue and can be offered with its limits stated; this category also includes expanding into an unrequested source to compensate.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Generic motif elaborated into a bridge",
+      "definition": "A run proposes a specific interpretive relationship by adding structure or implications not established by the passages, where the evidence supports only a broad shared subject or motif.",
+      "case_ids": [
+        "serendipity-decline-generic-bridge-v3"
+      ]
+    },
+    {
+      "name": "Decline reason does not name the operative limitation",
+      "definition": "A run declines but chooses a reason for an unclear cue when the decisive limitation is insufficient evidence, or chooses insufficient evidence when the cue itself is unsupported.",
+      "case_ids": [
+        "serendipity-decline-insufficient-bridge-v3",
+        "serendipity-rank-tied-top-candidates-v3",
+        "serendipity-unsafe-evidence-leaves-too-little-v3"
+      ]
+    },
+    {
+      "name": "Directly matching recall records missed",
+      "definition": "A run declines a recall request even though returned personal records directly address the subject asked about.",
+      "case_ids": [
+        "serendipity-recall-two-matching-records-v3"
+      ]
+    }
+  ],
+  "target_category": "External recommendations require the source to answer the whole question",
+  "diagnosis": "This category has the most failing repetitions, and the decision is plausibly instruction-driven. The current wording allows a directly topical source to be recommended as a starting point, but leaves “directly covers the requested topic” open to being read as “its accessible description must explain the requested cause.” That reading turns a bounded recommendation into an evidentiary claim about the full answer and leads to declines. Separately, the rule that a weak first source may justify expansion leaves room to search the book for an outside recommendation. The earlier correction already distinguished recommendations from full answers; this refinement specifies that topical fit is about the source’s subject, and that recommendations do not invite cross-source expansion unless the reader asks for it.",
+  "edits": [
+    {
+      "find": "For an external recommendation, a source that directly covers the requested topic may be proposed as a useful starting point even if its accessible description does not state the full explanation the reader asks about. State what it does establish and identify the gap; do not imply that the recommendation answers the full question.",
+      "replace": "For an external recommendation, judge topical fit by what the source is about, not by whether its accessible description resolves the reader’s question: a source substantially about the requested issue may be proposed as a useful starting point even if the description establishes only the issue or its context, not its cause. State that limit; do not imply the recommendation answers the full question. A merely adjacent subject or loose association is not enough.",
+      "reason": "Makes the existing bounded-recommendation allowance operational: a source about the requested issue can be recommended without claiming that its accessible excerpt explains the issue, while preserving a topical-fit threshold."
+    },
+    {
+      "find": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\nthe primary source: open a supplied URL, or search when none is supplied.",
+      "replace": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.\n  Do not expand to book or memory sources merely to supplement an outside\n  recommendation; inspect another source type only when the reader explicitly\n  requests a comparison involving it.",
+      "reason": "Prevents treating an outside recommendation as a cross-source comparison or using an unrequested source to compensate for limits in a web page description; explicit requested comparisons remain covered by the separate comparison rule."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-douglass-route-external-web-v3",
+    "serendipity-douglass-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-alice-web-with-distractor-v3"
+  ],
+  "risks": "These passing recommendation cases could be affected by the clarified fit threshold or source-routing rule. Their selected web pages directly state relevant identity, self-knowledge, or political ideas, so the change should not cause them to be rejected. It still requires a real topical connection, preserves claims within opened-page content, and permits additional source types when the reader explicitly asks for a comparison."
+}

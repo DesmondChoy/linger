@@ -1,6 +1,5 @@
 import type { ComponentId, GraphEdge, GraphNode, Scene, WalkthroughStep } from '@linger/architecture-map'
 import type { ProgressEvent, TurnRecord } from '../../types'
-import { formatMachineLabel } from '../formatMachineLabel'
 
 export type ActivityStatus = 'running' | 'complete' | 'declined' | 'failed'
 
@@ -12,7 +11,7 @@ export type ComponentActivity = {
 }
 
 export type LiveTurn = {
-  scene: Scene
+  scene: Pick<Scene, 'id' | 'title' | 'summary' | 'nodes' | 'edges' | 'layout'>
   /** Components that have done something, keyed by component id. */
   activity: ComponentActivity[]
   /** Components still running, shaped for the map's highlight mechanism. */
@@ -108,7 +107,7 @@ function optionalEdges(present: Set<ComponentId>): GraphEdge[] {
       edges.push(edge('serendipity', 'librarian', '', 'Only permitted book evidence may enter the connection search.', ['Bounded query', 'Exact book evidence'], true))
     }
     if (present.has('web')) {
-      edges.push(edge('serendipity', 'web', 'Permitted search', 'Guarded public discovery used generalized concepts; web-backed release still fails closed.', ['Non-private query', 'Opened pages and source URLs'], true))
+      edges.push(edge('serendipity', 'web', 'Permitted search', 'Guarded public discovery used generalized queries; opened pages could be cited once checked.', ['Non-private query', 'Opened pages and source URLs'], true))
     }
     if (present.has('memory')) {
       edges.push(edge('serendipity', 'memory', 'Memory search', 'Serendipity searched active account-scoped memories under application grants.', ['Bounded memory query', 'Eligible memory records'], true))
@@ -150,36 +149,6 @@ function collectActivity(events: ProgressEvent[]) {
   return activity
 }
 
-function observedSteps(events: ProgressEvent[], userMessage: string): [WalkthroughStep, ...WalkthroughStep[]] {
-  const steps: WalkthroughStep[] = [{
-    title: 'Your message enters the turn',
-    description: `The application opened a turn for "${userMessage}" and supplied account identity, source grants, and policy. The text carries meaning only — never permissions.`,
-    nodes: ['input', 'preflight'],
-    edges: ['input-preflight'],
-  }]
-
-  for (const event of events) {
-    if (event.status === 'running') continue
-    const nodes = componentsFor(event)
-    if (!nodes.length) continue
-    const label = formatMachineLabel(event.stage)
-    steps.push({
-      title: `${event.agent} · ${label}`,
-      description: `${event.detail} Reported at ${(event.elapsed_ms / 1000).toFixed(1)}s, handed from ${event.input_origin} to ${event.output_receiver}.`,
-      nodes,
-      edges: [],
-    })
-  }
-
-  steps.push({
-    title: 'The application released the reply',
-    description: 'Deterministic checks resolved every declaration after review. Only permitted wording entered the conversation, and a withheld candidate suppresses any save notice.',
-    nodes: ['release', 'response'],
-    edges: ['release-response'],
-  })
-  return steps as [WalkthroughStep, ...WalkthroughStep[]]
-}
-
 /**
  * Build a map of one real chat turn from its content-free progress stream.
  *
@@ -200,7 +169,9 @@ export function buildLiveTurn(options: {
     .map((id) => SOURCE_POSITIONS[id])
     .filter((node): node is GraphNode => node !== undefined)
 
-  const nodes = [...SPINE, ...extras].map((node) => {
+  // An offline task (curation) never passed through the conversation spine.
+  const spine = turn?.grading?.offline ? [] : SPINE
+  const nodes = [...spine, ...extras].map((node) => {
     const seen = activity.get(node.id)
     if (!seen) return node
     const last = seen.stages[seen.stages.length - 1]
@@ -216,14 +187,31 @@ export function buildLiveTurn(options: {
       },
     }
   })
+  // Capture is deterministic and emits no progress stage, so draw it from the
+  // release record whenever Muse proposed a memory or one was saved.
+  const capture = turn?.inspection.release?.capture
+  const captureEdges: GraphEdge[] = []
+  if (capture && (capture.nomination === 'candidate' || capture.storage === 'committed')) {
+    const saved = capture.storage === 'committed'
+    nodes.push({
+      id: 'memory_policy',
+      x: 740,
+      y: 560,
+      footer: {
+        left: saved ? 'memory' : undefined,
+        right: saved ? 'saved' : capture.storage.replaceAll('_', ' '),
+        tone: saved ? 'good' : 'neutral',
+      },
+    })
+    captureEdges.push(edge('provenance', 'memory_policy', 'Capture', 'After review, deterministic policy decided whether the proposed memory was saved.', ['Exactly bound memory candidate', 'Provenance capture decision', 'Saved, refused, or suppressed outcome'], false))
+  }
   const nodeIds = new Set(nodes.map((node) => node.id))
-  const edges = [...SPINE_EDGES, ...optionalEdges(present)]
+  const edges = [...SPINE_EDGES, ...optionalEdges(present), ...captureEdges]
     .filter((item) => nodeIds.has(item.source) && nodeIds.has(item.target))
 
   const running = [...activity.values()].filter((item) => item.status === 'running')
-  const release = turn?.inspection.release
 
-  const scene: Scene = {
+  const scene: LiveTurn['scene'] = {
     id: turn?.inspection.muse_turn.turn_id ?? 'in-flight',
     title: userMessage || 'Current turn',
     summary: running.length
@@ -231,21 +219,9 @@ export function buildLiveTurn(options: {
       : turn
         ? `Observed route for this turn. ${describeRelease(turn)}`
         : 'Waiting for the first stage of this turn.',
-    status: 'implemented',
-    statusNote: 'This map is one observed run, rebuilt from the server\'s content-free progress stream. Prompts, drafts, queries, and evidence never enter that stream.',
-    input: { title: 'Your message', text: userMessage || '—' },
-    expected: release
-      ? [
-        `Release source: ${formatMachineLabel(release.release_source)}.`,
-        `Review path: ${release.provenance_verdicts.join(' → ') || 'unavailable'}.`,
-        release.finding_codes.length
-          ? `Findings raised: ${release.finding_codes.map(formatMachineLabel).join(', ')}.`
-          : 'No review findings were raised.',
-      ]
-      : ['This turn has not produced a release decision yet.'],
     nodes,
     edges,
-    steps: observedSteps(events, userMessage || 'your message'),
+    layout: 'compact',
   }
 
   return {
@@ -259,7 +235,14 @@ export function buildLiveTurn(options: {
 }
 
 function describeRelease(turn: TurnRecord): string {
+  if (turn.grading?.offline) {
+    return 'Offline curation: Sculptor proposed an action and a separate review checked it. No reader message, nothing released.'
+  }
   switch (turn.inspection.release?.release_source) {
+    case undefined:
+      return 'No release decision was recorded for this turn.'
+    case 'muse_candidate':
+      return 'Provenance approved the Muse candidate and deterministic checks released it.'
     case 'application_clarification':
       return 'The application released a validated clarification question.'
     case 'application_safe_decline':

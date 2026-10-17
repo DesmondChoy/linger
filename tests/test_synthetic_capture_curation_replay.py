@@ -158,8 +158,6 @@ def test_combined_replay_uses_production_handlers_and_original_adoption(
             {
                 "kind": "memory_candidate",
                 "text": nomination.span.text,
-                "start_codepoint": nomination.span.start_codepoint,
-                "end_codepoint": nomination.span.end_codepoint,
                 "reason_code": "durable_reflection",
             }
             if isinstance(nomination, CaptureCandidate)

@@ -16,6 +16,48 @@ from evals.librarian.benchmark import (
 )
 
 
+# Replies saved from five live `pigeon-serpent` runs. A human read runs 1, 2 and
+# 4 as stating both reasons, run 3 as omitting Alice's admission, and run 5 as
+# a decline.
+PIGEON_REPLIES = {
+    "run1": (
+        "In Chapter 5, the Pigeon is on guard against serpents because it fears "
+        "they’ll get at its eggs, and Alice’s unusually long neck makes it mistake "
+        "her for one. When Alice says she’s a little girl, the Pigeon rejects that "
+        "because it has never seen a girl with a neck like hers; then, when she "
+        "admits girls eat eggs too, it uses that to insist girls must be a kind of "
+        "serpent as well. The joke is that the Pigeon bends every answer to fit its "
+        "suspicion."
+    ),
+    "run2": (
+        "In Chapter 5, the Pigeon mistakes Alice for a serpent because her long neck "
+        "fits its idea of what a serpent looks like, and it suspects she wants to "
+        "eat its eggs. When Alice admits she has tasted eggs, the Pigeon treats that "
+        "as proof: “if they do, why then\nthey’re a kind of serpent, that’s all I "
+        "can say.” Its reasoning is comic but circular: it has already decided what "
+        "Alice is, then turns her answer into confirmation."
+    ),
+    "run3": (
+        "In Chapter 5, the Pigeon reads Alice’s unusually long neck as proof that "
+        "she’s a serpent. It’s also on constant watch for serpents because they "
+        "threaten its eggs, so it treats Alice as the danger it expects to find. The "
+        "Pigeon’s conclusion comes from its own suspicion, not from Alice actually "
+        "being a serpent."
+    ),
+    "run4": (
+        "In Chapter 5, the Pigeon sees Alice’s unusually long neck and suspects she "
+        "is after its eggs. When Alice points out that girls eat eggs too, the "
+        "Pigeon reasons that egg-eating makes someone serpent-like. Its accusation "
+        "reflects its suspicion and protectiveness toward its eggs, not Alice "
+        "actually being a serpent."
+    ),
+    "run5": (
+        "I couldn’t verify that against the sources I can use, so I’d rather not "
+        "guess. If you ask again with the passage in mind, I’ll take another look."
+    ),
+}
+
+
 class LibrarianBenchmarkFixtureTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -137,6 +179,107 @@ class LibrarianBenchmarkFixtureTests(unittest.TestCase):
         self.assertEqual(1.0, case.evidence_recall([(5, 1208, 1212)]))
         self.assertEqual(1.0, case.evidence_recall([(5, 1162, 1169), (5, 1214, 1216)]))
         self.assertEqual(0.5, case.evidence_recall([(5, 1162, 1169)]))
+
+    def test_pigeon_case_requires_the_reply_to_state_both_reasons(self) -> None:
+        case = next(case for case in self.cases.cases if case.case_id == "pigeon-serpent")
+        self.assertEqual(
+            ["long-neck", "egg-eating-admission"],
+            [fact.fact_id for fact in case.required_facts],
+        )
+        for other in self.cases.cases:
+            if other.case_id != "pigeon-serpent":
+                self.assertEqual((), other.required_facts, other.case_id)
+
+    def test_pigeon_reply_facts_grade_the_saved_live_replies(self) -> None:
+        case = next(case for case in self.cases.cases if case.case_id == "pigeon-serpent")
+        for name in ("run1", "run2", "run4"):
+            with self.subTest(reply=name):
+                self.assertEqual((), case.missing_reply_facts(PIGEON_REPLIES[name]))
+                self.assertEqual(1.0, case.reply_fact_recall(PIGEON_REPLIES[name]))
+        self.assertEqual(
+            ("egg-eating-admission",), case.missing_reply_facts(PIGEON_REPLIES["run3"])
+        )
+        self.assertEqual(0.5, case.reply_fact_recall(PIGEON_REPLIES["run3"]))
+        self.assertEqual(
+            ("long-neck", "egg-eating-admission"),
+            case.missing_reply_facts(PIGEON_REPLIES["run5"]),
+        )
+        self.assertEqual(0.0, case.reply_fact_recall(PIGEON_REPLIES["run5"]))
+
+    def test_egg_admission_is_about_alice_or_girls_eating_eggs(self) -> None:
+        case = next(case for case in self.cases.cases if case.case_id == "pigeon-serpent")
+        stated = [
+            "Alice concedes that little girls eat eggs quite as much as serpents do.",
+            "she has tasted eggs",
+            "She’s tasted eggs, she admits.",
+            "She's tasted eggs, she admits.",
+            "Alice replies: “I _have_ tasted eggs, certainly”.",
+            "The Pigeon is on the lookout for serpents because it fears they’ll eat "
+            "its eggs; when Alice says she has eaten eggs too, it treats that as further proof.",
+            "It suspects she wants to eat its eggs. Then Alice admits to eating eggs herself.",
+            "It also suspects Alice wants eggs; when she admits she has tasted them, "
+            "the Pigeon treats that as further proof.",
+            "The Pigeon asks about eggs, and Alice says girls eat them too.",
+            "Because both little girls and serpents eat eggs, it decides they must be a kind of serpent.",
+            "It reasons that serpents and little girls eat eggs alike.",
+            "The Pigeon argues that if little girls eat eggs too, they must be a kind of serpent.",
+        ]
+        unstated = [
+            "It suspects she wants to eat its eggs.",
+            "The Pigeon sees Alice’s long neck and believes she wants to eat eggs.",
+            "Alice has a long neck. The Pigeon asks whether she has tasted eggs.",
+            "The Pigeon asks if she has ever tasted an egg.",
+            "Neither girls nor serpents eat eggs, Alice claims; girls and serpents never eat eggs.",
+            "The Pigeon fears serpents will eat its eggs.",
+            "It is hatching its eggs and on the look-out for serpents night and day.",
+            "Alice says she is a little girl but the Pigeon knows serpents eat eggs.",
+            "Alice insists she has never tasted eggs.",
+            "Alice says she doesn’t eat eggs.",
+            "Serpents threaten its eggs, and she fears they will eat them.",
+            "The Pigeon guards its eggs because it thinks she will eat them.",
+            "",
+        ]
+        for reply in stated:
+            with self.subTest(stated=reply):
+                self.assertNotIn("egg-eating-admission", case.missing_reply_facts(reply))
+        for reply in unstated:
+            with self.subTest(unstated=reply):
+                self.assertIn("egg-eating-admission", case.missing_reply_facts(reply))
+
+    def test_any_pattern_states_a_fact_and_matching_ignores_case(self) -> None:
+        case = BenchmarkCase(
+            case_id="facts", query="Question", chapter_max=5,
+            expected_strength="sufficient", relevant_ranges=((5, 979, 981),),
+            required_facts=(
+                {"fact_id": "size", "patterns": [r"\bgrew\b", r"\bshrank\b"]},
+                {"fact_id": "confusion", "patterns": [r"\bconfus\w+"]},
+            ),
+        )
+        self.assertEqual((), case.missing_reply_facts("Alice SHRANK and was Confused."))
+        self.assertEqual(("confusion",), case.missing_reply_facts("Alice grew."))
+        self.assertEqual(0.5, case.reply_fact_recall("Alice grew."))
+        self.assertEqual(("size", "confusion"), case.missing_reply_facts("Nothing here."))
+
+    def test_cases_without_required_facts_have_no_reply_fact_grade(self) -> None:
+        case = next(case for case in self.cases.cases if case.case_id == "father-william")
+        self.assertEqual((), case.required_facts)
+        self.assertEqual((), case.missing_reply_facts("Any reply at all."))
+        self.assertIsNone(case.reply_fact_recall("Any reply at all."))
+
+    def test_required_facts_reject_invalid_empty_and_duplicate_declarations(self) -> None:
+        for facts in [
+            ({"fact_id": "a", "patterns": ["(unclosed"]},),
+            ({"fact_id": "a", "patterns": []},),
+            ({"fact_id": "a", "patterns": [""]},),
+            ({"fact_id": "", "patterns": ["x"]},),
+            ({"fact_id": "a", "patterns": ["x"]}, {"fact_id": "a", "patterns": ["y"]}),
+        ]:
+            with self.subTest(facts=facts), self.assertRaises(ValueError):
+                BenchmarkCase(
+                    case_id="invalid-facts", query="Question", chapter_max=5,
+                    expected_strength="sufficient", relevant_ranges=((5, 966, 981),),
+                    required_facts=facts,
+                )
 
     def test_identity_theme_optional_or_unrelated_passages_cannot_replace_dialogue(self) -> None:
         case = next(case for case in self.cases.cases if case.case_id == "identity-theme")

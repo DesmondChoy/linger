@@ -23,7 +23,11 @@ with patch.dict(
     from src.linger.contracts.emotional import EmotionalBoundaryAssessment
     from src.linger.orchestration.progress_context import emit_progress
     from src.linger.orchestration.reflection import ReflectionRelease
-    from src.linger.services.memory import AccountContext, MemoryPolicyService
+    from src.linger.services.memory import (
+        AccountContext,
+        AutomaticMemoryCandidate,
+        MemoryPolicyService,
+    )
 
 
 class AccountStoreTests(unittest.TestCase):
@@ -170,6 +174,31 @@ class SignInTests(unittest.TestCase):
         self.assertEqual(history, sessions.history(self.session_id))
         self.assertEqual(200, self.chat(self.alice, turn_id="turn-2").status_code)
 
+    def test_only_the_owner_can_list_and_forget_a_memory(self) -> None:
+        main.memory_service.set_capture_enabled(AccountContext("user:alice"), True)
+        saved = main.memory_service.save_automatic(
+            AccountContext("user:alice"),
+            AutomaticMemoryCandidate(
+                text="I reread letters when I feel far from home.",
+                source_event_id="turn-letters",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        ).record
+
+        listed = self.client.get("/api/memories", headers=self.alice).json()
+        self.assertEqual(
+            [(saved.memory_id, "original", "turn-letters", True)],
+            [(row["memory_id"], row["kind"], row["source_turn_id"], row["searchable"]) for row in listed],
+        )
+        self.assertEqual([], self.client.get("/api/memories", headers=self.bob).json())
+        url = f"/api/memories/{saved.memory_id}"
+        self.assertEqual(404, self.client.delete(url, headers=self.bob).status_code)
+        self.assertEqual(401, self.client.delete(url).status_code)
+        self.assertEqual(204, self.client.delete(url, headers=self.alice).status_code)
+        self.assertEqual([], self.client.get("/api/memories", headers=self.alice).json())
+        self.assertEqual(404, self.client.delete(url, headers=self.alice).status_code)
+
     def history(self, headers: dict[str, str]) -> list[dict]:
         response = self.client.get("/api/history", headers=headers)
         self.assertEqual(200, response.status_code)
@@ -213,6 +242,26 @@ class SignInTests(unittest.TestCase):
         self.assertEqual("Approved reply", details["response"]["reply"])
         self.assertIn("inspection", details["response"])
         self.assertIn("Muse", [event["agent"] for event in details["progress"]])
+
+    def test_history_names_a_memory_saved_before_inspect_recorded_it(self) -> None:
+        account = AccountContext(auth.account_id_for("alice"))
+        main.transcript_store.append_turn(
+            account.account_id, self.session_id, "turn-before-handles", "I fill silence.", "Reply.",
+            details={"response": {"inspection": {"release": {"capture": {"storage": "committed"}}}}},
+        )
+        main.memory_service.set_capture_enabled(account, True)
+        saved = main.memory_service.save_automatic(account, AutomaticMemoryCandidate(
+            text="I fill silence.", source_event_id="turn-before-handles",
+            review_allows_capture=True, contains_sensitive_content=False,
+        )).record
+
+        memory = self.history(self.alice)[0]["turns"][0]["details"]["response"]["inspection"]["memory"]
+        self.assertEqual(saved.memory_id, memory["captured_memory_id"])
+        self.assertNotIn("texts", memory)
+
+        with patch.object(main.settings, "linger_dev_inspect", True):
+            memory = self.history(self.alice)[0]["turns"][0]["details"]["response"]["inspection"]["memory"]
+        self.assertEqual({saved.memory_id: "I fill silence."}, memory["texts"])
 
     def test_a_saved_conversation_survives_a_restart_for_its_owner_only(self) -> None:
         self.assertEqual(200, self.chat(self.alice).status_code)

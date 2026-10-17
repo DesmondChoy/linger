@@ -11,7 +11,7 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 import bm25s
 import numpy as np
@@ -62,6 +62,25 @@ def covers_range(actual: tuple[int, int, int], gold: tuple[int, int, int]) -> bo
     return chapter == gold_chapter and start <= gold_start and end >= gold_end
 
 
+class RequiredFact(StrictModel):
+    """A fact the reply must state; any one case-insensitive pattern states it."""
+
+    fact_id: str = Field(min_length=1)
+    patterns: tuple[Annotated[str, Field(min_length=1)], ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def patterns_compile(self) -> "RequiredFact":
+        for pattern in self.patterns:
+            try:
+                re.compile(pattern)
+            except re.error as error:
+                raise ValueError(f"invalid pattern for {self.fact_id}: {error}") from error
+        return self
+
+    def stated_in(self, reply: str) -> bool:
+        return any(re.search(pattern, reply, re.IGNORECASE) for pattern in self.patterns)
+
+
 class BenchmarkCase(StrictModel):
     case_id: str
     query: str = Field(min_length=1)
@@ -69,6 +88,14 @@ class BenchmarkCase(StrictModel):
     expected_strength: Literal["sufficient", "weak", "none"]
     relevant_ranges: tuple[tuple[int, int, int], ...]
     required_range_groups: tuple[tuple[tuple[int, int, int], ...], ...] | None = None
+    required_facts: tuple[RequiredFact, ...] = ()
+
+    @model_validator(mode="after")
+    def fact_ids_are_unique(self) -> "BenchmarkCase":
+        fact_ids = [fact.fact_id for fact in self.required_facts]
+        if len(fact_ids) != len(set(fact_ids)):
+            raise ValueError("required fact ids must not repeat")
+        return self
 
     @model_validator(mode="after")
     def ranges_match_strength(self) -> "BenchmarkCase":
@@ -111,6 +138,19 @@ class BenchmarkCase(StrictModel):
             for actual in ranges
         ) for group in groups)
         return matched / len(groups)
+
+    def missing_reply_facts(self, reply: str) -> tuple[str, ...]:
+        """Required facts no pattern finds in the reply, in declaration order."""
+        return tuple(
+            fact.fact_id for fact in self.required_facts if not fact.stated_in(reply)
+        )
+
+    def reply_fact_recall(self, reply: str) -> float | None:
+        """Share of required facts the reply states; None when none are declared."""
+        if not self.required_facts:
+            return None
+        missing = self.missing_reply_facts(reply)
+        return (len(self.required_facts) - len(missing)) / len(self.required_facts)
 
 
 class BenchmarkSet(StrictModel):

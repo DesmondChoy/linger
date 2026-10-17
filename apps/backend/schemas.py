@@ -35,7 +35,7 @@ class ChatRequest(RequestBody):
     @classmethod
     def _normalize_message(cls, value: object) -> object:
         # Runs before the length and emptiness constraints, so every downstream
-        # consumer (session history, prompts, capture offsets, detectors,
+        # consumer (session history, prompts, capture binding, detectors,
         # inspection) sees one normalised string. A non-string is passed
         # through for the usual type error rather than failing here.
         return normalize_reader_message(value) if isinstance(value, str) else value
@@ -89,6 +89,8 @@ class ReleaseInspection(BaseModel):
     # fault is distinguishable from one Provenance actually decided.
     failure_type: Literal["application", "model", "validation"] | None = None
     failure_retryable: bool | None = None
+    security_block_category: Literal["credential", "prompt_injection"] | None = None
+    security_pattern_ids: tuple[str, ...] = ()
     capture: CaptureInspection
 
     @model_validator(mode="after")
@@ -119,6 +121,79 @@ class ConnectionDeclineInspection(BaseModel):
     failure_code: Literal["connection_discovery_failed"] | None = None
 
 
+class AvailableMemory(BaseModel):
+    """One item of the curated retrieval view a turn could search."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    memory_id: str
+    kind: Literal["original", "derived_summary", "topic_group"]
+    # The saved originals this item stands for; itself for an original.
+    source_memory_ids: list[str]
+
+
+class MemoryInspection(BaseModel):
+    """Content-free handles for the memories one turn touched.
+
+    Inspect never carries memory text; a developer resolves these IDs on the
+    server with `python -m apps.backend.show_memories`.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Active memories available to retrieval and surfacing this turn.
+    active_count: int = Field(ge=0)
+    # The memory this turn committed, including an idempotent replay.
+    captured_memory_id: str | None = None
+    # Memories the released reply cited as evidence.
+    cited_memory_ids: list[str] = Field(default_factory=list)
+    # The curated retrieval view this turn could search; curation may retire
+    # saved originals or add summaries and topic groups over them.
+    available_memories: list[AvailableMemory] = Field(default_factory=list)
+    # Developer inspect only (LINGER_DEV_INSPECT): the text behind each ID above.
+    texts: dict[str, str] | None = None
+
+
+class ReadingProgressEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    work_id: str
+    title: str | None = None
+    part_id: str
+    # None marks a retracted ceiling: the reader withdrew it and no chapter is granted.
+    chapter_max: int | None
+
+
+class ReadingStateInspection(BaseModel):
+    """Stored reading progress once one turn finished; kept apart from memories."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # This conversation's progress slot, which holds one book at a time.
+    session: ReadingProgressEntry | None = None
+    # The account's progress kept across conversations; None when the turn ran without the store.
+    saved: list[ReadingProgressEntry] | None = None
+
+
+class StoredMemory(BaseModel):
+    """One row of the reader's memory table, read live from the store."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    memory_id: str
+    kind: Literal["original", "derived_summary", "topic_group"]
+    created_at: str
+    # The turn whose reply saved it; None for a curated item.
+    source_turn_id: str | None = None
+    # The saved originals a curated item stands for; itself for an original.
+    source_memory_ids: list[str]
+    # False for an original that curation retired from search.
+    searchable: bool
+    # Developer inspect only (LINGER_DEV_INSPECT).
+    text: str | None = None
+    topic_labels: list[str] = Field(default_factory=list)
+
+
 class TurnInspection(BaseModel):
     """Read-only record of the contracts used for one released response."""
 
@@ -130,6 +205,11 @@ class TurnInspection(BaseModel):
     librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)
     # Turn triage result, the tools Muse was offered, and any pinned intent.
     tool_exposure: dict[str, Any] | None = None
+    memory: MemoryInspection | None = None
+    reading_state: ReadingStateInspection | None = None
+    # Developer inspect only (LINGER_DEV_INSPECT): agent prompts, tool calls,
+    # outputs, and Serendipity search events for this turn.
+    dev_trace: dict[str, Any] | None = None
     prompt: str
     release: ReleaseInspection | None = None
 

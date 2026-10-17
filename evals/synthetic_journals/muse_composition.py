@@ -6,7 +6,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 from pydantic_ai import ModelRetry, RunContext
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.agent import validate_muse_output
 from src.linger.agents.muse.models import MemoryNomination, MuseCandidate
 from src.linger.orchestration.turn_context import turn_evidence

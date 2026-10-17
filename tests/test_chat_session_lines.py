@@ -172,6 +172,66 @@ class ChatSessionLineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([ASSEMBLY_QUOTE], provenance_inputs[2]["canonical_session_lines"])
         self.assertIn("You said the assembly is next Tuesday", second.reply)
 
+    async def test_declined_turn_keeps_reader_line_for_the_next_turn_but_not_the_draft(self) -> None:
+        provenance_inputs = []
+
+        def muse(messages, info):
+            envelope = _json_prompts(messages)[-1]
+            if envelope["mode"] == "revision":
+                return _candidate(info, "REJECTED_DRAFT_7f2c Mr. Goh asked for it by Monday.", [])
+            if envelope["muse_turn"]["user_message"] == ASSEMBLY_LINE:
+                return _candidate(info, "REJECTED_DRAFT_7f2c Mr. Goh will love the speech.", [])
+            reply = "You said the assembly is next Tuesday, so two days before is the Sunday before it."
+            return _candidate(info, reply, [{
+                "source_kind": "session_line",
+                "quote": ASSEMBLY_QUOTE,
+                "supported_claims": [reply],
+            }])
+
+        def provenance(messages, info):
+            payload = next(
+                prompt for prompt in _json_prompts(messages)
+                if "canonical_connection_evidence" in prompt
+            )
+            provenance_inputs.append(payload)
+            if payload["current_line"]["text"] == ASSEMBLY_LINE:
+                resolutions = [] if payload["previous_response_review"] is None else [{
+                    "finding_index": 0,
+                    "status": "unresolved",
+                    "explanation": "Mr. Goh is still unsupported.",
+                }]
+                return _provenance_review(payload, info, "revise", finding_resolutions=resolutions, findings=[{
+                    "code": "unsupported_claim",
+                    "applies_to": "response",
+                    "location": {
+                        "kind": "text_span", "source_field": "candidate.response", "path": "",
+                        "quote": payload["candidate"]["response"],
+                    },
+                    "explanation": "Mr. Goh is not supported by any supplied evidence.",
+                }])
+            return _provenance_review(payload, info, "pass")
+
+        with muse_chat_agent.override(model=FunctionModel(muse)):
+            with provenance_agent.override(model=FunctionModel(provenance)):
+                declined = await chat_turn.run_chat_turn(
+                    ChatRequest(session_id=self.session_id, message=ASSEMBLY_LINE),
+                    self.service, self.account,
+                )
+                answered = await chat_turn.run_chat_turn(
+                    ChatRequest(session_id=self.session_id, message=DEADLINE_QUESTION),
+                    self.service, self.account,
+                )
+
+        self.assertEqual("application_safe_decline", declined.inspection.release.release_source)
+        self.assertEqual(("revise", "revise"), declined.inspection.release.provenance_verdicts)
+        self.assertNotIn("REJECTED_DRAFT_7f2c", declined.reply)
+        self.assertEqual("muse_candidate", answered.inspection.release.release_source)
+        self.assertEqual([ASSEMBLY_QUOTE], provenance_inputs[-1]["canonical_session_lines"])
+        self.assertIn("Sunday", answered.reply)
+        stored = [message.parts[0].content for message in sessions.history(self.session_id)]
+        self.assertEqual([ASSEMBLY_LINE, declined.reply, DEADLINE_QUESTION, answered.reply], stored)
+        self.assertNotIn("REJECTED_DRAFT_7f2c", json.dumps(stored))
+
     async def test_world_fact_question_releases_without_using_the_connection_grant(self) -> None:
         self.service.set_capture_enabled(self.account, True)
         self.service.save_automatic(self.account, AutomaticMemoryCandidate(

@@ -48,6 +48,23 @@ def parse_threshold(value: str | float | int) -> Decimal:
     return threshold
 
 
+def skipped_publication_decision(
+    *, auto_publish_enabled: bool, threshold: str | float | int,
+) -> dict[str, Any]:
+    """An intentional opt-out has no evaluation score and always needs approval."""
+    limit = parse_threshold(threshold)
+    if type(auto_publish_enabled) is not bool:
+        raise ValueError("auto_publish_enabled must be a boolean.")
+    return {
+        "route": "manual",
+        "reason": "Live evaluations were intentionally disabled; maintainer approval is required.",
+        "auto_publish_enabled": auto_publish_enabled,
+        "threshold": str(limit), "comparison": "not_applied",
+        "score_scope": "not_evaluated", "semantic_assessment": "not_evaluated",
+        "judgments_passed": None, "judgments_total": None, "automated_pass_percentage": None,
+    }
+
+
 def publication_decision(
     *, judgments_passed: int, judgments_total: int, complete: bool, blocked: bool,
     auto_publish_enabled: bool = False, threshold: str | float | int = "95",

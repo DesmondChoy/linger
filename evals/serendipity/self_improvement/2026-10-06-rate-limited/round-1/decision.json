@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 89,
+  "practice_passes_candidate": 87,
+  "practice_runs": 165,
+  "gain": -2,
+  "case_losses": {
+    "serendipity-alice-connect-to-reader-memory-v3": 2,
+    "serendipity-animal-farm-real-bridge-v3": 1,
+    "serendipity-animal-farm-route-book-relationship-v3": 1,
+    "serendipity-decline-insufficient-bridge-v3": 1,
+    "serendipity-douglass-route-book-relationship-v3": 2,
+    "serendipity-rank-clear-winner-v3": 1,
+    "serendipity-stop-after-primary-source-v3": 2
+  },
+  "reasons": [
+    "practice gain -2 is below 10"
+  ],
+  "execution_errors_candidate": 31
+}

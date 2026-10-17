@@ -1,0 +1,89 @@
+{
+  "case_id": "muse-revision-unflagged-repeat-v1",
+  "rules": [
+    "R8: address every finding, apply each repair to every instance of the defect, and delete (do not reword) an unflagged sentence that repeats a flagged problem",
+    "R12: when rephrasing a flagged claim keep whether it was proposed or completed; an announcement does not establish its promised outcome",
+    "R4: keep the retained source declared and rewrite the disputed wording instead of removing the source"
+  ],
+  "description": "The draft turns the harbour master's stated plan into a completed closure. The finding names that sentence; a later unflagged sentence repeats the same completed-closure claim.",
+  "reader_message": "What does the harbour master decide at the evening meeting?",
+  "reading": {"work_title": "The Ferry at Lowmere", "chapter_max": 2},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "lowmere-c2-meeting",
+      "chapter": 2,
+      "location": "Chapter 2, passage 2",
+      "text": "At the evening meeting the harbour master stood up. “I will ask the council to close the harbour at dusk,” he said. “Until then, I want every boat home before the lamps are lit.”"
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 2, the harbour master closes the harbour at dusk. He also wants every boat home before the lamps are lit. With the harbour closed each evening, the fishing families have to change their routines. Does his caution seem reasonable to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c2-meeting",
+        "source_location": "Chapter 2, passage 2",
+        "supported_claims": [
+          "In Chapter 2, the harbour master closes the harbour at dusk.",
+          "He also wants every boat home before the lamps are lit.",
+          "With the harbour closed each evening, the fishing families have to change their routines."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "the harbour master closes the harbour at dusk"
+        },
+        "explanation": "The passage has the harbour master say he will ask the council to close the harbour at dusk; it does not show the harbour closed. The sentence presents a stated plan as a completed action."
+      }
+    ],
+    "needs_source_sentences": [],
+    "previously_accepted_claims": ["He also wants every boat home before the lamps are lit."],
+    "retained_sources": [{"source_kind": "book_corpus", "evidence_id": "lowmere-c2-meeting"}],
+    "source_quote_interiors": []
+  },
+  "expect": {
+    "flagged_sentences": [0],
+    "repaired_sentences": [0],
+    "deleted_sentences": [2],
+    "forbidden_patterns": [
+      "\\bcloses the harbour\\b",
+      "\\bclosed the harbour\\b",
+      "\\bharbour (?:is |was |being )?closed\\b",
+      "\\bfishing families\\b"
+    ],
+    "required_patterns": ["\\bcouncil\\b"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c2-meeting", "claim_pattern": "council"}
+    ],
+    "source_terms": ["harbour", "council", "boat", "boats", "lamps", "dusk", "fishing", "meeting"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk. He also wants every boat home before the lamps are lit. Does his caution seem reasonable to you?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c2-meeting",
+        "source_location": "Chapter 2, passage 2",
+        "supported_claims": [
+          "In Chapter 2, the harbour master says he will ask the council to close the harbour at dusk.",
+          "He also wants every boat home before the lamps are lit."
+        ],
+        "exact_quote": null
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}

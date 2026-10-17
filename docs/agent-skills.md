@@ -11,20 +11,21 @@ calls or transfer application authority to a model.
 
 | Role and assignment | Skill instructions | Input and output | Application entry point |
 |---|---|---|---|
-| [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md), including revision | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
+| [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md) core, plus application-selected modules for [revision](../src/linger/agents/muse/skills/reflection/revision.md), [routing](../src/linger/agents/muse/skills/reflection/routing.md), [grounding](../src/linger/agents/muse/skills/reflection/grounding.md), and [connections](../src/linger/agents/muse/skills/reflection/connections.md) | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
 | Muse | [Turn triage](../src/linger/agents/muse/skills/turn-triage/SKILL.md) | `TurnTriageInput` → `TurnNeeds` | `triage_turn` classifies what the current reader message needs, from that message alone; no tools. Chat runs it once per reader turn, after the emotional preflight, to decide which tools Muse is offered |
 | [Librarian](../src/linger/agents/librarian/README.md) · [assignment](../src/linger/agents/librarian/skills.py) | [Boundary inference](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary`; deterministic grant validation follows |
 | Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` checks a proposed chapter boundary independently; receives no proposed grant or memories |
 | Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
-| Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
+| Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`, offline only; account identity is excluded and decision validation follows |
 | Sculptor | [Retrieval error analysis](../src/linger/agents/sculptor/skills/retrieval-error-analysis/SKILL.md) | `ErrorAnalysisInput` → `ErrorAnalysis` | `propose_error_analysis`, offline only; one note per practice trace and categories covering every failure are retried in-run |
 | Sculptor | [Retrieval research](../src/linger/agents/sculptor/skills/retrieval-research/SKILL.md) | `ResearchInput` → `ResearchSpecification` | `propose_research`, offline only; the only Sculptor skill with tools: a per-run `ResearchSearch` (Exa `web_search` and `get_page`) with search and page budgets, opening only URLs it found, and citing only pages it opened |
 | Sculptor | [Chapter cues](../src/linger/agents/sculptor/skills/chapter-cues/SKILL.md) | `ChapterCueRevisionInput` → `ChapterCueRevision` | `propose_chapter_cues`, offline only; chapter coverage and the word budget are retried in-run, and a human approves before search reads the cues |
 | [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
 | Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
 | Serendipity | [Source gathering](../src/linger/agents/serendipity/skills/source-gathering/SKILL.md) | `ConnectionDiscoveryInput` → `SourceBundle` or `ConnectionDecline` | `connection_exploration` with the `gather_sources` intent; returns every named source it found without ranking, and every Librarian-judged passage and opened public page must stay in the bundle |
+| Serendipity | [Self-review](../src/linger/agents/serendipity/skills/self-review/SKILL.md) | `SelfReviewInput` → `SkillCorrection` | `propose_skill_correction`, offline only; no tools or dependencies; one note per failing practice case, categories covering every failure, and exact, case-independent edits to the connection-discovery instructions are retried in-run. The [self-improvement loop](design/serendipity-self-improvement-loop.md) applies them to a candidate copy only |
 | [Provenance](../src/linger/agents/provenance/README.md) · [assignment](../src/linger/agents/provenance/skills.py) | [Emotional preflight](../src/linger/agents/provenance/skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` → `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse or its tools |
 | Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, on revision, the original candidate and findings to recheck |
 | Provenance | [Curation review](../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` → `CurationProvenanceReview` | `review_curation` binds the verdict to the exact proposal and source snapshot |
@@ -42,6 +43,7 @@ flowchart LR
     App --> Sculptor[Sculptor Agent]
     App --> Serendipity[Serendipity Agent]
     App --> Provenance[Provenance Agent]
+    Muse --> Triage[Turn triage]
     Muse --> Reflection[Reflection and bounded revision]
     Librarian --> Boundary[Boundary inference]
     Librarian --> Identify[Event identification]
@@ -70,15 +72,33 @@ returns fresh per-run instructions, retries, metadata, and, where needed, an
 output contract. Typed task entry points project trusted input, select the
 constant, invoke the role's Agent, and apply existing domain checks.
 
-Muse reflection and Serendipity retain fixed output schemas. Serendipity keeps
-its registered output validator. Muse's candidate checks run in its
+Muse reflection is a core `SKILL.md` plus module files beside it. The
+application composes each run's instructions with `reflection_run_options(revision=...,
+tools=...)`: the core always loads, the `revision` module loads only for the
+revision run, and the `routing`, `grounding`, and `connections` modules load only
+when the turn's `ToolExposure` offers `librarian_route`, `librarian_search`, and
+`serendipity_explore`. An unset exposure loads every tool module. Tool-choice
+rules live in the tool docstrings, which reach the model only with their tool;
+the modules keep result handling and reply composition. `REFLECTION.instructions`
+and `muse.prompt.INSTRUCTIONS` remain the complete text with every module, so
+fingerprints cover all of it and prompt-leak checks see all of it.
+
+Muse reflection uses the Agent's default `MuseCandidate` schema. Muse's candidate checks run in its
 `MuseSkillBoundary` capability, which applies `validate_muse_output` to every
 `MuseCandidate` and limits each run to the selected skill's tools, because a
 registered validator would forbid the `TurnNeeds` contract that turn triage
-selects per run. Turn triage may also select a smaller per-run model from
-`build_triage_model`, which derives it from the `LINGER_MODEL` provider and
-falls back to `LINGER_MODEL` itself. Serendipity's fixed schema covers all three of its skills, and its
-validator pairs each result with the task's intent: a `recall_memory` task
+selects per run. In a revision the boundary first expands sentence labels in the
+raw output, before schema validation. `MuseCandidate` itself rejects the label
+stem (`SENTENCE_` followed by a number) and any `{{`/`}}` wrapper, including
+fullwidth and HTML-entity forms, in its reply, claims, quotes and memory text, in
+every mode, so a mangled label is a retry rather than released text. Other
+invented markers that use neither are not detected. `build_triage_model` selects the triage model from the
+`LINGER_MODEL` provider: `gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google,
+and the configured model for Anthropic. Serendipity's fixed schema covers its three
+reader-facing skills, and its `SerendipityOutputValidation` capability applies
+`validate_serendipity_output` to pair each result with the task's intent, for
+the same reason as Muse: the offline self-review skill selects its own
+`SkillCorrection` contract per run. A `recall_memory` task
 returns `MemoryRecall` or a decline, a `gather_sources` task returns
 `SourceBundle` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
@@ -92,7 +112,7 @@ Instructions load through `importlib.resources`, independently of the working
 directory. Only shared policy and the selected skill reach the model. Runtime
 skills never load Codex development instructions. Fingerprints cover effective
 shared and selected instructions, input and output schemas, tool permissions,
-validator identities, and retry limits.
+validator identities, retry limits, and any skill-specific model settings.
 
 Each fingerprint contains a stable `template_id` and an automatically computed
 SHA-256 `digest`. Changes to the covered instructions or configuration change
@@ -116,7 +136,8 @@ search, model-driven selection, or skill-loading model call occurs.
 
 The [installed PydanticAI run API](https://pydantic.dev/docs/ai/api/agent/)
 provides additive per-run instructions, output contracts, retries, dependencies,
-and capabilities. This implementation was verified against version 2.26.0.
+and capabilities. The project requires PydanticAI 2.53.0 or later, and
+`uv.lock` pins version 2.53.0.
 Each no-tool role has an empty tool set. Muse permits `librarian_route`,
 `librarian_search`, and sequential `serendipity_explore`; each turn offers a
 subset of them (see [Muse tool exposure](#muse-tool-exposure)). Serendipity retains
@@ -124,10 +145,47 @@ bounded `search_librarian`, scope-gated `search_memories`, and application-grant
 Exa capabilities. A skill assignment describes those capabilities; it cannot
 grant access to an account, evidence, or the web.
 
+Sculptor's retrieval research receives its `ResearchSearch` capability for one
+offline run. Its other skills have no tools. `SculptorTaskValidation` checks
+chapter-cue coverage and word budgets and error-analysis trace coverage during
+output retries. `ResearchSearch` validates the research specification against
+the approved failure categories and the pages that the run opened. Each
+application entry point repeats its checks before returning the result. Error
+analysis and research use `openai_reasoning_effort="high"` for those runs.
+Muse's reflection draft and revision, and Provenance's candidate review, use
+`openai_reasoning_effort="medium"`. Other runs keep their configured model's
+defaults. The shared OpenAI `gpt-6-luna` model defaults to low effort.
+
+## Security boundaries
+
+The incoming chat boundary redacts only email addresses and phone numbers with
+DataFog's regex detector. Application code disables DataFog telemetry. The
+redacted message becomes the reader Line for agent processing and persistence.
+Fixed regex rules also block explicit instruction-override and hidden-instruction
+requests before emotional preflight. These rules recognize only their defined
+patterns. Provenance independently reviews injection and policy compliance.
+
+All five reusable Agents register
+[`ProviderCredentialGuard`](../src/linger/agents/security.py), which checks each
+provider request before dispatch. The guard checks instructions, message
+history, tool results, repair feedback, and request schemas for credentials
+detected by `pydantic_ai_harness.redact_secrets`. It does not apply PII redaction
+to internal requests or canonical source text. A detected credential blocks
+the request.
+
+Muse's reply and memory nomination, generated curation text, memory writes,
+session storage, transcripts, and captured model messages also have credential
+checks. [`security_validation.py`](../src/linger/contracts/security_validation.py)
+defines value-free findings and fixed block messages. These checks complement
+the source grants, semantic review, and memory policy described below.
+`tests/test_security_validation.py` covers agent registration, provider
+interception, incoming redaction, storage checks, and internal text preservation.
+
 ## Muse tool exposure
 
 Chat triages the reader message once per turn, after the emotional preflight
-and never on a turn that preflight stops. `expose_tools` then fixes the tools
+and never on a turn that preflight stops. Triage has a 10-second timeout and a
+two-request budget, including its one output retry. `expose_tools` then fixes the tools
 offered to the draft and to any revision:
 
     offered = tools run in this session's earlier released turns
@@ -139,10 +197,14 @@ offered to the draft and to any revision:
 and `own_earlier_reflections`, `named_sources`, `source_comparison`, and
 `outside_recommendation` pin its `intent` to `recall_memory`, `gather_sources`,
 `find_connection`, and `get_recommendation`.
-`unsure`, or a tool offered only because it ran earlier, leaves the intent open.
-A confirmed reading context or a pending clarification always adds the book
-tools. Only tools that ran in a released turn are remembered, matching the
-session history and evidence handles, so a declined draft cannot widen later
+A request such as "Does anything I've read speak to this?" is a
+`source_comparison` and pins `find_connection`. Asking for a new outside work
+pins `get_recommendation`. `unsure`, or a tool offered only because it ran
+earlier, leaves the intent open.
+A pending clarification, or a reading context confirmed in the current turn,
+always adds the book tools; a chapter carried from an earlier turn or restored
+from saved account progress leaves exposure to triage. Only tools that ran in
+a released turn are remembered, matching the evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
 Turn triage also classifies `override_attempt`: whether the reader's own
@@ -160,9 +222,10 @@ a confirmed `no_attempt`.
 every model step and narrows the `intent` enum. The `serendipity_explore`
 adapter rejects any other intent with a retry before Serendipity runs. Exposure
 grants nothing: `allow_connection`, scopes, Provenance, and release validation
-apply unchanged. A triage error, timeout, or exhausted request budget falls
-back to the book tools plus whatever ran in this session's earlier released
-turns, withholding `serendipity_explore`'s web and memory reach unless an
+apply unchanged. A timed-out triage is retried once, since one slow provider
+call should not cost the turn its memory reach. A triage error, a second
+timeout, or an exhausted request budget falls back to the book tools plus
+whatever ran in this session's earlier released turns, withholding `serendipity_explore`'s web and memory reach unless an
 earlier released turn already used it; the fault is recorded and never fails
 the turn. The result, offered tools, and pinned intent appear on the
 `chat.tool_exposure` span, in `inspection.tool_exposure`, in a `Router` trace,
@@ -178,14 +241,60 @@ triage itself, not by widening Muse's exposure mid-run.
 
 ## Authority and run context
 
+The interactive application's `ReadingProgressStore` holds explicit
+completed-chapter progress per account and work in
+`LINGER_STATE_DIR/reading_progress.sqlite3`. It stores the part and chapter,
+then validates those values against the currently registered and permitted
+revision when loading them. A released Muse reply or application clarification
+can save a declaration, including a lower ceiling. Inferred boundaries,
+named units, and exact passages are absent from this store. Saved progress
+survives session deletion and backend restarts and never selects a book.
+Routing identifies the work before it can bind a saved ceiling.
+
+Session progress carries through ordinary follow-ups about the same work and
+part. Lower declarations or unclear corrections reduce or retract that carried
+permission immediately, even when a turn fails. Higher declarations commit
+only after a released Muse reply or application clarification. Context
+preparation prefers that session slot over the account's saved progress.
+An unclear retraction does not erase the saved account record. Later routing
+or a comparison can reuse its saved chapter until a released explicit
+correction replaces it. Earlier session statements and evidence outside the
+reduced permission are excluded.
+
+For interactive `find_connection` turns, the application combines saved
+progress with any current confirmed permission. When that covers at least two
+books, the application supplies every book at its own ceiling. The current
+turn's confirmed permission replaces that book's saved entry. The comparison
+has no primary reading context. Trusted replay scopes bypass account progress,
+so a saved live account record cannot widen a synthetic Scene's grant.
+
 Muse receives only application-managed history. Rejected drafts are excluded
 from persistent session history. A first review may request one revision,
 whose context remains bounded by the original turn's authority. The stable
 `MuseCandidate` validator retries invalid evidence IDs, source locations,
 quotation copies, and missing visible links for declared public sources before
-application review. A revision addresses every reported finding and audits the
-complete reply and its mappings for missed defects, within the same evidence
-authority. Muse never releases its own reply.
+application review. The revision input marks the draft sentences that each
+response finding names. Muse can rewrite those sentences and delete sentences;
+it preserves the wording of unflagged sentences it retains. Each unflagged unit
+that can be carried losslessly has a label such as `{{SENTENCE_2}}`: Muse keeps
+it by copying the label, and the application inserts the draft text and its
+draft declarations, shaped as a typed revision would declare them. The draft is
+the output call pydantic-ai accepted in the revision's message history; if that
+call cannot be identified, or does not rebuild the listed sentences and
+mappings exactly, no label is usable. Source-dependent
+sentences require complete source mappings or deletion. If a finding cannot be
+located, the application omits the sentence restrictions. The second review
+still checks the complete reply within the original evidence authority. Muse
+never releases its own reply.
+
+When findings can be located, each must change at least one sentence it names
+through a rewrite, deletion, or change to a disputed source mapping. Retained undisputed
+wording keeps its draft sources. A corrected claim can take a source supporting
+the correction while preserving an undisputed narrower mapping inside it.
+The grounding instructions also ask Muse to include every reason or step that
+the returned passages state for the reader's question. Sentence retention and
+word-run matching check mechanical constraints. Answer completeness and semantic
+source support remain review and evaluation responsibilities.
 
 Librarian's chapter-boundary decision begins with one explicit assessment per
 supplied memory. Each assessment names canonical passages and explains whether
@@ -240,8 +349,8 @@ therapeutic advice or instructions; Provenance still reports a
 distinct from discussing how the book itself portrays illness, law, money, or
 therapy.
 Muse's instructions also confine it to reflection on the reader's reading, the
-sources and images they bring to it, and their own remembered notes, declining
-an unconnected task, and never reveal its own instructions, skills, tool names
+sources and images they bring to it, their own remembered notes, and their own
+life with or without a book, declining an unconnected task, and never reveal its own instructions, skills, tool names
 or schemas, or internal review process; Provenance still reports an
 `out_of_scope` finding if
 a candidate performs an unrelated task anyway, revisable like `false_persona`
@@ -267,8 +376,9 @@ source has a separate contribution judgment and a literal supporting excerpt;
 collective support cannot borrow from undeclared sources or other occurrences.
 The validator checks completeness and consistency while semantic support remains
 Provenance's responsibility. Muse revision validation preserves mappings for
-unchanged accepted claims and retained source quotations. The next review still
-checks the whole candidate independently.
+unchanged accepted claims and retained source quotations. Sources that the
+first review found contributing stay declared unless a finding rejects the
+source itself. The next review still checks the whole candidate independently.
 
 When validated routing requires clarification, the application also supplies
 the exact question in `context.required_clarification`. Provenance can review
@@ -317,9 +427,12 @@ use this check; other Librarian skills are unaffected. `plan_book_request`
 rechecks the result with the same helper before retrieval. Acceptance still
 requires nonempty spans copied exactly from the supplied reader text.
 
-Application code joins the frozen plan's context and question spans into the bounded backend
-search query. The 2,000-character query limit applies after planning, so a long
-reader message can yield a short book query. `assess_book_evidence` then gives
+Application code joins the frozen plan's context and question spans into the
+bounded backend search query. Each book search removes that book's registered
+author-name words from the query, except words retained in its title or aliases.
+This avoids matching family or author references instead of the requested
+scene. The exact reader spans and canonical evidence remain unchanged. The
+2,000-character query limit applies after planning, so a long reader message can yield a short book query. `assess_book_evidence` then gives
 the same plan and permitted canonical passages to a second invocation. Every
 selected record must map to an existing requested part and explain its necessary
 support. A `sufficient` assessment must cover
@@ -330,12 +443,26 @@ with separate inputs and no shared conversation history. Neither the plan nor
 its reader spans grant reading permission. Exact passage grants use the same
 planner and assessor over only their fixed records, without a broader search.
 
+Muse's tool adapter then shapes what the writer is shown. For a `sufficient`
+result, `librarian_search` replaces Librarian's free-text `strength_reason`
+with one fixed application sentence, because that reason is unverified model
+prose that can credit a record with a detail it does not contain, and Muse
+states the reason only for a `weak` result. Evidence, limitations, scope, and
+the turn's ledgers are unchanged, and `weak` and `none` results,
+clarifications, and failures pass through as judged. Provenance and the turn
+inspection read Muse's tool result, so they see the same sentence.
+Librarian's recorded evidence-assessment exchange and Serendipity's
+`judgement.strength_reason` keep the model's reason.
+
 ```mermaid
 flowchart TD
     Line[Current reader Line] --> A[Application: select emotional preflight]
     A --> P[Provenance Agent]
     P -->|apply boundary or failure| Fixed[Application-owned response]
-    P -->|continue reflection| Draft[Application: select Muse reflection]
+    P -->|continue reflection| Triage[Application: select Muse turn triage]
+    Triage --> M[Muse Agent]
+    M -->|turn needs| Exposure[Application fixes tool exposure]
+    Exposure --> Draft[Application: select Muse reflection]
     Draft --> M[Muse Agent]
     M -->|candidate only| Review[Application: select candidate review]
     Review --> P
@@ -377,21 +504,36 @@ connections, because the reader has already chosen them; Muse writes the
 comparison. Open-ended discovery ("anything I've read") keeps
 `find_connection` and its shortlist; because the reader named no books, that
 pinned request searches every granted book (`search_all_granted_books`) rather
-than a subset the model picks. Reviewed automatic capture stays under the
-existing server-controlled evaluation policy.
+than a subset the model picks. Interactive accounts without a stored policy
+permit automatic capture by default; a stored policy takes precedence. Other `MemoryPolicyService` callers
+default to capture disabled unless configured explicitly. Reviewed automatic
+capture stays under the stored account policy and application release checks.
 
 `run_curation_loop` implements reviewed curation as a callable application
-workflow. The chat handler does not initiate it. Standalone bounded-curation
-replay without an injected handler runs production proposal, review, application,
-and audit verification in an isolated
-temporary store. It records retrieval-state outcomes and verifies source
-preservation. A passing replay does not establish later conversational retrieval
-quality. The default combined capture-and-curation runner uses an allowing
-Provenance test double, so it does not measure that review's semantics. Surfacing
-has an offline supplied-batch execution and grading path. It does not retrieve memories,
-schedule future contact, or deliver a response. Chat never runs surfacing.
-System-playbook proposals remain a product target with no implemented runtime
-skill.
+workflow. After an eligible automatic capture, chat selects the captured record
+and up to eleven matching earlier originals through `curate_after_capture`.
+Sculptor receives their source text, capture times, and existing curation for
+that batch. Provenance reviews a separate, exactly bound curation proposal
+before the service applies it. This workflow preserves the settled reply and
+the original capture if curation fails.
+
+Standalone bounded-curation and combined capture-and-curation replay use
+production Sculptor and Provenance by default, then verify application, audit,
+and source preservation in isolated stores. The combined runner's curation
+Scenes use designated Props, so they do not exercise capture-triggered batch
+selection. A passing curation replay does not establish later conversational
+retrieval quality. Surfacing has an offline supplied-batch execution and grading
+path. It does not retrieve memories, schedule contact, or deliver a response.
+Chat never runs surfacing.
+
+The [offline retrieval loop](../evals/librarian/README.md) uses Sculptor's
+chapter-cue, retrieval-error-analysis, and retrieval-research skills. It
+records practice failures, requires human approval of each analysis or
+proposal, and measures the approved retrieval condition against fixed packs.
+Sculptor proposes cues or a retrieval specification; the owner implements and
+activates an approved specification. These skills have no authority to edit
+production code, grant book access, or change a running chat. General
+system-playbook proposals remain a product target.
 
 Evaluation registers the five reusable role objects once through
 `evaluation_agents()` and lists the assigned skills through `evaluation_skills()`.
@@ -400,15 +542,17 @@ records its selected skill, role, stage, and fingerprint, so multiple tasks on
 the same Agent remain distinguishable. Muse draft and revision fingerprints
 include their respective input schema within the same reflection skill.
 
-The full prompt fingerprint set includes all skills, including offline
-surfacing and curation review. Objective-specific execution identities retain
-their narrower comparison scope. Existing submission PDFs remain historical
-evidence; they do not describe this refactor or replace maintained docs.
+Synthetic replay's `RUNTIME_PROMPT_FINGERPRINTS` includes conversation tasks,
+curation, surfacing, and curation review. Offline chapter cues, error analysis,
+and retrieval research expose fingerprints through their own application entry
+points. Objective-specific execution identities retain their narrower
+comparison scope. Existing submission PDFs remain historical evidence and do
+not replace maintained docs.
 
 ## Resource distribution and verification
 
 `uv build` creates a wheel and source archive containing `prompts/prompt_catalog.yaml`
-and all assigned `SKILL.md` resources. `importlib.resources` resolves the catalogue
+and all assigned `SKILL.md` resources and their module files. `importlib.resources` resolves the catalogue
 from `src.linger.prompts` and skills from each installed role package. Prompt
 and skill loading do not depend on a repository checkout or the process working
 directory. Corpus data, configuration, and evaluation Scenarios retain their
@@ -419,4 +563,4 @@ output validators, permitted tools, request isolation, and evaluation model
 overrides using the installed PydanticAI implementation. Resource checks also
 load skills from a different working directory. Provider-backed evaluation
 remains necessary for claims about model decision quality; this structural
-refactor does not replace those evaluations.
+verification does not establish those outcomes.

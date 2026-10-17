@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="370" viewBox="0 0 1040 370">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
+<rect width="1040" height="370" fill="#fff"/>
+<text x="520" y="15" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="bold" text-anchor="middle" fill="#111">CI and release with live evaluation disabled</text>
+<rect x="20" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="47.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Change</text>
+<text x="90.0" y="62.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">code, prompt, skill,</text>
+<text x="90.0" y="77.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">corpus, scenario</text>
+<rect x="192" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="262.0" y="54.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Pull request</text>
+<text x="262.0" y="69.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">human review workflow</text>
+<path d="M160,57 L192,57" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="364" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="434.0" y="54.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">CI</text>
+<text x="434.0" y="69.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">seven checks</text>
+<path d="M332,57 L364,57" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="536" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="606.0" y="54.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Merge</text>
+<text x="606.0" y="69.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">to main</text>
+<path d="M504,57 L536,57" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="708" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="778.0" y="47.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Promotion PR</text>
+<text x="778.0" y="62.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">main source check,</text>
+<text x="778.0" y="77.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">then merge</text>
+<path d="M676,57 L708,57" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="880" y="25" width="140" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="950.0" y="54.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Candidate CI</text>
+<text x="950.0" y="69.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">merged commit</text>
+<path d="M848,57 L880,57" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="820" y="150" width="200" height="65" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="920.0" y="172.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Release image checks</text>
+<text x="920.0" y="187.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">build, Trivy, offline smoke</text>
+<text x="920.0" y="202.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">live evaluation optional (off)</text>
+<path d="M950,90 L950,150" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="620" y="155" width="160" height="55" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="700.0" y="179.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Human approval</text>
+<text x="700.0" y="194.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#111">protected linger-release</text>
+<rect x="420" y="155" width="160" height="55" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="500.0" y="179.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Publish same image</text>
+<text x="500.0" y="194.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">to GHCR</text>
+<rect x="220" y="155" width="160" height="55" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="300.0" y="179.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Railway deployment</text>
+<text x="300.0" y="194.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">exact GHCR digest</text>
+<path d="M820,182 L780,182" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<path d="M620,182 L580,182" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<path d="M420,182 L380,182" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="840" y="260" width="160" height="45" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="920.0" y="287.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Release evidence</text>
+<path d="M920,215 L920,260" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<rect x="600" y="260" width="180" height="45" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="690.0" y="279.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Human review</text>
+<text x="690.0" y="294.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#111">of failures</text>
+<path d="M840,282 L780,282" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<path d="M600,282 L90,282 L90,90" fill="none" stroke="#111" stroke-width="1.1" marker-end="url(#a)"/>
+<text x="345" y="276" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#333">proposals only</text>
+<text x="520" y="334" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#333">Live evaluation and automatic publication are off. Human-approved publication remains available.</text>
+<text x="520" y="352" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="normal" text-anchor="middle" fill="#333">Candidate branch checks need alignment. Administrator protections remain unverified.</text>
+</svg>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="916" height="364" viewBox="0 0 916 364">
+<style>
+text{font-family:'Source Sans 3','Segoe UI',Helvetica,Arial,sans-serif}
+.band{fill:#f6f6f6;stroke:#e0e0e0;stroke-width:1}
+.band-label{fill:#767676;font-size:11px;font-weight:700;letter-spacing:.08em}
+.code{fill:#efefef;stroke:#b5b5b5;stroke-width:1.1;stroke-dasharray:3 2.4}
+.agent{fill:#f8e3d6;stroke:#c45a30;stroke-width:1.4}
+.nm{fill:#2b2b2b;font-size:12.5px;font-weight:700;text-anchor:middle}
+.nm-agent{fill:#a3421c;font-size:13px}
+.dt{fill:#767676;font-size:10.5px;text-anchor:middle}
+.edge{fill:none;stroke-width:1.4;stroke-linejoin:round}
+.edge-code{stroke:#b5b5b5} .edge-agent{stroke:#c45a30}
+.lb{font-size:10px;fill:#767676} .lb-agent{fill:#a3421c} .lb-bg{fill:#ffffff}
+</style>
+<rect width="916" height="364" fill="#fff"/>
+<defs><marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b5b5b5"></path></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c45a30"></path></marker></defs><rect class="band" x="356" y="14" width="384" height="336" rx="4"></rect><text class="band-label" x="366" y="340">BACKEND HOST · ONE UVICORN PROCESS</text><rect class="code" x="16" y="110" width="110" height="44" rx="4"></rect>
+<text class="nm" x="71.0" y="136.5">Browser</text>
+<rect class="code" x="156" y="110" width="165" height="44" rx="4"></rect>
+<text class="nm" x="238.5" y="128.5">Front end</text>
+<text class="dt" x="238.5" y="144.5">Vite (dev) · built assets (release)</text>
+<rect class="code" x="372" y="110" width="170" height="44" rx="4"></rect>
+<text class="nm" x="457.0" y="128.5">Uvicorn and FastAPI</text>
+<text class="dt" x="457.0" y="144.5">Python 3.12, one worker</text>
+<rect class="code" x="568" y="110" width="162" height="58" rx="4"></rect>
+<text class="nm" x="649.0" y="128.5">State volume</text>
+<text class="dt" x="649.0" y="144.5">SQLite: accounts, transcripts,</text>
+<text class="dt" x="649.0" y="158.5">progress · memories as Markdown</text>
+<rect class="agent" x="362" y="200" width="190" height="44" rx="4"></rect>
+<text class="nm nm-agent" x="457.0" y="218.5">Five Pydantic AI agents</text>
+<text class="dt" x="457.0" y="234.5">local embedding and reranker models</text>
+<rect class="code" x="372" y="282" width="170" height="44" rx="4"></rect>
+<text class="nm" x="457.0" y="300.5">Canonical corpus</text>
+<text class="dt" x="457.0" y="316.5">five immutable books</text>
+<rect class="code" x="770" y="24" width="130" height="44" rx="4"></rect>
+<text class="nm" x="835.0" y="50.5">Logfire</text>
+<rect class="code" x="770" y="200" width="130" height="44" rx="4"></rect>
+<text class="nm" x="835.0" y="226.5">Model provider</text>
+<rect class="code" x="770" y="262" width="130" height="44" rx="4"></rect>
+<text class="nm" x="835.0" y="288.5">Exa search</text>
+<path class="edge edge-code" stroke-dasharray="5 4" stroke-dashoffset="0" d="M126,132 L156,132" marker-end="url(#ac)"></path>
+<g class="lbl"><rect class="lb-bg" x="122.9296875" y="115" width="36.79994201660156" height="16" rx="2"></rect><text class="lb" x="141" y="126" text-anchor="middle">HTTPS</text></g>
+<path class="edge edge-code" stroke-dasharray="5 4" stroke-dashoffset="0" d="M321,132 L372,132" marker-end="url(#ac)"></path>
+<g class="lbl"><rect class="lb-bg" x="332.8359375" y="115" width="25.853179931640625" height="16" rx="2"></rect><text class="lb" x="346" y="126" text-anchor="middle">/api</text></g>
+<path class="edge edge-code" stroke-dasharray="5 4" stroke-dashoffset="0" d="M542,139 L568,139" marker-end="url(#ac)"></path>
+<path class="edge edge-code" stroke-dasharray="5 4" stroke-dashoffset="0" d="M520,110 L520,46 L770,46" marker-end="url(#ac)"></path>
+<g class="lbl"><rect class="lb-bg" x="684.8515625" y="29" width="30.6231689453125" height="16" rx="2"></rect><text class="lb" x="700" y="40" text-anchor="middle">OTLP</text></g>
+<path class="edge edge-code" stroke-dasharray="5 4" stroke-dashoffset="0" d="M457,154 L457,200" marker-end="url(#ac)"></path>
+<g class="lbl"><rect class="lb-bg" x="459" y="170" width="51.88836669921875" height="16" rx="2"></rect><text class="lb" x="463" y="181" text-anchor="start">in-process</text></g>
+<path class="edge edge-agent" stroke-dasharray="5 4" stroke-dashoffset="0" d="M457,244 L457,282" marker-end="url(#aa)"></path>
+<path class="edge edge-agent" stroke-dasharray="5 4" stroke-dashoffset="0" d="M552,222 L770,222" marker-end="url(#aa)"></path>
+<g class="lbl"><rect class="lb-bg" x="637.9296875" y="205" width="36.7999267578125" height="16" rx="2"></rect><text class="lb lb-agent" x="656" y="216" text-anchor="middle">HTTPS</text></g>
+<path class="edge edge-agent" stroke-dasharray="5 4" stroke-dashoffset="0" d="M552,238 L700,238 L700,284 L770,284" marker-end="url(#aa)"></path>
+<g class="lbl"><rect class="lb-bg" x="587.1953125" y="241" width="65.609375" height="16" rx="2"></rect><text class="lb lb-agent" x="620" y="252" text-anchor="middle">HTTPS, opt-in</text></g>
+
+</svg>

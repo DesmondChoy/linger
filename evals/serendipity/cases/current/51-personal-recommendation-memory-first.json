@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-personal-recommendation-memory-first-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_personal_connection_to_memory",
+  "contrast_group": "personal-recommendation",
+  "tier": "capability",
+  "description": "From a live chat on 15 Oct 2026. The reader asks for artwork that reflects how they spend their Sunday afternoons, which the cue points to but never describes. One saved memory says what they do then: look up new words. With memory granted, Serendipity must search memories first, then choose a work about words or reading and cite that memory beside the page. Seurat's and Renoir's Sunday-leisure paintings match only the cue's wording and are the tempting generic answers; the swimming memory is unrelated. Live, Serendipity went straight to the web and recommended the Seurat.",
+  "input": {
+    "cue": "I want a piece of artwork that reflects how I spend my sunday afternoons",
+    "intent": "get_recommendation",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "web"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-sunday-word-list",
+      "excerpt": "I keep a list of new words I come across and look them up on Sunday afternoons.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-morning-swims",
+      "excerpt": "I learned to swim as an adult by practising a little every morning before work.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884",
+      "title": "A Sunday on La Grande Jatte — 1884",
+      "trust_level": "external",
+      "excerpt": "Seurat's painting shows people of every age and social class relaxing on the banks of the Seine on a Sunday afternoon, composed with the order of a classical frieze."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.moma.org/collection/works/81435",
+      "title": "Joseph Kosuth. One and Three Chairs. 1965",
+      "trust_level": "external",
+      "excerpt": "Kosuth places a wooden folding chair beside a photograph of that chair and an enlarged dictionary definition of the word 'chair', asking where the meaning of a word lives."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.nga.gov/collection/art-object-page.46303.html",
+      "title": "Jean-Honoré Fragonard, A Young Girl Reading, c. 1769",
+      "trust_level": "external",
+      "excerpt": "A young woman sits absorbed in a small book held in one hand, painted with quick, loose strokes that suggest a quiet hour given over entirely to reading."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124",
+      "title": "Pierre-Auguste Renoir, Bal du moulin de la Galette, 1876",
+      "trust_level": "external",
+      "excerpt": "Renoir paints a crowded Sunday-afternoon dance in the open-air garden of the Moulin de la Galette in Montmartre, with dappled light falling on Parisians at leisure."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories",
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "search_memories",
+      "web_search",
+      "get_page"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "direct",
+    "required_evidence_ids": [
+      "memory-sunday-word-list"
+    ],
+    "acceptable_evidence_ids": [
+      "https://www.moma.org/collection/works/81435",
+      "https://www.nga.gov/collection/art-object-page.46303.html"
+    ],
+    "forbidden_evidence_ids": [
+      "memory-morning-swims"
+    ],
+    "forbidden_selected_evidence_ids": [
+      "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884",
+      "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Recommends a work that reflects looking up words or reading, the habit the reader's memory describes",
+        "Attributes that habit to what the reader said before, not to Linger's own knowledge",
+        "Keeps the fit tentative and says what the work offers"
+      ],
+      "forbidden_claims": [
+        "Treats a Sunday-afternoon subject alone as reflecting how the reader spends that time",
+        "Invents habits the reader never described"
+      ]
+    }
+  }
+}

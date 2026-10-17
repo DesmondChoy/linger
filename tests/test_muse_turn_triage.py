@@ -44,7 +44,6 @@ def test_a_failed_triage_falls_back_to_the_book_tools_only() -> None:
     exposure = expose_tools(None, previously_called=frozenset(), book_override=False)
     assert exposure.tools == frozenset({"librarian_route", "librarian_search"})
     assert exposure.pinned_intent is None
-    # A triage fault reports `unknown`, not a confirmed clean turn.
     assert exposure.override_attempt == "unknown"
 
 
@@ -108,7 +107,7 @@ def test_triage_model_follows_the_configured_provider(
 def test_unknown_provider_fails_like_the_main_model() -> None:
     settings = Settings(_env_file=None, linger_model="mistral:large")
     with patch("src.linger.agents.build.get_settings", return_value=settings):
-        with pytest.raises(RuntimeError, match="Unsupported LINGER_MODEL"):
+        with pytest.raises(RuntimeError, match="Unsupported model"):
             build_triage_model()
 
 

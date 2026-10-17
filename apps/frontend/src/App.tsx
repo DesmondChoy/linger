@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { rememberAccount, restoreAccount, type Account } from './account'
 import { setUnauthorizedHandler, signOut } from './api'
-import { SavedEvaluation } from './components/architecture/SavedEvaluation'
 import { Chat } from './components/Chat'
 import { Landing } from './components/Landing'
+import { Personas } from './replay/Personas'
 
 type View = 'landing' | 'live' | 'synthetic'
 
@@ -25,16 +25,17 @@ export default function App() {
   }
 
   if (view === 'live' && account) {
-    return <Chat username={account.username} onHome={() => setView('landing')} onSignOut={handleSignOut} />
+    return (
+      <Chat
+        username={account.username}
+        onHome={() => setView('landing')}
+        onSignOut={handleSignOut}
+        onOpenPersonas={() => setView('synthetic')}
+      />
+    )
   }
   if (view === 'synthetic') {
-    return (
-      <main className="synthetic-view">
-        <section className="analysis" aria-label="Synthetic personas">
-          <SavedEvaluation onClose={() => setView('landing')} closeLabel="Back to start" />
-        </section>
-      </main>
-    )
+    return <Personas onHome={() => setView('landing')} />
   }
   return (
     <Landing

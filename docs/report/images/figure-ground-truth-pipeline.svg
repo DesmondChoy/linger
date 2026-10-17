@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1075" height="500" viewBox="0 0 1075 500">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker><marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#111" stroke-width="1.4"/></marker></defs>
+<rect width="1075" height="500" fill="#fff"/>
+<rect x="22" y="70" width="228" height="250" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<line x1="22" y1="118" x2="250" y2="118" stroke="#111" stroke-width="0.8"/>
+<text x="36" y="92" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">1  Design</text>
+<text x="36" y="109" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="start" font-weight="normal" font-style="italic" fill="#333">Person</text>
+<text x="36" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Selects the Objectives to test</text>
+<text x="36" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">and approves a generation</text>
+<text x="36" y="178" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">design.</text>
+<rect x="36" y="282" width="200" height="26" fill="#fff" stroke="#111" stroke-width="0.9" stroke-dasharray="3 2"/>
+<text x="136.0" y="299" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Approved design</text>
+<line x1="253" y1="195.0" x2="284" y2="195.0" stroke="#111" stroke-width="1.3" marker-end="url(#a)"/>
+<rect x="288" y="70" width="228" height="250" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<line x1="288" y1="118" x2="516" y2="118" stroke="#111" stroke-width="0.8"/>
+<text x="302" y="92" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">2  Generate</text>
+<text x="302" y="109" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="start" font-weight="normal" font-style="italic" fill="#333">Authorised model</text>
+<text x="302" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Writes the Backstory, Props,</text>
+<text x="302" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Lines, and a proposed</text>
+<text x="302" y="178" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Ground truth.</text>
+<text x="302" y="196" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111"></text>
+<text x="302" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Code validates the draft</text>
+<text x="302" y="232" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">with no provider call.</text>
+<rect x="302" y="282" width="200" height="26" fill="#fff" stroke="#111" stroke-width="0.9" stroke-dasharray="3 2"/>
+<text x="402.0" y="299" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Draft Scenario</text>
+<line x1="519" y1="195.0" x2="550" y2="195.0" stroke="#111" stroke-width="1.3" marker-end="url(#a)"/>
+<rect x="554" y="70" width="228" height="250" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<line x1="554" y1="118" x2="782" y2="118" stroke="#111" stroke-width="0.8"/>
+<text x="568" y="92" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">3  Adopt</text>
+<text x="568" y="109" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="start" font-weight="normal" font-style="italic" fill="#333">Independent reviewer</text>
+<text x="568" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Adopts or flags every</text>
+<text x="568" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">expected outcome in the</text>
+<text x="568" y="178" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">review application</text>
+<text x="568" y="196" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">(Figure 12).</text>
+<text x="568" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111"></text>
+<text x="568" y="232" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Adoption records a hash</text>
+<text x="568" y="250" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">of the approved bytes.</text>
+<rect x="568" y="282" width="200" height="26" fill="#fff" stroke="#111" stroke-width="0.9" stroke-dasharray="3 2"/>
+<text x="668.0" y="299" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Adopted Ground truth</text>
+<line x1="785" y1="195.0" x2="816" y2="195.0" stroke="#111" stroke-width="1.3" marker-end="url(#a)"/>
+<rect x="820" y="70" width="228" height="250" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<line x1="820" y1="118" x2="1048" y2="118" stroke="#111" stroke-width="0.8"/>
+<text x="834" y="92" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">4  Replay</text>
+<text x="834" y="109" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="start" font-weight="normal" font-style="italic" fill="#333">Application</text>
+<text x="834" y="142" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Runs every Line through</text>
+<text x="834" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">run_chat_turn, grades it</text>
+<text x="834" y="178" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">against the adopted</text>
+<text x="834" y="196" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Ground truth, and writes</text>
+<text x="834" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">an analysis report for</text>
+<text x="834" y="232" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">every run, including</text>
+<text x="834" y="250" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">all-pass runs.</text>
+<rect x="834" y="282" width="200" height="26" fill="#fff" stroke="#111" stroke-width="0.9" stroke-dasharray="3 2"/>
+<text x="934.0" y="299" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Analysis report</text>
+<path d="M622.4,68 L622.4,48 L447.6,48 L447.6,64" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#o)"/>
+<text x="535.0" y="41" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="normal" font-style="italic" fill="#111">flagged: revised, then reviewed again</text>
+<text x="22" y="364" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">What each side of the replay receives</text>
+<rect x="22" y="376" width="498.0" height="70" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="36" y="398" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">System under evaluation (agents)</text>
+<text x="36" y="418" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Receives the Props, placed in the account, and the Lines.</text>
+<text x="36" y="436" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Never sees the Backstory or the Ground truth.</text>
+<rect x="550.0" y="376" width="498.0" height="70" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="564.0" y="398" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">Grader (application code)</text>
+<text x="564.0" y="418" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">Receives the adopted Ground truth and the</text>
+<text x="564.0" y="436" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">system’s outputs. Hard gates are deterministic.</text>
+<line x1="535.0" y1="372" x2="535.0" y2="452" stroke="#111" stroke-width="2" stroke-dasharray="2 3"/>
+<rect x="22" y="475" width="14" height="12" fill="#e6e6e6" stroke="#111"/>
+<text x="42" y="486" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">model</text>
+<rect x="102" y="475" width="14" height="12" fill="#fff" stroke="#111"/>
+<text x="122" y="486" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">person or deterministic code</text>
+<rect x="312" y="475" width="22" height="12" fill="#fff" stroke="#111" stroke-dasharray="3 2"/>
+<text x="340" y="486" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="normal" fill="#111">artefact passed to the next stage</text>
+</svg>

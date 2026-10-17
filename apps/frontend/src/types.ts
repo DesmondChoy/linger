@@ -76,7 +76,7 @@ export type ContextResolution = {
   part_id: string
   unit_ids: string[]
   boundary_source: 'reader_confirmed' | 'librarian_inferred' | null
-  boundary_authorization_basis: 'explicit_progress' | 'memory_supported' | null
+  boundary_authorization_basis: 'explicit_progress' | 'saved_progress' | 'memory_supported' | null
   boundary_confidence: number | null
   boundary_supporting_memory_ids: string[]
   boundary_supporting_locations: {
@@ -117,6 +117,89 @@ export type CaptureInspection = {
   binding: 'exact' | 'not_applicable' | 'invalid'
   storage: 'committed' | 'refused' | 'suppressed' | 'not_applicable'
   reason_code: string | null
+  curation_status?: string | null
+}
+
+export type AvailableMemory = {
+  memory_id: string
+  kind: 'original' | 'derived_summary' | 'topic_group'
+  source_memory_ids: string[]
+}
+
+/** One row of the reader's memory table, read live from the store. */
+export type StoredMemory = {
+  memory_id: string
+  kind: 'original' | 'derived_summary' | 'topic_group'
+  created_at: string
+  /** The turn whose reply saved it; null for a curated item. */
+  source_turn_id: string | null
+  source_memory_ids: string[]
+  /** False for an original that curation retired from search. */
+  searchable: boolean
+  /** Developer inspect only. */
+  text: string | null
+  topic_labels: string[]
+}
+
+/** Content-free memory handles for one turn; absent on turns saved before it existed. */
+export type MemoryInspection = {
+  active_count: number
+  captured_memory_id: string | null
+  cited_memory_ids: string[]
+  /** The curated retrieval view the turn could search; absent on older turns. */
+  available_memories?: AvailableMemory[]
+  /** Developer inspect only: the text behind each ID. */
+  texts?: Record<string, string> | null
+}
+
+/** Turn triage and the tools Muse was offered; absent when no model ran. */
+export type ToolExposureInspection = {
+  triage: {
+    book_content: 'yes' | 'no' | 'unsure'
+    memory: 'own_earlier_reflections' | 'named_sources' | 'source_comparison' | 'outside_recommendation' | 'none' | 'unsure'
+    override_attempt: 'no_attempt' | 'attempted'
+  } | null
+  triage_failed: boolean
+  tools: string[]
+  pinned_intent: string | null
+  /** A reading boundary or pending reading question; absent on older turns. */
+  book_override?: boolean
+  /** Tools offered because an earlier turn used them; absent on older turns. */
+  carried_tools?: string[]
+}
+
+export type ReadingProgressEntry = {
+  work_id: string
+  title: string | null
+  part_id: string
+  /** Null marks a retracted ceiling: no chapter is granted. */
+  chapter_max: number | null
+}
+
+/** Stored reading progress once a turn finished; kept apart from memories. */
+export type ReadingStateInspection = {
+  /** This conversation's progress slot, which holds one book at a time. */
+  session: ReadingProgressEntry | null
+  /** The account's progress kept across conversations; null when the turn ran without the store. */
+  saved: ReadingProgressEntry[] | null
+}
+
+/** One agent run, recorded only under developer inspect. */
+export type AgentExchange = {
+  role: string
+  stage: string
+  skill: string | null
+  input_prompt: string
+  status: string
+  failure_code?: string | null
+  steps?: { kind: string; tool?: string; args?: unknown; content?: unknown }[]
+  output?: unknown
+}
+
+/** A turn's full content trace; present only when the server runs developer inspect. */
+export type DevTrace = {
+  agent_exchanges: AgentExchange[]
+  connection_events: Record<string, unknown>[]
 }
 
 export type ReleaseInspection = {
@@ -142,6 +225,11 @@ export type TurnInspection = {
   traces: AgentTrace[]
   connection_decline: ConnectionDecline | null
   librarian_grounding: LibrarianGroundingCall[]
+  tool_exposure?: ToolExposureInspection | null
+  memory?: MemoryInspection | null
+  /** Absent on turns saved before it existed. */
+  reading_state?: ReadingStateInspection | null
+  dev_trace?: DevTrace | null
   prompt: string
   release: ReleaseInspection | null
 }
@@ -163,10 +251,29 @@ export type ChatResult = {
 }
 
 /** One completed turn plus the progress events observed while it ran. */
+/** A recorded evaluation Scene's answer key and result, attached to its last replayed turn. */
+export type SceneGrading = {
+  sceneId: string
+  status: 'passed' | 'failed' | 'ungraded'
+  /** An offline task (curation) with no reader message and nothing released. */
+  offline: boolean
+  expected: string[]
+  prohibited: string[]
+  failures: string[]
+  executionFailures: string[]
+  /** The completed analysis review's judgement of this Scene, when one exists. */
+  assessment: string | null
+  analysis: string | null
+}
+
 export type TurnRecord = ChatResult & {
   progress: ProgressEvent[]
   /** The conversation the turn belongs to, so deleting one drops its records. */
   sessionId?: string
+  /** Present only on turns replayed from a recorded evaluation run. */
+  grading?: SceneGrading
+  /** Set on replayed turns; false when the run kept no MuseTurn contract (Muse never drafted). */
+  replayed?: { museTurnRecorded: boolean }
 }
 
 export type MemoryCaptureNotice = {
@@ -182,6 +289,8 @@ export type Message = {
   /** The conversation this message belongs to; the feed marks where each one starts. */
   sessionId?: string
   createdAt?: string
+  /** Replaces the date on the divider that opens this message's conversation. */
+  dividerLabel?: string
 }
 
 export type TranscriptTurn = {

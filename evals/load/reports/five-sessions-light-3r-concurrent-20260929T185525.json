@@ -1,0 +1,251 @@
+{
+  "run_at": "2026-09-29T10:55:25+00:00",
+  "model": "openai:gpt-6-luna",
+  "readers": 3,
+  "scenario": "light",
+  "turns_per_reader": 3,
+  "mode": "concurrent",
+  "server": "one uvicorn process, one worker, SQLite stores in a scratch directory",
+  "wall_clock_s": 59.2,
+  "outcomes": {
+    "declined": 3,
+    "answered": 6
+  },
+  "release_sources": {
+    "application_safe_decline": 3,
+    "muse_candidate": 6
+  },
+  "failures": {
+    "Muse/draft: provider_error (muse_model_failed)": 2,
+    "Provenance/emotional_boundary_preflight: provider_error (emotional_boundary_preflight_failed)": 1,
+    "Serendipity/memory_recall: provider_error (serendipity_model_failed)": 1,
+    "Serendipity/search_rank_select: model_response_error (serendipity_model_failed)": 1,
+    "reflection.release/muse_draft: model (muse_draft_failed)": 2,
+    "serendipity.connection/serendipity_discovery: application (connection_discovery_failed)": 2
+  },
+  "provider_http_statuses": {
+    "api.openai.com 200": 41,
+    "api.openai.com 429": 27
+  },
+  "latency_s": {
+    "p50": 16.59,
+    "p95": 28.27,
+    "max": 28.27,
+    "answered_p50": 15.61,
+    "answered_p95": 28.27,
+    "first_progress_p50": 0.01
+  },
+  "tokens": {
+    "input": 191679,
+    "output": 3115,
+    "agent_runs": 28,
+    "by_role": {
+      "Muse": {
+        "input": 127036,
+        "output": 2221,
+        "runs": 14
+      },
+      "Provenance": {
+        "input": 64643,
+        "output": 894,
+        "runs": 14
+      }
+    }
+  },
+  "cost_usd": 0.0207,
+  "cost_basis": "supplied per-million rates",
+  "isolation": {
+    "passed": true,
+    "history": {
+      "load-0f4eb0-0": {
+        "sessions": [
+          "load-0f4eb0-0-conversation"
+        ],
+        "saved_turns": 1,
+        "expected_saved_turns": 1,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-0f4eb0-1": {
+        "sessions": [
+          "load-0f4eb0-1-conversation"
+        ],
+        "saved_turns": 2,
+        "expected_saved_turns": 2,
+        "only_own_session": true,
+        "only_own_lines": true
+      },
+      "load-0f4eb0-2": {
+        "sessions": [
+          "load-0f4eb0-2-conversation"
+        ],
+        "saved_turns": 3,
+        "expected_saved_turns": 3,
+        "only_own_session": true,
+        "only_own_lines": true
+      }
+    },
+    "cross_account": [
+      {
+        "reader": "load-0f4eb0-0",
+        "target": "load-0f4eb0-1",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-0f4eb0-1",
+        "target": "load-0f4eb0-2",
+        "continue_status": 404,
+        "delete_status": 404
+      },
+      {
+        "reader": "load-0f4eb0-2",
+        "target": "load-0f4eb0-0",
+        "continue_status": 404,
+        "delete_status": 404
+      }
+    ],
+    "anonymous_history_status": 401
+  },
+  "turns": [
+    {
+      "reader": "load-0f4eb0-0",
+      "index": 0,
+      "outcome": "declined",
+      "started_s": 0.0,
+      "latency_s": 27.03,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccd30ddfe82f9357820477fbce4",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2557,
+      "output_tokens": 50,
+      "agent_runs": 2,
+      "failures": [
+        "Serendipity/search_rank_select: model_response_error (serendipity_model_failed)",
+        "serendipity.connection/serendipity_discovery: application (connection_discovery_failed)",
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-0f4eb0-0",
+      "index": 1,
+      "outcome": "answered",
+      "started_s": 27.03,
+      "latency_s": 21.28,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccd9a6eddc8d1356d6972aea7e7",
+      "release_source": "muse_candidate",
+      "input_tokens": 23213,
+      "output_tokens": 338,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-0f4eb0-0",
+      "index": 2,
+      "outcome": "declined",
+      "started_s": 48.3,
+      "latency_s": 2.55,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccded8bb3e9a8ae62b93ea71f35",
+      "release_source": "application_safe_decline",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "agent_runs": 0,
+      "failures": [
+        "Provenance/emotional_boundary_preflight: provider_error (emotional_boundary_preflight_failed)"
+      ]
+    },
+    {
+      "reader": "load-0f4eb0-1",
+      "index": 0,
+      "outcome": "answered",
+      "started_s": 0.0,
+      "latency_s": 13.81,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccd30ec192052f77c4501e63df0",
+      "release_source": "muse_candidate",
+      "input_tokens": 45976,
+      "output_tokens": 672,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-0f4eb0-1",
+      "index": 1,
+      "outcome": "declined",
+      "started_s": 13.81,
+      "latency_s": 17.58,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccd66d3e5a2668491faccf839c6",
+      "release_source": "application_safe_decline",
+      "input_tokens": 2549,
+      "output_tokens": 49,
+      "agent_runs": 2,
+      "failures": [
+        "Muse/draft: provider_error (muse_model_failed)",
+        "reflection.release/muse_draft: model (muse_draft_failed)"
+      ]
+    },
+    {
+      "reader": "load-0f4eb0-1",
+      "index": 2,
+      "outcome": "answered",
+      "started_s": 31.4,
+      "latency_s": 16.59,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccdab82d92c3ed660db7b9477e7",
+      "release_source": "muse_candidate",
+      "input_tokens": 23299,
+      "output_tokens": 348,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-0f4eb0-2",
+      "index": 0,
+      "outcome": "answered",
+      "started_s": 0.0,
+      "latency_s": 15.31,
+      "first_progress_s": 0.03,
+      "trace_id": "01a0eccd30f088b8737b64689ddad24a",
+      "release_source": "muse_candidate",
+      "input_tokens": 34365,
+      "output_tokens": 897,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-0f4eb0-2",
+      "index": 1,
+      "outcome": "answered",
+      "started_s": 15.31,
+      "latency_s": 15.61,
+      "first_progress_s": 0.01,
+      "trace_id": "01a0eccd6cab25067ee4fa8e2996acd4",
+      "release_source": "muse_candidate",
+      "input_tokens": 23291,
+      "output_tokens": 304,
+      "agent_runs": 4,
+      "failures": []
+    },
+    {
+      "reader": "load-0f4eb0-2",
+      "index": 2,
+      "outcome": "answered",
+      "started_s": 30.92,
+      "latency_s": 28.27,
+      "first_progress_s": 0.02,
+      "trace_id": "01a0eccda9b5e31ebaf6acc5e64ace5c",
+      "release_source": "muse_candidate",
+      "input_tokens": 36429,
+      "output_tokens": 457,
+      "agent_runs": 4,
+      "failures": [
+        "Serendipity/memory_recall: provider_error (serendipity_model_failed)",
+        "serendipity.connection/serendipity_discovery: application (connection_discovery_failed)"
+      ]
+    }
+  ]
+}

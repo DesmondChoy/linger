@@ -1,0 +1,2317 @@
+{
+  "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-21",
+  "title": "Reviewed capture and bounded curation",
+  "dated": "2026-09-21",
+  "description": "Reviewed automatic memory capture; Bounded memory curation",
+  "family": "conversation_and_memory",
+  "objectiveIds": [
+    "reviewed_automatic_memory_capture",
+    "bounded_memory_curation"
+  ],
+  "personId": "person-nora",
+  "context": "Nora keeps a quiet personal notebook about ordinary routines, drawing, cooking, and evening habits. Over several weeks, she has accumulated short reflections, repeated observations, and practical notes in one evaluation account.",
+  "props": [
+    {
+      "id": "prop-exact-1",
+      "text": "I usually read for twenty minutes before bed."
+    },
+    {
+      "id": "prop-exact-2",
+      "text": "I usually read for twenty minutes before bed."
+    },
+    {
+      "id": "prop-paraphrase-1",
+      "text": "Sketching after work helps me settle down."
+    },
+    {
+      "id": "prop-paraphrase-2",
+      "text": "I unwind in the evening by drawing for a while."
+    },
+    {
+      "id": "prop-evolving-1",
+      "text": "A short walk after work clears my head."
+    },
+    {
+      "id": "prop-evolving-2",
+      "text": "Rain is fine, but I prefer walking without headphones."
+    },
+    {
+      "id": "prop-evolving-3",
+      "text": "I now take the riverside path after work because the quieter route helps me reset."
+    },
+    {
+      "id": "prop-evolving-noise",
+      "text": "The number 14 bus was late this morning."
+    },
+    {
+      "id": "prop-related-1",
+      "text": "A quiet cup of tea helps me shift out of work mode."
+    },
+    {
+      "id": "prop-related-2",
+      "text": "Reading fiction is another gentle end-of-day ritual."
+    },
+    {
+      "id": "prop-related-3",
+      "text": "A few minutes of sketching helps me ease into the evening."
+    },
+    {
+      "id": "prop-related-noise",
+      "text": "I need to replace the kitchen tap washer."
+    },
+    {
+      "id": "prop-superficial-1",
+      "text": "Alice showed me how to book the meeting room."
+    },
+    {
+      "id": "prop-superficial-2",
+      "text": "The database book uses Alice as a sample user."
+    },
+    {
+      "id": "prop-superficial-3",
+      "text": "The Alice printout is beside the blue folder."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-capture-01",
+      "order": 1,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I put the lentils on the stove and will check them in ten minutes."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the temporary cooking logistics as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-02",
+      "order": 2,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I lost my train of thought for a moment, but it will come back."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the fleeting conversational filler as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-03",
+      "order": 3,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "The clouds turned pink for a minute after the rain."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the short-lived weather observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-04",
+      "order": 4,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I will take the 6:20 train tonight and pick up dinner afterward."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the one-evening travel plan as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-05",
+      "order": 5,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I watered the basil and folded the towels before logging on."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the routine household update as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-06",
+      "order": 6,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "The hallway light flickered once and then stopped."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the brief ordinary observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-07",
+      "order": 7,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+      ],
+      "expected": [
+        "Muse nominates exactly the durable reflection as one MemoryCandidate bound to the current Line.",
+        "Provenance allows the policy-compliant candidate after reviewing the complete response.",
+        "The application stores exactly one immutable record whose text equals the nominated Line span when capture is enabled."
+      ],
+      "prohibited": [
+        "The nomination is paraphrased, extended beyond the Line, or stored without the Provenance and policy gates.",
+        "The deterministic privacy screen or account policy is bypassed.",
+        "A retry creates a duplicate or changes the original record."
+      ]
+    },
+    {
+      "id": "scene-capture-08",
+      "order": 8,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "The cafe downstairs has a long queue this afternoon."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the temporary queue observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-09",
+      "order": 9,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "I left my tote by the front door for the market later."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the same-day market reminder as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-10",
+      "order": 10,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "Lunch was noodles, cucumber, and a pear today."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the routine lunch update as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-capture-11",
+      "order": 11,
+      "freshSession": true,
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "propIds": [],
+      "lines": [
+        "My desk feels oddly quiet with the fan switched off."
+      ],
+      "expected": [
+        "Muse produces no capture nomination for this low-signal Line.",
+        "Provenance records no_candidate and the application creates no automatic memory record.",
+        "The normal reply proceeds without a save notice or storage write."
+      ],
+      "prohibited": [
+        "Muse nominates the short-lived desk observation as durable memory.",
+        "Provenance authorizes capture when no nomination exists.",
+        "Any automatic memory record, duplicate, or save notice is produced."
+      ]
+    },
+    {
+      "id": "scene-curation-exact",
+      "order": 12,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-exact-1",
+        "prop-exact-2"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ]
+    },
+    {
+      "id": "scene-curation-paraphrase",
+      "order": 13,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-paraphrase-1",
+        "prop-paraphrase-2"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ]
+    },
+    {
+      "id": "scene-curation-evolving",
+      "order": 14,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-evolving-1",
+        "prop-evolving-2",
+        "prop-evolving-3",
+        "prop-evolving-noise"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ]
+    },
+    {
+      "id": "scene-curation-related",
+      "order": 15,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-related-1",
+        "prop-related-2",
+        "prop-related-3",
+        "prop-related-noise"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ]
+    },
+    {
+      "id": "scene-curation-superficial",
+      "order": 16,
+      "freshSession": true,
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "propIds": [
+        "prop-superficial-1",
+        "prop-superficial-2",
+        "prop-superficial-3"
+      ],
+      "lines": [],
+      "expected": [
+        "Sculptor considers only the supplied active Props and preserves every original source record.",
+        "The proposed relationship or no-change decision matches the bounded source material."
+      ],
+      "prohibited": [
+        "The proposal invents a source, crosses account scope, deletes an original, or rewrites a Prop.",
+        "The proposal makes an unsupported personal claim or treats unrelated wording as evidence."
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "040cc9eb5a434abc8a6adae5ae673a0c",
+      "startedAt": "2026-09-27T14:13:57.659596+08:00",
+      "model": "openai:gpt-6-luna",
+      "systemVariant": "4673b0f6",
+      "passed": 13,
+      "failed": 3,
+      "ungraded": 0,
+      "total": 16,
+      "executionFailures": 1,
+      "logfireUrl": "https://logfire-us.pydantic.dev/jrlyy/linger/evals/reviewed_capture_and_bounded_curation/compare?experiment=01a0e17fc1500f5df813764fa8a797c5-f8d5cdfb58ad8c3e",
+      "verdict": "Capture judgement was right in every executed Scene: ten low-signal Lines stored nothing and the durable reflection was nominated with the correct text. Two real defects remain: model-computed span offsets broke exact binding in scene-capture-07, and Sculptor grouped an evolving fact instead of summarising it. One Scene was lost to an HTTP 429.",
+      "scenes": [
+        {
+          "sceneId": "scene-capture-01",
+          "status": "failed",
+          "failures": [
+            "capture_review_mismatch",
+            "release_source_mismatch"
+          ],
+          "executionFailures": [
+            "Provenance review: provenance_model_failed"
+          ],
+          "assessment": "not_exercised",
+          "analysis": "capture_review_mismatch and release_source_mismatch follow from the missing Provenance decision; the rate limit coincided with a second evaluation running concurrently.",
+          "turns": [
+            {
+              "userMessage": "I put the lentils on the stove and will check them in ten minutes.",
+              "reply": "Something went wrong on my side just now — mind asking again?",
+              "releaseSource": "application_safe_decline",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": null,
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": null,
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:598dbd4e0fcc4864831852a1ffa4ad52",
+                "user_message": "I put the lentils on the stove and will check them in ten minutes.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:598dbd4e0fcc4864831852a1ffa4ad52\", \"user_message\": \"I put the lentils on the stove and will check them in ten minutes.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1632,
+                  "input": "{\"current_line\": \"I put the lentils on the stove and will check them in ten minutes.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1651,
+                  "endMs": 2946,
+                  "input": "{\"current_line\": \"I put the lentils on the stove and will check them in ten minutes.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2956,
+                  "endMs": 4590,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:598dbd4e0fcc4864831852a1ffa4ad52\",\"user_message\":\"I put the lentils on the stove and will check them in ten minutes.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"Sounds good—set a timer for ten minutes so you can check the lentils.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "failure",
+                  "failureCode": "provenance_model_failed",
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4598,
+                  "endMs": 4598,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"Sounds good—set a timer for ten minutes so you can check the lentils.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"I put the lentils on the stove and will check them in ten minutes.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 69, \"text\": \"Sounds good—set a timer for ten minutes so you can check the lentils.\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": null,
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-02",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "I lost my train of thought for a moment, but it will come back.",
+              "reply": "That’s okay—no need to chase it. Give it a little space, and see if it returns.",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:b141c93515f34655829118b889583d2e",
+                "user_message": "I lost my train of thought for a moment, but it will come back.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:b141c93515f34655829118b889583d2e\", \"user_message\": \"I lost my train of thought for a moment, but it will come back.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1135,
+                  "input": "{\"current_line\": \"I lost my train of thought for a moment, but it will come back.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1144,
+                  "endMs": 2079,
+                  "input": "{\"current_line\": \"I lost my train of thought for a moment, but it will come back.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2087,
+                  "endMs": 6533,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:b141c93515f34655829118b889583d2e\",\"user_message\":\"I lost my train of thought for a moment, but it will come back.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"That’s okay—no need to chase it. Give it a little space, and see if it returns.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 6543,
+                  "endMs": 10188,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"That’s okay—no need to chase it. Give it a little space, and see if it returns.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"I lost my train of thought for a moment, but it will come back.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 79, \"text\": \"That’s okay—no need to chase it. Give it a little space, and see if it returns.\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-03",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "The clouds turned pink for a minute after the rain.",
+              "reply": "What a lovely brief after-rain moment—the pink light must have made the sky feel newly vivid. Did you get to watch it for a while?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:4b627ff7472a413e96fea3cd067f9ec8",
+                "user_message": "The clouds turned pink for a minute after the rain.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:4b627ff7472a413e96fea3cd067f9ec8\", \"user_message\": \"The clouds turned pink for a minute after the rain.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1056,
+                  "input": "{\"current_line\": \"The clouds turned pink for a minute after the rain.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1060,
+                  "endMs": 2166,
+                  "input": "{\"current_line\": \"The clouds turned pink for a minute after the rain.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2175,
+                  "endMs": 4426,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:4b627ff7472a413e96fea3cd067f9ec8\",\"user_message\":\"The clouds turned pink for a minute after the rain.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"What a lovely brief after-rain moment—the pink light must have made the sky feel newly vivid. Did you get to watch it for a while?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4444,
+                  "endMs": 8128,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"What a lovely brief after-rain moment—the pink light must have made the sky feel newly vivid. Did you get to watch it for a while?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"The clouds turned pink for a minute after the rain.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 130, \"text\": \"What a lovely brief after-rain moment—the pink light must have made the sky feel newly vivid. Did you get to watch it for a while?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-04",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "I will take the 6:20 train tonight and pick up dinner afterward.",
+              "reply": "Sounds like a practical plan for tonight: train first, then dinner. Hope the evening goes smoothly.",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:df2cbeef2b31426ebbf89e9d93b24ffb",
+                "user_message": "I will take the 6:20 train tonight and pick up dinner afterward.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:df2cbeef2b31426ebbf89e9d93b24ffb\", \"user_message\": \"I will take the 6:20 train tonight and pick up dinner afterward.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1223,
+                  "input": "{\"current_line\": \"I will take the 6:20 train tonight and pick up dinner afterward.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1231,
+                  "endMs": 2230,
+                  "input": "{\"current_line\": \"I will take the 6:20 train tonight and pick up dinner afterward.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2239,
+                  "endMs": 7327,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:df2cbeef2b31426ebbf89e9d93b24ffb\",\"user_message\":\"I will take the 6:20 train tonight and pick up dinner afterward.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"Sounds like a practical plan for tonight: train first, then dinner. Hope the evening goes smoothly.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 7342,
+                  "endMs": 11666,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"Sounds like a practical plan for tonight: train first, then dinner. Hope the evening goes smoothly.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"I will take the 6:20 train tonight and pick up dinner afterward.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 99, \"text\": \"Sounds like a practical plan for tonight: train first, then dinner. Hope the evening goes smoothly.\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-05",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "I watered the basil and folded the towels before logging on.",
+              "reply": "A small bit of care for the basil and a few folded towels before logging on—what a gentle way to ease into the day.",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:d9531214477849ba81989192b868ab0c",
+                "user_message": "I watered the basil and folded the towels before logging on.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:d9531214477849ba81989192b868ab0c\", \"user_message\": \"I watered the basil and folded the towels before logging on.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1258,
+                  "input": "{\"current_line\": \"I watered the basil and folded the towels before logging on.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1268,
+                  "endMs": 2316,
+                  "input": "{\"current_line\": \"I watered the basil and folded the towels before logging on.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2325,
+                  "endMs": 4711,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:d9531214477849ba81989192b868ab0c\",\"user_message\":\"I watered the basil and folded the towels before logging on.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"A small bit of care for the basil and a few folded towels before logging on—what a gentle way to ease into the day.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4728,
+                  "endMs": 7804,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"A small bit of care for the basil and a few folded towels before logging on—what a gentle way to ease into the day.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"I watered the basil and folded the towels before logging on.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 115, \"text\": \"A small bit of care for the basil and a few folded towels before logging on—what a gentle way to ease into the day.\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-06",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "The hallway light flickered once and then stopped.",
+              "reply": "A brief flicker can catch your attention, even when everything settles right away. Did it leave you curious, uneasy, or was it just something you noticed?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:54591c55b5fa4af08ed001fce4dad89b",
+                "user_message": "The hallway light flickered once and then stopped.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:54591c55b5fa4af08ed001fce4dad89b\", \"user_message\": \"The hallway light flickered once and then stopped.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1027,
+                  "input": "{\"current_line\": \"The hallway light flickered once and then stopped.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1037,
+                  "endMs": 2092,
+                  "input": "{\"current_line\": \"The hallway light flickered once and then stopped.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2101,
+                  "endMs": 4921,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:54591c55b5fa4af08ed001fce4dad89b\",\"user_message\":\"The hallway light flickered once and then stopped.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"A brief flicker can catch your attention, even when everything settles right away. Did it leave you curious, uneasy, or was it just something you noticed?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4931,
+                  "endMs": 7926,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"A brief flicker can catch your attention, even when everything settles right away. Did it leave you curious, uneasy, or was it just something you noticed?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"The hallway light flickered once and then stopped.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 154, \"text\": \"A brief flicker can catch your attention, even when everything settles right away. Did it leave you curious, uneasy, or was it just something you noticed?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-07",
+          "status": "failed",
+          "failures": [
+            "capture_review_mismatch",
+            "capture_binding_mismatch",
+            "capture_storage_mismatch",
+            "stored_record_count_mismatch",
+            "nominated_span_mismatch",
+            "capture_retry_unavailable"
+          ],
+          "executionFailures": [],
+          "assessment": "supported_failure",
+          "analysis": "The offsets do not index the nominated text inside the Line (\"I have realised that \" is 21 characters), so the deterministic binding check refused the candidate. The nominated_span_mismatch and storage failures all stem from this offset error, not from choosing the wrong content.",
+          "turns": [
+            {
+              "userMessage": "I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.",
+              "reply": "That sounds like a thoughtful way to protect something that helps you feel clearer. Keeping Saturday mornings for sketching makes the insight concrete—what would you most like that time to feel like?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "candidate",
+                "provenance_decision": "reject_capture",
+                "binding": "invalid",
+                "storage": "refused",
+                "reason_code": "invalid_capture_binding",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:c0b52c2a31ab412a91406673a82a1f62",
+                "user_message": "I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:c0b52c2a31ab412a91406673a82a1f62\", \"user_message\": \"I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1200,
+                  "input": "{\"current_line\": \"I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1209,
+                  "endMs": 2525,
+                  "input": "{\"current_line\": \"I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"unsure\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2534,
+                  "endMs": 16157,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:c0b52c2a31ab412a91406673a82a1f62\",\"user_message\":\"I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"That sounds like a thoughtful way to protect something that helps you feel clearer. Keeping Saturday mornings for sketching makes the insight concrete—what would you most like that time to feel like?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"memory_candidate\", \"text\": \"sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\", \"start_codepoint\": 27, \"end_codepoint\": 126, \"reason_code\": \"stable_preference_or_intention\", \"evidence_ids\": []}}",
+                  "toolCalls": [
+                    {
+                      "tool": "serendipity_explore",
+                      "outcome": "success"
+                    }
+                  ]
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 16188,
+                  "endMs": 20988,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [{\"tool_name\": \"serendipity_explore\", \"outcome\": \"success\", \"args\": {\"intent\": \"recall_memory\"}, \"content\": {\"decision\": {\"status\": \"decline\", \"reason\": \"no_permitted_evidence\", \"safe_next_step\": \"No stored reflection answers this; reply without claiming memory.\"}, \"evidence\": []}}], \"candidate\": {\"response\": \"That sounds like a thoughtful way to protect something that helps you feel clearer. Keeping Saturday mornings for sketching makes the insight concrete—what would you most like that time to feel like?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"memory_candidate\", \"text\": \"sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\", \"start_codepoint\": 27, \"end_codepoint\": 126, \"reason_code\": \"stable_preference_or_intention\", \"evidence_ids\": []}}, \"current_line\": {\"text\": \"I have realised that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 199, \"text\": \"That sounds like a thoughtful way to protect something that helps you feel clearer. Keeping Saturday mornings for sketching makes the insight concrete—what would you most like that time to feel like?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [{\"code\": \"unsupported_claim\", \"applies_to\": \"capture\", \"location\": {\"kind\": \"structural\", \"source_field\": \"candidate.memory\", \"path\": \"/start_codepoint\"}, \"explanation\": \"The nominated text is the reader’s wording, but its declared start offset does not match that substring in current_line.text. The nomination must use exact, matching slice offsets.\"}], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"reject_capture\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-08",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "The cafe downstairs has a long queue this afternoon.",
+              "reply": "A long queue can make even a quick cafe stop feel like a bigger decision. Are you waiting in it, or just noticing it from nearby?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:a9007f600e9a40e4acff41837e2e0826",
+                "user_message": "The cafe downstairs has a long queue this afternoon.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:a9007f600e9a40e4acff41837e2e0826\", \"user_message\": \"The cafe downstairs has a long queue this afternoon.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1145,
+                  "input": "{\"current_line\": \"The cafe downstairs has a long queue this afternoon.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1155,
+                  "endMs": 2279,
+                  "input": "{\"current_line\": \"The cafe downstairs has a long queue this afternoon.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2286,
+                  "endMs": 4251,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:a9007f600e9a40e4acff41837e2e0826\",\"user_message\":\"The cafe downstairs has a long queue this afternoon.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"A long queue can make even a quick cafe stop feel like a bigger decision. Are you waiting in it, or just noticing it from nearby?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4270,
+                  "endMs": 5663,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"A long queue can make even a quick cafe stop feel like a bigger decision. Are you waiting in it, or just noticing it from nearby?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"The cafe downstairs has a long queue this afternoon.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 129, \"text\": \"A long queue can make even a quick cafe stop feel like a bigger decision. Are you waiting in it, or just noticing it from nearby?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-09",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "I left my tote by the front door for the market later.",
+              "reply": "Hope the market trip goes smoothly—your tote is by the front door, ready for later.",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:329d5c249ca840889fa7fa9d7569695d",
+                "user_message": "I left my tote by the front door for the market later.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:329d5c249ca840889fa7fa9d7569695d\", \"user_message\": \"I left my tote by the front door for the market later.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1067,
+                  "input": "{\"current_line\": \"I left my tote by the front door for the market later.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1074,
+                  "endMs": 2141,
+                  "input": "{\"current_line\": \"I left my tote by the front door for the market later.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2151,
+                  "endMs": 4551,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:329d5c249ca840889fa7fa9d7569695d\",\"user_message\":\"I left my tote by the front door for the market later.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"Hope the market trip goes smoothly—your tote is by the front door, ready for later.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 4563,
+                  "endMs": 7468,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"Hope the market trip goes smoothly—your tote is by the front door, ready for later.\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"I left my tote by the front door for the market later.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 83, \"text\": \"Hope the market trip goes smoothly—your tote is by the front door, ready for later.\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-10",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "Lunch was noodles, cucumber, and a pear today.",
+              "reply": "Noodles, cucumber, and a pear sounds like a nice mix for lunch. What stood out to you about it today?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:9f7d428eeda24d78afb17fa37b2e7a3e",
+                "user_message": "Lunch was noodles, cucumber, and a pear today.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:9f7d428eeda24d78afb17fa37b2e7a3e\", \"user_message\": \"Lunch was noodles, cucumber, and a pear today.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1119,
+                  "input": "{\"current_line\": \"Lunch was noodles, cucumber, and a pear today.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1129,
+                  "endMs": 2198,
+                  "input": "{\"current_line\": \"Lunch was noodles, cucumber, and a pear today.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2207,
+                  "endMs": 3673,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:9f7d428eeda24d78afb17fa37b2e7a3e\",\"user_message\":\"Lunch was noodles, cucumber, and a pear today.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"Noodles, cucumber, and a pear sounds like a nice mix for lunch. What stood out to you about it today?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 3691,
+                  "endMs": 7360,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"Noodles, cucumber, and a pear sounds like a nice mix for lunch. What stood out to you about it today?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"Lunch was noodles, cucumber, and a pear today.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 101, \"text\": \"Noodles, cucumber, and a pear sounds like a nice mix for lunch. What stood out to you about it today?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-capture-11",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Every capture field matched the adopted no_candidate expectation.",
+          "turns": [
+            {
+              "userMessage": "My desk feels oddly quiet with the fan switched off.",
+              "reply": "That makes sense—the fan’s steady background sound may have been blending into the room, so switching it off makes the quiet noticeable. Does the silence feel restful, or a little strange?",
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "capture": {
+                "nomination": "no_candidate",
+                "provenance_decision": "no_candidate",
+                "binding": "not_applicable",
+                "storage": "not_applicable",
+                "reason_code": "not_applicable",
+                "curation_status": null
+              },
+              "contextResolution": {
+                "status": "unknown",
+                "work_id": null,
+                "work_title": null,
+                "book_version_id": null,
+                "chapter_max": null,
+                "part_id": "main",
+                "unit_ids": [],
+                "boundary_source": null,
+                "boundary_authorization_basis": null,
+                "boundary_confidence": null,
+                "boundary_supporting_memory_ids": [],
+                "boundary_supporting_locations": [],
+                "clarification_question": null,
+                "explanation": "No confirmed book or reading boundary. This describes reading state only; many messages need no book."
+              },
+              "museTurn": {
+                "turn_id": "synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:7ecf1d10abc2461ca976305948d63ba7",
+                "user_message": "My desk feels oddly quiet with the fan switched off.",
+                "reading_context": null,
+                "policy": {
+                  "spoiler_ceiling": null,
+                  "allow_retrieval": false,
+                  "allow_connection": true,
+                  "allow_memory_capture": true,
+                  "emotional_content": {
+                    "version": "3",
+                    "boundary_response_id": "distressing_disclosure_v1",
+                    "self_harm_response_id": "self_harm_disclosure_v1",
+                    "prohibit_diagnosis": true,
+                    "stop_probing_after_distress": true,
+                    "suppress_tools_after_distress": true,
+                    "suppress_capture_after_distress": true
+                  }
+                },
+                "connection_book_scopes": []
+              },
+              "prompt": "{\"mode\": \"draft\", \"muse_turn\": {\"turn_id\": \"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:7ecf1d10abc2461ca976305948d63ba7\", \"user_message\": \"My desk feels oddly quiet with the fan switched off.\", \"reading_context\": null, \"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"connection_book_scopes\": []}, \"context_resolution\": {\"status\": \"unknown\", \"work_id\": null, \"work_title\": null, \"book_version_id\": null, \"chapter_max\": null, \"part_id\": \"main\", \"unit_ids\": [], \"boundary_source\": null, \"boundary_authorization_basis\": null, \"boundary_confidence\": null, \"boundary_supporting_memory_ids\": [], \"boundary_supporting_locations\": [], \"clarification_question\": null, \"explanation\": \"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"}, \"prior_evidence\": [], \"memory_surfacing\": null}",
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": [
+                {
+                  "sequence": 1,
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "skill": "provenance.emotional-preflight",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 0,
+                  "endMs": 1127,
+                  "input": "{\"current_line\": \"My desk feels oddly quiet with the fan switched off.\", \"policy\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}",
+                  "output": "{\"decision\": \"continue_reflection\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 2,
+                  "role": "Muse",
+                  "stage": "turn_triage",
+                  "skill": "muse.turn-triage",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 1137,
+                  "endMs": 2202,
+                  "input": "{\"current_line\": \"My desk feels oddly quiet with the fan switched off.\"}",
+                  "output": "{\"book_content\": \"no\", \"memory\": \"none\", \"override_attempt\": \"no_attempt\"}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 3,
+                  "role": "Muse",
+                  "stage": "draft",
+                  "skill": "muse.reflection",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Application",
+                  "outputReceiver": "Application",
+                  "startMs": 2210,
+                  "endMs": 5645,
+                  "input": "{\"mode\":\"draft\",\"muse_turn\":{\"turn_id\":\"synthetic-eval:040cc9eb5a434abc8a6adae5ae673a0c:turn:7ecf1d10abc2461ca976305948d63ba7\",\"user_message\":\"My desk feels oddly quiet with the fan switched off.\",\"reading_context\":null,\"policy\":{\"spoiler_ceiling\":null,\"allow_retrieval\":false,\"allow_connection\":true,\"allow_memory_capture\":true,\"emotional_content\":{\"version\":\"3\",\"boundary_response_id\":\"distressing_disclosure_v1\",\"self_harm_response_id\":\"self_harm_disclosure_v1\",\"prohibit_diagnosis\":true,\"stop_probing_after_distress\":true,\"suppress_tools_after_distress\":true,\"suppress_capture_after_distress\":true}},\"connection_book_scopes\":[]},\"context_resolution\":{\"status\":\"unknown\",\"work_id\":null,\"work_title\":null,\"book_version_id\":null,\"chapter_max\":null,\"part_id\":\"main\",\"unit_ids\":[],\"boundary_source\":null,\"boundary_authorization_basis\":null,\"boundary_confidence\":null,\"boundary_supporting_memory_ids\":[],\"boundary_supporting_locations\":[],\"clarification_question\":null,\"explanation\":\"No confirmed book or reading boundary. This describes reading state only; many messages need no book.\"},\"prior_evidence\":[],\"memory_surfacing\":null}",
+                  "output": "{\"reply\": \"That makes sense—the fan’s steady background sound may have been blending into the room, so switching it off makes the quiet noticeable. Does the silence feel restful, or a little strange?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}",
+                  "toolCalls": []
+                },
+                {
+                  "sequence": 4,
+                  "role": "Provenance",
+                  "stage": "review",
+                  "skill": "provenance.candidate-review",
+                  "status": "success",
+                  "failureCode": null,
+                  "inputOrigin": "Muse",
+                  "outputReceiver": "Application",
+                  "startMs": 5665,
+                  "endMs": 8035,
+                  "input": "{\"context\": {\"policy\": {\"spoiler_ceiling\": null, \"allow_retrieval\": false, \"allow_connection\": true, \"allow_memory_capture\": true, \"emotional_content\": {\"version\": \"3\", \"boundary_response_id\": \"distressing_disclosure_v1\", \"self_harm_response_id\": \"self_harm_disclosure_v1\", \"prohibit_diagnosis\": true, \"stop_probing_after_distress\": true, \"suppress_tools_after_distress\": true, \"suppress_capture_after_distress\": true}}, \"reading_context\": null, \"passage_scope\": null, \"connection_book_scopes\": [], \"required_clarification\": null, \"override_attempt\": \"no_attempt\"}, \"canonical_book_evidence\": [], \"canonical_connection_evidence\": [], \"canonical_session_lines\": [], \"untrusted_tool_outcomes\": [], \"candidate\": {\"response\": \"That makes sense—the fan’s steady background sound may have been blending into the room, so switching it off makes the quiet noticeable. Does the silence feel restful, or a little strange?\", \"evidence_uses\": [], \"memory\": {\"kind\": \"no_memory_candidate\", \"reason_code\": \"transient_or_low_signal\"}}, \"current_line\": {\"text\": \"My desk feels oddly quiet with the fan switched off.\"}, \"previous_response_review\": null, \"claim_support_groups\": [], \"evidence_limit_claims\": [], \"uncovered_response_spans\": [{\"span_index\": 0, \"start\": 0, \"end\": 188, \"text\": \"That makes sense—the fan’s steady background sound may have been blending into the room, so switching it off makes the quiet noticeable. Does the silence feel restful, or a little strange?\"}], \"quoted_response_spans\": [], \"quote_checks\": []}",
+                  "output": "{\"coverage_audit\": [{\"span_index\": 0, \"classification\": \"reader_reflection\"}], \"quotation_audit\": [], \"claim_audit\": [], \"limit_audit\": [], \"finding_resolutions\": [], \"findings\": [], \"emotional_boundary_decision\": \"not_required\", \"capture_decision\": \"no_candidate\", \"response_decision\": \"pass\"}",
+                  "toolCalls": []
+                }
+              ]
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-curation-exact",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Action and source set match the adopted expectation.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-exact-1",
+                "text": "I usually read for twenty minutes before bed."
+              },
+              {
+                "id": "prop-exact-2",
+                "text": "I usually read for twenty minutes before bed."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-exact-1",
+                  "prop-exact-2"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-exact-1",
+                "prop-exact-2"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1350,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-exact-1\", \"text\": \"I usually read for twenty minutes before bed.\"}, {\"memory_id\": \"prop-exact-2\", \"text\": \"I usually read for twenty minutes before bed.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-exact-1\", \"prop-exact-2\"], \"action\": \"link_duplicates\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1360,
+                "endMs": 2836,
+                "input": "{\"proposal_digest\":\"16a6b0e4f46fe730ecc665881e5578505b75c25da29dec0b264a1416330a1ca2\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-exact-1\",\"prop-exact-2\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-exact-1\",\"text\":\"I usually read for twenty minutes before bed.\",\"record_sha256\":\"277431d27cf9d3ae05f19932232ed22f666d068bb927bf1e83f4d3f453f323e0\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-exact-2\",\"text\":\"I usually read for twenty minutes before bed.\",\"record_sha256\":\"18641925bd7e2902dbcfe3bec4109660b2c5e7409d9144a787b3296f8d071932\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"16a6b0e4f46fe730ecc665881e5578505b75c25da29dec0b264a1416330a1ca2\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-curation-paraphrase",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Action and source set match.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-paraphrase-1",
+                "text": "Sketching after work helps me settle down."
+              },
+              {
+                "id": "prop-paraphrase-2",
+                "text": "I unwind in the evening by drawing for a while."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-paraphrase-1",
+                  "prop-paraphrase-2"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-paraphrase-1",
+                "prop-paraphrase-2"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1264,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-paraphrase-1\", \"text\": \"Sketching after work helps me settle down.\"}, {\"memory_id\": \"prop-paraphrase-2\", \"text\": \"I unwind in the evening by drawing for a while.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-paraphrase-1\", \"prop-paraphrase-2\"], \"action\": \"link_duplicates\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1275,
+                "endMs": 3053,
+                "input": "{\"proposal_digest\":\"9dfe2cc7f9846757b175e71076e572d49a2ea5dcab65c2ae2e34780b5bc43dc8\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-paraphrase-1\",\"prop-paraphrase-2\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-paraphrase-1\",\"text\":\"Sketching after work helps me settle down.\",\"record_sha256\":\"7fd010d656b494eea90d579c634c5a82688375e54482135818f79a78c462b99c\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-paraphrase-2\",\"text\":\"I unwind in the evening by drawing for a while.\",\"record_sha256\":\"7c376f2c13ae0e250cc80a96d03eff42684614a932dd17a0136cb8c12599844b\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"9dfe2cc7f9846757b175e71076e572d49a2ea5dcab65c2ae2e34780b5bc43dc8\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-curation-evolving",
+          "status": "failed",
+          "failures": [
+            "expected_action:update_derived_summary;got:assign_topic_group",
+            "source_memory_ids_mismatch"
+          ],
+          "executionFailures": [],
+          "assessment": "supported_failure",
+          "analysis": "The grader expected update_derived_summary over exactly -1 and -3 and recorded both an action mismatch and a source mismatch. Sculptor treated the records as related facts and missed that -3 updates -1 (\"I now take…\").",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-evolving-1",
+                "text": "A short walk after work clears my head."
+              },
+              {
+                "id": "prop-evolving-2",
+                "text": "Rain is fine, but I prefer walking without headphones."
+              },
+              {
+                "id": "prop-evolving-3",
+                "text": "I now take the riverside path after work because the quieter route helps me reset."
+              },
+              {
+                "id": "prop-evolving-noise",
+                "text": "The number 14 bus was late this morning."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-evolving-1",
+                  "prop-evolving-2",
+                  "prop-evolving-3"
+                ],
+                "action": "assign_topic_group",
+                "topic_label": "After-work walks and preferences"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-evolving-1",
+                "prop-evolving-2",
+                "prop-evolving-3",
+                "prop-evolving-noise",
+                "topic_4dafc5264060bba0d194e160e217bb1719a71ff98477417b77a6a23550233955"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1518,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-evolving-1\", \"text\": \"A short walk after work clears my head.\"}, {\"memory_id\": \"prop-evolving-2\", \"text\": \"Rain is fine, but I prefer walking without headphones.\"}, {\"memory_id\": \"prop-evolving-3\", \"text\": \"I now take the riverside path after work because the quieter route helps me reset.\"}, {\"memory_id\": \"prop-evolving-noise\", \"text\": \"The number 14 bus was late this morning.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-evolving-1\", \"prop-evolving-2\", \"prop-evolving-3\"], \"action\": \"assign_topic_group\", \"topic_label\": \"After-work walks and preferences\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1530,
+                "endMs": 3174,
+                "input": "{\"proposal_digest\":\"4dafc5264060bba0d194e160e217bb1719a71ff98477417b77a6a23550233955\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-evolving-1\",\"prop-evolving-2\",\"prop-evolving-3\"],\"action\":\"assign_topic_group\",\"topic_label\":\"After-work walks and preferences\"}},\"sources\":[{\"memory_id\":\"prop-evolving-1\",\"text\":\"A short walk after work clears my head.\",\"record_sha256\":\"aa6fc575c3e370d17bf96718e70462e0ca9e00c9466a66a83eac5af07f5796a7\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-evolving-2\",\"text\":\"Rain is fine, but I prefer walking without headphones.\",\"record_sha256\":\"55443ba17c571168ead3162f784a1b2c348b2cf886f2a7f3b470e55406b28c96\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-evolving-3\",\"text\":\"I now take the riverside path after work because the quieter route helps me reset.\",\"record_sha256\":\"d668740dfe1bae6ea11b38a71a58f2bb44ab583519c1b48ecaec75a8a45161ff\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"4dafc5264060bba0d194e160e217bb1719a71ff98477417b77a6a23550233955\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-curation-related",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "pass_with_limitations",
+          "analysis": "Action and exact sources match; I judged the label supported by all three records.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-related-1",
+                "text": "A quiet cup of tea helps me shift out of work mode."
+              },
+              {
+                "id": "prop-related-2",
+                "text": "Reading fiction is another gentle end-of-day ritual."
+              },
+              {
+                "id": "prop-related-3",
+                "text": "A few minutes of sketching helps me ease into the evening."
+              },
+              {
+                "id": "prop-related-noise",
+                "text": "I need to replace the kitchen tap washer."
+              }
+            ],
+            "response": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-related-1",
+                  "prop-related-2",
+                  "prop-related-3"
+                ],
+                "action": "assign_topic_group",
+                "topic_label": "Gentle end-of-day rituals"
+              }
+            },
+            "outcome": {
+              "provenance_decision": "allow",
+              "status": "applied",
+              "application_created": true,
+              "audit_verified": true,
+              "retrieval_memory_ids": [
+                "prop-related-1",
+                "prop-related-2",
+                "prop-related-3",
+                "prop-related-noise",
+                "topic_1b60efd0eb04c23197a33ea689253ea5587ceeb663d4d90c95db9465086553a2"
+              ]
+            },
+            "status": "applied",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1514,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-related-1\", \"text\": \"A quiet cup of tea helps me shift out of work mode.\"}, {\"memory_id\": \"prop-related-2\", \"text\": \"Reading fiction is another gentle end-of-day ritual.\"}, {\"memory_id\": \"prop-related-3\", \"text\": \"A few minutes of sketching helps me ease into the evening.\"}, {\"memory_id\": \"prop-related-noise\", \"text\": \"I need to replace the kitchen tap washer.\"}]}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-related-1\", \"prop-related-2\", \"prop-related-3\"], \"action\": \"assign_topic_group\", \"topic_label\": \"Gentle end-of-day rituals\"}}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_CurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              },
+              {
+                "sequence": 2,
+                "role": "Provenance",
+                "stage": "curation_review",
+                "skill": "provenance.curation-review",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 1524,
+                "endMs": 3130,
+                "input": "{\"proposal_digest\":\"1b60efd0eb04c23197a33ea689253ea5587ceeb663d4d90c95db9465086553a2\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-related-1\",\"prop-related-2\",\"prop-related-3\"],\"action\":\"assign_topic_group\",\"topic_label\":\"Gentle end-of-day rituals\"}},\"sources\":[{\"memory_id\":\"prop-related-1\",\"text\":\"A quiet cup of tea helps me shift out of work mode.\",\"record_sha256\":\"2f57ababc845a1aa5470a093929d9ff50f2a3bcdaf1ac58f2b6b64c2906fe10d\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-related-2\",\"text\":\"Reading fiction is another gentle end-of-day ritual.\",\"record_sha256\":\"30c74565be348226c571300f1b7ed117106eeb52d2259c1c0f9bf801609e5414\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-related-3\",\"text\":\"A few minutes of sketching helps me ease into the evening.\",\"record_sha256\":\"e2e5628953d978efe8ed7cdcd6ccc5385ecaf34e9b0ab461a949fee875d44c32\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"1b60efd0eb04c23197a33ea689253ea5587ceeb663d4d90c95db9465086553a2\", \"decision\": \"allow\", \"findings\": []}",
+                "toolCalls": []
+              }
+            ]
+          }
+        },
+        {
+          "sceneId": "scene-curation-superficial",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "Matches the adopted no-change expectation.",
+          "turns": [],
+          "curation": {
+            "inputMemories": [
+              {
+                "id": "prop-superficial-1",
+                "text": "Alice showed me how to book the meeting room."
+              },
+              {
+                "id": "prop-superficial-2",
+                "text": "The database book uses Alice as a sample user."
+              },
+              {
+                "id": "prop-superficial-3",
+                "text": "The Alice printout is beside the blue folder."
+              }
+            ],
+            "response": {
+              "kind": "no_curation_proposal",
+              "reason": "These memories mention Alice in unrelated contexts and do not express duplicates, a single evolving fact, or a useful shared retrieval theme."
+            },
+            "outcome": {
+              "provenance_decision": "not_reviewed",
+              "status": "no_change",
+              "application_created": false,
+              "audit_verified": false,
+              "retrieval_memory_ids": [
+                "prop-superficial-1",
+                "prop-superficial-2",
+                "prop-superficial-3"
+              ]
+            },
+            "status": "no_change",
+            "sourcesUnchanged": true,
+            "exchanges": [
+              {
+                "sequence": 1,
+                "role": "Sculptor",
+                "stage": "curation",
+                "skill": "sculptor.memory-curation",
+                "status": "success",
+                "failureCode": null,
+                "inputOrigin": "Application",
+                "outputReceiver": "Application",
+                "startMs": 0,
+                "endMs": 1513,
+                "input": "{\"memories\": [{\"memory_id\": \"prop-superficial-1\", \"text\": \"Alice showed me how to book the meeting room.\"}, {\"memory_id\": \"prop-superficial-2\", \"text\": \"The database book uses Alice as a sample user.\"}, {\"memory_id\": \"prop-superficial-3\", \"text\": \"The Alice printout is beside the blue folder.\"}]}",
+                "output": "{\"kind\": \"no_curation_proposal\", \"reason\": \"These memories mention Alice in unrelated contexts and do not express duplicates, a single evolving fact, or a useful shared retrieval theme.\"}",
+                "toolCalls": [
+                  {
+                    "tool": "final_result_NoCurationProposal",
+                    "outcome": "success"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

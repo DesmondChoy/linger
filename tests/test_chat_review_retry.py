@@ -129,6 +129,7 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
     async def test_mismatched_finding_quote_is_retried_then_revised(self) -> None:
         provenance_calls = 0
         retry_contents: list[str] = []
+        revision_findings: list[dict] = []
 
         def muse(messages, info):
             envelope = _json_prompts(messages)[-1]
@@ -143,12 +144,14 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
                 prompt for prompt in _json_prompts(messages)
                 if "canonical_connection_evidence" in prompt
             )
-            if payload["previous_response_review"] is not None:
+            previous_review = payload["previous_response_review"]
+            if previous_review is not None:
+                revision_findings.extend(previous_review["findings"])
                 return _provenance_review(payload, info, "pass", finding_resolutions=[{
-                    "finding_index": 0,
+                    "finding_index": index,
                     "status": "resolved",
-                    "explanation": "The reply no longer asserts the public fact.",
-                }])
+                    "explanation": "The reply no longer asserts the public facts.",
+                } for index, _ in enumerate(previous_review["findings"])])
             retries = _retry_prompts(messages)
             if retries:
                 retry_contents.extend(str(part.content) for part in retries)
@@ -172,6 +175,14 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(3, provenance_calls)
         self.assertEqual(1, len(retry_contents))
         self.assertIn(MISMATCHED_QUOTE, retry_contents[0])
+        self.assertEqual(
+            ["uncited_web_claim", "unsupported_claim"],
+            [finding["code"] for finding in revision_findings],
+        )
+        self.assertEqual(
+            [FIRST_SENTENCE, "It was standardised in the 1920s."],
+            [finding["location"]["quote"] for finding in revision_findings],
+        )
         self.assertIn("I can't cite a source for that here", response.reply)
 
     async def test_exhausted_quote_retries_end_as_a_model_safe_decline(self) -> None:

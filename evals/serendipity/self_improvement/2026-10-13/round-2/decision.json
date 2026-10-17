@@ -1,0 +1,14 @@
+{
+  "passed": false,
+  "practice_passes_baseline": 148,
+  "practice_passes_candidate": 149,
+  "practice_runs": 165,
+  "gain": 1,
+  "case_losses": {
+    "serendipity-recommendation-intent-direct-v3": 1
+  },
+  "reasons": [
+    "practice gain 1 is below 10"
+  ],
+  "execution_errors_candidate": 1
+}

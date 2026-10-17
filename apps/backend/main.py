@@ -2,16 +2,16 @@
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager, suppress
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager, suppress
 from dataclasses import asdict
 from time import perf_counter
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 # Configure the exporter before application-owned spans can be created.
 from .telemetry import configure_telemetry, record_failure, set_span_attrs
@@ -20,7 +20,7 @@ configure_telemetry()
 
 import logfire  # noqa: E402  (import order is load-bearing, see above)
 
-from src.linger.services.memory import MemoryPolicyService  # noqa: E402
+from src.linger.services.memory import MemoryPolicyService, MemoryServiceError  # noqa: E402
 
 from . import sessions  # noqa: E402
 from .auth import AccountDependency, router as auth_router  # noqa: E402
@@ -35,8 +35,9 @@ from src.linger.orchestration.progress_context import (  # noqa: E402
 )
 from .library import router as library_router  # noqa: E402
 from .rate_limit import enforce_chat_rate_limit  # noqa: E402
-from .schemas import ChatRequest, ChatResponse  # noqa: E402
-from .transcripts import TranscriptStore, TranscriptTurn  # noqa: E402
+from .progress_store import ReadingProgressStore  # noqa: E402
+from .schemas import ChatRequest, ChatResponse, StoredMemory  # noqa: E402
+from .transcripts import TranscriptStore, TranscriptTurn, request_fingerprint  # noqa: E402
 
 configure_logging()
 
@@ -54,8 +55,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Linger Chat API", lifespan=lifespan)
 app.include_router(library_router)
 app.include_router(auth_router)
-memory_service = MemoryPolicyService(settings.linger_memory_dir)
+memory_service = MemoryPolicyService(settings.linger_memory_dir, capture_enabled_by_default=True)
 transcript_store = TranscriptStore(settings.linger_state_dir / "transcripts.sqlite3")
+reading_progress_store = ReadingProgressStore(settings.linger_state_dir / "reading_progress.sqlite3")
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,6 +77,24 @@ MemoryServiceDependency = Annotated[MemoryPolicyService, Depends(get_memory_serv
 _UNKNOWN_SESSION = "This conversation is not available."
 # Replies the reader actually saw; declines and boundary replies are not kept.
 _TRANSCRIBED_RELEASES = {"muse_candidate", "application_clarification"}
+
+
+@contextmanager
+def _session_operation(session_id: str, account_id: str) -> Iterator[None]:
+    try:
+        with sessions.exclusive_operation(session_id, account_id):
+            if (
+                sessions.owner(session_id) not in (None, account_id)
+                or transcript_store.owner_of(session_id) not in (None, account_id)
+            ):
+                raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
+            yield
+    except sessions.SessionBusyError as exc:
+        if exc.account_id != account_id:
+            raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION) from None
+        raise HTTPException(
+            status_code=409, detail="This conversation has a request in progress. Try again when it finishes.",
+        ) from None
 
 
 def _claim_session(session_id: str, account_id: str) -> bool:
@@ -109,8 +129,6 @@ async def _run_turn(
     context: AccountDependency,
 ) -> ChatResponse:
     """Map the HTTP request onto one application-owned chat turn."""
-    if not _claim_session(request.session_id, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
     cancelled: asyncio.CancelledError | None = None
     failure: ChatTurnError | None = None
     response: ChatResponse | None = None
@@ -123,7 +141,9 @@ async def _run_turn(
         },
     ) as span:
         try:
-            response = await run_chat_turn(request, service, context)
+            response = await run_chat_turn(
+                request, service, context, progress_store=reading_progress_store,
+            )
         except asyncio.CancelledError as exc:
             cancelled = exc
             record_failure(
@@ -202,10 +222,49 @@ def _save_turn(
         context.account_id,
         request.session_id,
         response.inspection.muse_turn["turn_id"],
-        request.message,
+        response.inspection.muse_turn["user_message"],
         response.reply,
         details={"response": response.model_dump(mode="json"), "progress": progress},
+        request_fingerprint=request_fingerprint(request.message),
     )
+
+
+def _replay_turn(request: ChatRequest, account_id: str) -> ChatResponse | None:
+    if request.turn_id is None:
+        return None
+    saved = transcript_store.replay(account_id, request.session_id, request.turn_id)
+    if saved is None:
+        return None
+    matches = (
+        saved.request_fingerprint == request_fingerprint(request.message)
+        if saved.request_fingerprint is not None
+        else saved.user_message == request.message
+    )
+    if not matches:
+        raise HTTPException(status_code=409, detail="This turn ID was already used for a different message.")
+    try:
+        return ChatResponse.model_validate(saved.response)
+    except ValidationError:
+        raise HTTPException(
+            status_code=409, detail="This earlier turn cannot be replayed. Send a new turn ID to continue.",
+        ) from None
+
+
+async def _execute_turn(
+    request: ChatRequest,
+    service: MemoryPolicyService,
+    context: AccountDependency,
+    progress: list[dict[str, object]],
+) -> ChatResponse:
+    with _session_operation(request.session_id, context.account_id):
+        if not _claim_session(request.session_id, context.account_id):
+            raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
+        replay = _replay_turn(request, context.account_id)
+        if replay is not None:
+            return replay
+        response = await _run_turn(request, service, context)
+        _save_turn(request, response, context, progress)
+        return response
 
 
 @app.post(
@@ -218,9 +277,7 @@ async def chat(
     service: MemoryServiceDependency,
     context: AccountDependency,
 ) -> ChatResponse:
-    response = await _run_turn(request, service, context)
-    _save_turn(request, response, context, progress=[])
-    return response
+    return await _execute_turn(request, service, context, progress=[])
 
 
 def _sse(event: str, payload: dict[str, object]) -> str:
@@ -284,8 +341,7 @@ async def chat_stream(
         async def run() -> None:
             token = begin_progress(publish)
             try:
-                response = await _run_turn(request, service, context)
-                _save_turn(request, response, context, progress=observed)
+                response = await _execute_turn(request, service, context, progress=observed)
             except asyncio.CancelledError:
                 raise
             except HTTPException as exc:
@@ -334,28 +390,106 @@ class Conversation(BaseModel):
     turns: list[TranscriptTurn]
 
 
+def _with_memory_handles(turn: TranscriptTurn, saved_by_turn: dict[str, Any], texts: dict[str, str]) -> TranscriptTurn:
+    """Fill a saved turn's memory handles from the store, including turns saved before Inspect had them."""
+    inspection = (turn.details or {}).get("response", {}).get("inspection")
+    if inspection is None:
+        return turn
+    memory = dict(inspection.get("memory") or {"active_count": 0, "cited_memory_ids": []})
+    record = saved_by_turn.get(turn.turn_id)
+    if record is not None and not memory.get("captured_memory_id"):
+        memory["captured_memory_id"] = record.memory_id
+    if settings.linger_dev_inspect:
+        ids = [
+            memory.get("captured_memory_id"),
+            *memory.get("cited_memory_ids", []),
+            *(item["memory_id"] for item in memory.get("available_memories", [])),
+        ]
+        memory["texts"] = {memory_id: texts[memory_id] for memory_id in ids if memory_id in texts}
+    inspection["memory"] = memory
+    return turn
+
+
 @app.get("/api/history")
 def history(context: AccountDependency) -> list[Conversation]:
     """Every saved conversation of the signed-in reader, oldest first."""
+    try:
+        originals = memory_service.list_active(context)
+        curated = memory_service.list_for_retrieval(context) if settings.linger_dev_inspect else []
+    except MemoryServiceError:
+        originals, curated = [], []
+    saved_by_turn = {record.source_event_id: record for record in originals}
+    texts = {
+        **{memory.memory_id: memory.text for memory in curated},
+        **{record.memory_id: record.text for record in originals},
+    }
     return [
         Conversation(
             session_id=summary.session_id,
             created_at=summary.created_at,
-            turns=transcript_store.load(context.account_id, summary.session_id),
+            turns=[
+                _with_memory_handles(turn, saved_by_turn, texts)
+                for turn in transcript_store.load(context.account_id, summary.session_id)
+            ],
         )
         for summary in reversed(transcript_store.list_sessions(context.account_id))
     ]
 
 
+@app.get("/api/memories")
+def list_memories(context: AccountDependency, service: MemoryServiceDependency) -> list[StoredMemory]:
+    """The reader's saved originals and curated items, newest first."""
+    try:
+        originals = service.list_active(context)
+        curated = service.list_for_retrieval(context)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    searchable = {item.memory_id for item in curated}
+    show_text = settings.linger_dev_inspect
+    rows = [
+        StoredMemory(
+            memory_id=record.memory_id,
+            kind="original",
+            created_at=record.created_at,
+            source_turn_id=record.source_event_id,
+            source_memory_ids=[record.memory_id],
+            searchable=record.memory_id in searchable,
+            text=record.text if show_text else None,
+        )
+        for record in originals
+    ] + [
+        StoredMemory(
+            memory_id=item.memory_id,
+            kind=item.kind,
+            created_at=item.created_at,
+            source_memory_ids=list(item.source_memory_ids),
+            searchable=True,
+            text=item.text if show_text else None,
+            topic_labels=list(item.topic_labels),
+        )
+        for item in curated
+        if item.kind != "original"
+    ]
+    return sorted(rows, key=lambda row: row.created_at, reverse=True)
+
+
+@app.delete("/api/memories/{memory_id}", status_code=204)
+def forget_memory(memory_id: str, context: AccountDependency, service: MemoryServiceDependency) -> None:
+    """Forget one saved memory and every summary or topic group built over it."""
+    try:
+        forgotten = service.forget(context, memory_id)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    if not forgotten:
+        raise HTTPException(status_code=404, detail="No such memory.")
+
+
 @app.delete("/api/sessions/{session_id}", status_code=204)
 def delete_session(session_id: str, context: AccountDependency) -> None:
     """Forget a conversation: its live state and its saved transcript."""
-    if sessions.owner(session_id) not in (None, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
-    if transcript_store.owner_of(session_id) not in (None, context.account_id):
-        raise HTTPException(status_code=404, detail=_UNKNOWN_SESSION)
-    sessions.clear(session_id)
-    transcript_store.delete(context.account_id, session_id)
+    with _session_operation(session_id, context.account_id):
+        sessions.clear(session_id)
+        transcript_store.delete(context.account_id, session_id)
 
 
 if settings.linger_static_dir is not None:
