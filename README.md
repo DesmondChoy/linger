@@ -1,5 +1,8 @@
 # Linger
 
+For the hosted website and direct source deployment, see the
+[Railway guide](docs/railway.md).
+
 For tested images, release approval, and deployment with `compose.release.yaml`,
 see the [release guide](docs/releasing.md).
 
