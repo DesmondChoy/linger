@@ -80,7 +80,7 @@ export function PersonaReplay({ persona, onBack, onHome }: Props) {
       </section>
 
       <section className="analysis" aria-label="How this works">
-        <Architecture key={run.id} timeline={timeline} progress={[]} pendingMessage={null} />
+        <Architecture key={run.id} timeline={timeline} progress={[]} pendingMessage={null} replay />
       </section>
     </main>
   )

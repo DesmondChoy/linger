@@ -26,5 +26,8 @@ describe('persona gallery and replay', () => {
     expect(html).toContain('collaboration-graph')
     expect(html).not.toContain('<textarea')
     expect(html).not.toContain('>Delete<')
+    // The Memories panel reads and forgets the signed-in reader's live memories.
+    expect(html).not.toContain('>Memories<')
+    expect(html).toContain('Reading progress')
   })
 })
