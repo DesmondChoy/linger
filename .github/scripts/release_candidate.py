@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from evals.release.policy import parse_threshold, publication_decision
+from evals.release.policy import parse_threshold, publication_decision, skipped_publication_decision
 
 
 def command(*args: str) -> str:
@@ -63,6 +63,16 @@ def validate_configuration(value: dict) -> dict:
     return value
 
 
+def validate_configuration_snapshot(value: dict) -> dict:
+    if not isinstance(value, dict) or "configuration_sha" not in value:
+        raise ValueError("Release configuration snapshot requires its exact commit identity.")
+    sha = value["configuration_sha"]
+    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("Release configuration snapshot requires an exact configuration commit identity.")
+    validate_configuration({key: setting for key, setting in value.items() if key != "configuration_sha"})
+    return value
+
+
 def configuration(repository: str, sha: str) -> dict:
     validate_repository_sha(repository, sha)
     configuration_sha = api(repository, "branches/release-candidate")["commit"]["sha"]
@@ -77,7 +87,7 @@ def configuration(repository: str, sha: str) -> dict:
             stream.write(f"## Release configuration from `{configuration_sha}` for candidate `{sha}`\n\n")
             stream.write("```json\n" + json.dumps(value, indent=2) + "\n```\n\n")
             if not value["live_evaluations_enabled"]:
-                stream.write("Live evaluations are disabled. Evaluation and publication jobs are skipped.\n")
+                stream.write("Live evaluations are intentionally disabled. Image checks and manual publication approval remain required.\n")
     return value
 
 
@@ -128,15 +138,67 @@ def validate_publication_evidence(summary: dict) -> tuple[int, int]:
     return counts["judgments_passed"], counts["judgments_total"]
 
 
+def validate_candidate_identity(sha: str, image_id: str) -> None:
+    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("Candidate SHA must be a full Git commit identity.")
+    if not isinstance(image_id, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
+        raise ValueError("Candidate image ID must be a sha256 digest.")
+
+
+def validate_image_checks(checks: dict, sha: str, image_id: str) -> dict:
+    validate_candidate_identity(sha, image_id)
+    expected = {
+        "candidate_sha": sha, "image_id": image_id,
+        "offline_smoke": "passed", "image_security": "passed",
+    }
+    if checks != expected:
+        raise ValueError("Successful offline smoke and image security checks must match the candidate image.")
+    return checks
+
+
+def record_image_checks(sha: str, image_id: str, offline_status: str, security_status: str) -> dict:
+    if offline_status != "success" or security_status != "success":
+        raise ValueError("Both image check steps must have a successful outcome.")
+    return validate_image_checks({
+        "candidate_sha": sha, "image_id": image_id,
+        "offline_smoke": "passed", "image_security": "passed",
+    }, sha, image_id)
+
+
+def skipped_evaluations(sha: str, image_id: str, configuration: dict, image_checks: dict) -> dict:
+    snapshot = validate_configuration_snapshot(configuration)
+    if snapshot["live_evaluations_enabled"] is not False:
+        raise ValueError("Only an explicit live-evaluation opt-out can produce skipped evidence.")
+    validate_image_checks(image_checks, sha, image_id)
+    settings = {key: value for key, value in snapshot.items() if key != "configuration_sha"}
+    return {
+        "schema_version": 1, "status": "skipped",
+        "reason": "Live evaluations were intentionally disabled by release configuration.",
+        "identity": {"candidate_sha": sha, "image_id": image_id},
+        "configuration_sha": snapshot["configuration_sha"], "settings": settings,
+        "publication": skipped_publication_decision(
+            auto_publish_enabled=snapshot["auto_publish_enabled"], threshold=snapshot["auto_publish_threshold"],
+        ),
+    }
+
+
 def publication_authorization(
     summary: dict, *, sha: str, image_id: str, route: str,
     live_enabled: str, auto_enabled: str, threshold: str, configuration_sha: str, approvals: list,
+    configuration: dict, image_checks: dict,
 ) -> dict:
-    if live_enabled != "true":
-        raise ValueError("Live evaluation is disabled; publication is forbidden.")
-    if not re.fullmatch(r"[0-9a-f]{40}", configuration_sha):
-        raise ValueError("Publication requires an exact configuration commit identity.")
-    if route not in {"manual", "automatic"} or summary.get("status") not in {"passed", "review_required"}:
+    snapshot = validate_configuration_snapshot(configuration)
+    if live_enabled not in {"true", "false"} or auto_enabled not in {"true", "false"}:
+        raise ValueError("Publication switches must be explicit true or false values.")
+    if (
+        snapshot["configuration_sha"] != configuration_sha
+        or snapshot["live_evaluations_enabled"] != (live_enabled == "true")
+        or snapshot["auto_publish_enabled"] != (auto_enabled == "true")
+        or parse_threshold(snapshot["auto_publish_threshold"]) != parse_threshold(threshold)
+    ):
+        raise ValueError("Publication settings differ from the recorded configuration snapshot.")
+    validate_image_checks(image_checks, sha, image_id)
+    if not isinstance(summary, dict) or route not in {"manual", "automatic"}:
         raise ValueError("Complete release evidence is required before publication.")
     identity = summary.get("identity", {})
     if identity.get("candidate_sha") != sha or identity.get("image_id") != image_id:
@@ -144,34 +206,46 @@ def publication_authorization(
     decision = summary.get("publication", {})
     if decision.get("route") != route or type(decision.get("auto_publish_enabled")) is not bool:
         raise ValueError("Publication route differs from the recorded evaluation policy.")
-    if auto_enabled not in {"true", "false"} or decision["auto_publish_enabled"] != (auto_enabled == "true"):
+    if decision["auto_publish_enabled"] != (auto_enabled == "true"):
         raise ValueError("Automatic publication setting differs from the recorded policy.")
-    passed, total = validate_publication_evidence(summary)
-    expected = publication_decision(
-        judgments_passed=passed, judgments_total=total, complete=True, blocked=False,
-        auto_publish_enabled=auto_enabled == "true", threshold=threshold,
-    )
+    if live_enabled == "true":
+        if summary.get("status") not in {"passed", "review_required"}:
+            raise ValueError("Complete release evidence is required before publication.")
+        passed, total = validate_publication_evidence(summary)
+        expected = publication_decision(
+            judgments_passed=passed, judgments_total=total, complete=True, blocked=False,
+            auto_publish_enabled=snapshot["auto_publish_enabled"], threshold=snapshot["auto_publish_threshold"],
+        )
+        evaluation_status = "completed"
+    else:
+        skipped = skipped_evaluations(sha, image_id, snapshot, image_checks)
+        if json.dumps(summary, sort_keys=True) != json.dumps(skipped, sort_keys=True):
+            raise ValueError("Disabled live evaluation requires the exact unscored skipped-evaluation record.")
+        expected = skipped["publication"]
+        evaluation_status = "skipped"
     if decision != expected:
         raise ValueError("Publication policy differs from the decision computed from complete evidence.")
     if route == "automatic" and auto_enabled != "true":
         raise ValueError("Automatic publication is disabled.")
+    if not isinstance(approvals, list):
+        raise ValueError("Publication approvals must be a list of recorded environment reviews.")
     if route == "manual" and not any(
-        approval.get("state") == "approved"
-        and any(environment.get("name") == "linger-release" for environment in approval.get("environments", []))
+        isinstance(approval, dict) and approval.get("state") == "approved"
+        and isinstance(approval.get("environments"), list)
+        and any(isinstance(environment, dict) and environment.get("name") == "linger-release"
+                for environment in approval["environments"])
         for approval in approvals
     ):
         raise ValueError("Manual publication requires recorded linger-release approval.")
     return {
-        "candidate_sha": sha, "image_id": image_id, "live_evaluations_enabled": True,
+        "candidate_sha": sha, "image_id": image_id, "live_evaluations_enabled": snapshot["live_evaluations_enabled"],
         "configuration_sha": configuration_sha, "publication": decision, "human_approvals": approvals,
+        "evaluation_status": evaluation_status, "image_checks": image_checks,
     }
 
 
 def validate_image(info: dict, sha: str, image_id: str) -> None:
-    if not re.fullmatch(r"[0-9a-f]{40}", sha):
-        raise ValueError("Candidate SHA must be a full Git commit identity.")
-    if not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
-        raise ValueError("Candidate image ID must be a sha256 digest.")
+    validate_candidate_identity(sha, image_id)
     if info.get("Id") != image_id or info.get("Architecture") != "amd64" or info.get("Os") != "linux":
         raise ValueError("Loaded image identity or platform differs from the evaluated Linux AMD64 candidate.")
     if info.get("Config", {}).get("Labels", {}).get("org.opencontainers.image.revision") != sha:
@@ -194,6 +268,8 @@ def emit(value: dict) -> None:
                 if key in value:
                     rendered = str(value[key]).lower() if type(value[key]) is bool else str(value[key])
                     stream.write(f"{key}={rendered}\n")
+            if "publication" in value:
+                stream.write(f"publication_route={value['publication']['route']}\n")
 
 
 def main() -> int:
@@ -214,6 +290,17 @@ def main() -> int:
     authorize_parser.add_argument("--auto-enabled", required=True)
     authorize_parser.add_argument("--threshold", required=True)
     authorize_parser.add_argument("--configuration-sha", required=True)
+    authorize_parser.add_argument("--configuration", type=Path, required=True)
+    authorize_parser.add_argument("--image-checks", type=Path, required=True)
+    checks_parser = commands.add_parser("image-checks")
+    checks_parser.add_argument("--image-id", required=True)
+    checks_parser.add_argument("--offline-status", required=True)
+    checks_parser.add_argument("--security-status", required=True)
+    skipped_parser = commands.add_parser("skip-evaluations")
+    skipped_parser.add_argument("--image-id", required=True)
+    skipped_parser.add_argument("--configuration", type=Path, required=True)
+    skipped_parser.add_argument("--image-checks", type=Path, required=True)
+    skipped_parser.add_argument("--output", type=Path, required=True)
     image_parser = commands.add_parser("image")
     image_parser.add_argument("--image-id", required=True)
     for child in commands.choices.values():
@@ -230,10 +317,31 @@ def main() -> int:
                 route=args.route, live_enabled=args.live_enabled, auto_enabled=args.auto_enabled,
                 threshold=args.threshold, configuration_sha=args.configuration_sha,
                 approvals=json.loads(args.approvals.read_text()) if args.approvals else [],
+                configuration=json.loads(args.configuration.read_text()),
+                image_checks=json.loads(args.image_checks.read_text()),
             )
             with args.summary.open("rb") as stream:
-                result["evaluation_summary_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
+                field = "evaluation_summary_sha256" if args.live_enabled == "true" else "skipped_evaluation_record_sha256"
+                result[field] = hashlib.file_digest(stream, "sha256").hexdigest()
             args.output.write_text(json.dumps(result, indent=2) + "\n")
+        elif args.action == "image-checks":
+            result = record_image_checks(args.sha, args.image_id, args.offline_status, args.security_status)
+        elif args.action == "skip-evaluations":
+            result = skipped_evaluations(
+                args.sha, args.image_id, json.loads(args.configuration.read_text()),
+                json.loads(args.image_checks.read_text()),
+            )
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            with args.output.open("x") as stream:
+                stream.write(json.dumps(result, indent=2) + "\n")
+            report = (
+                "# Release evaluation intentionally skipped\n\n"
+                f"Candidate: `{args.sha}`\n\nImage: `{args.image_id}`\n\n"
+                f"Configuration: `{result['configuration_sha']}`\n\n"
+                "Live evaluations were intentionally disabled. No evaluation score was produced.\n\n"
+                "Offline smoke and image security checks passed. Manual linger-release approval is required for publication.\n"
+            )
+            args.output.with_name("report.md").write_text(report)
         else:
             result = inspect_image(args.sha, args.image_id)
         emit(result)
