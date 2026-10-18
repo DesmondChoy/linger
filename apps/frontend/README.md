@@ -117,10 +117,10 @@ never drafted). The replay is read-only: it neither starts an evaluation nor cal
 
 Playback reads [`src/replay/personas/`](src/replay/personas): a small `index.json`
 for the gallery and one file per persona, loaded only when that persona opens.
-The exporter reads each Scenario's `backstory.json`, `ground-truth.json`, and
-adjacent `scenario-run-*` directories containing both `evaluation.json` and
-`summary.json`. Runs without the completion summary are excluded. A matching
-`analysis-report-*.json` supplies the completed review when available. The
+The exporter reads each Scenario's `backstory.json` and `ground-truth.json`, and
+its retained final run in [`results/<scenario>/result.json`](../../results).
+That file embeds the run's `evaluation.json`, `summary.json`, and completed
+analysis review. Scenarios without a retained result are excluded. The
 snapshot contains clipped synthetic agent inputs and outputs, recorded source
 details, and connection events. Full model message transcripts, system
 instructions, and local paths are excluded.

@@ -78,18 +78,20 @@ class PersonaExportTests(unittest.TestCase):
         self.assertTrue({persona["family"] for persona in self.snapshot["personas"]} <= families)
 
 
-def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypatch):
+def test_export_reads_the_retained_result_and_skips_scenarios_without_one(tmp_path, monkeypatch):
     exporter = load_exporter()
     scenario_id = "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03"
+    unrun_id = "pottery-memory-curation--sculptor--2026-08-29"
     scenarios = tmp_path / "synthetic-journal-evaluation/scenarios"
-    folder = scenarios / scenario_id
-    folder.mkdir(parents=True)
-    for name in ("backstory.json", "ground-truth.json"):
-        shutil.copyfile(exporter.SCENARIOS / scenario_id / name, folder / name)
+    for folder_id in (scenario_id, unrun_id):
+        folder = scenarios / folder_id
+        folder.mkdir(parents=True)
+        for name in ("backstory.json", "ground-truth.json"):
+            shutil.copyfile(exporter.SCENARIOS / folder_id / name, folder / name)
     catalog = scenarios.parent / "evaluation-objectives.yaml"
     shutil.copyfile(exporter.CATALOG, catalog)
 
-    backstory = json.loads((folder / "backstory.json").read_text())
+    backstory = json.loads((scenarios / scenario_id / "backstory.json").read_text())
     scenes = [
         {
             "scene_id": scene["scene_id"],
@@ -106,19 +108,25 @@ def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypat
         }
         for scene in backstory["scenes"]
     ]
-    artifact = json.dumps({"run_id": "fixture-run", "scenes": scenes})
-    complete = folder / "scenario-run-complete"
-    complete.mkdir()
-    (complete / "evaluation.json").write_text(artifact)
-    (complete / "summary.json").write_text(json.dumps({
-        "started_at": "2026-10-06T10:00:00+00:00", "model": "fixture-model",
+    results = tmp_path / "results"
+    (results / scenario_id).mkdir(parents=True)
+    (results / scenario_id / "result.json").write_text(json.dumps({
+        "run": {"id": "fixture-run"},
+        "evidence": {
+            "evaluation": {"format": "json", "data": {"scenes": scenes}},
+            "analysis": {"format": "json", "data": {"review": {"verdict": "passed", "scenes": [
+                {"scene_id": backstory["scenes"][0]["scene_id"], "assessment": "passed"},
+            ]}}},
+        },
+        "diagnostics": {"summary.json": {"format": "json", "data": {
+            "started_at": "2026-10-06T10:00:00+00:00", "model": "fixture-model",
+            "command": ["/Users/someone/.venv/bin/python"],
+        }}},
     }))
-    interrupted = folder / "scenario-run-interrupted"
-    interrupted.mkdir()
-    (interrupted / "evaluation.json").write_text(artifact)
 
     monkeypatch.setattr(exporter, "REPO", tmp_path)
     monkeypatch.setattr(exporter, "SCENARIOS", scenarios)
+    monkeypatch.setattr(exporter, "RESULTS", results)
     monkeypatch.setattr(exporter, "CATALOG", catalog)
     snapshot = exporter.export()
 
@@ -129,6 +137,9 @@ def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypat
     run = persona["runs"][0]
     assert run["id"] == "fixture-run"
     assert run["startedAt"] == "2026-10-06T10:00:00+00:00"
+    assert run["model"] == "fixture-model"
+    assert run["verdict"] == "passed"
+    assert run["scenes"][0]["assessment"] == "passed"
     assert run["passed"] == run["total"] == len(backstory["scenes"])
     for planned, recorded in zip(persona["scenes"], run["scenes"], strict=True):
         assert recorded["sceneId"] == planned["id"]
@@ -140,6 +151,7 @@ def test_export_uses_completed_run_and_skips_interrupted_run(tmp_path, monkeypat
     output = exporter.files(snapshot)
     assert set(output) == {"index.json", f"{scenario_id}.json"}
     assert json.loads(output[f"{scenario_id}.json"]) == persona
+    assert "/Users/" not in "".join(output.values())
 
 
 if __name__ == "__main__":
