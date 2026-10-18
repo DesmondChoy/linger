@@ -55,6 +55,16 @@ export function progressFrom(exchanges: RecordedExchange[]): ProgressEvent[] {
   return events
 }
 
+// Live turns carry each agent's output as parsed JSON; the export stores it as text.
+function recordedOutput(output: string | null): unknown {
+  if (output === null) return null
+  try {
+    return JSON.parse(output)
+  } catch {
+    return output
+  }
+}
+
 function devExchanges(exchanges: RecordedExchange[]): AgentExchange[] {
   return exchanges.map((exchange) => ({
     role: exchange.role ?? 'Application',
@@ -64,7 +74,7 @@ function devExchanges(exchanges: RecordedExchange[]): AgentExchange[] {
     status: exchange.status,
     failure_code: exchange.failureCode,
     steps: exchange.toolCalls.map((call) => ({ kind: 'tool-call', tool: call.tool ?? undefined, content: call.outcome })),
-    output: exchange.output ?? null,
+    output: recordedOutput(exchange.output),
   }))
 }
 

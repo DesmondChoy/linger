@@ -86,8 +86,18 @@ describe('recorded contracts', () => {
     const { componentDetail } = await import('../components/architecture/turnDetail')
     const pigeon = byPrefix('alice-pigeon')
     const turn = replayRun(pigeon, pigeon.runs[0]).timeline.at(-1)!
+    const recorded = pigeon.runs[0].scenes.at(-1)!.turns.at(-1)!.museTurn!
     const contract = componentDetail('muse', turn).records.find((record) => record.label === 'MuseTurn contract')!
-    expect(contract.value).toMatchObject({ policy: { allow_connection: true } })
+    expect(recorded.policy).toBeTruthy()
+    expect(contract.value).toMatchObject({ policy: recorded.policy })
+  })
+
+  it('summarises the recorded Librarian and Provenance runs in plain words', async () => {
+    const { componentDetail } = await import('../components/architecture/turnDetail')
+    const alice = byPrefix('event-led-book')
+    const turn = replayRun(alice, alice.runs[0]).timeline[2]
+    expect(componentDetail('provenance', turn).did).toBe('Provenance asked for 1 revision, then passed the reply.')
+    expect(componentDetail('librarian', turn).story).toContainEqual(expect.stringContaining('up to chapter 3'))
   })
 
   it('marks the policy unrecorded only when Muse never drafted', async () => {
