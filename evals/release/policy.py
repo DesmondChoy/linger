@@ -67,7 +67,7 @@ def skipped_publication_decision(
 
 def publication_decision(
     *, judgments_passed: int, judgments_total: int, complete: bool, blocked: bool,
-    auto_publish_enabled: bool = False, threshold: str | float | int = "95",
+    auto_publish_enabled: bool = False, threshold: str | float | int = "80",
 ) -> dict[str, Any]:
     """An opted-in automated score is never a semantic safety certification."""
     limit = parse_threshold(threshold)

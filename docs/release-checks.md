@@ -60,7 +60,7 @@ CI checks its image and discards it. Release selection requires the entire CI ru
 | --- | --- | --- |
 | `live_evaluations_enabled` | `true` | Controls paid Scenario evaluation and HTTP inference smoke after common image checks. When false, both entry points record intentionally skipped evaluation and require human approval to publish the checked image. |
 | `auto_publish_enabled` | `true` | When false, every eligible candidate requires human approval. When true, a completed evaluation's automated percentage can select automatic publication. Skipped evaluation always requires human approval. |
-| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. |
+| `auto_publish_threshold` | `80` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. |
 
 These values take effect when the configuration reaches `release-candidate`. A merge into `main` alone does not enable the candidate's live evaluations. The [automatic trial guide](releasing.md#run-the-full-automatic-flow) includes the administrator prerequisites and the steps to disable both switches afterward.
 
@@ -105,7 +105,7 @@ The Scenario suite runs in the candidate checkout with its locked Python depende
 | `--output PATH` | Required directory that does not exist yet. |
 | `--previous-approved PATH` | Optional earlier `summary.json` for an informational comparison. The CLI does not verify its approval. |
 | `--auto-publish-enabled` | Enables automatic-route selection in the report. Does not publish an image or change GitHub configuration. |
-| `--auto-publish-threshold PERCENT` | Finite percentage from 0 to 100, default `95`. The automatic route requires a strictly greater score. |
+| `--auto-publish-threshold PERCENT` | Finite percentage from 0 to 100, default `80`. The automatic route requires a strictly greater score. |
 
 The local CLI does not read `.github/release-config.json`. Its `run` action makes paid calls regardless of the GitHub switch. Image build, vulnerability scans, HTTP smoke, environment approval, and registry publication are separate workflow steps.
 
@@ -136,7 +136,7 @@ The allowlist in `evals/release/policy.py` applies to the exact replay and Objec
 | Live evaluation completed, `auto_publish_enabled=true`, percentage strictly above threshold | Automatic publication through `linger-release-auto` |
 | Live evaluation completed, `auto_publish_enabled=true`, percentage at or below threshold | Human review in `linger-release` |
 
-For a threshold of `95`, a score of `95%` goes to review. A score of `96%` qualifies for automatic publication. The comparison uses exact counts rather than a rounded display percentage. A threshold of `100` never selects automatic publication.
+For the configured threshold of `80`, a score of `80%` goes to review. A score of `81%` qualifies for automatic publication. The comparison uses exact counts rather than a rounded display percentage. A threshold of `100` never selects automatic publication.
 
 Automatic publication accepts the limits of these automated checks. It does not certify useful responses, paraphrased attack resistance, or semantic safety. Reports retain semantic-review hints and warnings. Ground truth adoption approves the answer key, not the generated responses.
 

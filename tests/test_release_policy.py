@@ -21,6 +21,13 @@ def test_manual_is_default_even_for_a_perfect_score():
     assert result["semantic_assessment"] == "not_automatically_graded"
 
 
+@pytest.mark.parametrize(("passed", "route"), [(79, "manual"), (80, "manual"), (81, "automatic")])
+def test_default_threshold_requires_more_than_eighty_percent(passed, route):
+    result = decision(passed, auto_publish_enabled=True)
+    assert result["threshold"] == "80"
+    assert result["route"] == route
+
+
 @pytest.mark.parametrize("auto_enabled", [False, True])
 def test_intentionally_skipped_evaluations_require_review_without_a_score(auto_enabled):
     result = policy.skipped_publication_decision(auto_publish_enabled=auto_enabled, threshold=95)
@@ -67,7 +74,7 @@ def test_zero_or_malformed_judgment_counts_block(counts):
 
 @pytest.mark.parametrize("kwargs", [{"blocked": True}, {"complete": False}])
 def test_high_score_never_overrides_safety_or_missing_evidence(kwargs):
-    assert decision(100, auto_publish_enabled=True, threshold=95, **kwargs)["route"] == "blocked"
+    assert decision(100, auto_publish_enabled=True, **kwargs)["route"] == "blocked"
 
 
 @pytest.mark.parametrize(("runner", "objectives", "detail", "allowed"), [
