@@ -16,7 +16,7 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
 
-The branch policy requires reviewed, up-to-date PRs without direct pushes or bypasses, including for administrators. Configure the seven check names above as required checks on `main`. On `release-candidate`, require only **Release promotion** to match the promotion-only PR policy. It accepts only a same-repository PR from `main` to `release-candidate`. The full CI jobs are skipped on that PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure and verify these protections through the [setup guide](releasing.md#configure-github-once); workflow files do not apply the settings. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
+The branch policy requires reviewed PRs without direct pushes or bypasses, including for administrators. Configure the seven check names above and the up-to-date requirement on `main`. On `release-candidate`, require only **Release promotion** and leave the up-to-date requirement off. It accepts only a same-repository PR from `main` to `release-candidate`. Use **Create a merge commit** for promotion. Routine promotion does not require merging `release-candidate` back into `main`. The full CI jobs are skipped on the promotion PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure and verify these protections through the [setup guide](releasing.md#configure-github-once); workflow files do not apply the settings.
 
 ### Default-branch security results
 
@@ -56,11 +56,13 @@ CI checks its image and discards it. Release selection requires the entire CI ru
 
 [`.github/release-config.json`](../.github/release-config.json) contains the versioned release controls. At run start, the workflow reads the current `release-candidate` tip before it enters a protected environment. It records that commit as `configuration_sha`, separately from the tested candidate SHA. A reviewed change reaches `release-candidate` through the normal promotion PR. The current switch also applies when manual dispatch selects an older candidate. A later configuration change does not cancel a run already in progress.
 
-| Setting | Default | Behavior |
+| Setting | Committed value | Behavior |
 | --- | --- | --- |
-| `live_evaluations_enabled` | `false` | Controls paid Scenario evaluation and HTTP inference smoke after common image checks. When false, both entry points record intentionally skipped evaluation and require human approval to publish the checked image. |
-| `auto_publish_enabled` | `false` | When false, every eligible candidate requires human approval. When true, a completed evaluation's automated percentage can select automatic publication. Skipped evaluation always requires human approval. |
-| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. The current value is an uncalibrated placeholder. |
+| `live_evaluations_enabled` | `true` | Controls paid Scenario evaluation and HTTP inference smoke after common image checks. When false, both entry points record intentionally skipped evaluation and require human approval to publish the checked image. |
+| `auto_publish_enabled` | `true` | When false, every eligible candidate requires human approval. When true, a completed evaluation's automated percentage can select automatic publication. Skipped evaluation always requires human approval. |
+| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. |
+
+These values take effect when the configuration reaches `release-candidate`. A merge into `main` alone does not enable the candidate's live evaluations. The [automatic trial guide](releasing.md#run-the-full-automatic-flow) includes the administrator prerequisites and the steps to disable both switches afterward.
 
 The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run evaluation defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables live evaluations or automatic publication.
 
@@ -138,7 +140,7 @@ For a threshold of `95`, a score of `95%` goes to review. A score of `96%` quali
 
 Automatic publication accepts the limits of these automated checks. It does not certify useful responses, paraphrased attack resistance, or semantic safety. Reports retain semantic-review hints and warnings. Ground truth adoption approves the answer key, not the generated responses.
 
-The current threshold of `95` has no calibration data behind it. Automatic publication remains disabled until evaluation evidence supports an agreed threshold and policy. Offline routing tests establish the switch and threshold behavior; they do not establish the quality of live responses or validate a live publication.
+The committed threshold selects the publication route. Enabling it does not establish calibration or prove a successful hosted release. Offline routing tests establish the switch and threshold behavior; they do not establish the quality of live responses or validate a live publication.
 
 `summary.json` records `status` and the route and its reason under `publication`. The run retains the configuration snapshot in `release-configuration.json` and checks the summary against it before publication. Completed evaluation records `judgments_passed`, `judgments_total`, and `automated_pass_percentage`, together with `threshold` and `auto_publish_enabled`. It labels the score as `adopted deterministic judgments` and semantic assessment as `not_automatically_graded`. The run also separates reviewable behavioral failures from blocking failures. Intentionally skipped evaluation records the lack of behavioral evidence rather than a zero or 100% pass result. The later publication authorization adds `evaluation_status`; the behavioral summary does not contain that field.
 
