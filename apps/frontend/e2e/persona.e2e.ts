@@ -10,8 +10,16 @@ test('user opens a saved persona, inspects its turns, and returns to the gallery
   await expect(conversation.locator('.bubble.user')).toHaveCount(3)
   await expect(conversation.locator('.bubble.assistant')).toHaveCount(3)
   await expect(conversation.locator('.bubble.user').first()).toContainText('the Pigeon calls her a serpent')
-  await expect(conversation.locator('.bubble.assistant').first()).toHaveText(
-    "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+  const firstReply = conversation.locator('.bubble.assistant').first()
+  await expect(firstReply.locator('.reply-text > p').nth(0)).toHaveText(
+    'In Chapter 5, “Advice from a Caterpillar,” the narrator describes Alice saying:',
+  )
+  await expect(firstReply.locator('.reply-text > p').nth(1)).toHaveText(
+    '“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered '
+    + 'the number of changes she had gone through that day.',
+  )
+  await expect(firstReply.locator('.sources')).toContainText(
+    "Alice's Adventures in Wonderland — Chapter 5 — Advice from a Caterpillar",
   )
   await expect(conversation.getByText('Recorded run · read-only. Replies are exactly what this build said; nothing is sent.', { exact: true })).toBeVisible()
   await expect(page.getByRole('textbox')).toHaveCount(0)
