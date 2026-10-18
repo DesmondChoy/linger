@@ -1,8 +1,9 @@
 """Export recorded synthetic-persona runs for the read-only replay view.
 
-Each scenario under `synthetic-journal-evaluation/scenarios` that has at least
-one saved `scenario-run-*/evaluation.json` becomes a persona. The snapshot keeps
-what the replay renders: the persona and the Props placed in the account before
+Each scenario under `synthetic-journal-evaluation/scenarios` with a retained
+final run in `results/<scenario>/result.json` becomes a persona. That file
+embeds the run's evaluation artifact, summary and analysis review. The snapshot
+keeps what the replay renders: the persona and the Props placed in the account before
 the run, each Scene's Lines and adopted checks, and per run the recorded turns,
 agent activity, grades and the completed analysis review.
 
@@ -37,6 +38,7 @@ from src.linger.corpus.registry import CORPORA  # noqa: E402
 TITLES = {work_id: registration.book.title for work_id, registration in CORPORA.items()}
 
 SCENARIOS = REPO / "synthetic-journal-evaluation/scenarios"
+RESULTS = REPO / "results"
 CATALOG = REPO / "synthetic-journal-evaluation/evaluation-objectives.yaml"
 OUTPUT = REPO / "apps/frontend/src/replay/personas"
 
@@ -235,31 +237,14 @@ def turns(scene: dict, lines: list[str]) -> list[dict]:
     return [turn(scene.get("input_line") or " ".join(lines), scene.get("reply"), scene.get("release_source"), None)]
 
 
-def review_for(folder: Path, run_dir: Path) -> dict | None:
-    """The completed analysis review written for exactly this run, if any."""
-    for path in sorted(folder.glob("analysis-report-*.json"), reverse=True):
-        try:
-            report = json.loads(path.read_text())
-        except json.JSONDecodeError:
-            continue
-        artifact = str((report.get("evidence") or {}).get("artifact_path") or "")
-        if artifact.endswith(f"{run_dir.name}/evaluation.json") and report.get("review"):
-            return report["review"]
-    return None
-
-
-def run_projection(folder: Path, run_dir: Path, planned: dict[str, dict]) -> dict | None:
-    artifact_path = run_dir / "evaluation.json"
-    summary_path = run_dir / "summary.json"
-    # The helper writes summary.json last, so a run without it was interrupted.
-    if not artifact_path.is_file() or not summary_path.is_file():
-        return None
-    artifact = json.loads(artifact_path.read_text())
+def run_projection(retained: dict, planned: dict[str, dict]) -> dict | None:
+    evidence = retained.get("evidence") or {}
+    artifact = (evidence.get("evaluation") or {}).get("data") or {}
     observed = records(artifact.get("scenes"))
     if not observed:
         return None
-    summary = json.loads(summary_path.read_text())
-    review = review_for(folder, run_dir)
+    summary = ((retained.get("diagnostics") or {}).get("summary.json") or {}).get("data") or {}
+    review = ((evidence.get("analysis") or {}).get("data") or {}).get("review")
     reviewed = {item.get("scene_id"): item for item in records((review or {}).get("scenes"))}
 
     scenes = []
@@ -291,7 +276,7 @@ def run_projection(folder: Path, run_dir: Path, planned: dict[str, dict]) -> dic
         })
     totals = summarize_artifact({"scenes": observed})
     return {
-        "id": artifact.get("run_id") or run_dir.name,
+        "id": artifact.get("run_id") or (retained.get("run") or {}).get("id"),
         "startedAt": summary.get("started_at"),
         "model": summary.get("model"),
         "systemVariant": (artifact.get("system_variant") or "")[:8] or None,
@@ -329,12 +314,11 @@ def persona_projection(folder: Path, entry: dict, families: dict[str, str]) -> d
         })
     planned = {scene["id"]: scene for scene in scenes}
 
-    runs = [
-        run for run_dir in sorted(folder.glob("scenario-run-*"), reverse=True)
-        if run_dir.is_dir() and (run := run_projection(folder, run_dir, planned)) is not None
-    ]
-    if not runs:
+    result_path = RESULTS / folder.name / "result.json"
+    run = run_projection(json.loads(result_path.read_text()), planned) if result_path.is_file() else None
+    if run is None:
         return None
+    runs = [run]
     objective_ids = backstory.get("objective_ids", [])
     person = backstory.get("backstory", {})
     return {
