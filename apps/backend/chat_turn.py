@@ -1187,14 +1187,6 @@ def _saved_progress_to_record(resolution: ContextResolution) -> SavedProgress | 
     return SavedProgress(resolution.work_id, resolution.part_id, resolution.chapter_max)
 
 
-def _forget_withdrawn_progress(session_id: str, account: AccountContext, store: ReadingProgressStore) -> None:
-    """A withdrawn chapter must not return in another conversation as saved progress."""
-    for saved in store.list_for(account.account_id):
-        progress = sessions.reading_progress_for(session_id, saved.work_id)
-        if progress is not None and progress.chapter_max is None:
-            store.forget(account.account_id, saved.work_id)
-
-
 def _progress_entry(work_id: str, part_id: str, chapter_max: int | None) -> ReadingProgressEntry:
     registration = registry.CORPORA.get(work_id)
     return ReadingProgressEntry(
@@ -1314,23 +1306,35 @@ async def _run_chat_pipeline(
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
     pending_progress, carried = None, False
+    declared_progress = None
     if connection_book_scopes is not None:
         resolution = _apply_connection_book_scopes(request, connection_book_scopes)
     elif initial_reading is not None:
         resolution = _apply_initial_reading(request, initial_reading)
     else:
-        resolution, pending_progress, carried = reading_progress.apply(
-            request, resolve_reading_context(request), parser_patterns=PROGRESS_PARSER_PATTERNS,
+        resolution = resolve_reading_context(request)
+        declared_progress = _saved_progress_to_record(resolution)
+        applied = reading_progress.apply(
+            request, resolution, parser_patterns=PROGRESS_PARSER_PATTERNS,
         )
+        resolution, pending_progress, carried = applied.resolution, applied.pending, applied.carried
+        if progress_store is not None:
+            if declared_progress is not None:
+                progress_store.restrict(account.account_id, declared_progress)
+            if applied.withdrawn is not None:
+                progress_store.forget(account.account_id, applied.withdrawn.work_id)
     # Only the interactive app passes a store; trusted setups and replays stay hermetic.
     saved_readings = (
         _saved_readings(progress_store, account)
         if progress_store is not None and connection_book_scopes is None and initial_reading is None
         else {}
     )
-    saved_readings = reading_progress.effective_saved_readings(
+    effective = reading_progress.effective_saved_readings(
         request, resolution, saved_readings, parser_patterns=PROGRESS_PARSER_PATTERNS,
     )
+    saved_readings = effective.readings
+    if progress_store is not None and effective.withdrawn is not None:
+        progress_store.forget(account.account_id, effective.withdrawn.work_id)
     if pending_progress is None and resolution.work_id is not None:
         resolution, pending_progress = _apply_saved_progress(
             request, resolution, saved_readings.get(resolution.work_id),
@@ -1535,8 +1539,8 @@ async def _run_chat_pipeline(
     )
     if release.release_source not in {"muse_candidate", "application_clarification"}:
         sessions.restore_reading_state(request.session_id, reading_state)
-    elif progress_store is not None and (declared := _saved_progress_to_record(resolution)):
-        progress_store.record(account.account_id, declared)
+    elif progress_store is not None and declared_progress is not None:
+        progress_store.record(account.account_id, declared_progress)
     capture = _commit_automatic_capture(release, service, account)
     curation_outcome = None
     if capture.record is not None:
@@ -1592,8 +1596,6 @@ async def _run_chat_pipeline(
         reading_progress.commit(
             request.session_id, pending_progress, release.release_source
         )
-    if progress_store is not None:
-        _forget_withdrawn_progress(request.session_id, account, progress_store)
     inspection.reading_state = _reading_state_inspection(request.session_id, account, progress_store)
     return inspection, release, capture
 

@@ -65,6 +65,20 @@ class PendingProgress:
     declared: sessions.ReadingProgress
 
 
+@dataclass(frozen=True)
+class AppliedProgress:
+    resolution: ContextResolution
+    pending: PendingProgress | None = None
+    carried: bool = False
+    withdrawn: sessions.ReadingProgress | None = None
+
+
+@dataclass(frozen=True)
+class EffectiveSavedReadings:
+    readings: dict[str, ConfirmedReading]
+    withdrawn: sessions.ReadingProgress | None = None
+
+
 def mask_quotes(text: str) -> str:
     """Blank quoted, blockquoted, and fenced text, keeping every offset."""
     # Closers are found by a forward scan rather than regex backtracking: once an opener has no closer,
@@ -139,8 +153,8 @@ def effective_saved_readings(
     saved: dict[str, ConfirmedReading],
     *,
     parser_patterns: Iterable[re.Pattern[str]],
-) -> dict[str, ConfirmedReading]:
-    """Apply session corrections once before routing and comparison consume saved progress."""
+) -> EffectiveSavedReadings:
+    """Apply session ceilings and report only a withdrawal recognized in this message."""
     readings = dict(saved)
     for work_id in saved:
         progress = sessions.reading_progress_for(request.session_id, work_id)
@@ -151,26 +165,30 @@ def effective_saved_readings(
                 readings[work_id] = ConfirmedReading(
                     work_id=work_id, chapter_max=progress.chapter_max, part_id=progress.part_id,
                 )
-    if resolution.status == "confirmed" or not readings:
-        return readings
+    if resolution.status == "confirmed" or not saved:
+        return EffectiveSavedReadings(readings)
     work_id = resolution.work_id
     route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
     if route is not None and not isinstance(route, BookClarification):
         work_id = route.scope.work_id
-    if work_id not in readings:
-        return readings
-    current = readings[work_id]
+    # An old session tombstone masks permission, but a new withdrawal must still
+    # revoke progress the reader confirmed in another conversation meanwhile.
+    current = readings.get(work_id) or saved.get(work_id)
+    if current is None:
+        return EffectiveSavedReadings(readings)
     selection = sessions.book_selection(request.session_id)
     if selection is not None and selection.book_id == current.work_id and selection.part_id != current.part_id:
-        readings.pop(current.work_id)
-        return readings
+        readings.pop(current.work_id, None)
+        return EffectiveSavedReadings(readings)
     progress = sessions.ReadingProgress(
         current.work_id, librarian_service.version_for(current.work_id), current.part_id, current.chapter_max,
     )
     if unparsed_progress(request.message, progress, parser_patterns):
-        _retract(request.session_id, replace(progress, chapter_max=None))
-        readings.pop(current.work_id)
-    return readings
+        withdrawn = replace(progress, chapter_max=None)
+        _retract(request.session_id, withdrawn)
+        readings.pop(current.work_id, None)
+        return EffectiveSavedReadings(readings, withdrawn)
+    return EffectiveSavedReadings(readings)
 
 
 def apply(
@@ -178,8 +196,8 @@ def apply(
     resolution: ContextResolution,
     *,
     parser_patterns: Iterable[re.Pattern[str]],
-) -> tuple[ContextResolution, PendingProgress | None, bool]:
-    """Update the slot from this turn's resolution; return it, any staged write, and whether it was carried."""
+) -> AppliedProgress:
+    """Prepare session progress and report only a withdrawal recognized in this message."""
     session_id = request.session_id
     slot = sessions.reading_progress(session_id)
     if (
@@ -196,34 +214,36 @@ def apply(
             and declared.chapter_max < previous.chapter_max
         ):
             _retract(session_id, declared)
-            return resolution, None, False
-        return resolution, None if declared == slot else PendingProgress(slot, declared), False
+            return AppliedProgress(resolution)
+        return AppliedProgress(resolution, pending=None if declared == slot else PendingProgress(slot, declared))
     if slot is None or slot.chapter_max is None:
-        return resolution, None, False
+        return AppliedProgress(resolution)
     selection = sessions.book_selection(session_id)
     selection_matches = selection is not None and (selection.book_id, selection.part_id) == (slot.work_id, slot.part_id)
     route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
     if route is not None and not isinstance(route, BookClarification) and route.scope.work_id != slot.work_id:
         if not selection_matches:
             sessions.set_reading_progress(session_id, None)
-        return resolution, None, False
+        return AppliedProgress(resolution)
     if unparsed_progress(request.message, slot, parser_patterns):
-        _retract(session_id, replace(slot, chapter_max=None))
-        return resolution, None, False
+        withdrawn = replace(slot, chapter_max=None)
+        _retract(session_id, withdrawn)
+        return AppliedProgress(resolution, withdrawn=withdrawn)
     if not selection_matches:
         sessions.set_reading_progress(session_id, None)
-        return resolution, None, False
+        return AppliedProgress(resolution)
     if resolution.clarification_question:
-        _retract(session_id, replace(slot, chapter_max=None))
-        return resolution, None, False
+        withdrawn = replace(slot, chapter_max=None)
+        _retract(session_id, withdrawn)
+        return AppliedProgress(resolution, withdrawn=withdrawn)
     if resolution.status != "inferred" or resolution.work_id != slot.work_id or isinstance(route, BookClarification):
-        return resolution, None, False
-    return ContextResolution(
+        return AppliedProgress(resolution)
+    return AppliedProgress(ContextResolution(
         status="confirmed", work_id=slot.work_id, work_title=resolution.work_title,
         book_version_id=slot.book_version_id, chapter_max=slot.chapter_max, part_id=slot.part_id,
         boundary_source="reader_confirmed", boundary_authorization_basis="explicit_progress",
         explanation="The reader declared this completed chapter earlier in this session.",
-    ), None, True
+    ), carried=True)
 
 
 def commit(session_id: str, pending: PendingProgress | None, release_source: ReleaseSource) -> None:

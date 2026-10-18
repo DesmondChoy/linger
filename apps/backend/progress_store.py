@@ -96,3 +96,19 @@ class ReadingProgressStore:
                 "DELETE FROM reading_progress WHERE account_id = ? AND work_id = ?",
                 (account_id, work_id),
             )
+
+    def restrict(self, account_id: str, progress: SavedProgress) -> None:
+        """Lower an existing same-part ceiling without creating or raising permission."""
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE reading_progress SET chapter_max = ?, updated_at = ?"
+                " WHERE account_id = ? AND work_id = ? AND part_id = ? AND chapter_max > ?",
+                (
+                    progress.chapter_max,
+                    datetime.now(UTC).isoformat(),
+                    account_id,
+                    progress.work_id,
+                    progress.part_id,
+                    progress.chapter_max,
+                ),
+            )
