@@ -100,6 +100,20 @@ describe('recorded contracts', () => {
     expect(componentDetail('librarian', turn).story).toContainEqual(expect.stringContaining('up to chapter 3'))
   })
 
+  it('keeps the review verdicts when recorded JSON exceeds the display text limit', async () => {
+    const { componentDetail } = await import('../components/architecture/turnDetail')
+    const roses = byPrefix('alice-roses')
+    const turn = replayRun(roses, roses.runs[0]).timeline[0]
+    expect(turn.grading?.sceneId).toBe('S1')
+    const reviews = turn.inspection.dev_trace?.agent_exchanges.filter(
+      (exchange) => exchange.role === 'Provenance' && exchange.stage === 'review',
+    ) ?? []
+    expect(reviews.map((review) => review.output)).toMatchObject([
+      { response_decision: 'revise' }, { response_decision: 'pass' },
+    ])
+    expect(componentDetail('provenance', turn).did).toBe('Provenance asked for 1 revision, then passed the reply.')
+  })
+
   it('marks the policy unrecorded only when Muse never drafted', async () => {
     const { museTurnView } = await import('../components/architecture/turnDetail')
     const pottery = byPrefix('pottery')

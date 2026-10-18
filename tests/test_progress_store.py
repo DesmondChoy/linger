@@ -121,6 +121,21 @@ class ReadingProgressStoreTests(unittest.TestCase):
         self.assertEqual(7, self.store.get("reader", "pg84").chapter_max)
         self.assertIsNone(self.store.get("someone-else", ALICE))
 
+    def test_restriction_only_lowers_an_existing_matching_book_part(self) -> None:
+        self.store.record("reader", SavedProgress(ALICE, "main", 5))
+        for account, progress in (
+            ("reader", SavedProgress(ALICE, "other-part", 2)),
+            ("reader", SavedProgress("pg84", "main", 2)),
+            ("someone-else", SavedProgress(ALICE, "main", 2)),
+            ("reader", SavedProgress(ALICE, "main", 7)),
+        ):
+            self.store.restrict(account, progress)
+        self.assertEqual((SavedProgress(ALICE, "main", 5),), self.store.list_for("reader"))
+        self.assertEqual((), self.store.list_for("someone-else"))
+
+        self.store.restrict("reader", SavedProgress(ALICE, "main", 2))
+        self.assertEqual(SavedProgress(ALICE, "main", 2), self.store.get("reader", ALICE))
+
 
 class SavedProgressResolutionTests(unittest.TestCase):
     session_id = "saved-progress-resolution"

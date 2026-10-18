@@ -91,7 +91,7 @@ def exchanges(scene: dict) -> list[dict]:
             "startMs": round((start - origin) * 1000) if start is not None and origin is not None else None,
             "endMs": round((end - origin) * 1000) if end is not None and origin is not None else None,
             "input": clip(item.get("input_prompt"), INPUT_LIMIT) if item.get("input_prompt") else None,
-            "output": clip(item.get("output"), OUTPUT_LIMIT) if item.get("output") is not None else None,
+            "output": output_text(item["output"]) if item.get("output") is not None else None,
             "toolCalls": [
                 {"tool": call.get("tool_name"), "outcome": call.get("outcome")}
                 for call in records(item.get("tool_exchanges"))
@@ -107,6 +107,23 @@ def parsed(text: Any) -> Any:
         return json.loads(text)
     except ValueError:
         return text
+
+
+def output_text(value: Any) -> str:
+    """Bound display strings without truncating the JSON Inspect reads for decisions."""
+    def bounded(item: Any) -> Any:
+        if isinstance(item, str):
+            return clip(item, OUTPUT_LIMIT)
+        if isinstance(item, dict):
+            return {key: bounded(field) for key, field in item.items()}
+        if isinstance(item, list):
+            return [bounded(field) for field in item]
+        return item
+
+    decoded = parsed(value)
+    if isinstance(decoded, (dict, list)):
+        return json.dumps(bounded(decoded), ensure_ascii=False)
+    return clip(value, OUTPUT_LIMIT)
 
 
 def draft_input(items: list[dict]) -> dict:
