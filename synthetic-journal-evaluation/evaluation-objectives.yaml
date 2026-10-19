@@ -455,7 +455,7 @@ evaluation_objectives:
     evaluation_metadata:
       expected_architecture:
         primary_components: [muse, serendipity]
-        supporting_components: [librarian]
+        supporting_components: []
         mandatory_gates: [provenance]
         deterministic_services: [memory_and_policy]
       ground_truth_requirements:
@@ -522,7 +522,7 @@ evaluation_objectives:
       expected_architecture:
         primary_components: [sculptor]
         supporting_components: []
-        mandatory_gates: []
+        mandatory_gates: [provenance]
         deterministic_services: [memory_and_policy]
       ground_truth_requirements:
         - Propose duplicate, related, updated, unrelated, and no-change labels.
@@ -783,7 +783,7 @@ evaluation_objectives:
     evaluation_metadata:
       expected_architecture:
         primary_components: [muse]
-        supporting_components: [librarian, serendipity]
+        supporting_components: [serendipity]
         mandatory_gates: [provenance]
         deterministic_services: [memory_and_policy]
       ground_truth_requirements:
