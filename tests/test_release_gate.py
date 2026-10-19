@@ -116,6 +116,7 @@ def test_success_binds_identity_and_all_repetitions_but_never_approves(release_r
     assert result["identity"]["image_id"] == IMAGE
     assert result["human_review"]["status"] == "required"
     assert result["publication"]["route"] == "manual"
+    assert result["publication"]["threshold"] == "80"
     assert result["publication"]["automated_pass_percentage"] == 100
     assert result["settings"]["effective_configuration"]["roles"]["Muse"]["model"] == MODEL
     assert all(run["artifact_sha256"] for run in result["runs"])
@@ -372,7 +373,10 @@ def test_invalid_publication_configuration_fails_before_provider_call(release_re
     assert not calls
 
 
-def test_cli_exposes_manual_route_with_success_for_complete_behavioral_result(monkeypatch, tmp_path):
+@pytest.mark.parametrize(("threshold_args", "expected_threshold"), [
+    ([], "80"), (["--auto-publish-threshold", "95"], "95"),
+])
+def test_cli_exposes_manual_route_with_success_for_complete_behavioral_result(monkeypatch, tmp_path, threshold_args, expected_threshold):
     destination = tmp_path / "github-output"
     destination.write_text("existing=value\n")
     monkeypatch.setenv("GITHUB_OUTPUT", str(destination))
@@ -380,12 +384,12 @@ def test_cli_exposes_manual_route_with_success_for_complete_behavioral_result(mo
 
     def run(**kwargs):
         observed.append(kwargs)
-        return {"status": "review_required", "publication": {"route": "manual", "automated_pass_percentage": 90}}
+        return {"status": "review_required", "publication": {"route": "manual", "automated_pass_percentage": 70}}
 
     monkeypatch.setattr(gate, "run_suite", run)
     status = gate.main(["run", "--candidate-sha", SHA, "--image-id", IMAGE, "--model", MODEL,
-                        "--output", str(tmp_path / "evidence"), "--auto-publish-enabled", "--auto-publish-threshold", "95"])
+                        "--output", str(tmp_path / "evidence"), "--auto-publish-enabled", *threshold_args])
     assert status == 0
     assert observed[0]["auto_publish_enabled"] is True
-    assert observed[0]["auto_publish_threshold"] == "95"
-    assert destination.read_text() == "existing=value\npublication_route=manual\nautomated_pass_percentage=90\ncheck_result=review_required\n"
+    assert observed[0]["auto_publish_threshold"] == expected_threshold
+    assert destination.read_text() == "existing=value\npublication_route=manual\nautomated_pass_percentage=70\ncheck_result=review_required\n"
