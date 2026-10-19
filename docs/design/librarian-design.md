@@ -702,9 +702,11 @@ progress.
 
 The interactive application's `ReadingProgressStore` persists the part and
 completed chapter per account and work in
-`LINGER_STATE_DIR/reading_progress.sqlite3`. After a released reply or
-application clarification, the latest explicit declaration replaces the saved
-record, including a lower chapter. Saved progress survives conversation
+`LINGER_STATE_DIR/reading_progress.sqlite3`. A lower declaration reduces an
+existing same-part saved ceiling before model execution. A withdrawal removes
+the saved permission immediately. Both changes survive a declined, failed, or
+cancelled turn. A higher declaration requires a released Muse reply or
+application clarification. Saved progress survives conversation
 deletion and backend restarts. Loading validates the current registered
 revision, access list, part, and chapter count. The store contains no inferred
 boundaries, named units, or exact-passage grants.
@@ -713,9 +715,29 @@ Saved progress never selects a work. Current-turn context preparation applies
 it only to an identified book, behind that session's progress or retraction,
 and withholds it when an unparsed correction speaks to progress. Book routing
 can bind saved progress after identifying a work and matching its part.
-An unclear session retraction leaves the saved account record intact. Later
-routing or a comparison can reuse that saved chapter until a released explicit
-correction replaces it.
+A newly accepted retraction also removes the saved account record. An unrelated
+later turn does not repeat an old session's withdrawal or write its carried
+chapter back to the account.
+
+`apps/backend/progress_store.py` keeps a separate revision for each account and
+book. Every accepted declaration or withdrawal advances that revision in a
+short SQLite transaction. Withdrawal retains the revision after deleting the
+permission. This prevents an older reply from recreating withdrawn progress,
+even if another conversation has since saved the same chapter again. Existing
+databases retain their permission rows when the revision table is added.
+
+`apps/backend/chat_turn.py` saves a released declaration only if its revision
+is still current. It checks after memory curation, beside the session-progress
+commit, so a correction during curation also wins. Saved-progress snapshots
+carry their revision to prevent stale permission from entering a conversation.
+If a newer statement invalidates the pending update, the application narrows
+the session against current permission and supersedes its stale reader
+statements. The application holds no database transaction while awaiting a
+model reply.
+
+For example, conversation A declares chapter 7 while its reply is pending.
+Conversation B then corrects progress to chapter 2. When A finishes, its older
+revision cannot replace chapter 2 in either saved progress or its session.
 
 For `find_connection`, the application combines saved progress with any current
 confirmed permission. When that covers at least two books, it supplies each
@@ -723,7 +745,10 @@ book at its own ceiling without a primary book. The current permission replaces 
 saved entry. Synthetic replay uses trusted supplied scopes and omits live
 account progress. `tests/test_reading_progress.py` covers session corrections;
 `tests/test_progress_store.py` covers durable storage, account isolation, saved
-routing, and comparison scopes.
+routing, and comparison scopes. `tests/test_progress_persistence.py` covers
+failed-turn restrictions and sequential conversations.
+`tests/test_progress_ordering.py` covers overlapping replies, withdrawals,
+deletion and recreation, and corrections during curation.
 
 #### Declarations, retractions, and clarification follow-ups
 
