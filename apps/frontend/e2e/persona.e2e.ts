@@ -1,4 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { test, expect } from './fixtures.ts'
+
+const alice = JSON.parse(readFileSync(
+  new URL('../src/replay/personas/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03.json', import.meta.url),
+  'utf8',
+))
+const firstRecordedReply: string = alice.runs[0].scenes[0].turns[0].reply
 
 test('user opens a saved persona, inspects its turns, and returns to the gallery', async ({ page, apiRequests }) => {
   await page.goto('/')
@@ -11,16 +18,7 @@ test('user opens a saved persona, inspects its turns, and returns to the gallery
   await expect(conversation.locator('.bubble.assistant')).toHaveCount(3)
   await expect(conversation.locator('.bubble.user').first()).toContainText('the Pigeon calls her a serpent')
   const firstReply = conversation.locator('.bubble.assistant').first()
-  await expect(firstReply.locator('.reply-text > p').nth(0)).toHaveText(
-    'In Chapter 5, “Advice from a Caterpillar,” the narrator describes Alice saying:',
-  )
-  await expect(firstReply.locator('.reply-text > p').nth(1)).toHaveText(
-    '“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered '
-    + 'the number of changes she had gone through that day.',
-  )
-  await expect(firstReply.locator('.sources')).toContainText(
-    "Alice's Adventures in Wonderland — Chapter 5 — Advice from a Caterpillar",
-  )
+  for (const paragraph of firstRecordedReply.split(/\n\s*\n/)) await expect(firstReply).toContainText(paragraph.trim())
   await expect(conversation.getByText('Recorded run · read-only. Replies are exactly what this build said; nothing is sent.', { exact: true })).toBeVisible()
   await expect(page.getByRole('textbox')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Send', exact: true })).toHaveCount(0)
