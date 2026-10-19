@@ -154,5 +154,45 @@ def test_export_reads_the_retained_result_and_skips_scenarios_without_one(tmp_pa
     assert "/Users/" not in "".join(output.values())
 
 
+def test_export_preserves_long_recorded_provenance_decisions():
+    exporter = load_exporter()
+    scenario_id = "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12"
+    retained = json.loads((exporter.RESULTS / scenario_id / "result.json").read_text())
+    scene = next(scene for scene in retained["evidence"]["evaluation"]["data"]["scenes"] if scene["scene_id"] == "S1")
+    reviews = [
+        exchange for exchange in scene["agent_exchanges"]
+        if exchange["role"] == "Provenance" and exchange["stage"] == "review"
+    ]
+    assert len(reviews) == 2
+    assert all(len(json.dumps(exchange["output"], ensure_ascii=False)) > exporter.OUTPUT_LIMIT for exchange in reviews)
+
+    outputs = [json.loads(exchange["output"]) for exchange in exporter.exchanges({"agent_exchanges": reviews})]
+
+    assert [output["response_decision"] for output in outputs] == ["revise", "pass"]
+    assert [output["findings"] for output in outputs] == [review["output"]["findings"] for review in reviews]
+
+
+def test_export_bounds_output_text_without_breaking_json():
+    exporter = load_exporter()
+    original = {
+        "response_decision": "pass",
+        "findings": [{"code": "unsupported_claim", "explanation": "x" * (exporter.OUTPUT_LIMIT + 1)}],
+        "coverage_audit": [{"span_index": 0, "accurate": True}],
+        "optional": None,
+    }
+    for recorded in (original, json.dumps(original)):
+        exported = exporter.exchanges({"agent_exchanges": [{"output": recorded}]})[0]["output"]
+        output = json.loads(exported)
+        assert output["response_decision"] == "pass"
+        assert output["coverage_audit"] == original["coverage_audit"]
+        assert output["optional"] is None
+        assert output["findings"] == [{
+            "code": "unsupported_claim", "explanation": "x" * (exporter.OUTPUT_LIMIT - 1) + "…",
+        }]
+
+    plain = exporter.exchanges({"agent_exchanges": [{"output": "x" * (exporter.OUTPUT_LIMIT + 1)}]})[0]["output"]
+    assert plain == "x" * (exporter.OUTPUT_LIMIT - 1) + "…"
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -231,12 +231,12 @@ def test_an_answer_after_a_retraction_waits_for_release(reader, outcome, after) 
 def test_a_staged_raise_does_not_overwrite_a_retraction_made_meanwhile(reader) -> None:
     reader.say(T1)
     request = ChatRequest(session_id=SESSION, message="I've finished chapter 7.")
-    _, pending, _ = reading_progress.apply(
+    applied = reading_progress.apply(
         request, chat_turn.resolve_reading_context(request),
         parser_patterns=(chat_turn.IN_PROGRESS_PATTERN, chat_turn.COMPLETION_PATTERN, chat_turn.READ_NAMED_PATTERN),
     )
     reader.say("Actually I'm only on chapter 3.")
-    reading_progress.commit(SESSION, pending, "muse_candidate")
+    reading_progress.commit(SESSION, applied.pending, "muse_candidate")
     assert slot() == "retracted"
 
 
