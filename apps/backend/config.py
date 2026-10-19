@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # instead use the project credentials created by `logfire projects use`.
     logfire_token: SecretStr | None = None
     linger_model: str
+    # Optional per-role overrides, as JSON: {"serendipity": "openai:gpt-5.6-luna"}
+    # and {"serendipity": "medium"}. A role without an entry uses LINGER_MODEL and
+    # that model's default reasoning effort.
+    linger_role_models: dict[str, str] = {}
+    linger_role_reasoning: dict[str, str] = {}
     linger_allowed_origins: str = "http://localhost:5173"
     allowed_book_version_ids: tuple[str, ...] = (
         "pg11-v01b38ea4",
@@ -33,6 +38,10 @@ class Settings(BaseSettings):
         "pg2397-vb3cc1e13",
     )
     linger_web_search_enabled: bool = False
+    # Developer/demo only: attach each turn's full content trace (agent prompts
+    # and outputs, Serendipity searches, memory text) to Inspect. Never enable
+    # for a deployment real readers use.
+    linger_dev_inspect: bool = False
     linger_state_dir: Path = REPO_ROOT / "data"
     linger_memory_dir: Path = REPO_ROOT / "memories"
     linger_static_dir: Path | None = None

@@ -29,6 +29,9 @@ _connection_book_scopes: contextvars.ContextVar[tuple[ReleaseScope, ...]] = cont
 _session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "session_id", default=None
 )
+_saved_readings: contextvars.ContextVar[Mapping[str, ConfirmedReading]] = contextvars.ContextVar(
+    "saved_readings", default=MappingProxyType({})
+)
 _EMPTY_EVIDENCE: Mapping[str, EvidenceRecord] = MappingProxyType({})
 _turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
     contextvars.ContextVar("turn_evidence", default=None)
@@ -121,6 +124,19 @@ def bind_confirmed_reading(value: ConfirmedReading) -> None:
 
 def reset_confirmed_reading(token: contextvars.Token) -> None:
     _confirmed_reading.reset(token)
+
+
+def set_saved_readings(value: Mapping[str, ConfirmedReading]) -> contextvars.Token:
+    """Bind the account's reader-stated progress, keyed by work, for this turn."""
+    return _saved_readings.set(MappingProxyType(dict(value)))
+
+
+def saved_reading(work_id: str) -> ConfirmedReading | None:
+    return _saved_readings.get().get(work_id)
+
+
+def reset_saved_readings(token: contextvars.Token) -> None:
+    _saved_readings.reset(token)
 
 
 def set_connection_book_scopes(value: tuple[ReleaseScope, ...]) -> contextvars.Token:

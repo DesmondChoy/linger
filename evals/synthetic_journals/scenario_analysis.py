@@ -407,10 +407,12 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
     else:
         report.extend(["**Analysis pending.** The recorded results below have not yet been reviewed for meaning or grade reliability.", ""])
     reviews = {scene.scene_id: scene for scene in review.scenes} if review else {}
-    report.extend(["Semantic status is an explicit review judgment, independent of the recorded hard grades.", ""])
+    report.extend(["LLM-review is the coding assistant's assessment of the saved answer and evidence against "
+                   "the reader's request and approved expectations. It is separate from Linger's runtime agents "
+                   "and the recorded automated grades. It is not independent human validation.", ""])
     if document.schema_version == "2":
         report.extend(["This older report has no verified facts/review identity binding; its saved review remains readable.", ""])
-    report.extend(["## Scene results", "", "| Scene | Expected behavior | Observed behavior | Recorded result | Judgments passed | Assessment | Semantic review |", "| --- | --- | --- | --- | --- | --- | --- |"])
+    report.extend(["## Scene results", "", "| Scene | Expected behavior | Observed behavior | Recorded result | Judgments passed | Assessment | LLM-review |", "| --- | --- | --- | --- | --- | --- | --- |"])
     for scene in document.scenes:
         item = reviews.get(scene.scene_id)
         assessment = _label(item.assessment) if item else "Analysis pending"
@@ -440,9 +442,9 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
             f"Next step: {_text(item.next_step)}", "",
         ])
         semantic = item.semantic_review
-        report.extend([f"Semantic review: **{semantic.status}**." + (f" Scope: {_text(semantic.scope)}" if semantic.scope else ""), ""])
+        report.extend([f"LLM-review: **{semantic.status}**." + (f" Scope: {_text(semantic.scope)}" if semantic.scope else ""), ""])
         if semantic.evidence_refs:
-            report.extend(["Semantic evidence: " + "; ".join(_text(ref) for ref in semantic.evidence_refs) + ".", ""])
+            report.extend(["LLM-review evidence: " + "; ".join(_text(ref) for ref in semantic.evidence_refs) + ".", ""])
         for finding in semantic.findings:
             report.extend([
                 f"{_label(finding.kind).capitalize()}: {_text(finding.explanation)}",

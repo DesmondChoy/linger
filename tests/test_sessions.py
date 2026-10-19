@@ -56,7 +56,23 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
             record.review_finding_codes,
         )
         self.assertNotIn(private_passage, json.dumps(asdict(record)))
-        self.assertEqual([], sessions.history(self.session_id))
+        self.assertEqual(
+            [private_passage, "safe decline"],
+            [message.parts[0].content for message in sessions.history(self.session_id)],
+        )
+
+    def test_new_released_history_preserves_pii_outside_the_chat_input_boundary(self) -> None:
+        email = "alice.person@example.com"
+        sessions.append_turn(
+            self.session_id,
+            f"Contact {email}",
+            f"I noted {email}",
+            turn_id="turn-pii",
+            release_source="muse_candidate",
+        )
+
+        content = json.dumps(sessions.history(self.session_id), default=str)
+        self.assertIn(email, content)
 
     def test_emotional_boundary_is_audited_but_grants_no_evidence(self) -> None:
         sessions.append_turn(
@@ -154,8 +170,10 @@ class ReaderStatementTests(unittest.TestCase):
         statements = sessions.reader_statements(self.session_id)
 
         self.assertIsInstance(statements, tuple)
-        self.assertEqual([original, "Chapter 5?"], [item.text for item in statements])
-        self.assertEqual(2, len({item.statement_id for item in statements}))
+        self.assertEqual(
+            [original, "Failed user turn", "Chapter 5?"], [item.text for item in statements]
+        )
+        self.assertEqual(3, len({item.statement_id for item in statements}))
         self.assertEqual((), sessions.reader_statements("unknown-session"))
 
     def test_ids_are_stable_as_recent_window_moves_and_turn_ids_repeat(self) -> None:
@@ -302,6 +320,50 @@ class ReadingStateTests(unittest.TestCase):
         sessions.clear(self.session_id)
 
         self.assertIsNone(sessions.pending_clarification(self.session_id))
+
+
+class ReadingProgressStateTests(unittest.TestCase):
+    session_id = "reading-progress-state-test"
+
+    def tearDown(self) -> None:
+        sessions.clear(self.session_id)
+
+    def test_work_switch_preserves_each_latest_correction(self) -> None:
+        original = sessions.ReadingProgress("pg11", "alice-v1", "main", 5)
+        retracted = sessions.ReadingProgress("pg11", "alice-v1", "main", None)
+        other = sessions.ReadingProgress("pg23", "book-v1", "main", 3)
+        corrected = sessions.ReadingProgress("pg11", "alice-v1", "main", 2)
+        for progress in (original, retracted, other):
+            sessions.set_reading_progress(self.session_id, progress)
+
+        self.assertIs(other, sessions.reading_progress(self.session_id))
+        self.assertIs(retracted, sessions.reading_progress_for(self.session_id, "pg11"))
+        sessions.set_reading_progress(self.session_id, corrected)
+        self.assertIs(corrected, sessions.reading_progress(self.session_id))
+        self.assertIs(corrected, sessions.reading_progress_for(self.session_id, "pg11"))
+        self.assertIs(other, sessions.reading_progress_for(self.session_id, "pg23"))
+
+    def test_none_clears_active_carry_and_retains_corrections_by_work(self) -> None:
+        retracted = sessions.ReadingProgress("pg11", "alice-v1", "main", None)
+        sessions.set_reading_progress(self.session_id, retracted)
+
+        sessions.set_reading_progress(self.session_id, None)
+
+        self.assertIsNone(sessions.reading_progress(self.session_id))
+        self.assertIs(retracted, sessions.reading_progress_for(self.session_id, "pg11"))
+        self.assertIsNone(sessions.reading_progress_for(self.session_id, "unknown"))
+
+    def test_full_clear_removes_active_carry_and_every_work_correction(self) -> None:
+        for work in ("pg11", "pg23"):
+            sessions.set_reading_progress(
+                self.session_id, sessions.ReadingProgress(work, "version", "main", None),
+            )
+
+        sessions.clear(self.session_id)
+
+        self.assertIsNone(sessions.reading_progress(self.session_id))
+        for work in ("pg11", "pg23"):
+            self.assertIsNone(sessions.reading_progress_for(self.session_id, work))
 
 
 if __name__ == "__main__":

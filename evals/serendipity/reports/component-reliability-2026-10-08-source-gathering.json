@@ -1,0 +1,669 @@
+{
+  "schema_version": 2,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "0f568623d4c343eaab3ef308e5102e74",
+  "generated_at": "2026-10-08T11:51:42.234332Z",
+  "model": "openai:gpt-6-luna",
+  "prompt_digests": {
+    "serendipity.source-gathering": "d48382290d995d2d75474597fdb78718a2d9523be704d052cbed6aa7ab3f95b2"
+  },
+  "dataset_digest": "b5949fe57b70e405365d10d17cef0dc3ec6ba9b457068268bcf42b6786517497",
+  "concurrency": 1,
+  "summary": {
+    "case_count": 4,
+    "repeats": 5,
+    "total_runs": 20,
+    "total_passes": 17,
+    "run_pass_rate": 0.85,
+    "cases_pass_pow_k": 3,
+    "cases_unstable": 1,
+    "cases_never_passed": 0,
+    "cases_with_unstable_decision": 0,
+    "suite_pass_pow_k": false
+  },
+  "tiers": {
+    "capability": {
+      "case_count": 2,
+      "repeats": 5,
+      "total_runs": 10,
+      "total_passes": 7,
+      "run_pass_rate": 0.7,
+      "cases_pass_pow_k": 1,
+      "cases_unstable": 1,
+      "cases_never_passed": 0,
+      "cases_with_unstable_decision": 0,
+      "suite_pass_pow_k": false
+    },
+    "regression": {
+      "case_count": 2,
+      "repeats": 5,
+      "total_runs": 10,
+      "total_passes": 10,
+      "run_pass_rate": 1.0,
+      "cases_pass_pow_k": 2,
+      "cases_unstable": 0,
+      "cases_never_passed": 0,
+      "cases_with_unstable_decision": 0,
+      "suite_pass_pow_k": true
+    }
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-gather-alice-note-and-essay-v3",
+      "primary_behavior": "gather_every_named_source",
+      "contrast_group": "named-sources",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "gathered"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 5.897,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.522704458999215,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "memory-after-the-move",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Alice passage supports the requested Caterpillar question; the memory record is your writing about not recognising yourself after the move; the supplied Stanford Encyclopedia page is the essay referred to as “that essay.”",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 4.591516834014328,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "memory-after-the-move",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Chapter 5 passage supports the requested Caterpillar-and-Alice scene; memory-after-the-move is the reader's note about not recognising themselves after moving; the Stanford Encyclopedia page is the requested essay.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.136234208999667,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/",
+              "memory-after-the-move"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Alice passage supports the requested Caterpillar scene; the Stanford Encyclopedia page is the supplied essay; the memory record is the reader's note about not recognising themselves after the move.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.462699291005265,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/",
+              "memory-after-the-move"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The book passage supports the Caterpillar asking Alice who she is; the supplied Stanford Encyclopedia page is the requested essay; the memory record is the reader's writing about not recognising themself after the move.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 4.774171666998882,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "memory-after-the-move",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Alice passage supports the named Caterpillar exchange; the memory record is the reader's note about not recognising themself after the move; the opened Stanford Encyclopedia page is the requested essay.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-gather-reports-unfound-source-v3",
+      "primary_behavior": "gather_every_named_source",
+      "contrast_group": "named-sources",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "gathered"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 5.85,
+      "mean_model_requests": 3.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.215489958005492,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "alice-ch4-size"
+            ],
+            "unfound_sources": [
+              "Montaigne's essay on friendship"
+            ],
+            "relevance_note": "The returned Chapter 5 and Chapter 4 passages from Alice's Adventures in Wonderland support the requested Alice/Caterpillar source. Montaigne's essay on friendship was named but is not among the permitted sources in this run, so no record supports it.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.269443625002168,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "alice-ch4-size"
+            ],
+            "unfound_sources": [
+              "Montaigne's essay on friendship"
+            ],
+            "relevance_note": "The returned Alice passages support the requested Caterpillar/Alice scene (Chapter 5) and related Chapter 4 material. Montaigne's essay on friendship could not be searched in the permitted book corpus; no public source was supplied.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 5.535952582984464,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "alice-ch4-size"
+            ],
+            "unfound_sources": [
+              "Montaigne's essay on friendship"
+            ],
+            "relevance_note": "The Chapter 5 passage supports the named Caterpillar–Alice exchange; the returned Chapter 4 passage is also included from the librarian's relevant results. Montaigne's essay is not available among the permitted sources, and no public source URL was supplied.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 5.502543957991293,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "alice-ch4-size"
+            ],
+            "unfound_sources": [
+              "Montaigne's essay on friendship"
+            ],
+            "relevance_note": "Both returned Chapter 5 and Chapter 4 passages support the requested Caterpillar–Alice material. Montaigne's essay on friendship is not available in the permitted sources for this run, so no record was found for it.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 5.727702583011705,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "alice-ch4-size"
+            ],
+            "unfound_sources": [
+              "Montaigne's essay on friendship"
+            ],
+            "relevance_note": "The Chapter 5 passage directly supports the requested Caterpillar-and-Alice scene; Chapter 4's size-change passage was also returned as relevant by the librarian. Montaigne's essay on friendship was named, but no permitted text or public URL was available to retrieve it.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-gather-douglass-memory-not-named-v3",
+      "primary_behavior": "gather_every_named_source",
+      "contrast_group": "named-sources",
+      "tier": "regression",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "gathered"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 4.198,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.365148875018349,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "douglass-s4-unknown-age",
+              "douglass-s2-testimony"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "Chapter 4 supports Douglass not knowing his age; Chapter 2 supports the introduction’s praise of his testimony and its lions-writing-history image.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 5.487750083004357,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "douglass-s4-unknown-age",
+              "douglass-s2-testimony"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Chapter 4 record concerns Douglass not knowing his age; the Chapter 2 record covers Phillips's praise of Douglass's testimony.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.941832415992394,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "douglass-s4-unknown-age",
+              "douglass-s2-testimony"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "Chapter 4 supports the reference to Douglass not knowing his age; Chapter 2 contains Phillips's introduction praising Douglass's testimony.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 4.400316957995528,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "douglass-s4-unknown-age",
+              "douglass-s2-testimony"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "Chapter 4 supports the reference to Douglass not knowing his age; Chapter 2 contains Phillips's praise of Douglass's testimony.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.7943899579986464,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "douglass-s4-unknown-age",
+              "douglass-s2-testimony"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "Chapter 4 provides the passage on Douglass not knowing his age; Chapter 2 contains Phillips's introduction praising Douglass's testimony.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-gather-searches-named-public-text-v3",
+      "primary_behavior": "gather_every_named_source",
+      "contrast_group": "named-sources",
+      "tier": "capability",
+      "repeats": 5,
+      "passes": 2,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "gathered"
+      ],
+      "intermittent_failures": [
+        "bundle_missing_named_source:https://plato.stanford.edu/entries/identity-personal/",
+        "bundle_reports_found_source_as_unfound",
+        "missing_required_search:get_page",
+        "missing_required_search:web_search"
+      ],
+      "mean_latency_seconds": 9.38,
+      "mean_model_requests": 3.2,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [
+            "missing_required_search:web_search",
+            "missing_required_search:get_page",
+            "bundle_missing_named_source:https://plato.stanford.edu/entries/identity-personal/",
+            "bundle_reports_found_source_as_unfound"
+          ],
+          "latency_seconds": 3.4423630419769324,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity"
+            ],
+            "unfound_sources": [
+              "the Stanford Encyclopedia of Philosophy entry on personal identity"
+            ],
+            "relevance_note": "The retrieved Chapter 5 passage supports Alice's talk with the Caterpillar. The requested Stanford Encyclopedia entry could not be retrieved because no public URL was supplied and web search is unavailable.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [
+            "missing_required_search:web_search",
+            "missing_required_search:get_page",
+            "bundle_missing_named_source:https://plato.stanford.edu/entries/identity-personal/",
+            "bundle_reports_found_source_as_unfound"
+          ],
+          "latency_seconds": 7.2428306250076275,
+          "model_requests": 3,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity"
+            ],
+            "unfound_sources": [
+              "the Stanford Encyclopedia of Philosophy entry on personal identity"
+            ],
+            "relevance_note": "Chapter 5 passage supports the requested Caterpillar conversation. The named Stanford Encyclopedia entry could not be retrieved.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.569407542003319,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "https://plato.stanford.edu/entries/identity-personal/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Chapter 5 passage supports the requested Caterpillar conversation. The opened Stanford Encyclopedia of Philosophy page is the requested entry on personal identity.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [
+            "missing_required_search:web_search",
+            "missing_required_search:get_page",
+            "bundle_missing_named_source:https://plato.stanford.edu/entries/identity-personal/",
+            "bundle_reports_found_source_as_unfound"
+          ],
+          "latency_seconds": 8.339321790990653,
+          "model_requests": 2,
+          "tool_calls": 1,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity"
+            ],
+            "unfound_sources": [
+              "the Stanford Encyclopedia of Philosophy entry on personal identity"
+            ],
+            "relevance_note": "The returned passage supports the requested Alice–Caterpillar scene. No Stanford Encyclopedia URL was supplied, and no entry was retrieved, so that named source is unsupported in this bundle.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.30457383301109,
+          "model_requests": 5,
+          "tool_calls": 3,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "https://plato.stanford.edu/entries/identity-personal/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Chapter 5 passage supports Alice's conversation with the Caterpillar; the Stanford Encyclopedia page is the requested entry on personal identity.",
+            "public_source_checks": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    }
+  ]
+}

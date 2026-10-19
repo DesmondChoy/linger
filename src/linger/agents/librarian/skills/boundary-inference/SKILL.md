@@ -76,22 +76,16 @@ Current event identification before a chapter candidate:
   reader wording positively excludes it; cite that wording in its
   distinguishing_reader_spans and explain the distinction. If two occurrences
   remain compatible, return uncertain rather than selecting the earliest,
-  highest ranked, most famous, or latest one. Do not put a plausible alternative
-  in event_resolution.other_evidence_ids to avoid comparing it.
-- Put remaining unrelated records and earlier memory anchors in
-  event_resolution.other_evidence_ids. This required array is nested inside
-  event_resolution alongside reader_event_spans and occurrences, never at the
-  top level. Supply [] only when every candidate is assigned to an occurrence.
-  Account for every supplied candidate exactly once across
-  event_resolution.occurrences[*].evidence_ids and
-  event_resolution.other_evidence_ids. A memory anchor already cited in
-  memory_assessments or supporting_evidence still needs its own inventory
-  entry. Those support citations are separate from occurrence accounting.
-  Do not duplicate a ruled-out occurrence in other_evidence_ids. Being in this private inventory grants
-  nothing. Select only the needed current-event and memory anchors as boundary
-  support. Include a quoted anchor for every selected-occurrence evidence ID in supporting_evidence;
-  if a record is unnecessary to identify that occurrence, reassess its inventory
-  placement instead of leaving selection and support inconsistent.
+  highest ranked, most famous, or latest one. Leaving a plausible alternative
+  out of occurrences does not rule it out.
+- Do not list the remaining candidates. The application treats every supplied
+  candidate that is not in an occurrence as unrelated to the current event, so
+  earlier memory anchors and unrelated records need no entry. Assign each
+  evidence ID to at most one occurrence. Select only the needed current-event
+  and memory anchors as boundary support. Include a quoted anchor for every
+  selected-occurrence evidence ID in supporting_evidence; if a record is
+  unnecessary to identify that occurrence, remove it from the occurrence
+  instead of leaving selection and support inconsistent.
   The selected current occurrence must establish the candidate chapter.
 - A specific sequence of completed reading can identify its final stop even
   when earlier events and memory anchors are in different chapters. Do not
@@ -112,6 +106,7 @@ Private source binding before a chapter candidate:
   paraphrase the text. Prefer a concise span supporting the event. Do not infer a chapter from
   a section ordinal in an ID; read the canonical chapter metadata and source text.
 - Every grounded-memory and selected-occurrence evidence ID needs one such anchor.
+  Give each evidence ID one anchor only, even when it supports several events.
   Additional connecting evidence may be included with its own source excerpt.
   Whitespace-normalized text membership only binds the record: a real but irrelevant excerpt
   does not support the event. Recheck semantic relevance before returning candidate.
@@ -119,11 +114,10 @@ Private source binding before a chapter candidate:
   route handoff. Uncertainty grants nothing and does not require excerpt anchors.
 
 Candidate field placement example:
-The following excerpt shows inventory placement for three hypothetical input
-IDs. Use the actual supplied IDs and exact reader wording, and fill the other
-required candidate fields. Here the earlier-memory ID is both boundary support
-and other event-resolution evidence; the alternative occurs only once in the
-inventory.
+The following excerpt shows field placement for three hypothetical input IDs.
+Use the actual supplied IDs and exact reader wording, and fill the other
+required candidate fields. The earlier-memory ID is boundary support but not an
+occurrence, so it appears only in supporting_evidence.
 
 ```json
 {
@@ -146,17 +140,14 @@ inventory.
         "distinguishing_reader_spans": ["after the storm"],
         "explanation": "This alternative follows a different event, not the stated storm."
       }
-    ],
-    "other_evidence_ids": ["earlier-memory-id"]
+    ]
   }
 }
 ```
 
-Before returning a candidate, compare its complete inventory with
-full_work_candidates. Repair missing, unknown, and repeated IDs together.
-Moving a misplaced field or removing a duplicate does not excuse omitting
-earlier memory anchors. If valid semantic identification is unavailable,
-return uncertainty instead of inventing a complete-looking proof.
+Before returning a candidate, check that every occurrence and support ID is
+copied exactly from full_work_candidates. If valid semantic identification is
+unavailable, return uncertainty instead of inventing a complete-looking proof.
 
 Uncertainty output:
 - Use BoundaryUncertainDecision when progress remains unresolved. Return only

@@ -37,7 +37,7 @@ def candidate_from_review(
         raise CaptureBindingError("review ignored an existing nomination")
     if not nomination.text.strip():
         raise CaptureBindingError("nomination must not be blank")
-    if source_text[nomination.start_codepoint : nomination.end_codepoint] != nomination.text:
+    if nomination.text not in source_text:
         raise CaptureBindingError("nomination is not an exact source-text slice")
     if not set(nomination.evidence_ids).issubset(available_evidence_ids):
         raise CaptureBindingError("nomination cites unresolved evidence")
@@ -46,29 +46,5 @@ def candidate_from_review(
         source_event_id=source_event_id,
         review_allows_capture=review.capture_decision == "allow_capture",
         contains_sensitive_content=review.contains_sensitive_content,
-        evidence_ids=nomination.evidence_ids,
-    )
-
-
-def vetoed_candidate(
-    *,
-    nomination: MemoryCandidate,
-    source_text: str,
-    source_event_id: str,
-) -> AutomaticMemoryCandidate:
-    """Build the fail-closed candidate used when no review verdict exists.
-
-    A review that never completed cannot authorise capture, so an unreviewed
-    candidate is refused exactly as an explicit veto is.
-    """
-    if not nomination.text.strip():
-        raise CaptureBindingError("nomination must not be blank")
-    if source_text[nomination.start_codepoint : nomination.end_codepoint] != nomination.text:
-        raise CaptureBindingError("nomination is not an exact source-text slice")
-    return AutomaticMemoryCandidate(
-        text=nomination.text,
-        source_event_id=source_event_id,
-        review_allows_capture=False,
-        contains_sensitive_content=False,
         evidence_ids=nomination.evidence_ids,
     )

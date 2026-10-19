@@ -33,20 +33,27 @@ import asyncio
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from statistics import fmean
+from typing import Any
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic_ai.exceptions import ModelHTTPError
+from pydantic_ai.models import Model
 
 from apps.backend.config import get_settings
 from apps.backend.telemetry import configure_component_evaluation_telemetry
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.serendipity.agent import build_serendipity_agent
 from src.linger.agents.serendipity.prompt import (
     MEMORY_RECALL_PROMPT_FINGERPRINT,
     PROMPT_FINGERPRINT,
+    SOURCE_GATHERING_PROMPT_FINGERPRINT,
 )
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING
+from src.linger.agents.skills import RuntimeSkill
 
 from .harness import SerendipityEvalCase, dataset_digest, load_serendipity_eval_cases
 from .runner import _skill_for, run_case
@@ -64,6 +71,13 @@ class RunOutcome(StrictModel):
     latency_seconds: float | None = None
     model_requests: int | None = None
     tool_calls: int | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    # What the agent returned and searched, kept so a reviewer, human or
+    # Serendipity's self-review, can read why a run failed.
+    response: dict[str, Any] | None = None
+    searches: tuple[str, ...] = ()
+    rate_limit_retries: int = 0
 
 
 class CaseReliability(StrictModel):
@@ -136,12 +150,34 @@ def _outcome_from_report(report: object) -> RunOutcome:
         latency_seconds=observation.latency_seconds,
         model_requests=observation.model_requests,
         tool_calls=observation.tool_calls,
+        input_tokens=observation.input_tokens,
+        output_tokens=observation.output_tokens,
+        response=response,
+        searches=tuple(f"{search.source}:{search.operation}:{search.outcome}" for search in observation.searches),
     )
+
+
+RATE_LIMIT_ATTEMPTS = 6
+RATE_LIMIT_BACKOFF_SECONDS = 15.0
+
+
+def _model_label(model: Model | None) -> str:
+    """The configured model, or a condition's model with any reasoning effort."""
+    if model is None:
+        return get_settings().linger_model
+    effort = (getattr(model, "settings", None) or {}).get("openai_reasoning_effort")
+    label = f"{model.system}:{model.model_name}"
+    return f"{label} (reasoning {effort})" if effort else label
+
+
+def _rate_limited(error: Exception) -> bool:
+    return isinstance(error, ModelHTTPError) and error.status_code == 429
 
 
 PROMPT_DIGESTS = {
     CONNECTION_DISCOVERY.skill_id: PROMPT_FINGERPRINT.digest,
     MEMORY_RECALL.skill_id: MEMORY_RECALL_PROMPT_FINGERPRINT.digest,
+    SOURCE_GATHERING.skill_id: SOURCE_GATHERING_PROMPT_FINGERPRINT.digest,
 }
 
 
@@ -206,8 +242,45 @@ async def run_reliability_experiment(
     tier: str | None = None,
     concurrency: int = 1,
     configure_logfire: bool = True,
+    discovery_skill: RuntimeSkill = CONNECTION_DISCOVERY,
 ) -> ReliabilityReport:
     """Execute every selected case `repeats` times through one shared agent."""
+    reports = await run_paired_reliability(
+        {"only": discovery_skill}, repeats=repeats, cases=cases, case_ids=case_ids,
+        tier=tier, concurrency=concurrency, configure_logfire=configure_logfire,
+    )
+    return reports["only"]
+
+
+@dataclass(frozen=True)
+class Condition:
+    """One arm of a paired experiment: a skill, and optionally a model or case variants."""
+
+    skill: RuntimeSkill = CONNECTION_DISCOVERY
+    model: Model | None = None
+    # Replacement cases by case id, for experiments that change the test itself.
+    case_variants: Mapping[str, SerendipityEvalCase] = field(default_factory=dict)
+
+
+async def run_paired_reliability(
+    skills: Mapping[str, RuntimeSkill | Condition],
+    *,
+    repeats: int = 5,
+    cases: tuple[SerendipityEvalCase, ...] | None = None,
+    case_ids: tuple[str, ...] = (),
+    tier: str | None = None,
+    concurrency: int = 1,
+    configure_logfire: bool = True,
+) -> dict[str, ReliabilityReport]:
+    """Score several conditions on the same cases in one session.
+
+    Each case's runs alternate between the conditions, so drift in the
+    provider's behaviour over the session affects every condition alike, and a
+    difference between them comes from what the conditions change: the skill,
+    the model, or the case.
+    """
+    if not skills:
+        raise ValueError("at least one skill is required")
     if repeats < 1:
         raise ValueError("repeats must be at least 1")
     if concurrency < 1:
@@ -224,45 +297,87 @@ async def run_reliability_experiment(
     if not active:
         raise ValueError("no cases selected")
 
-    agent = build_serendipity_agent()
-    if configure_logfire:
-        configure_component_evaluation_telemetry(agent)
+    conditions = {
+        name: value if isinstance(value, Condition) else Condition(skill=value)
+        for name, value in skills.items()
+    }
+    agents: dict[int, Any] = {}
+    for condition in conditions.values():
+        key = id(condition.model)
+        if key not in agents:
+            agents[key] = (
+                build_serendipity_agent() if condition.model is None
+                else build_serendipity_agent(condition.model)
+            )
+            if configure_logfire:
+                configure_component_evaluation_telemetry(agents[key])
     limiter = asyncio.Semaphore(concurrency)
 
-    async def one_run(case: SerendipityEvalCase) -> RunOutcome:
+    async def one_run(case: SerendipityEvalCase, condition: Condition) -> RunOutcome:
+        agent = agents[id(condition.model)]
+        skill = condition.skill
+        case = condition.case_variants.get(case.case_id, case)
         async with limiter:
-            try:
-                report = await run_case(case, agent=agent)
-            except Exception as error:  # an error is a failure, never a gap
-                return RunOutcome(
-                    hard_pass=False,
-                    status=EXECUTION_ERROR,
-                    failures=(f"{EXECUTION_ERROR}: {type(error).__name__}: {error}",),
-                )
-            return _outcome_from_report(report)
+            for attempt in range(RATE_LIMIT_ATTEMPTS):
+                try:
+                    report = await run_case(case, agent=agent, discovery_skill=skill)
+                except Exception as error:  # an error is a failure, never a gap
+                    if _rate_limited(error) and attempt + 1 < RATE_LIMIT_ATTEMPTS:
+                        # A rate-limited request never reached the model, so
+                        # waiting and running again is not a second sample.
+                        await asyncio.sleep(RATE_LIMIT_BACKOFF_SECONDS * 2**attempt)
+                        continue
+                    return RunOutcome(
+                        hard_pass=False,
+                        status=EXECUTION_ERROR,
+                        failures=(f"{EXECUTION_ERROR}: {type(error).__name__}: {error}",),
+                        rate_limit_retries=attempt,
+                    )
+                return _outcome_from_report(report).model_copy(update={"rate_limit_retries": attempt})
+        raise AssertionError("unreachable")
 
-    results: list[CaseReliability] = []
+    names = tuple(conditions)
+    results: dict[str, list[CaseReliability]] = {name: [] for name in names}
     for case in active:
-        outcomes = await asyncio.gather(*(one_run(case) for _ in range(repeats)))
-        summary = _summarise_case(case, tuple(outcomes))
-        results.append(summary)
-        print(_case_line(summary), flush=True)
+        order = [name for _ in range(repeats) for name in names]
+        outcomes = await asyncio.gather(*(one_run(case, conditions[name]) for name in order))
+        for name in names:
+            summary = _summarise_case(
+                case, tuple(outcome for label, outcome in zip(order, outcomes) if label == name),
+            )
+            results[name].append(summary)
+            prefix = f"{name}: " if len(names) > 1 else ""
+            print(prefix + _case_line(summary), flush=True)
 
     used = sorted({_skill_for(case).skill_id for case in active})
-    return ReliabilityReport(
-        run_id=uuid4().hex,
-        generated_at=datetime.now(UTC),
-        model=get_settings().linger_model,
-        prompt_digests={skill_id: PROMPT_DIGESTS[skill_id] for skill_id in used},
-        dataset_digest=dataset_digest(active),
-        concurrency=concurrency,
-        summary=_summarise(tuple(results), repeats),
-        tiers={
-            name: _summarise(tuple(item for item in results if item.tier == name), repeats)
-            for name in sorted({item.tier for item in results})
-        },
-        cases=tuple(results),
-    )
+    generated_at = datetime.now(UTC)
+    reports = {}
+    for name in names:
+        skill = conditions[name].skill
+        used_cases = tuple(conditions[name].case_variants.get(case.case_id, case) for case in active)
+        digests = {
+            **PROMPT_DIGESTS,
+            CONNECTION_DISCOVERY.skill_id: (
+                PROMPT_FINGERPRINT.digest if skill is CONNECTION_DISCOVERY
+                else skill.fingerprint(template_id=PROMPT_FINGERPRINT.template_id).digest
+            ),
+        }
+        rows = tuple(results[name])
+        reports[name] = ReliabilityReport(
+            run_id=uuid4().hex,
+            generated_at=generated_at,
+            model=_model_label(conditions[name].model),
+            prompt_digests={skill_id: digests[skill_id] for skill_id in used},
+            dataset_digest=dataset_digest(used_cases),
+            concurrency=concurrency,
+            summary=_summarise(rows, repeats),
+            tiers={
+                tier_name: _summarise(tuple(item for item in rows if item.tier == tier_name), repeats)
+                for tier_name in sorted({item.tier for item in rows})
+            },
+            cases=rows,
+        )
+    return reports
 
 
 def _case_line(case: CaseReliability) -> str:

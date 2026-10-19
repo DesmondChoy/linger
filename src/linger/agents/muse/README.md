@@ -1,25 +1,58 @@
 # Muse
 
 Muse is Linger's conversation role. One reusable PydanticAI Agent,
-`muse_chat_agent`, has one assigned runtime skill,
-[`reflection`](skills/reflection/SKILL.md). Application orchestration selects
-that skill for an initial draft and, when Provenance requests it, one revision.
-Draft and revision are separate model runs on the same Agent object.
+`muse_chat_agent`, has two assigned runtime skills. The application selects
+[`turn-triage`](skills/turn-triage/SKILL.md) to classify the reader's message,
+then [`reflection`](skills/reflection/SKILL.md) for the draft and, when
+Provenance requests it, one revision. Each invocation is a separate model run
+on the same Agent object.
 
 | Assigned skill | Typed input | Typed output | Current consumer |
 | --- | --- | --- | --- |
+| `turn-triage` | `TurnTriageInput` | `TurnNeeds` | `orchestration.triage.triage_turn`, called after emotional preflight to select the turn's offered tools |
 | `reflection` | `MuseDraftInput` or `MuseRevisionInput` | `MuseCandidate` | `orchestration.reflection.reflection_reply`, called by production chat and synthetic replay |
 
 [`skills.py`](skills.py) binds the selected instructions, contracts, permitted
 tools, output validator, and retry limits. `agents.muse` in the
 [`prompt catalogue`](../../prompts/prompt_catalog.yaml) contains Muse's shared purpose
 and authority rules. The Agent's base instructions contain only that entry.
-The application supplies the selected skill instructions on each run.
+The application supplies the selected skill instructions on each run. The
+reflection skill is a core [`SKILL.md`](skills/reflection/SKILL.md) plus modules:
+[`revision`](skills/reflection/revision.md) for the revision run, and
+[`routing`](skills/reflection/routing.md),
+[`grounding`](skills/reflection/grounding.md), and
+[`connections`](skills/reflection/connections.md) when the turn offers
+`librarian_route`, `librarian_search`, or `serendipity_explore`.
+`reflection_run_options` composes them from the mode and the turn's tool
+exposure; the tool docstrings in [`tools.py`](tools.py) carry the rules for when
+to call each tool.
+
+Draft and revision runs request OpenAI `medium` reasoning effort. Turn triage
+keeps the configured model's default effort. The grounding instructions ask Muse
+to answer every part of the question and include each reason or step stated in
+the returned passages. This is a model instruction, so evidence review and
+evaluation still need to check completeness.
+
 All resources load from the package without depending
 on the working directory. The [runtime skills architecture](../../../../docs/agent-skills.md)
 describes the common assignment mechanism.
 
 ## Conversation and tool boundaries
+
+Turn triage sees only the current reader message and has no tools. It returns
+`book_content`, `memory`, and `override_attempt`. The application combines
+those labels with tools used in earlier released turns and any required book
+clarification. That result fixes the offered tools for both draft and revision.
+Triage also pins Serendipity's intent when it recognizes recall, named sources,
+open connection discovery, or a recommendation. "Does anything I've read
+speak to this?" selects open comparison through `find_connection`; a request
+for an unfamiliar outside work selects `get_recommendation`. An override
+attempt cannot unlock tools through the message's claimed needs.
+
+Chat gives triage 10 seconds and at most two model requests. On failure, it
+offers the book tools and tools used in earlier released turns, and reports
+`override_attempt=unknown`. The [tool exposure contract](../../../../docs/agent-skills.md#muse-tool-exposure)
+describes the labels, deterministic overrides, and failure behavior.
 
 The application supplies released conversation history, one typed current-turn
 envelope, and any exact previously cited book records that it has re-resolved.
@@ -27,6 +60,32 @@ Muse can call `librarian_route`, `librarian_search`, and `serendipity_explore`
 under application-owned source grants. The model chooses whether and how to
 use those tools. Deterministic code controls identity, reading progress,
 retrieval scope, and storage.
+
+A `sufficient` `librarian_search` result reaches Muse with one fixed
+application sentence as its `strength_reason`, not Librarian's free-text
+reason, which can name details the selected records do not contain. `weak` and
+`none` results keep Librarian's reason and limitations.
+
+The interactive application keeps explicit completed-chapter progress per
+account and work in `reading_progress.sqlite3`. A released reply or application
+clarification saves the part and ceiling. The latest declaration wins,
+including a lower chapter. Saved progress survives new chats, conversation
+deletion, and backend restarts, but it applies only after the reader or routing
+identifies the work. Librarian inferences, named units, and exact passages are
+absent from the durable store. Session carry and correction rules remain in
+application code; lower or unclear corrections immediately reduce or retract
+the session's carried permission, while higher declarations wait for release.
+An unclear session retraction does not erase saved account progress. Later
+routing or a comparison can reuse its saved chapter until a released explicit
+correction replaces it.
+
+For `find_connection`, the application combines saved progress with any
+current confirmed permission. When that covers at least two books, Muse
+receives independently bounded `connection_book_scopes` instead of one primary reading context.
+The current turn's confirmed permission replaces that book's saved entry.
+Every other saved book keeps its own ceiling. A carried or saved ceiling does
+not force a book lookup for a personal reflection. Synthetic replay supplies
+its own trusted scopes and does not load live account progress.
 
 `serendipity_explore(intent="recall_memory")` retrieves one to three matching
 stored records for a request about the reader's earlier words. A single record
@@ -47,8 +106,9 @@ excerpt it returns in explicit `<untrusted_web_page>` delimiters, spotlighting
 third-party page text as untrusted data without changing the canonical
 excerpt Provenance and citation checks use.
 
-Muse retains a fixed output schema and its registered `validate_muse_output`
-validator. The reflection skill does not override `output_type` per run.
+Reflection retains the Agent's `MuseCandidate` output schema. Turn triage
+selects `TurnNeeds` per run. `MuseSkillBoundary` applies `validate_muse_output`
+to every candidate and limits tools to the selected skill and turn exposure.
 Book evidence IDs, locations, and quotations are checked against the
 application's request-scoped evidence map. The output validator can request
 three repairs; tool calls retain one retry. These repairs do not count as the
@@ -71,13 +131,39 @@ a revision, Muse receives the same reflection skill, released history, draft
 messages, and response-scoped findings. The application allows one such rewrite
 and reviews the rewritten candidate again.
 
-The revision envelope includes the earlier review's accepted claims, reviewed
-quotation interiors, and verified reader Lines. If Muse retains an accepted
-claim unchanged, validation requires source mappings to cover its retained text.
-A retained, quoted source span also needs a valid current declaration. Muse may
-remove or rewrite text, but cannot retain an unchanged accepted claim while
-dropping its source mapping. The second review independently checks every
-current source assignment and resolves each earlier response finding.
+The revision envelope includes the earlier review's accepted claims, supporting
+sources, reviewed quotation interiors, verified reader Lines, and draft
+sentences marked by the review's findings. Muse can rewrite a flagged sentence
+or delete a sentence; unflagged retained sentences keep their wording. A sentence
+marked `needs_source` must have its substantive content mapped to supporting
+evidence or be removed. If a finding cannot be located, the application omits
+the sentence restrictions.
+
+An unflagged sentence that can carry its text and declarations without loss has
+a label such as `{{SENTENCE_2}}`. Muse can copy the label in place of that text.
+Before schema validation, [`labels.py`](labels.py) expands it to the accepted
+draft's exact wording and source declarations. Sentences joined by a source
+quotation can share one label. Each label can occur once, and malformed or
+unknown labels trigger repair. The ordinary candidate checks and second review
+see the expanded reply, including its carried declarations.
+
+When findings can be located, each must change at least one sentence it names,
+through a rewrite, deletion, or a change to a disputed source mapping. Moving an
+unchanged flagged sentence with its original mappings does not resolve the
+finding.
+
+An unchanged accepted claim keeps source mappings over its retained text.
+Supporting sources remain declared unless a finding rejects the source itself,
+and a retained source quotation needs a valid current declaration. The second
+review independently checks every current source assignment and resolves each
+earlier response finding.
+
+Wording kept from an undisputed draft claim keeps its draft sources. A corrected
+claim can cite the source that supports the correction. If a narrower,
+undisputed mapping survives inside that claim, the revision preserves that
+mapping beside the corrected claim's source. [`claim_repair.py`](claim_repair.py)
+recognizes kept wording through word runs and checks these retention rules.
+It does not decide whether a source semantically supports the revised wording.
 
 After semantic approval, deterministic validation resolves every declared source
 against the exact authorized record. Book quotations must match their source and
@@ -91,22 +177,41 @@ The shared Agent stores no session, account, evidence, or release state. The
 application deliberately constructs each run's message history and request
 context. There is no direct Muse-to-storage or Muse-to-reader bypass.
 
+The shared [`ProviderCredentialGuard`](../security.py) checks each provider
+request, including tool results and repair messages, for detected credentials.
+Muse's output boundary also checks the reply and memory nomination for
+credentials. Incoming chat redacts email addresses and phone numbers before
+Muse runs. These checks and their scope are described in the
+[runtime security boundaries](../../../../docs/agent-skills.md#security-boundaries).
+
 ## Evaluation and supported scope
 
-The [Muse component pack](../../../../evals/muse/README.md) supplies 19 fixed
-behavioral cases, run live against the first and current Muse. Production chat and synthetic reflection, capture, connection,
-and continuity replays exercise the same reflection skill. Component cases and
+The [Muse evaluations](../../../../evals/muse/README.md) contain 19 main
+reflection cases, 32 review cases, eight revision fixtures, and a separate
+turn-triage pack. Reflection runs compare the first and current Muse with fixed
+tool results. Revision runs hold the draft and review fixed; blind review
+grades saved reflection replies against each case's semantic rubric.
+Interactive chat and synthetic reflection, capture, connection, and continuity
+replays exercise the same reflection skill. Component cases and
 synthetic runs remain separate from independently adopted product evaluation
 results. Photograph input remains an unimplemented product target.
 
-[`prompt.py`](prompt.py) exports fingerprints of the effective shared and skill
-instructions, relevant contracts, tool permissions, validator, and retry limits.
+[`prompt.py`](prompt.py) exports fingerprints of the effective shared and complete skill
+instructions (every module), relevant contracts, tool permissions, validator, and retry limits.
 Draft and revision retain separate fingerprints because their input contracts
-differ. `build_muse_agent(model)` and the reusable Agent's model override support
-local tests and evaluation without changing production configuration.
+differ. Turn triage has its own fingerprint and uses `build_triage_model`:
+`gpt-6-luna` for OpenAI, `gemini-2.5-flash` for Google, and `LINGER_MODEL` for
+other supported providers. `build_muse_agent(model)` and the reusable Agent's
+model override support local tests and evaluation without changing production
+configuration.
 
 Focused checks include `tests/test_muse_agent.py`,
-`tests/test_muse_serendipity_skills.py`, `tests/test_reflection.py`, and chat and
-synthetic replay tests. They cover typed output, retry repair, released history,
-bounded revision, selected instructions, tool permissions, and concurrent
-request isolation.
+`tests/test_muse_turn_triage.py`, `tests/test_muse_tool_exposure.py`,
+`tests/test_muse_reflection_modules.py`, `tests/test_muse_revision_sentences.py`,
+`tests/test_muse_revision_labels.py`, `tests/test_muse_claim_retention.py`,
+`tests/test_muse_search_reason.py`, and `tests/test_reflection.py`. Chat and
+synthetic replay tests also cover released history, bounded revision, tool
+permissions, and concurrent request isolation. `tests/test_reading_progress.py`
+checks session carry, corrections, and evidence exclusion;
+`tests/test_progress_store.py` checks durable progress, account isolation,
+saved-boundary routing, and comparison scopes.

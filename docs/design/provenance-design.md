@@ -50,6 +50,11 @@ reaches the model.
 No task inherits another task's policy or output schema. Candidate review
 allows two output retries; the other skills allow one. Output schemas retain
 their Pydantic validators, and orchestration retains its deterministic checks.
+
+Candidate review requests OpenAI `medium` reasoning effort. The other skills
+keep the configured model's default effort. Skill fingerprints include any
+task-specific model settings.
+
 No skill receives tools, PydanticAI dependencies, or conversation history.
 Request inputs and evaluation overrides remain local to each run.
 
@@ -60,15 +65,20 @@ validation, and retry limits. Role and task tracing remain separate. See the
 
 ## Review call sites
 
-The first two skills run during a conversation turn. Preflight may stop the
-turn before Muse runs, and a Muse revision requires a second candidate review.
-Curation review runs outside the conversation turn.
+Preflight may stop a conversation turn before Muse runs, and a Muse revision
+requires a second candidate review. Curation review is a separate typed call
+with its own source snapshots. It runs after an eligible durable capture during
+chat, or through an explicitly invoked curation workflow.
 
 ### Emotional-boundary preflight
 
-The application reviews the current Line before Muse runs. If the Line crosses
-the emotional boundary, the application returns the canonical boundary response
-and records that Muse did not run. A safe Line continues to Muse.
+The application reviews the current Line before Muse runs. The preflight returns
+`continue_reflection`, `apply_boundary`, or `apply_self_harm_boundary`. A
+deterministic first-person self-harm detector can select the last decision
+without a provider call. A boundary decision returns the matching canonical
+response, suppresses capture, and skips Muse, its tools, and account-memory
+loading. A preflight failure returns the application safe decline. A safe Line
+continues to Muse.
 
 This preflight is application-owned. Provenance does not invent the boundary
 response and does not claim that Muse reviewed a Line it never received.
@@ -90,13 +100,23 @@ response can suppress capture even when Provenance allows it.
 Provenance findings use the closed `RiskCode` taxonomy. Findings identify the
 affected object, use exact evidence spans where required, and cannot cite
 capture evidence against the response. The input projects exact quote checks,
-quoted spans, undeclared response spans, and claim support groups. The reviewer
-audits all of them, checks each declared source's contribution, and judges
-collective support within the mapped text. Literal source excerpts bind private
+quoted spans, undeclared response spans, claim support groups, and declared
+evidence limits. The reviewer audits all of them, checks each declared source's
+contribution, and judges collective support within the mapped text. Literal source excerpts bind private
 proof to named records; they do not establish semantic support by themselves.
 Output validation retries incomplete audits, invalid bindings, and inconsistent
 findings within the two-retry budget. A revision also requires a resolution for
 every earlier response finding.
+
+The second review checks the complete revised reply and every current source
+mapping. A resolved earlier finding does not exempt other text from review.
+
+Muse's own non-sensitive reflection needs no source mapping. A claim about what
+a book, memory, or web source establishes requires the matching declaration.
+Declared evidence limits have a separate audit that checks whether a span only
+withholds a conclusion and whether its named record leaves that conclusion
+unestablished. Neither reflection nor a limit permits invented facts, sensitive
+inferences, or unsupported personal causes.
 
 `contains_sensitive_content` is derived
 from capture findings, so callers cannot set it inconsistently.
@@ -136,6 +156,10 @@ source locations, trusted work and version, and the applicable chapter ceiling
 or passage scope. Memory and opened-web records use a separate request-local
 authority, including active-memory and visible-URL checks. They never become
 book evidence. Image evidence has no implemented release contract.
+Comparisons can carry independently confirmed scopes for several books. Each
+record remains bound to its own book's revision and reading permission. An
+opened web page can be cited through a Markdown link whose target is its exact
+URL.
 
 For curation, the digest chain binds account scope, the ordered curation-state
 digest, the complete action, and source-record hashes. The review must echo the
@@ -144,6 +168,21 @@ digest mismatch. The audit contract rebuilds the plan and verifies its digest.
 
 These checks bind a verdict to the object and state that were reviewed. They do
 not turn Provenance into a writer or a release authority.
+
+## Security boundaries
+
+Incoming chat redacts email addresses and phone numbers with DataFog's regex
+detector before agent processing. Fixed regex rules block explicit attempts to
+override instructions or request hidden instructions. Provenance still reviews
+the candidate independently for injection and policy compliance.
+
+Every reusable Agent has a `ProviderCredentialGuard`, which checks each
+provider request for detected credentials, including tool results and retry
+messages. Internal provider requests and storage do not repeat incoming PII
+redaction. Muse output, generated curation text, memory writes, sessions,
+transcripts, and captured model messages also have credential checks. See the
+[runtime security boundaries](../agent-skills.md#security-boundaries) for
+detector scope and focused verification.
 
 ## Component boundaries
 
@@ -160,14 +199,21 @@ not turn Provenance into a writer or a release authority.
 ## Implementation and evaluation status
 
 The three skills, deterministic gates, and curation binding are implemented.
-Chat consumes preflight and candidate review. The application curation loop
-consumes curation review outside chat.
+Chat consumes preflight and candidate review. After a new durable capture with
+relevant prior memories, chat awaits the application curation loop, which uses
+the separate curation-review contract. Offline workflows can invoke that loop
+directly. Interactive accounts without a stored policy permit automatic
+capture by default. A stored policy takes precedence. Other
+`MemoryPolicyService` callers default to capture disabled unless configured.
 
 The [Provenance evaluation guide](../../evals/provenance/README.md) describes an
-eight-case emotional pack and a 28-case candidate-review pack. Twelve cases
-cover release, twelve cover capture, and four exercise omitted claim mappings
-and revision repair. Saved reports remain evidence for their recorded case sets, providers,
-and prompt fingerprints; the saved 24-case report has the earlier case set.
+eight-case emotional pack, a 60-case candidate-review pack, a nine-case focused
+capture pack, a twelve-case curation pack, and a four-case claim-mapping
+diagnostic. The candidate pack includes 43 response cases and 18 capture cases,
+with source mapping, revision repair, web citations, and private-memory
+attribution checks. Saved reports remain evidence for their recorded case sets,
+providers, and prompt fingerprints. A passing focused pack does not establish a
+passing complete baseline or current runtime result.
 
 Synthetic capture expectations represent nomination and independent
 Provenance decisions. Replay grades review, exact binding, storage, record
@@ -177,9 +223,9 @@ not establish new live-model results or adoption of a synthetic Scenario.
 Standalone curation replay calls `run_curation_loop` with production Provenance
 in an isolated temporary store when no handler is injected. It observes the proposal, Provenance decision, application outcome, audit
 verification, retrieval IDs, and source preservation. Ground truth can constrain
-each outcome. The default combined capture-and-curation runner injects an
-allowing review double, so its `allow` results do not measure semantic curation
-review. The dedicated [curation risk-code pack](../../evals/provenance/curation_risk_codes.py)
+each outcome. The combined capture-and-curation runner also uses production
+Sculptor and Provenance by default. It keeps captured records separate from
+the Props designated for curation. The dedicated [curation risk-code pack](../../evals/provenance/curation_risk_codes.py)
 contains a positive case and a supported near miss for each of the six codes.
 Its prompt-injection case accepts either blocking verdict, so it does not prove
 the runtime skill's specific rejection rule. These checks do not establish the

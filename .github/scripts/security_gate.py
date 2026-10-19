@@ -24,6 +24,47 @@ def trivy_findings(document: dict) -> list[str]:
     return findings
 
 
+def _rule_metadata(tool: dict, result: dict) -> dict:
+    reference = dict(result.get("rule", {}))
+    for legacy, key in (("ruleId", "id"), ("ruleIndex", "index")):
+        if legacy in result:
+            if key in reference and reference[key] != result[legacy]:
+                raise ValueError("CodeQL result has conflicting rule references.")
+            reference[key] = result[legacy]
+
+    component_reference = reference.get("toolComponent", {})
+    component = tool["driver"]
+    extensions = tool.get("extensions", [])
+    if "index" in component_reference:
+        index = component_reference["index"]
+        if type(index) is not int or not 0 <= index < len(extensions):
+            raise ValueError("CodeQL result has no matching component metadata.")
+        component = extensions[index]
+    elif "guid" in component_reference:
+        matches = [item for item in [component, *extensions] if item.get("guid") == component_reference["guid"]]
+        if len(matches) != 1:
+            raise ValueError("CodeQL result has no unique component metadata.")
+        component = matches[0]
+    if any(component.get(key) != component_reference[key] for key in ("name", "guid") if key in component_reference):
+        raise ValueError("CodeQL result has conflicting component metadata.")
+
+    rules = component.get("rules", [])
+    identity = {key: reference[key] for key in ("id", "guid") if key in reference}
+    if "index" in reference:
+        index = reference["index"]
+        if type(index) is not int or not 0 <= index < len(rules):
+            raise ValueError("CodeQL result has no matching rule metadata.")
+        rule = rules[index]
+    else:
+        matches = [rule for rule in rules if identity and all(rule.get(key) == value for key, value in identity.items())]
+        if len(matches) != 1:
+            raise ValueError("CodeQL result has no unique rule metadata.")
+        rule = matches[0]
+    if not rule.get("id") or any(rule.get(key) != value for key, value in identity.items()):
+        raise ValueError("CodeQL result has conflicting rule metadata.")
+    return rule
+
+
 def codeql_findings(document: dict) -> list[str]:
     runs = document.get("runs")
     if document.get("version") != "2.1.0" or not isinstance(runs, list) or not runs:
@@ -35,11 +76,8 @@ def codeql_findings(document: dict) -> list[str]:
             raise ValueError("Unrecognized CodeQL results.")
         if any(invocation.get("executionSuccessful") is False for invocation in run.get("invocations", [])):
             raise ValueError("CodeQL reports an unsuccessful analysis.")
-        rules = {rule["id"]: rule for rule in driver.get("rules", [])}
         for result in run["results"]:
-            rule = rules.get(result.get("ruleId"))
-            if rule is None:
-                raise ValueError("CodeQL result has no rule metadata.")
+            rule = _rule_metadata(run["tool"], result)
             score = rule.get("properties", {}).get("security-severity")
             if score is not None and float(score) >= 7:
                 findings.append(f"{rule['id']}: security severity {score}")

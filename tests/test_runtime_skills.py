@@ -50,9 +50,20 @@ def test_fingerprints_track_effective_policy_schemas_and_permissions() -> None:
         replace(selected, validators=("test_validator",)),
         replace(selected, output_retries=2),
         replace(selected, tool_retries=2),
+        replace(selected, model_settings={"openai_reasoning_effort": "medium"}),
     )
     assert all(variant.fingerprint().digest != digest for variant in variants)
     assert selected.fingerprint().digest == digest
+
+
+def test_run_options_carry_only_a_skills_own_model_settings() -> None:
+    selected = skill()
+    assert "model_settings" not in selected.run_options()
+
+    harder = replace(selected, model_settings={"openai_reasoning_effort": "medium"})
+    first = harder.run_options()
+    first["model_settings"]["openai_reasoning_effort"] = "low"
+    assert harder.run_options()["model_settings"] == {"openai_reasoning_effort": "medium"}
 
 
 def test_run_options_cannot_leak_mutations_between_runs() -> None:
@@ -159,6 +170,7 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "serendipity.connection-discovery",
         "serendipity.memory-recall",
         "serendipity.source-gathering",
+        "serendipity.self-review",
         "provenance.emotional-preflight",
         "provenance.candidate-review",
         "provenance.curation-review",
@@ -176,9 +188,14 @@ def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, mo
     for assignment in assignments:
         package = f"src.linger.agents.{assignment.role.lower()}"
         assert load_prompt("agents", assignment.role.lower()) == assignment.shared_instructions
-        assert load_instructions(
-            package, f"skills/{assignment.name}/SKILL.md"
-        ) == assignment.instructions
+        core = load_instructions(package, f"skills/{assignment.name}/SKILL.md")
+        if assignment.skill_id == "muse.reflection":
+            # The complete text is the core followed by every module resource.
+            modules = ("revision", "routing", "grounding", "connections")
+            parts = [core, *(load_instructions(package, f"skills/reflection/{name}.md") for name in modules)]
+            assert assignment.instructions == "\n\n".join(parts)
+        else:
+            assert core == assignment.instructions
 
 
 def test_validator_roles_keep_fixed_output_contracts() -> None:

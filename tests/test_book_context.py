@@ -209,7 +209,6 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual(5, context.chapter_max)
         self.assertIsNotNone(sessions.book_selection("context-test"))
 
-        # The book must still be known on the next, bookless follow-up.
         follow_up = resolve_reading_context(ChatRequest(
             session_id="context-test",
             message="Is there a comparison to real life politics?",
@@ -908,3 +907,27 @@ class BookContextTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NaturalProgressDeclarationTests(unittest.TestCase):
+    """Ways readers actually say how far they have read."""
+
+    def tearDown(self) -> None:
+        sessions.clear("natural-declaration")
+
+    def test_common_phrasings_confirm_the_book_and_chapter(self) -> None:
+        cases = {
+            "I've just finished chapter 5 of Alice's Adventures in Wonderland.": ("pg11", 5),
+            "I just finished chapter 5 of Alice's Adventures in Wonderland.": ("pg11", 5),
+            "I've just finished chapter 5 of Alice's Adventures in Wonderland, the one with the Caterpillar.": ("pg11", 5),
+            "I've finished chapter 4 of Pinocchio, where he meets the Talking Cricket.": ("pg500", 4),
+            "I'm reading Alice's Adventures in Wonderland and I've just finished chapter 7, the mad tea-party.": ("pg11", 7),
+            "I'm also reading The Story of My Life and I've finished chapter 4.": ("pg2397", 4),
+        }
+        for message, (work_id, chapter) in cases.items():
+            with self.subTest(message=message):
+                sessions.clear("natural-declaration")
+                context = resolve_reading_context(
+                    ChatRequest(session_id="natural-declaration", message=message)
+                )
+                self.assertEqual(("confirmed", work_id, chapter), (context.status, context.work_id, context.chapter_max))

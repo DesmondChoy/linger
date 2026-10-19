@@ -11,13 +11,14 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, computed_field, field_validator, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.models import EvidenceUse, MemoryNomination, limit_claim_texts
 from src.linger.agents.provenance.excerpt_feedback import literal_source_context
 from src.linger.agents.provenance.quotation_audit import (
     QuotationAudit, QuotedResponseSpan, quotation_audit_errors,
     quoted_response_spans as project_quoted_response_spans,
 )
+from src.linger.agents.response_text import sentence_spans
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from src.linger.contracts.librarian import EvidenceRecord, PassageScope
@@ -54,7 +55,6 @@ SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
     }
 )
 
-# One review reports at most this many findings.
 MAX_FINDINGS = 20
 
 DecisionScope = Literal["response", "capture"]
@@ -620,10 +620,20 @@ class ProvenanceInput(StrictModel):
             cursor = max(cursor, end)
         if cursor < len(response):
             gaps.append((cursor, len(response)))
+        sentence_ends = [end for _, end in sentence_spans(response)]
+        fragments = []
+        for start, end in gaps:
+            last_text = start + len(response[start:end].rstrip())
+            cursor = start
+            for boundary in sentence_ends:
+                if cursor < boundary < last_text:
+                    fragments.append((cursor, boundary))
+                    cursor = boundary
+            fragments.append((cursor, end))
         return tuple(UncoveredResponseSpan(
             span_index=index, start=start, end=end, text=response[start:end],
         ) for index, (start, end) in enumerate(
-            (start, end) for start, end in gaps if response[start:end].strip()
+            (start, end) for start, end in fragments if response[start:end].strip()
         ))
 
     @computed_field

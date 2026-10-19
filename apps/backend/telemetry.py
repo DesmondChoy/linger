@@ -19,6 +19,7 @@ import logfire
 from openai import APIConnectionError, APIStatusError, APITimeoutError
 from opentelemetry.trace import format_span_id, format_trace_id
 from pydantic_ai import capture_run_messages
+from pydantic_core import to_jsonable_python
 from pydantic_ai.exceptions import (
     ModelAPIError,
     ModelHTTPError,
@@ -37,10 +38,15 @@ from src.linger.evaluation_transcript import (
     ProviderErrorKind,
     active_evaluation_transcript_sink,
 )
+from src.linger.agents.security import credential_checked_messages
+from src.linger.contracts.security_validation import (
+    SecurityValidationBlocked,
+    check_storage_credentials,
+    validate_credentials,
+)
 from src.linger.orchestration.progress_context import emit_progress
 
 from .config import get_settings
-from .contracts import EvidenceBundle, LibrarianRequest
 
 SERVICE_NAME = "linger-backend"
 EVALUATION_SERVICE_NAME = "linger-evals"
@@ -59,6 +65,20 @@ _ACTIVE_AGENT_ROLE: ContextVar[AgentRole | None] = ContextVar(
     "linger_active_agent_role",
     default=None,
 )
+
+
+class _TranscriptSafeResult:
+    """Credential-checked view of a result for eval transcript sinks."""
+
+    def __init__(self, result: Any) -> None:
+        self.output = check_storage_credentials(
+            to_jsonable_python(result.output, serialize_unknown=True)
+        )
+        self.usage = getattr(result, "usage", None)
+        self._messages = credential_checked_messages(list(result.new_messages()))
+
+    def new_messages(self) -> list[Any]:
+        return self._messages
 
 
 def configure_telemetry() -> None:
@@ -384,6 +404,7 @@ async def run_agent_traced(
     output_receiver: AgentRole | None = None,
     retryable: bool = True,
     result_attrs: Callable[[Any], Mapping[str, object | None]] | None = None,
+    span_attrs: Mapping[str, object | None] | None = None,
     **run_kwargs: Any,
 ) -> Any:
     """Run one agent without allowing its prompt or exception into telemetry.
@@ -440,8 +461,21 @@ async def run_agent_traced(
     ) as span:
         if skill_id is not None:
             span.set_attribute("agent.skill", skill_id)
+        # Known before the run, so recorded even when the run fails.
+        if span_attrs:
+            set_span_attrs(span, span_attrs)
         span_context = span.get_span_context()
         if transcript_sink is not None:
+            history = run_kwargs.get("message_history", ())
+            try:
+                safe_prompt = validate_credentials(prompt).text
+                safe_history = credential_checked_messages(list(history))
+            except SecurityValidationBlocked:
+                # An attempted credential-bearing request must not enter the
+                # content-bearing evaluation transcript, even if it is blocked
+                # by a capability before the provider call.
+                safe_prompt = ""
+                safe_history = []
             transcript_handle = transcript_sink.begin_agent_exchange(
                 role=role,
                 stage=stage,
@@ -452,8 +486,8 @@ async def run_agent_traced(
                 output_contract=output_contract,
                 prompt_template_id=prompt_template_id,
                 prompt_digest=prompt_digest,
-                input_prompt=prompt,
-                message_history=run_kwargs.get("message_history", ()),
+                input_prompt=safe_prompt,
+                message_history=safe_history,
                 trace_id=format_trace_id(span_context.trace_id),
                 span_id=format_span_id(span_context.span_id),
             )
@@ -518,12 +552,28 @@ async def run_agent_traced(
             _ACTIVE_AGENT_ROLE.reset(role_token)
 
     if transcript_sink is not None and transcript_handle is not None:
+        try:
+            safe_messages = credential_checked_messages(list(captured_messages))
+            safe_result = None
+            if result is not None:
+                safe_result = _TranscriptSafeResult(result)
+        except SecurityValidationBlocked:
+            # A failed exchange can still capture its raw input history. Do not
+            # export any messages when a credential was found in that history.
+            safe_messages = []
+            safe_result = None
+        except Exception:
+            # A validator failure must fail closed for the content-bearing
+            # eval sink without turning transcript projection into a new path
+            # for raw input or exception text.
+            safe_messages = []
+            safe_result = None
         transcript_sink.complete_agent_exchange(
             transcript_handle,
-            result=result,
+            result=safe_result,
             status=transcript_status,
             failure_code=transcript_failure_code,
-            partial_messages=captured_messages if result is None else (),
+            partial_messages=safe_messages if result is None else (),
             failure_category=failure_category,
             provider_status_code=provider_status_code,
             provider_error_kind=provider_error_kind,
@@ -559,29 +609,6 @@ def connection_scope_attrs(task: ConnectionDiscoveryInput) -> dict[str, object]:
         attributes["scope.part_id"] = book_scope.part_id
         attributes["scope.unit_ids"] = list(book_scope.unit_ids)
     return attributes
-
-
-def librarian_request_attrs(request: LibrarianRequest) -> dict[str, object]:
-    """Validated public-corpus scope without the reader-derived query."""
-    return {
-        "tool.name": "librarian_search",
-        "tool.retry_count": 0,
-        "scope.work_id": [scope.work_id for scope in request.book_scopes],
-        "scope.book_version_id": [
-            scope.book_version_id for scope in request.book_scopes
-        ],
-        "scope.chapter_max": [scope.chapter_max for scope in request.book_scopes],
-        "scope.part_id": [scope.part_id for scope in request.book_scopes],
-        "scope.unit_ids": [identity for scope in request.book_scopes for identity in scope.unit_ids],
-    }
-
-
-def evidence_attrs(bundle: EvidenceBundle) -> dict[str, object]:
-    """Public evidence identifiers and count, never excerpts or notes."""
-    return {
-        "retrieval.item_count": len(bundle.items),
-        "retrieval.evidence_ids": [item.evidence_id for item in bundle.items],
-    }
 
 
 def review_attrs(review: ProvenanceReview) -> dict[str, object]:

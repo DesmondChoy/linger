@@ -1,6 +1,7 @@
 services:
   linger:
     image: ${LINGER_IMAGE:-linger:local}
+    platform: linux/amd64
     build: .
     env_file: ${LINGER_ENV_FILE:-.env}
     environment:

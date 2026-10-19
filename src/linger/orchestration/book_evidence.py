@@ -29,10 +29,9 @@ class EvidenceJudgementError(ValueError):
 MAX_SEARCH_QUERIES = 16
 MAX_BOOK_CANDIDATES = 20
 MAX_QUERY_CHARACTERS = 2000
-# A planned part keeps its own top hits in each book it is searched in, so one
-# part's matches cannot bury another's. Offline part-recall replay of the
-# combined Scenario found every required passage within a part's top three.
-PART_CANDIDATES = 3
+# Keep a full round of the keyword, fused, semantic, and reranker streams.
+# Their interleaved order is not a descending relevance-score order.
+PART_CANDIDATES = 4
 # The whole Line and prior statements stay as a small safety net for a need
 # the planner missed.
 CONTEXT_CANDIDATES = 2
@@ -40,7 +39,6 @@ CONTEXT_CANDIDATES = 2
 # otherwise, as for an unnamed theme, it is searched in every granted book.
 ROUTING_FLOOR = 0.05
 ROUTING_MARGIN = 10.0
-OVERLAP_DEDUPE_THRESHOLD = 0.5
 
 
 @dataclass(frozen=True)
@@ -184,15 +182,15 @@ def _routed_books(streams: dict[str, tuple[EvidenceItem, ...]]) -> tuple[str, ..
     return tuple(streams)
 
 
-def _without_overlaps(items: tuple[EvidenceItem, ...]) -> tuple[EvidenceItem, ...]:
-    """Drop a window mostly repeated by an earlier, better-ranked window."""
+def _without_contained_windows(items: tuple[EvidenceItem, ...]) -> tuple[EvidenceItem, ...]:
+    """Drop a window only when an earlier record contains all of its source lines."""
     kept: list[EvidenceItem] = []
     for item in items:
         start, end = item.source_lines
         if not any(
-            other.chapter_id == item.chapter_id
-            and min(end, other.source_lines[1]) - max(start, other.source_lines[0]) + 1
-            >= OVERLAP_DEDUPE_THRESHOLD * (end - start + 1)
+            (other.work_id, other.book_version_id, other.part_id, other.chapter_id, other.source_sha256)
+            == (item.work_id, item.book_version_id, item.part_id, item.chapter_id, item.source_sha256)
+            and other.source_lines[0] <= start <= end <= other.source_lines[1]
             for other in kept
         ):
             kept.append(item)
@@ -215,15 +213,20 @@ def gather_book_candidates(
     `part_candidates` is an opt-in experiment switch; production keeps `PART_CANDIDATES`.
     """
     part_queries = _part_queries(plan)
-    # A part that repeats reader text already keeps more hits than the safety net.
-    context_queries = tuple(query for query in _context_queries(original) if query not in part_queries)
-    if len(part_queries) + len(context_queries) > MAX_SEARCH_QUERIES:
+    context_queries = _context_queries(original)
+    if len(set((*part_queries, *context_queries))) > MAX_SEARCH_QUERIES:
         raise EvidenceJudgementError("The complete request exceeds the retrieval query budget")
 
+    searched: dict[tuple[BookScope, str], tuple[EvidenceItem, ...]] = {}
+
     def search(scope: BookScope, query: str) -> tuple[EvidenceItem, ...]:
+        query = _without_author(query, scope.work_id)
+        key = (scope, query)
+        if key in searched:
+            return searched[key]
         try:
             request = LibrarianRequest(
-                query=_without_author(query, scope.work_id), book_scopes=[scope],
+                query=query, book_scopes=[scope],
                 retrieval_score_threshold=retrieval_score_threshold,
                 max_results=max_results, purpose=purpose,
             )
@@ -241,7 +244,8 @@ def gather_book_candidates(
                 operation="search_librarian", requested_work_ids=(scope.work_id,),
                 retrieved_work_ids=tuple(item.work_id for item in raw),
             ))
-        return _merge_candidates([raw], (scope,))
+        searched[key] = _merge_candidates([raw], (scope,))
+        return searched[key]
 
     per_book: dict[str, list[tuple[EvidenceItem, ...]]] = {scope.work_id: [] for scope in book_scopes}
     for query in part_queries:
@@ -252,9 +256,11 @@ def gather_book_candidates(
     context_budget = CONTEXT_CANDIDATES if part_queries else MAX_BOOK_CANDIDATES
     for scope in book_scopes:
         for query in context_queries:
+            # Routing can omit this book's planned results even for an identical
+            # query. Reuse the search, but retain its fallback independently.
             per_book[scope.work_id].append(search(scope, query)[:context_budget])
     merged = tuple(
-        _without_overlaps(_merge_candidates(per_book[scope.work_id], (scope,)))[:MAX_BOOK_CANDIDATES]
+        _without_contained_windows(_merge_candidates(per_book[scope.work_id], (scope,)))[:MAX_BOOK_CANDIDATES]
         for scope in book_scopes
     )
     return _merge_candidates(list(merged), book_scopes)

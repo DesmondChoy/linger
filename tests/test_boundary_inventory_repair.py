@@ -1,207 +1,139 @@
-"""Repair observed candidate inventory faults within the existing single retry."""
+"""The application derives candidate bookkeeping; the model repairs only real faults."""
 
 import asyncio
 import json
 
 import pytest
-from pydantic import ValidationError
 from pydantic_ai.exceptions import UnexpectedModelBehavior
 from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 
 from src.linger.agents.librarian.agent import build_librarian_agent
-from src.linger.agents.librarian.models import (
-    BoundaryInferenceDecision,
-    boundary_candidate_inventory_errors,
-)
+from src.linger.agents.librarian.models import boundary_candidate_inventory_errors
 from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE
 from tests.test_boundary_event_resolution import identified_stop, request
 
 
-def test_nested_inventory_is_required_even_when_the_array_would_be_empty():
-    payload = identified_stop().model_dump(mode="json")
-    del payload["event_resolution"]["other_evidence_ids"]
-    with pytest.raises(ValidationError, match="event_resolution.other_evidence_ids"):
-        BoundaryInferenceDecision.model_validate(payload)
+def run_boundary(outputs):
+    """Return each scripted output in turn and record the retry prompts received."""
+    calls = []
+
+    def model(messages, info):
+        calls.append(messages)
+        tool = next(
+            tool for tool in info.output_tools
+            if tool.name.endswith("BoundaryInferenceDecision")
+        )
+        return ModelResponse(parts=[ToolCallPart(tool.name, outputs[min(len(calls), len(outputs)) - 1])])
+
+    run = build_librarian_agent(FunctionModel(model)).run(
+        request().model_dump_json(), **BOUNDARY_INFERENCE.run_options(),
+    )
+    return run, calls
+
+
+def retry_errors(messages):
+    retry = next(
+        part for message in reversed(messages) for part in message.parts
+        if isinstance(part, RetryPromptPart)
+    )
+    return {error["path"]: error for error in json.loads(retry.content)["errors"]}
+
+
+@pytest.mark.parametrize("placement", ["nested", "top_level"])
+@pytest.mark.parametrize(
+    "inventory",
+    [[], ["other-return"], ["earlier-event", "invented"], ["current-event", "earlier-event"]],
+)
+def test_model_written_inventory_is_ignored_without_spending_a_retry(placement, inventory):
+    output = identified_stop().model_dump(mode="json")
+    target = output["event_resolution"] if placement == "nested" else output
+    target["other_evidence_ids"] = inventory
+    run, calls = run_boundary([output])
+    assert asyncio.run(run).output == identified_stop()
+    assert len(calls) == 1
+
+
+def test_repeated_support_for_one_record_keeps_the_anchor_that_binds():
+    output = identified_stop().model_dump(mode="json")
+    current = next(a for a in output["supporting_evidence"] if a["evidence_id"] == "current-event")
+    output["supporting_evidence"].insert(0, {"evidence_id": "current-event", "source_excerpt": "Not in the record."})
+    output["supporting_evidence"].append(dict(current))
+    run, calls = run_boundary([output])
+    support = asyncio.run(run).output.supporting_evidence
+    assert sorted(support, key=lambda a: a.evidence_id) == sorted(
+        identified_stop().supporting_evidence, key=lambda a: a.evidence_id,
+    )
+    assert len(calls) == 1
 
 
 @pytest.mark.parametrize(
-    "fault", ["misplaced", "deleted", "memory_omitted", "duplicate_and_memory_omitted"]
+    ("fault", "field"),
+    [("invented", "unknown_evidence_ids"), ("other-return", "duplicate_evidence_ids")],
 )
-def test_inventory_repair_reports_all_errors_before_consuming_retry(fault):
-    complete = identified_stop().model_dump(mode="json")
+def test_occurrence_id_faults_are_repaired_within_the_single_retry(fault, field):
     invalid = identified_stop().model_dump(mode="json")
-    if fault == "misplaced":
-        invalid["other_evidence_ids"] = invalid["event_resolution"].pop(
-            "other_evidence_ids"
-        )
-    elif fault == "deleted":
-        del invalid["event_resolution"]["other_evidence_ids"]
-    else:
-        invalid["event_resolution"]["other_evidence_ids"] = (
-            ["other-return"] if fault == "duplicate_and_memory_omitted" else []
-        )
-    calls = []
-
-    def model(messages, info):
-        calls.append(messages)
-        if len(calls) == 1:
-            output = invalid
-        else:
-            retry = next(
-                part
-                for message in reversed(messages)
-                for part in message.parts
-                if isinstance(part, RetryPromptPart)
-            )
-            repair = json.loads(retry.content)
-            inventory = next(
-                error for error in repair["errors"] if "missing_evidence_ids" in error
-            )
-            assert inventory["missing_evidence_ids"] == ["earlier-event"]
-            assert inventory["duplicate_evidence_ids"] == (
-                ["other-return"] if fault == "duplicate_and_memory_omitted" else []
-            )
-            assert "event_resolution.other_evidence_ids" in repair["repair"]
-            assert "memory" in repair["repair"]
-            if fault in {"misplaced", "deleted"}:
-                assert any(
-                    error["path"] == "event_resolution.other_evidence_ids"
-                    for error in repair["errors"]
-                )
-            output = complete
-        tool = next(
-            tool
-            for tool in info.output_tools
-            if tool.name.endswith("BoundaryInferenceDecision")
-        )
-        return ModelResponse(parts=[ToolCallPart(tool.name, output)])
-
-    result = asyncio.run(
-        build_librarian_agent(FunctionModel(model)).run(
-            request().model_dump_json(),
-            **BOUNDARY_INFERENCE.run_options(),
-        )
-    )
+    invalid["event_resolution"]["occurrences"][0]["evidence_ids"].append(fault)
+    run, calls = run_boundary([invalid, identified_stop().model_dump(mode="json")])
+    assert asyncio.run(run).output == identified_stop()
     assert len(calls) == 2
-    assert result.output == identified_stop()
+    assert retry_errors(calls[1])["event_resolution.occurrences"][field] == [fault]
 
 
-def test_inventory_validation_names_unknown_ids_without_rewriting_output():
-    payload = identified_stop().model_dump(mode="json")
-    payload["event_resolution"]["other_evidence_ids"].append("invented")
-    errors = boundary_candidate_inventory_errors(payload, request())
-    assert errors[0]["unknown_evidence_ids"] == ["invented"]
-    assert payload["event_resolution"]["other_evidence_ids"] == [
-        "earlier-event",
-        "invented",
-    ]
-
-
-def test_repeated_inventory_fault_still_exhausts_one_retry_without_a_grant():
-    payload = identified_stop().model_dump(mode="json")
-    payload["event_resolution"]["other_evidence_ids"] = []
-    calls = []
-
-    def model(messages, info):
-        calls.append(messages)
-        tool = next(
-            tool
-            for tool in info.output_tools
-            if tool.name.endswith("BoundaryInferenceDecision")
-        )
-        return ModelResponse(parts=[ToolCallPart(tool.name, payload)])
-
+def test_repeated_occurrence_fault_still_exhausts_one_retry_without_a_grant():
+    invalid = identified_stop().model_dump(mode="json")
+    invalid["event_resolution"]["occurrences"][1]["evidence_ids"].append("invented")
+    run, calls = run_boundary([invalid])
     with pytest.raises(UnexpectedModelBehavior):
-        asyncio.run(
-            build_librarian_agent(FunctionModel(model)).run(
-                request().model_dump_json(),
-                **BOUNDARY_INFERENCE.run_options(),
-            )
-        )
+        asyncio.run(run)
     assert len(calls) == 2
 
 
-def test_missing_inventory_and_selected_support_are_repaired_together():
-    complete = identified_stop().model_dump(mode="json")
+def test_missing_selected_support_is_repaired():
     invalid = identified_stop().model_dump(mode="json")
-    invalid["event_resolution"]["other_evidence_ids"] = []
-    invalid["supporting_evidence"] = [a for a in invalid["supporting_evidence"] if a["evidence_id"] != "current-event"]
-    calls = []
-
-    def model(messages, info):
-        calls.append(messages)
-        if len(calls) > 1:
-            retry = next(part for message in reversed(messages) for part in message.parts
-                         if isinstance(part, RetryPromptPart))
-            errors = json.loads(retry.content)["errors"]
-            by_path = {error["path"]: error for error in errors}
-            assert by_path["event_resolution"]["missing_evidence_ids"] == ["earlier-event"]
-            assert by_path["supporting_evidence"]["missing_evidence_ids"] == ["current-event"]
-        tool = next(tool for tool in info.output_tools
-                    if tool.name.endswith("BoundaryInferenceDecision"))
-        return ModelResponse(parts=[ToolCallPart(tool.name, invalid if len(calls) == 1 else complete)])
-
-    result = asyncio.run(build_librarian_agent(FunctionModel(model)).run(
-        request().model_dump_json(), **BOUNDARY_INFERENCE.run_options(),
-    ))
-    assert len(calls) == 2
-    assert result.output == identified_stop()
+    invalid["supporting_evidence"] = [
+        a for a in invalid["supporting_evidence"] if a["evidence_id"] != "current-event"
+    ]
+    run, calls = run_boundary([invalid, identified_stop().model_dump(mode="json")])
+    assert asyncio.run(run).output == identified_stop()
+    assert retry_errors(calls[1])["supporting_evidence"]["missing_evidence_ids"] == ["current-event"]
 
 
 @pytest.mark.parametrize("repair_memory", [True, False])
-def test_memory_typo_and_inventory_faults_share_the_single_repair(repair_memory):
+def test_memory_typo_and_support_faults_share_the_single_repair(repair_memory):
     complete = identified_stop().model_dump(mode="json")
     invalid = identified_stop().model_dump(mode="json")
     invalid["memory_assessments"][0]["memory_id"] = "eariler"
     invalid["supporting_memory_ids"] = ["eariler"]
-    invalid["event_resolution"]["other_evidence_ids"] = ["current-event"]
     invalid["supporting_evidence"] = [
         anchor for anchor in invalid["supporting_evidence"]
         if anchor["evidence_id"] != "current-event"
     ]
     original = json.dumps(invalid, sort_keys=True)
-    calls = []
-
-    def model(messages, info):
-        calls.append(messages)
-        output = invalid
-        if len(calls) > 1:
-            retry = next(part for message in reversed(messages) for part in message.parts
-                         if isinstance(part, RetryPromptPart))
-            errors = json.loads(retry.content)["errors"]
-            by_path = {error["path"]: error for error in errors}
-            memory = by_path["memory_assessments"]
-            assert memory["required_memory_ids"] == ["earlier"]
-            assert memory["actual_memory_ids"] == ["eariler"]
-            assert memory["missing_memory_ids"] == ["earlier"]
-            assert memory["unknown_memory_ids"] == ["eariler"]
-            assert by_path["supporting_memory_ids"]["unknown_memory_ids"] == ["eariler"]
-            assert by_path["event_resolution"]["missing_evidence_ids"] == ["earlier-event"]
-            assert by_path["event_resolution"]["duplicate_evidence_ids"] == ["current-event"]
-            assert by_path["supporting_evidence"]["missing_evidence_ids"] == ["current-event"]
-            output = json.loads(json.dumps(complete))
-            if not repair_memory:
-                output["memory_assessments"][0]["memory_id"] = "eariler"
-                output["supporting_memory_ids"] = ["eariler"]
-        tool = next(tool for tool in info.output_tools
-                    if tool.name.endswith("BoundaryInferenceDecision"))
-        return ModelResponse(parts=[ToolCallPart(tool.name, output)])
-
-    run = build_librarian_agent(FunctionModel(model)).run(
-        request().model_dump_json(), **BOUNDARY_INFERENCE.run_options(),
-    )
+    repaired = json.loads(json.dumps(complete))
+    if not repair_memory:
+        repaired["memory_assessments"][0]["memory_id"] = "eariler"
+        repaired["supporting_memory_ids"] = ["eariler"]
+    run, calls = run_boundary([invalid, repaired])
     if repair_memory:
         assert asyncio.run(run).output == identified_stop()
     else:
         with pytest.raises(UnexpectedModelBehavior):
             asyncio.run(run)
     assert len(calls) == 2
+    by_path = retry_errors(calls[1])
+    memory = by_path["memory_assessments"]
+    assert memory["required_memory_ids"] == ["earlier"]
+    assert memory["actual_memory_ids"] == ["eariler"]
+    assert memory["missing_memory_ids"] == ["earlier"]
+    assert memory["unknown_memory_ids"] == ["eariler"]
+    assert by_path["supporting_memory_ids"]["unknown_memory_ids"] == ["eariler"]
+    assert by_path["supporting_evidence"]["missing_evidence_ids"] == ["current-event"]
     assert json.dumps(invalid, sort_keys=True) == original
 
 
 @pytest.mark.parametrize("resolution", [None, {"occurrences": None}])
-def test_memory_identity_faults_are_reported_with_malformed_event_inventory(resolution):
+def test_memory_identity_faults_are_reported_with_malformed_event_resolution(resolution):
     output = identified_stop().model_dump(mode="json")
     output["memory_assessments"] *= 2
     output["supporting_memory_ids"] = ["invented", "invented"]

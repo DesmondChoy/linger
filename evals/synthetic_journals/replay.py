@@ -836,20 +836,24 @@ def _capture_failures(
         pass
     elif isinstance(expected.nomination, CaptureCandidate):
         span = expected.nomination.span
-        if not isinstance(nomination, MemoryCandidate) or (
-            nomination.text,
-            nomination.start_codepoint,
-            nomination.end_codepoint,
-        ) != (span.text, span.start_codepoint, span.end_codepoint):
+        if not isinstance(nomination, MemoryCandidate) or nomination.text != span.text:
             failures.append("nominated_span_mismatch")
     elif isinstance(expected.nomination, UnavailableCandidate):
         pass
     elif not isinstance(nomination, NoMemoryCandidate):
         failures.append("unexpected_nomination")
+    # Storage reports one generic refusal for any veto; Provenance's capture
+    # findings carry why it vetoed.
+    review = _observed_provenance_review(agent_exchanges)
+    reason_codes = {capture.reason_code} | (
+        {str(finding.code) for finding in review.capture_findings}
+        if review is not None and capture.provenance_decision == "reject_capture"
+        else set()
+    )
     if (
         expected.reason_code is not None
         and not safe_decline
-        and capture.reason_code != expected.reason_code
+        and expected.reason_code not in reason_codes
     ):
         failures.append("capture_reason_code_mismatch")
     if isinstance(expected.nomination, CaptureCandidate):

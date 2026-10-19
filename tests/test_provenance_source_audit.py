@@ -30,8 +30,10 @@ def review(*, declare=True, supported=True, finding=None):
         "response_decision": "revise" if finding else "pass",
         "emotional_boundary_decision": "not_required", "capture_decision": "no_candidate",
         "findings": [finding] if finding else [],
-        "coverage_audit": [{"span_index": 0,
-                            "classification": "reader_reflection" if declare else "source_dependent"}],
+        "coverage_audit": ([{"span_index": 0, "classification": "reader_reflection"}] if declare else [
+            {"span_index": 0, "classification": "source_dependent"},
+            {"span_index": 1, "classification": "reader_reflection"},
+        ]),
         "claim_audit": ([{"group_index": 0, "supported": supported,
                           "support_summary": "Fixture verdict on the note's support for the claimed correction.",
                           "source_contributions": [{"declaration_index": 0, "claim_index": 0,
@@ -93,9 +95,48 @@ def test_overlapping_and_adjacent_claims_are_unioned_without_missing_tail():
     assert [span.text for span in request.uncovered_response_spans] == [" tail"]
 
 
-def test_zero_sources_and_no_declarations_still_require_whole_reply_audit():
+def test_unmapped_facts_and_personal_reflection_receive_separate_coverage_audits():
+    first_fact = "The Dodo gives Alice her own thimble."
+    reflection = "There may be a similar tension in your lunches after you supplied the deposit and effort."
+    second_fact = "Alice bows solemnly."
+    question = "Does that fit your experience?"
+    response = f"  {first_fact}\n\n{reflection}  {second_fact}\n{question}  "
+    raw = task(declare=False).model_dump(mode="json")
+    raw["candidate"]["response"] = response
+    request = ProvenanceInput.model_validate(raw)
+
+    spans = request.uncovered_response_spans
+    assert [span.text.strip() for span in spans] == [first_fact, reflection, second_fact, question]
+    assert [span.span_index for span in spans] == list(range(4))
+    assert "".join(span.text for span in spans) == response
+    assert spans[0].start == 0 and spans[-1].end == len(response)
+    assert all(left.end == right.start for left, right in zip(spans, spans[1:]))
+    assert all(response[span.start:span.end] == span.text for span in spans)
+
+    checked = ProvenanceReview.model_validate({
+        "response_decision": "revise", "capture_decision": "no_candidate",
+        "emotional_boundary_decision": "not_required",
+        "coverage_audit": [
+            {"span_index": index, "classification": (
+                "source_dependent" if index in (0, 2) else "reader_reflection"
+            )} for index in range(4)
+        ],
+        "findings": [{
+            "code": "unsupported_claim", "applies_to": "response",
+            "location": {"kind": "text_span", "source_field": "candidate.response",
+                         "path": "", "quote": text},
+            "explanation": "Map the book claim to supporting evidence.",
+        } for text in (first_fact, second_fact)],
+    })
+    request.validate_review(checked)
+
+
+def test_zero_sources_and_no_declarations_still_require_every_reply_fragment_audit():
     request = task(declare=False).model_copy(update={"canonical_connection_evidence": ()})
-    assert request.uncovered_response_spans[0].text == request.candidate.response
+    assert [span.text for span in request.uncovered_response_spans] == [
+        "Your note says you fixed the error.", " You could consider what sharing it would mean.",
+    ]
+    assert "".join(span.text for span in request.uncovered_response_spans) == request.candidate.response
     with pytest.raises(ValueError, match="every uncovered response span"):
         request.validate_review(review(declare=False).model_copy(update={"coverage_audit": ()}))
 
@@ -132,7 +173,7 @@ def test_current_input_errors_are_aggregated_with_exact_repair_targets():
     errors = {issue["path"]: issue for issue in failure.value.errors}
     assert errors["findings[0].location.quote"]["current_target"] == request.candidate.response
     assert errors["coverage_audit"]["current_target"] == [
-        request.uncovered_response_spans[0].model_dump(mode="json"),
+        span.model_dump(mode="json") for span in request.uncovered_response_spans
     ]
     assert "coverage_audit[0].classification" in errors
 
@@ -231,7 +272,7 @@ def test_revise_records_the_gap_finding_its_own_coverage_audit_requires():
     result = validated(request, review(declare=False, finding=structural_response_finding()))
     request.validate_review(result)
     gap = [f for f in result.findings if getattr(f.location, "quote", None)]
-    assert [f.location.quote for f in gap] == [request.candidate.response.strip()]
+    assert [f.location.quote for f in gap] == ["Your note says you fixed the error."]
     assert result.response_decision == "revise"
 
 

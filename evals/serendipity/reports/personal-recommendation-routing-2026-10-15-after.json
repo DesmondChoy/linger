@@ -1,0 +1,1690 @@
+{
+  "schema_version": 2,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "8f11009ca5f54656a8134c19296d663c",
+  "generated_at": "2026-10-15T10:00:20.671451Z",
+  "model": "openai:gpt-6-luna",
+  "prompt_digests": {
+    "serendipity.connection-discovery": "86c25869d3fdd32832b4282a6df9ab52a25facafc1d317113e4e0cf2272c3b3e",
+    "serendipity.source-gathering": "d48382290d995d2d75474597fdb78718a2d9523be704d052cbed6aa7ab3f95b2"
+  },
+  "dataset_digest": "86c822e3b8b0f331228ad3259c4db5e1983be8301c892c7ab469de09a515dbe5",
+  "concurrency": 4,
+  "summary": {
+    "case_count": 9,
+    "repeats": 3,
+    "total_runs": 27,
+    "total_passes": 19,
+    "run_pass_rate": 0.7037,
+    "cases_pass_pow_k": 6,
+    "cases_unstable": 1,
+    "cases_never_passed": 2,
+    "cases_with_unstable_decision": 0,
+    "suite_pass_pow_k": false
+  },
+  "tiers": {
+    "capability": {
+      "case_count": 2,
+      "repeats": 3,
+      "total_runs": 6,
+      "total_passes": 3,
+      "run_pass_rate": 0.5,
+      "cases_pass_pow_k": 1,
+      "cases_unstable": 0,
+      "cases_never_passed": 1,
+      "cases_with_unstable_decision": 0,
+      "suite_pass_pow_k": false
+    },
+    "regression": {
+      "case_count": 7,
+      "repeats": 3,
+      "total_runs": 21,
+      "total_passes": 16,
+      "run_pass_rate": 0.7619,
+      "cases_pass_pow_k": 5,
+      "cases_unstable": 1,
+      "cases_never_passed": 1,
+      "cases_with_unstable_decision": 0,
+      "suite_pass_pow_k": false
+    }
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 16.572,
+      "mean_model_requests": 3.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 15.800291666993871,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13634,
+          "output_tokens": 912,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-personal-identity",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy's “Personal Identity” entry could give a close philosophical lens on Alice's uncertainty by framing identity as a question about what makes someone the same person over time.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the entry's stated question and Alice's uncertainty concern whether a person remains the same person across change.",
+                "meaningful_difference": "The entry surveys the conceptual problem; Alice's uncertainty is a particular, lived experience. The page description does not establish how the essay interprets Alice herself.",
+                "interpretation": "This is the closer recommendation if the reader wants to sharpen the question behind Alice's uncertainty: what, if anything, makes someone the same person through change? It offers a conceptual lens, not a claim that the essay discusses Alice.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated subject—what makes a person the same person over time—most directly matches uncertainty about identity."
+              },
+              {
+                "candidate_id": "candidate-existentialism",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy's “Existentialism” entry offers a different lens: identity as shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "Both this lens and Alice's uncertainty invite a question about whether identity is settled in advance or develops through experience.",
+                "meaningful_difference": "This entry foregrounds choice and situated life, rather than the question of sameness over time; the available description does not connect its account specifically to Alice.",
+                "interpretation": "This could be a useful alternative if the reader is interested in identity as something formed rather than simply discovered. It is less closely matched to the wording of the cue than the personal-identity entry, and should be treated as an outside lens rather than an interpretation of the book.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the personal-identity entry: it offers a worthwhile contrast, but its focus on choice requires a larger inferential step from Alice's uncertainty."
+              }
+            ],
+            "selected_candidate_id": "candidate-personal-identity",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "If useful, I can also look for a literary essay that discusses Alice specifically.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 17.003511291986797,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13625,
+          "output_tokens": 964,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-continuity-question",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Personal Identity” is the closer lens: it surveys what makes a person at one time the same person at another, directly framing Alice’s uncertainty as a question about continuity of self.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the cue and the essay’s central question concern whether a person remains the same self across change or time.",
+                "meaningful_difference": "The essay presents a philosophical problem about criteria for personal sameness; the cue identifies Alice’s uncertainty but does not specify which criterion or experience drives it.",
+                "interpretation": "This is the strongest recommendation if you want an essay that makes the uncertainty itself more precise: it can help ask what would count as Alice remaining Alice, without claiming the entry interprets Alice or settles the question.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated subject is personal sameness over time, which most directly fits uncertainty about identity."
+              },
+              {
+                "candidate_id": "candidate-situated-choice",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Existentialism” offers a contrasting lens, describing identity as shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "Both connect identity with whether the self is settled in advance or takes shape through circumstances and response.",
+                "meaningful_difference": "This account emphasizes identity being made through choices, whereas the personal-identity entry foregrounds what makes someone the same person over time.",
+                "interpretation": "This may be useful if you want to read Alice’s uncertainty less as a puzzle of sameness and more as a question about whether identity is fixed or formed in response to circumstances. The page description supports that broad lens, but does not establish how it applies to particular scenes.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful alternative, but it requires a further step from the entry’s account of identity through situated choices to Alice’s unspecified uncertainty."
+              }
+            ],
+            "selected_candidate_id": "candidate-continuity-question",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a short comparison of the two lenses, or a more literary essay recommendation instead?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.911106792016653,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13651,
+          "output_tokens": 983,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-persistence-question",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy’s “Personal Identity” entry could give Alice’s uncertainty a direct philosophical lens: instead of treating identity as a settled label, ask what makes someone the same person across change.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the cue and the entry center the question of personal identity across time: the entry explicitly surveys what makes a person at one time the same person at another.",
+                "meaningful_difference": "Alice’s uncertainty is the literary problem named in the cue; the entry offers a general philosophical framework for examining it, not an interpretation of Alice or evidence about the story.",
+                "interpretation": "This is the closest fit if you want to stay with the question Alice raises: what, if anything, makes a changing person still the same person? The entry directly surveys that problem, so it could sharpen the question without pretending to settle Alice’s answer.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks above the existentialism entry because its stated focus is personal identity over time, closely matching uncertainty about who one is."
+              },
+              {
+                "candidate_id": "candidate-identity-through-choice",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy’s “Existentialism” entry offers a more indirect lens: identity can be understood as shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "Both the cue and this account leave room for identity not to be a ready-made certainty; the entry frames it as shaped through choices in particular circumstances.",
+                "meaningful_difference": "This shifts attention away from whether a person remains the same through change and toward how a person makes or shapes a self through choices.",
+                "interpretation": "If Alice’s uncertainty is most interesting as a question of how to define oneself, this entry could supply a different angle: identity as something shaped in circumstances, not simply a fixed answer waiting to be found. The available description supports that lens in general, but does not discuss Alice specifically.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful alternative, but less directly matched: its stated emphasis is identity shaped through choice, not the problem of personal identity over time."
+              }
+            ],
+            "selected_candidate_id": "candidate-persistence-question",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like the direct identity-over-time lens, or the more choice-focused existentialist angle?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-recommendation-intent-direct-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 16.921,
+      "mean_model_requests": 3.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.800996375008253,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13641,
+          "output_tokens": 1069,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-self-knowledge",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Self-Knowledge” is the closest fit if “not recognising yourself” means finding your own thoughts or motives hard to identify.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/self-knowledge/"
+                ],
+                "shared_structure": "Both the cue and the entry’s stated focus concern the gap between having an inner life and being able to know or identify it clearly.",
+                "meaningful_difference": "The entry frames the issue as a philosophical question about knowing one’s own mind; it does not, from the available description, promise a personal narrative or a specific account of feeling estranged from oneself.",
+                "interpretation": "A useful next read for the inward-facing version of the question: why self-understanding may not be automatic. The page description supports that framing, though not a claim about its particular arguments or style.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated focus on knowing one’s own mind is closer to the cue than a question about whether someone remains the same person over time."
+              },
+              {
+                "candidate_id": "candidate-personal-identity",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Personal Identity” offers a nearby angle if the feeling is about no longer seeming like the same person you used to be.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both raise the question of how a person relates to a sense of self that may feel uncertain or unfamiliar.",
+                "meaningful_difference": "The entry is described as asking what makes someone at one time the same person at another; that is about persistence through time, rather than the more immediate difficulty of recognising one’s own thoughts.",
+                "interpretation": "Consider this if your reflection is specifically about change across time and what makes you still ‘you.’ It is a more indirect fit than the self-knowledge entry, and the available description does not establish that it addresses the lived feeling of self-alienation.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A distinct but less direct option: it shifts from recognising your present inner life to asking what connects you to your past self."
+              }
+            ],
+            "selected_candidate_id": "candidate-self-knowledge",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "If you mean not recognising your own thoughts and motives, start with “Self-Knowledge”; if you mean feeling unlike your past self, try “Personal Identity.”",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.90175179200014,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13637,
+          "output_tokens": 1066,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-self-knowledge",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Self-Knowledge” looks like the closest fit: it directly takes up how people know their own minds and why that knowledge is not automatic.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/self-knowledge/"
+                ],
+                "shared_structure": "Both the cue’s question of not recognizing oneself and the entry concern a gap between the self and one’s understanding of it.",
+                "meaningful_difference": "The cue is personal and open-ended; the entry offers a philosophical account of self-knowledge rather than a personal narrative or a diagnosis.",
+                "interpretation": "A useful next read if you want to explore not recognizing yourself as a question of how well you can know your own mind. The available description supports that broad fit, but not a claim that the entry addresses every sense of feeling unlike oneself.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated focus is directly on knowing one’s own mind; the other candidate shifts the question toward identity across time."
+              },
+              {
+                "candidate_id": "candidate-personal-identity",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Personal Identity” offers a related but more specific angle: what makes someone at one time the same person at another.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the cue and the entry can be approached through the question of how a person relates to a sense of self.",
+                "meaningful_difference": "The entry focuses on sameness across time, whereas the cue could also be about present-day self-understanding; its relevance therefore depends on whether the feeling involves change over time.",
+                "interpretation": "This may fit if “not recognising yourself” means feeling changed from who you used to be. It is a more indirect match than the self-knowledge entry, and the available description does not establish a more specific treatment of that experience.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the self-knowledge entry because it addresses personal identity over time, a narrower interpretation of the cue rather than self-understanding generally."
+              }
+            ],
+            "selected_candidate_id": "candidate-self-knowledge",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "If you mean not recognising yourself as in feeling changed from your past self, the entry on personal identity may be the more fitting alternative.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 17.060558417026186,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13641,
+          "output_tokens": 956,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-self-knowledge",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Self-Knowledge” is the closest fit: it examines how people come to know their own minds and why that knowledge is not automatic.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/self-knowledge/"
+                ],
+                "shared_structure": "Your phrase suggests a gap between being oneself and being able to recognise or understand oneself; the entry directly treats self-knowledge as something that may not simply be immediate.",
+                "meaningful_difference": "It focuses on knowing one's own mind, rather than on whether a person remains the same person over time.",
+                "interpretation": "A useful next read if “not recognising yourself” means feeling unfamiliar to yourself or unsure what you think and feel. The page description supports that as a relevant lens, though it does not establish what is behind your experience.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated subject—how one knows one's own mind—most closely approaches self-recognition."
+              },
+              {
+                "candidate_id": "candidate-personal-identity",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Personal Identity” offers a second angle: what makes someone at one time the same person as at another.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "The cue can also be read as a question about the relation between who you are now and who you have been; the entry explicitly surveys sameness of a person across time.",
+                "meaningful_difference": "Unlike the first entry's focus on knowing one's own mind, this one addresses persistence of personal identity over time.",
+                "interpretation": "Worth reading if the feeling is specifically about change or continuity—whether the present you still feels like the person you used to be. That is a narrower interpretation than the cue necessarily implies.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below “Self-Knowledge” because it is a good fit only if your concern is about continuity across time, rather than self-recognition more broadly."
+              }
+            ],
+            "selected_candidate_id": "candidate-self-knowledge",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Start with “Self-Knowledge”; if you mean a change in who you feel you are over time, try “Personal Identity” as a companion.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-external-web-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 19.549,
+      "mean_model_requests": 3.33,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 18.160192707990063,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13733,
+          "output_tokens": 952,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-revolution-betrayed",
+                "tentative_claim": "Trotsky’s The Revolution Betrayed offers a close political parallel: a bureaucracy can become a privileged group living off the revolution it claims to serve.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                ],
+                "shared_structure": "In both the page’s description of Trotsky’s argument and the pigs’ transformation in Animal Farm, a leadership that claims revolutionary authority ends up occupying the advantages of the order it displaced.",
+                "meaningful_difference": "The page describes a Soviet bureaucracy and a privileged caste, while the novel dramatizes the pigs adopting the farmers’ way of life; this is a parallel, not evidence that the cases are identical or that Trotsky’s account explains Orwell’s plot.",
+                "interpretation": "This is the sharper lens for the specific reversal in the question: the revolution’s new rulers do not merely centralize authority; they come to share the old rulers’ privileges. Trotsky’s argument can illuminate that pattern, while remaining an outside comparison rather than a definitive explanation of the novel.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because the returned description explicitly connects a revolutionary bureaucracy to a privileged caste living off the revolution, closely matching the pigs’ reversal."
+              },
+              {
+                "candidate_id": "candidate-iron-law",
+                "tentative_claim": "Robert Michels’s “iron law of oligarchy” offers a broader account of how a movement that begins democratically can come to be governed by a small leadership group.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                ],
+                "shared_structure": "Both the novel’s political reversal and Michels’s argument, as summarized on the page, concern a small leadership emerging from an initially democratic beginning and taking control.",
+                "meaningful_difference": "This lens explains concentration of control more than the pigs’ specific adoption of the farmers’ privileges; it is therefore broader and less exact than Trotsky’s privileged-caste comparison.",
+                "interpretation": "Michels can help frame the organizational side of the pigs’ rise: a revolution’s leadership may consolidate power rather than preserve the original democratic promise. But this source description does not by itself account for the pigs becoming like the farmers in their way of life.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Useful runner-up, but less specific than the first candidate: it addresses leadership consolidation, not the former rebels’ adoption of the old ruling class’s privileges."
+              }
+            ],
+            "selected_candidate_id": "candidate-revolution-betrayed",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a short comparison of this political lens with the novel’s ending?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 21.334060207998846,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "input_tokens": 18404,
+          "output_tokens": 1025,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-revolution-betrayed",
+                "tentative_claim": "Trotsky’s The Revolution Betrayed offers a close historical-political lens: a bureaucracy can become a privileged caste living off the revolution it claims to serve, much like the pigs’ transformation into a new ruling class.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                ],
+                "shared_structure": "In both, a leadership group that claims to represent a revolution becomes materially privileged and separates itself from the people in whose name it rules.",
+                "meaningful_difference": "The page describes Trotsky’s argument about Soviet bureaucracy, not Orwell’s fictional pigs; it gives a parallel political analysis, not proof of Orwell’s intention or a full account of the novel.",
+                "interpretation": "As an outside lens, Trotsky’s argument helps frame the ending not simply as individual hypocrisy but as the rise of a privileged group that preserves revolutionary language while benefiting from a new hierarchy. The accessible page summary supports that broad parallel, though not detailed claims about the book’s history or Orwell’s influences.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranked first because its stated focus on a privileged caste living off the revolution closely matches the pigs’ outcome."
+              },
+              {
+                "candidate_id": "candidate-iron-law-oligarchy",
+                "tentative_claim": "Michels’s iron law of oligarchy offers an organizational explanation: groups that begin democratically may end up controlled by a small leadership circle.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                ],
+                "shared_structure": "Both invite attention to how control can concentrate in a small leadership group after a collective movement begins with democratic aims.",
+                "meaningful_difference": "The source summary explains concentration of leadership, but does not specifically account for the pigs adopting the farmers’ way of life or becoming a privileged caste.",
+                "interpretation": "This idea shifts the question toward the machinery of power: perhaps the pigs’ outcome is not only personal betrayal but also a danger of leadership becoming concentrated. The page’s concise description supports that as a possible lens, while offering less direct explanation of the specific resemblance to the farmers than Trotsky’s account does.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful runner-up for the mechanism of leadership concentration, but less directly about a revolutionary elite becoming privileged."
+              }
+            ],
+            "selected_candidate_id": "candidate-revolution-betrayed",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a brief comparison of this lens with the ending of Animal Farm?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 19.151486457994906,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13745,
+          "output_tokens": 1071,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-revolution-betrayed",
+                "tentative_claim": "Trotsky’s *The Revolution Betrayed* offers a close historical-political lens: its account of a Soviet bureaucracy becoming a privileged caste living off the revolution it claimed to serve resembles the pigs’ reversal from revolutionary leaders into beneficiaries of the old hierarchy.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+                ],
+                "shared_structure": "In both, a leadership group that claims to act for a revolution becomes a privileged group that benefits from the order the revolution was meant to replace.",
+                "meaningful_difference": "The page describes Trotsky’s argument about Soviet bureaucracy, not Orwell’s fictional pigs; it offers a parallel lens, not proof of Orwell’s intent or a complete explanation of the novel.",
+                "interpretation": "This is the sharper fit if the question is why the revolution’s leaders end up resembling the former ruling class: Trotsky’s account focuses specifically on a revolutionary leadership becoming a self-serving privileged caste. It can illuminate the pigs’ transformation without implying that the novel and Trotsky’s analysis are identical.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its summarized argument specifically concerns a revolutionary bureaucracy becoming a privileged caste, closely matching the cue’s reversal."
+              },
+              {
+                "candidate_id": "candidate-iron-law-oligarchy",
+                "tentative_claim": "Michels’s “iron law of oligarchy” offers a more structural explanation: an organization that begins democratically can, in his account, come to be run by a small leadership group.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy"
+                ],
+                "shared_structure": "Both the idea and the pigs’ trajectory concern power concentrating in a small leadership group after a collective political beginning.",
+                "meaningful_difference": "The page’s summary explains concentration of leadership, but does not specifically say that leaders adopt the former ruling class’s lifestyle or become a privileged caste; it illuminates how a new elite can form more than why it comes to resemble the old one.",
+                "interpretation": "This lens points toward organizational concentration as a condition that can help explain the pigs’ rise: even a democratic beginning may leave decision-making in the hands of a small group. It is a useful but less specific account of their eventual resemblance to the farmers.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below Trotsky’s account: it supplies a plausible mechanism for elite formation, but the page’s description is less directly about revolutionary leaders becoming beneficiaries of the old order."
+              }
+            ],
+            "selected_candidate_id": "candidate-revolution-betrayed",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a primary or more scholarly source on Trotsky’s argument, or a comparison of the two lenses?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [
+        "unexpected_search:search_librarian"
+      ],
+      "mean_latency_seconds": 36.094,
+      "mean_model_requests": 10.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_search:search_librarian",
+            "expected_proposal"
+          ],
+          "latency_seconds": 34.74725437499001,
+          "model_requests": 10,
+          "tool_calls": 9,
+          "input_tokens": 52128,
+          "output_tokens": 2334,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The public pages retrieved establish that anti-literacy laws criminalized teaching enslaved people to read, and that Douglass later credited The Columbian Orator with shaping his ideas about freedom. They do not provide enough supported explanation of why those laws were imposed to recommend either as an answer to your question. A focused history from a university, archive, or museum would be a better source to look for."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "book_corpus:search_librarian:no_evidence",
+            "web:web_search:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_search:search_librarian",
+            "expected_proposal"
+          ],
+          "latency_seconds": 32.45043825000175,
+          "model_requests": 8,
+          "tool_calls": 8,
+          "input_tokens": 40942,
+          "output_tokens": 2508,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The available public pages establish that anti-literacy laws criminalized teaching enslaved people to read, and that Douglass read The Columbian Orator, but they do not adequately explain why those prohibitions were imposed. A focused, reputable history of slaveholders’ efforts to control enslaved people through education would better answer your question."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "book_corpus:search_librarian:no_evidence",
+            "web:web_search:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 41.08501670800615,
+          "model_requests": 12,
+          "tool_calls": 11,
+          "input_tokens": 64472,
+          "output_tokens": 2850,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The accessible pages only establish that anti-literacy laws criminalized teaching enslaved people to read and that reading The Columbian Orator shaped Douglass’s views; they do not give enough supported explanation of why literacy was prohibited to make a useful recommendation. Seek an authoritative historical overview that directly discusses enslavers’ motives and the laws’ enforcement."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-route-external-web-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 1,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "model_request_budget_exceeded",
+        "tool_call_budget_exceeded",
+        "unexpected_search:search_librarian"
+      ],
+      "mean_latency_seconds": 66.972,
+      "mean_model_requests": 15.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "unexpected_search:search_librarian",
+            "model_request_budget_exceeded",
+            "tool_call_budget_exceeded"
+          ],
+          "latency_seconds": 100.84695266699418,
+          "model_requests": 21,
+          "tool_calls": 17,
+          "input_tokens": 132838,
+          "output_tokens": 6292,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-learning-from-precedent",
+                "tentative_claim": "Anne Sullivan's preparation drew on both institutional training and an earlier teaching case: the Anne Sullivan page says she learned the manual alphabet at Perkins and studied Samuel Gridley Howe's reports on Laura Bridgman before teaching Helen Keller.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan",
+                  "https://en.wikipedia.org/wiki/Laura_Bridgman"
+                ],
+                "shared_structure": "The two pages place Sullivan's preparation within an existing educational lineage: she studied Howe's work on Bridgman, who was taught at Perkins, where Sullivan herself also learned the manual alphabet.",
+                "meaningful_difference": "One page describes what Sullivan learned and read; the other supplies brief context about Bridgman as an earlier deafblind student educated at Perkins. Together they suggest both formal preparation and learning from a prior case, without proving exactly how she adapted those ideas for Helen.",
+                "interpretation": "A useful outside lead is that Sullivan was not starting from nothing: she learned a communication method at Perkins and studied reports about Howe's work with Laura Bridgman. That points to a combination of practical training and learning from an earlier educator's experience. The opened pages offer only brief descriptions, so they do not establish the details of Sullivan's teaching practice.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because the two pages together support a specific account of both Sullivan's training and the precedent she studied."
+              },
+              {
+                "candidate_id": "candidate-institutional-training",
+                "tentative_claim": "A narrower outside connection is that Sullivan's teaching preparation included training at Perkins, where she learned the manual alphabet.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan"
+                ],
+                "shared_structure": "Both the Anne Sullivan account and the question concern her preparation for teaching Helen; the page supplies one concrete part of that preparation, learning the manual alphabet at Perkins.",
+                "meaningful_difference": "This reading focuses on a specific skill she learned, whereas the leading reading also considers her study of Howe's reports on Bridgman as a source of pedagogical precedent.",
+                "interpretation": "If the reader wants one concrete detail rather than a broader account of influences, the page's note that Sullivan learned the manual alphabet at Perkins is a concise lead. It cannot, on its own, explain all the methods she later used with Helen.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first because it answers with one relevant training detail but omits the distinct influence of the earlier Bridgman case."
+              }
+            ],
+            "selected_candidate_id": "candidate-learning-from-precedent",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "For a fuller account, consult a historical source on Sullivan's Perkins years and her study of Howe's reports; these brief page descriptions establish only the broad outline.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "book_corpus:search_librarian:no_evidence",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 48.51700829199399,
+          "model_requests": 11,
+          "tool_calls": 8,
+          "input_tokens": 57319,
+          "output_tokens": 3047,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-training-route",
+                "tentative_claim": "A concise outside starting point is the Anne Sullivan biography: its summary says she learned the manual alphabet at Perkins and studied Samuel Gridley Howe’s reports on teaching Laura Bridgman before going to Helen Keller.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan"
+                ],
+                "shared_structure": "The cue asks how Sullivan prepared to teach; the biography directly describes both institutional learning and study of an earlier teaching case as parts of that preparation.",
+                "meaningful_difference": "This reading foregrounds Sullivan’s own training and preparation, rather than treating her teaching as an unexplained personal gift.",
+                "interpretation": "This is the strongest match if you want a direct biographical lead about how Sullivan learned. The available summary supports those two elements of preparation, though it does not establish exactly how each shaped her later teaching.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it directly addresses Sullivan’s preparation in one source; the other candidate gives useful context about the earlier case she studied."
+              },
+              {
+                "candidate_id": "candidate-pedagogical-precedent",
+                "tentative_claim": "Read the Sullivan biography alongside the Laura Bridgman page for a narrower historical angle: Sullivan’s preparation included studying reports about Bridgman, an earlier deaf-blind child educated in language at Perkins.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan",
+                  "https://en.wikipedia.org/wiki/Laura_Bridgman"
+                ],
+                "shared_structure": "Both pages place the education of a deaf-blind child within a chain of recorded experience: Bridgman’s education is the earlier case, and Sullivan is described as studying reports about that teaching.",
+                "meaningful_difference": "This is a contextual lens on the precedent behind Sullivan’s preparation, not as direct an account of her own training as the first candidate.",
+                "interpretation": "The pairing suggests that Sullivan’s learning had an institutional and historical lineage, rather than beginning from scratch. The brief page summaries support that connection, but not a detailed account of which methods transferred from Bridgman’s education to Keller’s.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the direct biography because it adds context about Bridgman but is less focused on Sullivan’s learning itself."
+              }
+            ],
+            "selected_candidate_id": "candidate-training-route",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like to look at the Perkins/Laura Bridgman background next, to see what that earlier teaching precedent adds?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "unexpected_search:search_librarian"
+          ],
+          "latency_seconds": 51.55279716697987,
+          "model_requests": 13,
+          "tool_calls": 10,
+          "input_tokens": 69387,
+          "output_tokens": 3275,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-training-and-study",
+                "tentative_claim": "A useful outside lead is Anne Sullivan’s preparation before teaching Helen: she learned the manual alphabet at the Perkins Institution and studied Samuel Gridley Howe’s reports on teaching Laura Bridgman.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan"
+                ],
+                "shared_structure": "The account presents teaching as something Sullivan prepared for through both institutional learning and studying an earlier educator’s work, rather than as an ability she simply brought fully formed to Helen.",
+                "meaningful_difference": "This broad reading combines two kinds of preparation—learning a communication method at Perkins and reading about Howe’s work with Bridgman—whereas the runner-up focuses specifically on that historical model and its lineage.",
+                "interpretation": "The Anne Sullivan biography is the strongest fit for your question: it offers a concise lead on both where she learned a communication method and what earlier teaching work she studied before going to Helen. The page’s description supports that outline, though it does not establish exactly how much each element shaped her later teaching.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it directly addresses how Sullivan prepared, combining the page’s two specific details; the second candidate develops only the predecessor-model angle."
+              },
+              {
+                "candidate_id": "candidate-predecessor-model",
+                "tentative_claim": "A more focused lead is the teaching lineage behind Sullivan’s preparation: before going to Helen, she studied Howe’s reports about teaching Laura Bridgman, an earlier deaf-blind student educated at Perkins.",
+                "evidence_ids": [
+                  "https://en.wikipedia.org/wiki/Anne_Sullivan",
+                  "https://en.wikipedia.org/wiki/Laura_Bridgman"
+                ],
+                "shared_structure": "Both pages connect Sullivan’s preparation to an earlier educational case: Sullivan studied Howe’s reports, and Bridgman is described as an early deaf-blind student taught at Perkins.",
+                "meaningful_difference": "This angle spotlights how knowledge about teaching was passed through written accounts of an earlier student, rather than emphasizing Sullivan’s own manual-alphabet training.",
+                "interpretation": "If you are most curious about where Sullivan’s teaching ideas came from, these pages point toward Laura Bridgman’s education and Howe’s reports as a relevant historical thread. They establish a connection Sullivan studied, not that she simply copied Howe’s methods or that the pages fully explain her work with Helen.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Useful and specific, but narrower than the first candidate: it highlights one source of preparation rather than the broader combination of study and training."
+              }
+            ],
+            "selected_candidate_id": "candidate-training-and-study",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a more authoritative archival or biographical source on Sullivan’s training and preparation?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "book_corpus:search_librarian:no_evidence"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-alice-web-with-distractor-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "capability",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 14.798,
+      "mean_model_requests": 3.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.529807582992362,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13747,
+          "output_tokens": 1280,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-personal-identity",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Personal Identity” may offer a precise conceptual lens: it surveys what makes someone at one time the same person at another time.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the cue and the entry center on a question of personal sameness: what lets someone count as the same person over time.",
+                "meaningful_difference": "The entry frames the issue as a philosophical problem about persistence across time; the cue names Alice's uncertainty but does not specify what causes it. So this is a question to bring to the text, not an explanation of Alice.",
+                "interpretation": "This is the closest fit if you want to examine what Alice's uncertainty means for continuity of self: does she feel changed, or unsure what makes her herself? The entry's description supports that question, though it does not discuss Alice or establish an answer about the novel.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks above the existentialism entry because its stated focus—whether a person remains the same over time—more directly matches uncertainty about identity."
+              },
+              {
+                "candidate_id": "candidate-existentialism",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy entry “Existentialism” offers a different possible lens: identity can be shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "The cue's uncertainty about identity can be considered alongside the entry's contrast between identity as something shaped and identity as something fixed.",
+                "meaningful_difference": "This lens emphasizes becoming through choices, rather than asking what preserves the same person across time. The cue alone does not tell us whether Alice's uncertainty concerns choice or continuity.",
+                "interpretation": "This could be a useful, more interpretive lens if you want to ask whether identity is something Alice discovers or something formed through her circumstances and choices. The page description supports that framing, but it does not make a claim about Alice's story.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful alternative, but it requires an extra step from the cue to the entry's focus on choices; the personal-identity entry asks the more immediate question of sameness over time."
+              }
+            ],
+            "selected_candidate_id": "candidate-personal-identity",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Try the “Personal Identity” entry as a conceptual companion, and notice whether its question about sameness over time sharpens what Alice's uncertainty seems to be about.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.925287042016862,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13730,
+          "output_tokens": 1014,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-continuity-question",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy’s “Personal Identity” entry could offer a direct conceptual lens: it asks what makes someone at one time the same person at another, framing identity uncertainty as a question about continuity over time.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the cue’s concern with Alice’s uncertainty about who she is and the entry’s central question turn on whether a person remains the same person across change.",
+                "meaningful_difference": "The entry treats this as a philosophical problem about criteria for sameness over time; it does not interpret Alice or establish what Carroll intended.",
+                "interpretation": "This is the closest fit if the reader wants a framework for asking what, if anything, persists when Alice doubts her identity. The page is an encyclopedia entry rather than a literary essay, so it offers a conceptual lens, not a reading of the novel.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks above the existentialism entry because its stated question directly addresses personal sameness over time, the most immediate fit for uncertainty about identity."
+              },
+              {
+                "candidate_id": "candidate-situated-choice",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy’s “Existentialism” entry could offer a more indirect lens: it describes identity as shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "The entry’s contrast between a fixed definition and identity shaped in circumstances offers a way to consider uncertainty as something lived within a situation, rather than solved by finding a ready-made label.",
+                "meaningful_difference": "This lens emphasizes becoming through choices, whereas the personal-identity entry asks what secures sameness across time; the page does not claim Alice’s uncertainty involves choices.",
+                "interpretation": "This could be useful if the reader is interested in identity as unsettled and formed through experience, rather than in a test for whether a person remains the same. It is a general philosophical lens, not an essay about Alice, and its relevance depends on what aspect of her uncertainty the reader has in mind.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the continuity entry: it offers a distinct angle on identity, but the supplied description does not connect that angle specifically to Alice."
+              }
+            ],
+            "selected_candidate_id": "candidate-continuity-question",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a literary essay specifically about Alice, or is a philosophical reference entry like this suitable?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.940113790973555,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13743,
+          "output_tokens": 1053,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-identity-over-time",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy's “Personal Identity” entry offers the sharper lens: it frames identity as the question of what makes someone at one time the same person at another, which can help examine Alice's uncertainty without assuming that a change in her sense of self settles who she is.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/identity-personal/"
+                ],
+                "shared_structure": "Both the entry's central question and the cue focus on whether a person remains the same across change and uncertainty.",
+                "meaningful_difference": "The entry surveys a philosophical problem; Alice's uncertainty is a lived, immediate experience. The entry can frame questions about her, but the accessible description does not establish an interpretation of the novel.",
+                "interpretation": "Use the entry as a conceptual question rather than as an answer about Alice: what, if anything, would make her the same person through shifts in how she understands herself? This is the most direct fit for identity uncertainty.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its stated focus—what makes a person at one time the same person at another—maps most directly onto uncertainty about identity."
+              },
+              {
+                "candidate_id": "candidate-situated-choice",
+                "tentative_claim": "The Stanford Encyclopedia of Philosophy's “Existentialism” entry offers a secondary lens: its description presents identity as shaped through situated choices rather than received as a fixed definition.",
+                "evidence_ids": [
+                  "https://plato.stanford.edu/entries/existentialism/"
+                ],
+                "shared_structure": "Both this account and the cue leave room for identity to be unsettled rather than simply given once and for all.",
+                "meaningful_difference": "This lens emphasizes choices and how identity is shaped; the cue foregrounds uncertainty itself. The available description does not say how Alice acts or establish what choices she makes.",
+                "interpretation": "This could prompt a different question about Alice: whether identity is something to discover as a fixed fact or something shaped through choices in a particular situation. Treat it as a broad philosophical prompt, not a claim about the novel.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below the first candidate because its stated account of identity is relevant but less directly about the persistence of identity through uncertainty."
+              }
+            ],
+            "selected_candidate_id": "candidate-identity-over-time",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a concise summary of the entry's identity-over-time question, or a comparison of the two lenses?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "tier": "capability",
+      "repeats": 3,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 35.782,
+      "mean_model_requests": 10.67,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 46.30218183298712,
+          "model_requests": 13,
+          "tool_calls": 11,
+          "input_tokens": 72416,
+          "output_tokens": 3251,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The pages I could open only establish that anti-literacy laws existed and that Frederick Douglass read The Columbian Orator; they do not explain the motives behind banning literacy well enough to support a useful recommendation. A focused history of anti-literacy laws or an authoritative account of Douglass’s education would be a better next source."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 31.059566291980445,
+          "model_requests": 9,
+          "tool_calls": 7,
+          "input_tokens": 46192,
+          "output_tokens": 2125,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "The public pages retrieved only establish that anti-literacy laws criminalized teaching enslaved people to read and that Douglass valued The Columbian Orator; they do not adequately explain the historical reasons behind the prohibitions. A stronger recommendation would need a reliable historical source that directly examines those motives."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 29.985663958010264,
+          "model_requests": 10,
+          "tool_calls": 9,
+          "input_tokens": 53074,
+          "output_tokens": 1783,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "I couldn't verify an outside source from the available public pages that explains why enslavers prohibited literacy; the pages found only establish that such laws existed or note Douglass's reading. A more reliable recommendation would require an accessible historical source that directly explains the motives, such as control of information, communication, and resistance."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+      "primary_behavior": "route_personal_connection_to_memory",
+      "contrast_group": "memory-routing",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 22.89,
+      "mean_model_requests": 2.67,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 23.551278583006933,
+          "model_requests": 3,
+          "tool_calls": 2,
+          "input_tokens": 14625,
+          "output_tokens": 1427,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-words-make-act-recognizable",
+                "tentative_claim": "In both accounts, putting an action into words marks a turn from an indistinct state toward recognizing what one has done.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Helen initially breaks the doll without sorrow, then after the well-house experience remembers it and feels repentance. The reader says they could not apologize until they could say what they had done wrong. In both, recognition becomes attached to a specific act rather than remaining an undirected feeling.",
+                "meaningful_difference": "The passages do not establish that words alone caused Helen's remorse, and Helen's excerpt concerns repentance rather than an apology. The reader's memory more explicitly makes verbal acknowledgment a condition for apologizing.",
+                "interpretation": "This looks like a real connection, with a useful qualification: words may not create the feeling, but they can make the act legible enough to respond to. Helen's renewed memory of the broken doll and the reader's need to say what they had done both link language with specific recognition. Your memory also clarifies what the book scene does not show: the next step can be speaking to the person harmed, not only feeling remorse.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranked first because it directly addresses the reader's proposed parallel and grounds it in both the broken-doll sequence and the specific memory about apology."
+              },
+              {
+                "candidate_id": "candidate-recognition-before-repair",
+                "tentative_claim": "The connection may be less about remorse itself than about a threshold: acknowledging the act comes before a fuller response to it.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Helen moves from no sorrow over the broken doll to remembering it and feeling repentance; the reader describes being unable to apologize before saying what they had done wrong. Both accounts place acknowledgment of a particular act at a turning point.",
+                "meaningful_difference": "Helen's passage centers on an inward change in feeling, while the memory specifically describes readiness to apologize to another person. The book evidence does not show Helen making an apology, so the parallel stops short of proving the same kind of repair.",
+                "interpretation": "A narrower reading is that both moments show acknowledgment as a threshold, but not the same threshold: Helen's scene is about coming to feel repentance, whereas your memory is about becoming able to apologize. That distinction may make the connection useful—it separates recognizing wrongdoing from taking the interpersonal step of addressing it.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "This is a distinct, more limited emphasis on the difference between inward repentance and outward apology; it ranks below the first because it answers the proposed parallel less fully."
+              }
+            ],
+            "selected_candidate_id": "candidate-words-make-act-recognizable",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, including the distinction between Helen's repentance and your memory of apologizing?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.772085250006057,
+          "model_requests": 2,
+          "tool_calls": 2,
+          "input_tokens": 9637,
+          "output_tokens": 1138,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-language-makes-remorse-legible",
+                "tentative_claim": "Both scenes suggest that remorse becomes possible when a person can put what happened into meaningful words, rather than merely feel bad.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In the memory, feeling awful and defensive did not yet make an apology possible; being able to say what was done wrong did. In Keller's scene, after learning the word “water,” Helen returns to the broken doll, remembers it, and feels repentance and sorrow for the first time. In both, words or their meaning mark a shift from an unformed experience toward recognition.",
+                "meaningful_difference": "The memory is about naming one's own wrongdoing to another person as part of apologising. The passage describes Helen's first inward sorrow and repentance; it does not establish that she apologises or that language alone caused the feeling.",
+                "interpretation": "Your connection is more than a shared reference to words: in both, remorse seems to need a graspable account of what happened. The useful distinction is that saying what you did was a step toward interpersonal apology for you, while Keller's passage shows an inward recognition of the broken doll. It may be that language made the wrongdoing legible, rather than simply supplying a phrase for an already settled feeling.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranked first because it addresses the exact parallel you raised and puts the shared shift from vague feeling to recognition at the center, while keeping the different outcomes explicit."
+              },
+              {
+                "candidate_id": "candidate-recognition-before-repair",
+                "tentative_claim": "The two scenes distinguish recognising wrongdoing from completing a repair: words help make recognition possible, but do not themselves finish the work.",
+                "evidence_ids": [
+                  "keller-ch4-doll-broken",
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "The memory contrasts feeling awful and defensive with being able to name what was done wrong; Keller's passages contrast breaking the doll without regret with later remembering it and feeling sorrow. Both trace a change in moral response rather than treating the first reaction as the whole story.",
+                "meaningful_difference": "The memory explicitly connects articulation to apologising to a brother. Keller's evidence supports a change to repentance, but says nothing here about an apology, forgiveness, or repairing the doll.",
+                "interpretation": "A second angle is that words may open the door to accountability without being the same thing as making amends. Your memory carries the process into an apology to another person; Helen's scene, as supported here, stops at the first experience of repentance. That difference can make the parallel useful without claiming that the scenes resolve in the same way.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful runner-up because it draws a distinct, evidence-grounded contrast between inward remorse and interpersonal apology, but it is narrower than the first reading's account of how words make wrongdoing recognisable."
+              }
+            ],
+            "selected_candidate_id": "candidate-language-makes-remorse-legible",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like to see this connection, with the distinction between Helen's inward repentance and your apology kept in view?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 28.345852208003635,
+          "model_requests": 3,
+          "tool_calls": 2,
+          "input_tokens": 16121,
+          "output_tokens": 2131,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-specific-recognition",
+                "tentative_claim": "Both reflections suggest that remorse becomes possible when harm is made specific rather than remaining a vague bad feeling. Helen returns to the broken doll and tries to fit it together; in your memory, being able to say what you did wrong made an apology possible.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "In both, a diffuse or absent response shifts when attention settles on a particular harm: Helen sees the broken doll as something to repair, and you could name the wrong you had done.",
+                "meaningful_difference": "Helen's passage describes an inward awakening of sorrow toward the doll; your memory describes articulating responsibility to another person as a step toward apology.",
+                "interpretation": "This is a close connection, though not an exact parallel: the book passage gives a concrete moment of repentance, while your memory names the role of language in taking responsibility. Together they suggest that words can help make a wrong recognisable—not necessarily create the feeling, but give it an object and a direction.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it answers your specific comparison and is grounded in both the broken-doll moment and your account of needing to name the wrong."
+              },
+              {
+                "candidate_id": "candidate-language-timing",
+                "tentative_claim": "A narrower connection is about the timing of words: Helen's repentance is described when she returns to the broken doll, while your memory explicitly places naming what you did wrong before apologising.",
+                "evidence_ids": [
+                  "keller-ch4-doll-repentance",
+                  "memory-apology-words"
+                ],
+                "shared_structure": "Both accounts link a change in response to a clearer recognition of the harm, but they emphasize different moments in that change.",
+                "meaningful_difference": "The book passage locates the shift in Helen's return to the doll and attempted repair; your memory makes the verbal naming itself a threshold before apology.",
+                "interpretation": "This reading leaves open whether words produce remorse or help express and act on it. Helen's scene shows repentance alongside an attempt to mend what was broken; your memory more directly says that finding words for the wrongdoing came before you could apologise.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful but narrower runner-up: it focuses on the sequence and role of language, whereas the first candidate more fully connects the particular harm and the shift in feeling."
+              }
+            ],
+            "selected_candidate_id": "candidate-specific-recognition",
+            "uncertainty": "medium",
+            "presentation": "ask_before_showing",
+            "suggested_follow_up": "Would you like me to show you the fuller comparison?",
+            "policy_flags": []
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-gather-alice-note-and-essay-v3",
+      "primary_behavior": "gather_every_named_source",
+      "contrast_group": "named-sources",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "gathered"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 7.04,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.6408219169825315,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "input_tokens": 5273,
+          "output_tokens": 356,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "memory-after-the-move",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Alice passage is the requested Caterpillar exchange; the memory is your note about not recognising yourself after the move; the Stanford Encyclopedia page is the requested essay.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.787064166011987,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "input_tokens": 5271,
+          "output_tokens": 355,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/",
+              "memory-after-the-move"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Alice passage supports the Caterpillar asking who Alice is; the Stanford Encyclopedia page is the requested essay; the memory record is the reader's reflection about not recognising themself after the move.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay you have for me"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "gathered",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.693613000010373,
+          "model_requests": 2,
+          "tool_calls": 3,
+          "input_tokens": 5265,
+          "output_tokens": 366,
+          "response": {
+            "status": "gathered",
+            "evidence_ids": [
+              "alice-ch5-identity",
+              "memory-after-the-move",
+              "https://plato.stanford.edu/entries/personal-identity-ethics/"
+            ],
+            "unfound_sources": [],
+            "relevance_note": "The Chapter 5 passage supports the requested Caterpillar-and-Alice scene; the account memory supports the writing about not recognising yourself after the move; the opened Stanford Encyclopedia of Philosophy page is the essay source.",
+            "public_source_checks": [
+              {
+                "url": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+                "requested_as": "that essay you have for me"
+              }
+            ]
+          },
+          "searches": [
+            "book_corpus:search_librarian:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    }
+  ]
+}

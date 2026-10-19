@@ -2,9 +2,8 @@
 
 Status: **Five registered corpora with bounded chapter, reading-unit, and exact-passage retrieval**
 
-Implementation checked against `da95b3a` on September 24, 2026. Historical
-measurements below retain their original dates and scope; they are not a new
-evaluation of this revision.
+Historical measurements below retain their original dates and scope. They do
+not evaluate every aspect of the current implementation.
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -17,8 +16,9 @@ Pinocchio, Frederick Douglass's Narrative, and The Story of My Life. Routing
 resolves reviewed book identities and catalogue cues, with active session
 selection available for indirect book follow-ups. Private inference supports
 memory-backed chapter ceilings and session-supported exact paragraphs.
-Application code validates every grant before a separate evidence search and
-deterministic release checks.
+Explicit completed-chapter progress persists per account and work, and routing
+can reuse it after identifying the book. Application code validates every
+grant before a separate evidence search and deterministic release checks.
 
 The corpus lifecycle prepares five books, including section-based works.
 Preparation does not register a book for runtime use. The versioned-memory
@@ -436,6 +436,9 @@ A structural or integrity failure returns no ready corpus:
 
 ### 4.1 Book identity and contextual routing
 
+Rules: [Specification §6.1](../specification.md#61-spoilers). This section and
+§4.2–§4.3 describe how Librarian and the application implement them.
+
 Muse decides whether the requested answer needs a book fact, quotation,
 interpretation, an indirect book follow-up, or reading resumption, and then
 calls the argument-less
@@ -491,9 +494,9 @@ work — `resolved_book_identity`, `distinctive_cue`, or `session_selection`.
 
 ### 4.2 Input and output contracts
 
-A routed main-part work without explicit confirmed permission enters private
-boundary inference. Confirmed permission bypasses inference; a selected
-non-main part without explicit permission asks for part/chapter or named-unit
+A routed main-part work without confirmed current, carried, or saved permission
+enters private boundary inference. Confirmed permission bypasses inference.
+A selected non-main part without explicit permission asks for part/chapter or named-unit
 clarification. The private boundary phase receives the current Line,
 a bounded set of strongly routed account-scoped memories, original earlier
 reader statements from the same session, and private main-part candidates.
@@ -643,7 +646,7 @@ The chapter path is:
    release validator rejects a book answer or tool call in its place.
 5. Independent event identification must confirm the proposed stopping occurrence.
 6. A validated candidate enables a new search whose scope is clamped to the
-   inferred ceiling. No boundary is persisted to later requests.
+   inferred ceiling. The inferred boundary is absent from durable account progress.
 
 At chapter granularity:
 
@@ -656,9 +659,9 @@ At chapter granularity:
 During the second phase, post-boundary catalogue entries and chapter bodies
 must not reach the evidence judge, Muse, a bounded index, a reranker, or any
 downstream answer context. The private first-phase Librarian is the sole
-exception and has localization authority, not disclosure authority. Reading
-progress is not durable memory; it is resolved again for each book-related
-request.
+exception and has localization authority, not disclosure authority. Inferred
+permission is resolved within the request. Explicit reader progress follows the
+session and account rules below.
 
 Clarification is a distinct response type, not a weak or empty retrieval
 result:
@@ -686,6 +689,133 @@ paragraph IDs support the narrower session-passage permission described in
 [Session-supported exact passages](session-passage-design.md), without implying
 completion of the chapter or permission for neighboring text.
 
+#### Explicit session and account progress
+
+The session carries a reader-confirmed chapter through ordinary follow-ups
+about the same work and part. A lower declaration applies immediately, even
+when the turn fails or declines. A higher declaration commits only after a
+released Muse reply or application clarification. An unclear correction
+retracts the carried ceiling and supersedes earlier reader statements.
+Application code excludes prior evidence outside the current ceiling. Changing
+book or part, deleting the session, or restarting the backend clears session
+progress.
+
+The interactive application's `ReadingProgressStore` persists the part and
+completed chapter per account and work in
+`LINGER_STATE_DIR/reading_progress.sqlite3`. After a released reply or
+application clarification, the latest explicit declaration replaces the saved
+record, including a lower chapter. Saved progress survives conversation
+deletion and backend restarts. Loading validates the current registered
+revision, access list, part, and chapter count. The store contains no inferred
+boundaries, named units, or exact-passage grants.
+
+Saved progress never selects a work. Current-turn context preparation applies
+it only to an identified book, behind that session's progress or retraction,
+and withholds it when an unparsed correction speaks to progress. Book routing
+can bind saved progress after identifying a work and matching its part.
+An unclear session retraction leaves the saved account record intact. Later
+routing or a comparison can reuse that saved chapter until a released explicit
+correction replaces it.
+
+For `find_connection`, the application combines saved progress with any current
+confirmed permission. When that covers at least two books, it supplies each
+book at its own ceiling without a primary book. The current permission replaces that book's
+saved entry. Synthetic replay uses trusted supplied scopes and omits live
+account progress. `tests/test_reading_progress.py` covers session corrections;
+`tests/test_progress_store.py` covers durable storage, account isolation, saved
+routing, and comparison scopes.
+
+#### Declarations, retractions, and clarification follow-ups
+
+Rules: [Specification §6.1](../specification.md#61-spoilers).
+
+**What declares progress.** Only the reader's explicit completion statement or
+clarification answer declares a chapter. Questions, conditions, and explicit
+uncertainty about completion do not. Quoted, blockquoted, or fenced text
+declares nothing.
+
+**What retracts progress.** Any other turn that may speak to progress retracts
+the carried ceiling and fails closed. That covers:
+
+- a statement, or a question with a correcting or limiting cue such as "sorry",
+  "only", "not", "beyond", "stay within", or "stop at", that names an earlier
+  chapter's title or location;
+- a number within the book's chapters alongside a chapter word or such a cue,
+  or in a reply of four words or fewer;
+- progress language with no number, such as "I haven't met…", "don't spoil…",
+  or "a different book"; and
+- a parser clarification.
+
+Quotes do not shield a retraction. Lowering or retracting hides earlier reader
+statements from boundary inference and withholds earlier cited passages the
+ceiling no longer permits. Per-work corrections remain until a session reset or
+restart, so returning to a book cannot restore a retracted permission. A
+restart also hides restored reader statements from boundary inference.
+
+**Precedence.** A declaration in the current message outranks the session's
+declaration or retraction, which outranks saved progress. Direct restoration of
+saved progress records the `saved_progress` authorization basis. A saved chapter
+that no longer fits the registered, permitted work is ignored. A routed inferred
+ceiling never widens or replaces a boundary the reader confirmed this turn.
+
+**Unreadable memory storage.** The application binds an empty memory set and
+boundary inference proceeds without memories. A chapter ceiling still requires
+memory support; earlier reader statements may still support exact passages.
+
+**Chapter numbering.** Chapter numbering restarts where the source does, while
+canonical section IDs keep source order. Chapter 1 in Part I and Chapter 1 in
+Part III of *The Story of My Life* are distinct locations. `chapter_id` stores
+the canonical unit ID; `chapter_number` stores the literary chapter number, or
+`null` for named sections.
+
+**Cached indexes.** Cache scope identity is the work, revision, part, and
+chapter ceiling or exact unit IDs. Excessive ceilings are clamped to the part's
+registered maximum before lookup. Exact unit membership is validated even when
+an index is cached.
+
+**Below-cutoff grounding.** For direct grounding, if every fused candidate falls
+below the final reranker cutoff, the application may keep the highest-ranked
+eligible candidate for evidence-strength assessment. Only an accepted
+assessment admits it to the release index. Ordinary retrieval, connection
+search, and boundary inference keep their cutoffs.
+
+**Cross-book comparison.** When turn triage classifies a message as a connection
+request and the reader has confirmed two or more books, the turn runs as the
+unfocused `connection_book_scopes` comparison. Each book is granted at its own
+ceiling and none is primary. A book confirmed this turn replaces its saved
+value. An undeclared book is never searched.
+
+**Clarification release.** An unresolved routing or boundary clarification
+returns a typed `ClarificationRequest` from `librarian_route`. After Provenance
+passes the candidate, the application releases the validated question as
+`application_clarification`, replacing Muse's wording. Evidence declarations and
+non-route tool calls still fail validation, and an emotional boundary takes
+priority. Clarifications suppress capture with
+`clarification_capture_suppressed`. The released question and original reader
+message stay in session history with the pending clarification state.
+
+**Clarification answers.** A later reply that is only a chapter reference, such
+as "2", "two", "second", or "chapter two", counts as completed progress only
+when a clarification is pending and the chapter exists in the selected part. It
+resolves as `reader_confirmed` before Muse runs, and Muse re-issues the original
+book question through `librarian_search` under that ceiling. Hedged or
+question-shaped replies, unrelated text, and out-of-range answers keep the
+question pending. Unresolved identity or a book switch clears it. Direct search
+checks identity from the original message or validated session selection before
+recording a pending question.
+
+Only a memory-supported clarification that asks about a specific candidate
+chapter may retain that chapter for a follow-up affirmation. A generic progress
+question clears any earlier candidate. Naming the book or saying the chapter is
+unfinished does not confirm progress. When the same progress question stays
+unanswered for a single-part, chapter-based work, routing asks a closed question
+for a chapter number within range. Mixed section-based works keep the ordinary
+clarification.
+
+A routed work derives Provenance's review context after Muse runs. A
+`RoutedWork` result grants that reading context only when no boundary was
+already resolved.
+
 ### 4.4 Retrieval, fusion, and deduplication
 
 The benchmark used direct bounded chapter selection as its control. The
@@ -709,7 +839,11 @@ At most 20 private candidates per query
         ↓
 Reranker scores overlapping token windows and retains each passage's best score
         ↓
-Interleave keyword, semantic, and reranker ranks; merge queries into at most 20 candidates
+Interleave keyword, fused, semantic, and reranker results; retain four per planned query
+        ↓
+Keep each part in clearly matching books, plus two fallback candidates per query per book
+        ↓
+Remove fully contained windows; merge into at most 20 candidates per book
         ↓
 Resolve final passages to exact canonical chapter lines
         ↓
@@ -719,28 +853,52 @@ Librarian assesses the plan and original reader request against the permitted ev
 Muse `librarian_search` and Serendipity `search_librarian` accept no
 model-written book query. Application code supplies the original reader cue and
 earlier reader statements to `plan_book_request` before retrieval. Each planned
-book need becomes a separate query from its exact reader spans. The original
+book need becomes a separate query from its exact reader spans. The plan
+identifies each named event in a requested sequence separately. The original
 current message and earlier reader statements remain fallback queries, including
-when planning fails or omits a need. Queries are split into chunks of at most
+when planning fails or omits a need. Before each query searches a book,
+application code removes its registered author-name words unless they also
+appear in the title or aliases. Reader-span validation and evidence text retain
+the original wording. Queries are split into chunks of at most
 2,000 characters, with at most 16 distinct queries. Exceeding that budget fails
 without widening scope or silently dropping the remaining reader input.
 
-Both callers then use `retrieve_for_judgement`.
-Each query retains up to 20 independent keyword and semantic candidates,
-interleaving their ranks with reranker ranks. The combined private pool also
-has a 20-record cap and interleaves the query streams before deduplication.
-Reranker demotion or a score below its cutoff does not remove a candidate from
-this private judgment pool. Reranking uses overlapping windows that fit the
-encoder's actual query-and-passage token budget and assigns each canonical
-passage its maximum window score. The evidence text and source range remain
-unchanged. Scope filtering happens before retrieval and judgment.
+Both callers use `retrieve_for_judgement`. The hybrid retriever returns up to
+20 private candidates per query, interleaving keyword, fused, semantic, and
+reranker results. These records have no public score cutoff. Reranking uses
+overlapping windows that fit the encoder's token budget and assigns each
+canonical passage its maximum window score. Evidence text and source ranges
+remain unchanged. Scope filtering happens before retrieval and judgment.
+
+`gather_book_candidates` searches each planned query in every allowed book.
+It retains four candidates in the strongest-matching book when that book's
+best score is at least 0.05 and at least ten times the next book's best score.
+Otherwise, it retains four per book. Four covers the opening round of all four
+retrieval methods, including a reranker leader that appears fourth in the
+interleaved list. The list is not sorted by reranker score.
+
+The original Line and each prior reader statement independently retain two
+candidates per query per book. This fallback also applies to books excluded
+by part routing. Identical searches share cached results within the invocation,
+keyed by the complete book scope and effective query. Query reuse does not
+remove the fallback allowance. Without planned queries, each fallback query
+retains up to 20 candidates per book.
+
+The application interleaves the retained streams, removes fully contained
+windows, and caps the result at 20 records per book. This is a bounded recall
+policy: a large request can still exceed the merged budget. Experiment 4 can
+override the per-part allowance with `part_candidates=20`; production uses four.
+Experiment 4 result identities include retrieval source hashes and the candidate
+allowance, so results from older retention rules are stale.
 
 The caller's release limit is separate from this private budget and is supplied
 as `max_evidence_records`. Muse clamps `max_final_evidence` to 1–5. Serendipity
 clamps `max_results_per_source` to 1–5 for the selected book search. It can
-select an allowed `work_ids` subset and must do so when multiple books are
-available; the final record budget is shared across that search, not multiplied
-by the number of books. The judge assesses the original request alongside
+select an allowed `work_ids` subset when multiple books are available. A
+title-free reading connection with `search_all_granted_books` searches every
+granted work regardless of the model's subset. The final record budget is
+shared across that search, not multiplied by the number of books. The judge
+assesses the original request alongside
 the plan, including omitted needs. An oversized or invalid selection fails
 closed instead of silently truncating the evidence behind its verdict.
 
@@ -763,10 +921,21 @@ the 0.5 cutoff. Finishing Chapter 7 already permits that passage; changing the
 corpus numbering or widening the spoiler boundary would not repair the miss.
 
 The restriction is applied before search. Duplicate evidence IDs keep one
-canonical record. Private candidates retain overlapping source windows when
-their IDs differ, while ordinary public retrieval suppresses strongly
-overlapping windows in its fused shortlist. Text is never paraphrased during
-candidate selection.
+canonical record. During private candidate gathering, a later window is removed
+only if an earlier window contains its entire source range in the same work,
+revision, part, chapter, and source hash. Partial overlaps remain because their
+unique lines may contain the answer. Ordinary public retrieval still suppresses
+strongly overlapping windows in its fused shortlist. Candidate selection never
+paraphrases or stitches source text.
+
+`HybridLibrarian(read_chapter_cues=True)` appends each chapter's reviewed
+description, characters, and retrieval cues to the text used by BM25,
+embeddings, and reranking. Cues follow the passage so embedding truncation
+discards cue text first. They never enter canonical evidence excerpts or alter
+evidence IDs. The index identity includes cue metadata when this option is
+enabled. Production defaults to passage-only search. The
+[offline evaluation commands](../../evals/librarian/README.md#chapter-cue-and-retrieval-research-experiments)
+use temporary corpus copies for approved cue revisions.
 
 ### 4.5 Reranking versus evidence strength
 
@@ -830,12 +999,22 @@ at this stage does not trigger another retrieval pass.
 `necessary_support`. Deterministic checks require
 unique mappings, valid selected IDs, and coverage of every part for a
 `sufficient` verdict. Selection must also fit `max_evidence_records`. Application
+validation supplies span, support, coverage, and selection errors to the
+Agent's single repair retry. Unknown IDs receive up to three similar supplied
+IDs as repair suggestions, without silently changing the output. Application
 code returns the existing `EvidenceStrengthDecision` fields to either caller.
 The mapping's meaning remains a model judgment; structural validation does not
 prove that a passage answers the question. No request plan changes reading
 scope, source identities, or the caller's evidence authority. Exact passage
 grants use the same planner and assessor over their fixed records. They never
 trigger broader retrieval.
+
+Muse does not receive Librarian's free-text reason for a `sufficient` result.
+The `librarian_search` adapter replaces `strength_reason` with one fixed
+application sentence and leaves every other field as judged. `weak` and `none`
+results keep the model's reason, which Muse states only for `weak` evidence.
+Provenance reviews the tool result Muse saw; Serendipity and Librarian's own
+recorded assessment keep the full reason.
 
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
@@ -861,7 +1040,9 @@ ID.
 ### 4.7 Result contract
 
 When retrieval runs, Librarian returns `kind: result`. This is distinct from a
-clarification. A sufficient result looks like:
+clarification. A sufficient result as grounding judges it looks like this;
+Muse's `librarian_search` shows the fixed sentence from section 4.5 in place of
+this `strength_reason`:
 
 ```json
 {
@@ -1038,7 +1219,9 @@ judged_retrieval:
   semantic_candidates: 10
   public_score_cutoffs_applied: false
   max_private_candidates_per_query: 20
-  max_merged_candidates: 20
+  candidates_per_planned_part: 4
+  candidates_per_context_query: 2
+  max_merged_candidates_per_book: 20
   max_query_characters: 2000
   max_distinct_queries: 16
 
@@ -1212,7 +1395,7 @@ No new provider evaluation was performed for this documentation update.
 | Database or index as source of truth | No |
 | Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
 | Retrieval strategy selection | Reranked hybrid won the mandatory five-way comparison |
-| Reading progress | Not persisted; boundary is inferred or clarified per request |
+| Reading progress | Explicit completed chapters persist per account and work; session carry handles corrections; inferred and exact-passage permissions remain outside the durable store |
 | Metadata as evidence | No; only canonical chapter or section bodies are authoritative |
 | Ambiguous boundary | Typed clarification after optional private localization; no answer-evidence search is authorized |
 | Completed retrieval | Typed result with sufficient, weak, or none strength |
@@ -1221,9 +1404,9 @@ No new provider evaluation was performed for this documentation update.
 | Evidence identity | Book version + chapter + canonical source lines |
 | Derived windows | 350-word target with 60-word overlap; whole paragraphs stay inside a canonical unit |
 | Initial thresholds | Public search uses 0.5 semantic and reranker cutoffs; private judgment retains its bounded candidate pool below those cutoffs |
-| Candidate limits | Public retrieval fuses at most 15; judged retrieval scores and retains up to 20 per query and 20 merged. Production tools return at most 5 selected records |
+| Candidate limits | Public retrieval fuses at most 15; private retrieval scores up to 20 per query. Gathering retains four per planned query in routed books, two per fallback query per book, and at most 20 merged per book. Production tools return at most 5 selected records |
 | Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
-| Hybrid fusion | RRF with `k = 60`; public shortlist uses 50% overlap deduplication. Private selection interleaves lexical, fused, semantic, and reranked streams and deduplicates by ID |
+| Hybrid fusion | RRF with `k = 60`; public shortlist uses 50% overlap deduplication. Private selection interleaves lexical, fused, semantic, and reranked streams. Gathering removes duplicate IDs and fully contained windows, preserving partial overlaps |
 | Historical release quality | August 17 report: 91.7% recall, 100% precision, 91.7% strength accuracy, zero measured spoiler exposure on 12 Alice cases; not current multi-book validation |
 
 ### 8.2 Open

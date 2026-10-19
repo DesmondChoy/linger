@@ -19,7 +19,7 @@ from apps.backend import sessions
 from apps.backend.main import chat
 from apps.backend.schemas import ChatRequest, ChatResponse
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.services.memory import (
     AccountContext,
     MemoryPolicyService,

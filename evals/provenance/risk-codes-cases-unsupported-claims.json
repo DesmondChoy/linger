@@ -51,8 +51,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "my brother was diagnosed with an anxiety disorder last year",
-            "start_codepoint": 41,
-            "end_codepoint": 100,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -127,8 +125,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "my brother joined a book club last year",
-            "start_codepoint": 41,
-            "end_codepoint": 80,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -201,8 +197,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "I always read Carroll aloud, because that is the only way the wordplay lands for me",
-            "start_codepoint": 129,
-            "end_codepoint": 212,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -279,8 +273,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "I always read Carroll aloud, because that is the only way the wordplay lands for me",
-            "start_codepoint": 129,
-            "end_codepoint": 212,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -353,8 +345,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "I always reread the tea party chapter first when I am impatient, because its chaos matches my mood",
-            "start_codepoint": 104,
-            "end_codepoint": 202,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -431,8 +421,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "I always reread the tea party chapter first when I am impatient, because its chaos matches my mood",
-            "start_codepoint": 104,
-            "end_codepoint": 202,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -627,8 +615,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "The Cheshire Cat appears in every chapter of Alice's Adventures in Wonderland.",
-            "start_codepoint": 0,
-            "end_codepoint": 78,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }
@@ -703,8 +689,6 @@
           "memory": {
             "kind": "memory_candidate",
             "text": "I reread the tea party chapter when I'm impatient",
-            "start_codepoint": 28,
-            "end_codepoint": 77,
             "reason_code": "durable_reflection",
             "evidence_ids": []
           }

@@ -151,3 +151,136 @@ def test_live_grades_source_coverage_and_the_observed_strength(
         assert result["strength_correct"] is (strength == expected)
         assert result["final_evidence_recall"] == coverage
         assert result["final_citation_precision"] == coverage
+
+
+NECK_ONLY_REPLY = (
+    "In Chapter 5, the Pigeon reads Alice’s unusually long neck as proof that "
+    "she’s a serpent. It’s also on constant watch for serpents because they "
+    "threaten its eggs, so it treats Alice as the danger it expects to find."
+)
+BOTH_REASONS_REPLY = (
+    "In Chapter 5, the Pigeon sees Alice’s unusually long neck and suspects she "
+    "is after its eggs. When Alice points out that girls eat eggs too, the Pigeon "
+    "reasons that egg-eating makes someone serpent-like."
+)
+
+
+@pytest.mark.parametrize("reply,release_source,recall,missing,evidence_recall,graded,complete", [
+    (NECK_ONLY_REPLY, "muse_candidate", 0.5, ["egg-eating-admission"], 1.0, 1, 0),
+    (BOTH_REASONS_REPLY, "muse_candidate", 1.0, [], 1.0, 1, 1),
+    ("I couldn’t verify that, so I’d rather not guess.", "application_safe_decline", None, [], 0.0, 0, 0),
+], ids=["released-without-admission", "released-complete", "declined"])
+def test_live_reports_whether_the_released_reply_states_each_required_fact(
+    monkeypatch, reply, release_source, recall, missing, evidence_recall, graded, complete,
+):
+    from apps.backend.librarian import Librarian
+    from evals.librarian import live_validation
+    from src.linger.contracts.librarian import RetrievalResult, SearchedScope
+
+    record = Librarian().fetch_by_id("pg11-v01b38ea4-ch05-ln1208-1212")
+    retrieval = RetrievalResult(
+        kind="result", request_id="reply-fact-test", outcome="evidence_found",
+        evidence_strength="sufficient", strength_reason="Controlled judgment for grader testing.",
+        searched_scope=SearchedScope(
+            work_id=record.work_id, book_version_id=record.book_version_id,
+            max_chapter_inclusive=5,
+        ),
+        evidence=(record,),
+    )
+    # The draft always cites the passage covering both reasons. A declined turn
+    # still has a draft, which must not be graded because it was never released.
+    candidate = MuseCandidate.model_validate({
+        "reply": NECK_ONLY_REPLY if release_source != "muse_candidate" else reply,
+        "evidence_uses": [{
+            "source_kind": "book_corpus", "evidence_id": record.evidence_id,
+            "source_location": record.location, "exact_quote": None,
+            "supported_claims": ["The Pigeon takes Alice for a serpent."],
+        }],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+    messages = (
+        ModelResponse(parts=[ToolCallPart("librarian_search", {}, tool_call_id="search")]),
+        ModelRequest(parts=[ToolReturnPart("librarian_search", retrieval, tool_call_id="search")]),
+    )
+
+    async def release(*args, muse, **kwargs):
+        muse.results.append(SimpleNamespace(output=candidate, new_messages=lambda: messages))
+        return SimpleNamespace(
+            reply=reply, release_source=release_source,
+            provenance_verdicts=("pass",), finding_codes=(), failure_stage=None,
+        )
+
+    monkeypatch.setattr(live_validation, "reflection_reply", release)
+    # `father-william` declares no required facts, so it is never graded on them.
+    report = asyncio.run(live_validation.run_validation(
+        case_ids={"pigeon-serpent", "father-william"},
+    ))
+    by_id = {item["case_id"]: item for item in report["cases"]}
+
+    pigeon = by_id["pigeon-serpent"]
+    assert pigeon["reply_fact_recall"] == recall
+    assert pigeon["missing_reply_facts"] == missing
+    assert pigeon["final_evidence_recall"] == evidence_recall
+    assert by_id["father-william"]["reply_fact_recall"] is None
+    assert by_id["father-william"]["missing_reply_facts"] == []
+
+    summary = report["summary"]
+    assert summary["reply_fact_recall"] == recall
+    assert summary["reply_fact_graded_count"] == graded
+    assert summary["reply_fact_complete_count"] == complete
+
+
+def test_reply_fact_recall_does_not_change_whether_live_targets_pass(monkeypatch):
+    from apps.backend.librarian import Librarian
+    from evals.librarian import live_validation
+    from src.linger.contracts.librarian import RetrievalResult, SearchedScope
+
+    record = Librarian().fetch_by_id("pg11-v01b38ea4-ch05-ln1208-1212")
+    retrieval = RetrievalResult(
+        kind="result", request_id="reply-fact-test", outcome="evidence_found",
+        evidence_strength="sufficient", strength_reason="Controlled judgment for grader testing.",
+        searched_scope=SearchedScope(
+            work_id=record.work_id, book_version_id=record.book_version_id,
+            max_chapter_inclusive=5,
+        ),
+        evidence=(record,),
+    )
+    messages = (
+        ModelResponse(parts=[ToolCallPart("librarian_search", {}, tool_call_id="search")]),
+        ModelRequest(parts=[ToolReturnPart("librarian_search", retrieval, tool_call_id="search")]),
+    )
+
+    def summary(reply):
+        candidate = MuseCandidate.model_validate({
+            "reply": reply,
+            "evidence_uses": [{
+                "source_kind": "book_corpus", "evidence_id": record.evidence_id,
+                "source_location": record.location, "exact_quote": None,
+                "supported_claims": ["The Pigeon takes Alice for a serpent."],
+            }],
+            "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+        })
+
+        async def release(*args, muse, **kwargs):
+            muse.results.append(SimpleNamespace(output=candidate, new_messages=lambda: messages))
+            return SimpleNamespace(
+                reply=reply, release_source="muse_candidate",
+                provenance_verdicts=("pass",), finding_codes=(), failure_stage=None,
+            )
+
+        monkeypatch.setattr(live_validation, "reflection_reply", release)
+        return asyncio.run(live_validation.run_validation())["summary"]
+
+    # Targets require the complete case set, so the benchmark is this one case.
+    benchmark = live_validation.load_cases()
+    only_pigeon = benchmark.model_copy(update={
+        "cases": tuple(case for case in benchmark.cases if case.case_id == "pigeon-serpent"),
+    })
+    monkeypatch.setattr(live_validation, "load_cases", lambda: only_pigeon)
+
+    incomplete, complete = summary(NECK_ONLY_REPLY), summary(BOTH_REASONS_REPLY)
+
+    assert (incomplete["reply_fact_recall"], complete["reply_fact_recall"]) == (0.5, 1.0)
+    # Every target is met with half the required facts missing from the reply.
+    assert incomplete["targets_pass"] is True
+    assert complete["targets_pass"] is True

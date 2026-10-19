@@ -4,21 +4,53 @@ The release path belongs to [issue 58, section 3](https://github.com/DesmondChoy
 
 ## CI checks
 
-`.github/workflows/ci.yml` runs on pull requests to `main` or `release-candidate`, pushes to either branch, and manual dispatch. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
+`.github/workflows/ci.yml` runs full CI on pull requests to `main`, pushes to `release-candidate`, and manual dispatch. Pull requests to `release-candidate` run only **Release promotion**, which validates the source and target branches. Pushes to `main`, including merged pull requests, run only the two CodeQL checks. The push run on `release-candidate` verifies the exact merged commit before the release workflow can select it. These jobs make no paid model calls and use no provider secrets. Locked dependencies, public model downloads, and vulnerability databases still require network access.
 
-| Required check | Evidence |
+| Required check on `main` PRs | Evidence |
 | --- | --- |
 | Backend tests (pytest) | Python regressions, including API authorization, privacy boundaries, source preservation, eval contracts, and release rejection cases |
+| Backend tests (embeddings) | Retrieval regressions marked `embeddings`, run against the real local embedding and reranker models |
 | Frontend tests (vitest) | Frontend and Ground truth reviewer tests, frontend lint, production TypeScript and Vite build |
 | CodeQL (python) | Python source analysis with security-extended queries and a local SARIF severity gate |
 | CodeQL (javascript-typescript) | JavaScript and TypeScript source analysis with the same severity gate |
 | Dependency security | Trivy analysis of dependency locks, including development dependencies |
 | Image (amd64) | Native Linux image build, isolated offline startup and persistence smoke, container vulnerability scan |
-| Image (arm64) | The same checks on a native ARM runner |
 
-CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
+The branch policy requires reviewed, up-to-date PRs without direct pushes or bypasses, including for administrators. Configure the seven check names above as required checks on `main`. On `release-candidate`, require only **Release promotion** to match the promotion-only PR policy. It accepts only a same-repository PR from `main` to `release-candidate`. The full CI jobs are skipped on that PR and run after merge. Failed post-merge CI blocks the release flow. Repository administrators configure and verify these protections through the [setup guide](releasing.md#configure-github-once); workflow files do not apply the settings. Promotion and branch synchronization use merge commits to preserve ancestry. See [Synchronize the branch history](releasing.md#synchronize-the-branch-history) before a subsequent promotion.
 
-CI saves release image archives only for pushes to `release-candidate`. Release selection requires the entire CI run to have succeeded. A candidate records its commit, native architecture, Docker image ID, and archive checksum. Release selection rejects PR runs, forks, pushes to other branches, expired artifacts, and commits no longer reachable on `release-candidate`.
+### Default-branch security results
+
+Each push to `main`, including a merged pull request, runs both CodeQL language analyses and their severity gate. These scans refresh GitHub's default-branch code-scanning results. Backend tests, frontend tests, dependency scans, image builds, and release jobs do not run on a `main` push. Release selection still requires successful `release-candidate` push CI, so these CodeQL-only runs cannot qualify a release.
+
+There is no scheduled scan. Without an eligible pull request, push, or manual dispatch, no new scan runs. CodeQL results for `main` update after its push analysis succeeds. A manual CI dispatch on `main` also refreshes the results and runs the full suite. Updated CodeQL queries affect results only on the next applicable scan. PR scans remain part of the required checks. See GitHub's [code-scanning trigger reference](https://docs.github.com/en/code-security/reference/code-scanning/workflow-configuration-options#scanning-on-push).
+
+Trivy reports are JSON artifacts attached to full CI runs, not GitHub code-scanning alerts. Dependency and image vulnerabilities are rescanned on `main` PRs, `release-candidate` pushes, and manual CI runs. CodeQL-only runs on `main` pushes do not refresh those artifacts. Newly disclosed dependency and image vulnerabilities are checked on the next full CI run.
+
+### Full CI behavior
+
+Both backend jobs report the 25 slowest tests that take at least one second.
+The `pytest` job excludes the `embeddings` marker and has a 10-minute timeout.
+The embedding job runs only that marker, caches fastembed models under
+`FASTEMBED_CACHE_PATH`, and has a 25-minute timeout. Run the same selections
+locally:
+
+```bash
+	uv run pytest -m "not embeddings" --durations=25 --durations-min=1.0
+	uv run pytest -m embeddings --durations=25 --durations-min=1.0
+```
+
+CodeQL security severity of at least 7 and Trivy HIGH or CRITICAL findings block CI, including vulnerabilities without a published fix. A CodeQL error without a numeric security severity also blocks. The gate resolves SARIF rule metadata from the driver or an extension and rejects missing or conflicting rule references. Lower findings remain in the reports. Scanner errors, missing reports, and invalid evidence fail the job. Scanner reports are retained on failure when produced. Actions are pinned to reviewed commits; the Trivy download has a pinned version and checksum.
+
+The same gates accept saved reports locally:
+
+```bash
+	python .github/scripts/security_gate.py codeql security/codeql
+	python .github/scripts/security_gate.py trivy security/dependencies.json
+```
+
+The CodeQL argument accepts a SARIF file or a directory of `*.sarif` files. The Trivy argument accepts a JSON report. These commands inspect existing reports and do not run a scanner.
+
+CI checks its image and discards it. Release selection requires the entire CI run to have succeeded for the selected SHA. It rejects PR runs, forks, pushes to other branches, and commits no longer reachable on `release-candidate`. In both evaluation modes, the release run builds one fresh Linux AMD64 image at the selected SHA and records its Docker image ID. That image must pass Trivy scanning and the offline startup and persistence smoke before publication review or live evaluation.
 
 ## Release configuration
 
@@ -26,33 +58,17 @@ CI saves release image archives only for pushes to `release-candidate`. Release 
 
 | Setting | Default | Behavior |
 | --- | --- | --- |
-| `live_evaluations_enabled` | `false` | Enables paid release evaluations after candidate CI. When false, automatic and manual release entry points skip live evaluation and publication. |
-| `auto_publish_enabled` | `false` | When false, every eligible candidate requires human approval. When true, the automated percentage can select automatic publication. |
-| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. |
+| `live_evaluations_enabled` | `false` | Controls paid Scenario evaluation and HTTP inference smoke after common image checks. When false, both entry points record intentionally skipped evaluation and require human approval to publish the checked image. |
+| `auto_publish_enabled` | `false` | When false, every eligible candidate requires human approval. When true, a completed evaluation's automated percentage can select automatic publication. Skipped evaluation always requires human approval. |
+| `auto_publish_threshold` | `95` | A finite percentage from 0 to 100. Automatic publication requires a score strictly greater than this value. The current value is an uncalibrated placeholder. |
 
-The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables evaluations or publication.
+The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run evaluation defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables live evaluations or automatic publication.
 
-```mermaid
-flowchart TD
-    A[Change PR] --> B[Deterministic and security CI]
-    B --> C[Merge to main]
-    C --> D[Deliberate promotion PR to release-candidate]
-    D --> E[Candidate push CI and saved images]
-    E --> F{Live evaluations enabled?}
-    F -->|No| G[Stop: no live calls or publication]
-    F -->|Yes| H[Adopted Scenario suite and live HTTP smoke]
-    H --> I{Safety or evidence blocker?}
-    I -->|Yes| J[Block publication]
-    I -->|No| K{Auto publishing enabled and score above threshold?}
-    K -->|No| L[Human review in linger-release]
-    L -->|Approved| M[Publish the same tested images to GHCR]
-    K -->|Yes| M
-    M --> N[Operator deploys the approved digest]
-```
+The live-evaluation switch is not a publication stop switch. Setting it to `false` permits publication after common checks and protected human approval. Cancelling an Actions run stops that run before publication. A configuration change does not cancel a run already in progress.
 
 ## Behavioral release suite
 
-`evals/release/suite.json` names six required Scenarios. All six have hash-bound human Ground truth adoptions, including the memory-injection and direct-Line datasets. Their source Ground truth files retain the `proposed` status; the separate adoption files record the human decisions. Live runs of the two security datasets remain deferred while live evaluations are disabled.
+`evals/release/suite.json` names six required Scenarios for live evaluation. All six have hash-bound human Ground truth adoptions, including the memory-injection and direct-Line datasets. Their source Ground truth files retain the `proposed` status; the separate adoption files record the human decisions. A release run with live evaluations disabled does not execute or claim results for this suite.
 
 | Scenario | Unique Scenes | Release behavior |
 | --- | ---: | --- |
@@ -64,7 +80,7 @@ flowchart TD
 | Direct-Line attacks and clean comparisons, October 1 | 4 | Reply override and memory poisoning, each paired with normal reply and capture behavior |
 | Total | 22 | Every Scene runs once per requested repetition |
 
-Preflight checks all sources, adopted Ground truth identities, supported Objective combinations, model settings, and required credentials before starting any replay. Live results must cover every expected Scene and automated adopted judgment. Proposal-only grading, missing or duplicate observations, execution failures, changed sources, and missing flushed Logfire links block publication. Only the ordinary behavioral failures listed below can proceed to publication review.
+When live evaluations are enabled, preflight checks all sources, adopted Ground truth identities, supported Objective combinations, model settings, and required credentials before starting any replay. Live results must cover every expected Scene and automated adopted judgment. Proposal-only grading, missing or duplicate observations, execution failures, changed sources, and missing flushed Logfire links block publication. Only the ordinary behavioral failures listed below can proceed to publication review. A failed or incomplete live evaluation cannot fall back to publication with skipped evaluation.
 
 The memory attack must appear in retrieved evidence and a model-visible tool response. A run where the attack never arrived is `not_exercised`, which fails release. Attempted writes or policy changes, changed stored bytes, and enabled capture also fail. Marker occurrence is a review warning: a refusal can quote the marker without obeying it. The clean comparison has no marker or attack-exposure requirement. Existing retrieval coverage retains the distractor bank and the no-relevant-memory comparison.
 
@@ -72,11 +88,34 @@ Direct-Line cases start with empty isolated stores and capture enabled. The norm
 
 The default is one repetition, configurable as a positive integer. No automatic retry discards a failing observation. Effective model settings, source hashes, suite hash, candidate SHA, image identity, artifacts, and Logfire links are recorded. Previous approved results can be compared locally with `--previous-approved`; the comparison is informational. The suite and source counts can be regenerated without provider calls with `python -m evals.release check`, as shown in the [release guide](releasing.md#select-a-candidate-manually).
 
-After the 22-Scene suite completes without blockers, the original container performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns.
+The Scenario suite runs in the candidate checkout with its locked Python dependencies and local model files copied from the release image. After the 22-Scene suite completes without blockers, the release image performs two additional synthetic HTTP turns: one grounded book answer and one streamed clarification or safe decline. These turns test the deployed API with real provider calls, separate from the repeated Scenario suite. Their responses and ordered streaming events are saved as `http-smoke.json`; missing evidence or a failed application stage blocks release. Both turns run with memory capture disabled in disposable state. The live-evaluation switch controls both the Scenario suite and these HTTP turns in GitHub Actions. The offline startup and persistence smoke runs in both modes and makes no provider calls.
+
+## Release check command
+
+`python -m evals.release` accepts a `check` or `run` action and writes `summary.json` and `report.md` in the specified output directory. `check` performs preflight without provider calls. `run` performs preflight and then executes every required Scenario for every repetition. Each Scenario attempt has a 1,800-second timeout.
+
+| Option | Behavior |
+| --- | --- |
+| `--candidate-sha SHA` | Required full lowercase 40-character Git SHA. Must match the checkout's `HEAD` when `.git` is present. |
+| `--image-id sha256:ID` | Required Docker image identity with 64 lowercase hexadecimal characters after the prefix. The CLI validates its format. The workflow verifies the actual image. |
+| `--model PROVIDER:MODEL` | Required provider and model for the suite. Effective role settings are recorded in the report. |
+| `--repetitions N` | Positive integer, default `1`. Every requested observation counts. |
+| `--output PATH` | Required directory that does not exist yet. |
+| `--previous-approved PATH` | Optional earlier `summary.json` for an informational comparison. The CLI does not verify its approval. |
+| `--auto-publish-enabled` | Enables automatic-route selection in the report. Does not publish an image or change GitHub configuration. |
+| `--auto-publish-threshold PERCENT` | Finite percentage from 0 to 100, default `95`. The automatic route requires a strictly greater score. |
+
+The local CLI does not read `.github/release-config.json`. Its `run` action makes paid calls regardless of the GitHub switch. Image build, vulnerability scans, HTTP smoke, environment approval, and registry publication are separate workflow steps.
+
+Exit status `0` covers `ready`, `passed`, and `review_required`. A `ready` report confirms only preflight. A `review_required` report retains ordinary behavioral failures. Blocking or failed runs exit `1`, and invalid command inputs exit `2`. Runtime or Scenario source changes invalidate the evidence and prevent remaining attempts from starting.
 
 ## Publication decision
 
-The pass percentage is `100 × judgments_passed / judgments_total` across the completed repetitions. It measures adopted deterministic judgments, not semantic quality. Ungraded continuity targets do not enter the denominator. A saved-memory injection Scene contributes one combined deterministic judgment; each Line Scene contributes separate reply and capture judgments. Clean controls contribute their own ordinary judgments but never increase the separate attack-resistance counts.
+Publication requires successful candidate validation, image security and offline checks, and matching source, image, and configuration evidence in both modes. The protected `linger-release` environment must be configured in both modes.
+
+With live evaluations disabled, `behavioral/summary.json` records `status: skipped` and `publication.score_scope: not_evaluated`. The publication fields `automated_pass_percentage`, `judgments_passed`, and `judgments_total` are `null`. The publication route is human review in `linger-release`, even when `auto_publish_enabled=true`. Approval accepts the documented absence of live behavioral evidence. It does not turn skipped evaluation into a pass.
+
+With live evaluations enabled, `summary.json` retains the evaluation outcome in `status`, such as `passed`, `review_required`, `failed`, or `blocked`. Only complete, unblocked results can reach publication. The pass percentage is `100 × judgments_passed / judgments_total` across the completed repetitions. It measures adopted deterministic judgments, not semantic quality. Ungraded continuity targets do not enter the denominator. A saved-memory injection Scene contributes one combined deterministic judgment; each Line Scene contributes separate reply and capture judgments. Clean controls contribute their own ordinary judgments but never increase the separate attack-resistance counts.
 
 Known ordinary failures can lower the score without blocking publication review:
 
@@ -86,43 +125,63 @@ Known ordinary failures can lower the score without blocking publication review:
 | `book_replay`, `grounded_book_reflection` | Required grounding evidence not retrieved, no released grounding evidence, no permitted citation, or a missing or unreleased exact quotation |
 | `connection_replay`, `cross_source_tentative_connection` | Connection decision mismatch, required book not searched or retrieved, or a missing required citation |
 
-The allowlist in `evals/release/policy.py` applies to the exact replay and Objective. It does not relax memory-injection checks that share retrieval code. Security, capture, privacy, spoiler, execution, incomplete-evidence, and unknown failure codes block both publication routes. HTTP smoke failures also block publication. Human approval cannot override these blockers.
+The allowlist in `evals/release/policy.py` applies to the exact replay and Objective. It does not relax memory-injection checks that share retrieval code. With live evaluation enabled, security, capture, privacy, spoiler, execution, incomplete-evidence, and unknown failure codes block both publication routes. HTTP inference smoke failures also block publication. Human approval cannot override these blockers. A failed live run cannot use the intentionally skipped status as a fallback.
 
-| Complete evidence with no blockers | Publication route |
+| Eligible evidence with no blockers | Publication route |
 | --- | --- |
-| `auto_publish_enabled=false`, any percentage | Human review in `linger-release`, including at 100% |
-| `auto_publish_enabled=true`, percentage strictly above threshold | Automatic publication through `linger-release-auto` |
-| `auto_publish_enabled=true`, percentage at or below threshold | Human review in `linger-release` |
+| Live evaluation intentionally skipped, either automatic-publication setting | Human review in `linger-release`, with no behavioral score |
+| Live evaluation completed, `auto_publish_enabled=false`, any percentage | Human review in `linger-release`, including at 100% |
+| Live evaluation completed, `auto_publish_enabled=true`, percentage strictly above threshold | Automatic publication through `linger-release-auto` |
+| Live evaluation completed, `auto_publish_enabled=true`, percentage at or below threshold | Human review in `linger-release` |
 
 For a threshold of `95`, a score of `95%` goes to review. A score of `96%` qualifies for automatic publication. The comparison uses exact counts rather than a rounded display percentage. A threshold of `100` never selects automatic publication.
 
 Automatic publication accepts the limits of these automated checks. It does not certify useful responses, paraphrased attack resistance, or semantic safety. Reports retain semantic-review hints and warnings. Ground truth adoption approves the answer key, not the generated responses.
 
-`summary.json` records the route and its reason under `publication`, with `judgments_passed`, `judgments_total`, `automated_pass_percentage`, `threshold`, and `auto_publish_enabled`. It labels the score as `adopted deterministic judgments` and semantic assessment as `not_automatically_graded`. The run also separates reviewable behavioral failures from blocking failures.
+The current threshold of `95` has no calibration data behind it. Automatic publication remains disabled until evaluation evidence supports an agreed threshold and policy. Offline routing tests establish the switch and threshold behavior; they do not establish the quality of live responses or validate a live publication.
+
+`summary.json` records `status` and the route and its reason under `publication`. The run retains the configuration snapshot in `release-configuration.json` and checks the summary against it before publication. Completed evaluation records `judgments_passed`, `judgments_total`, and `automated_pass_percentage`, together with `threshold` and `auto_publish_enabled`. It labels the score as `adopted deterministic judgments` and semantic assessment as `not_automatically_graded`. The run also separates reviewable behavioral failures from blocking failures. Intentionally skipped evaluation records the lack of behavioral evidence rather than a zero or 100% pass result. The later publication authorization adds `evaluation_status`; the behavioral summary does not contain that field.
 
 ## Triggers and approval
 
 | Entry point | Trigger | Default behavior |
 | --- | --- | --- |
-| Release checks (manual) | Dispatch on `release-candidate` with a successful candidate SHA | Respects the committed live-evaluation switch; one repetition by default |
-| Release checks after candidate promotion | Successful `release-candidate` push CI | Respects the same switch; no paid evaluation for ordinary `main` commits |
-| Release evidence and approval | Called by either entry point | Candidate validation, optional paid evaluations and HTTP smoke, then publication routing |
-| GHCR publication | Complete evidence without blockers, followed by the selected approval route | Pushes the saved images, without rebuilding; records an immutable multi-platform digest |
+| Release checks (manual) | Dispatch on `release-candidate` with a successful candidate SHA | Builds and checks an image; the committed switch selects live evaluation or protected human review without live evaluation |
+| Release checks after candidate promotion | Successful `release-candidate` push CI | Uses the same checks and switch; no paid evaluation for ordinary `main` commits |
+| Release evidence and approval | Called by either entry point | Validates the candidate and protected environment, builds one AMD64 image, and runs Trivy and offline smoke; paid evaluation and HTTP inference smoke run only when enabled |
+| GHCR publication | Eligible evidence without blockers, followed by the selected approval route | Pushes the checked AMD64 image from the same release run without rebuilding; records its immutable registry digest |
+| Railway deployment | Successful publication in the automatic promotion run | Deploys the recorded public GHCR digest to the existing service, then verifies its active deployment, state mount, readiness, and frontend |
+| Railway deployment retry | Dispatch on `main` with the original automatic publication run and attempt | Reuses the publication artifact and published image without rebuilding, republishing, or rerunning evaluations |
 | Local deployment | Operator follows the release guide | Pulls the approved digest; never automatically updates a running service |
 
-The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The setup check requires configured reviewers for the manual route before paid release evaluation. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
+The manual publication route records GitHub's approval history and rejects an absent approval for `linger-release`. The automatic route uses `linger-release-auto` and records its threshold decision without claiming human approval. The common setup check requires configured reviewers for `linger-release` in both evaluation modes. Operators must also configure the branch restrictions described in the [release guide](releasing.md#configure-github-once). The `linger-evaluations` environment and provider secrets are required only when live evaluations are enabled. GitHub environment protection controls the wait for review. See GitHub's [deployment review documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
 
-The `release-publication-<sha>-<run>-<attempt>` artifact contains `publication.json` and `approved-release.json`. `publication.json` binds the decision and configuration SHA to the evaluated image. `approved-release.json` adds both platform image identities and the published registry digest.
+The common build job saves its checked image as `release-image-<run>-<attempt>` for later jobs in the same run. The publication job checks the loaded image ID, Linux AMD64 platform, and candidate revision against the evidence before pushing. It also checks that the summary's evaluation status and publication decision agree with the saved configuration snapshot. The workflow does not reuse images from earlier CI runs or rebuild the approved image.
 
-Environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
+| Artifact | Contents | Retention |
+| --- | --- | --- |
+| `release-configuration-<run>-<attempt>` | The release controls read from `release-candidate`, with their configuration commit identity | 30 days |
+| `release-image-evidence-<sha>-<run>-<attempt>` | Configuration and image identities, `image-checks.json`, security reports, and the offline smoke log; also the intentionally skipped summary when live evaluations are disabled | 30 days |
+| `release-evidence-<sha>-<run>-<attempt>` | Common image evidence plus completed live behavioral evaluation and HTTP inference smoke evidence | 30 days |
+| `release-image-<run>-<attempt>` | The image archive used by evaluation and publication jobs in the same run | 7 days |
+| `release-publication-<sha>-<run>-<attempt>` | `publication.json`, `approved-release.json`, configuration snapshot, image checks, behavioral summary, and supporting evidence | 30 days |
+| `railway-deployment-<run>-<attempt>` | Deployment result, selected publication run and attempt, image digest, and verification or failure details | 30 days |
 
-CI artifacts, security reports, release evidence, and approval records are retained for 30 days. Keep approved release evidence and previous image digests outside that expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
+`publication.json` binds the decision and configuration SHA to the checked image. Its `evaluation_status` is `skipped` for intentionally disabled evaluation or `completed` for eligible live results. `approved-release.json` includes that record under `authorization` and adds the published digest as `release_image`, the image identity, and the CI run. Human publication records GitHub approval history in either evaluation mode.
+
+Railway consumes this publication artifact and reuses `publication_authorization` in `.github/scripts/release_candidate.py` to validate the retained evidence. It also verifies the selected run and attempt, successful publication job, candidate push CI, merged promotion, current `release-candidate` tip, and public image access. The published manifest must contain the tested image ID. Railway's production token is available only to the deployment job in `railway-production`.
+
+Deployment retries require the publication job to have succeeded, even when the original run later failed during deployment. The current candidate and retained evidence must still qualify. A newer candidate or expired publication artifact prevents a retry. See the [Railway deployment guide](railway.md#retry-deployment-without-rebuilding).
+
+Publication environment branch policies permit both `main` and `release-candidate`. GitHub gives the automatic `workflow_run` entry point the default branch's context; manual dispatch uses the candidate branch. The `railway-production` environment permits `main` only. Candidate selection independently requires successful push CI on `release-candidate` for the exact selected SHA.
+
+Security reports, release evidence, and approval records are retained for 30 days. The image artifact used between jobs expires after seven days. An expired image requires a new release run and a new approval decision. Keep approved release evidence and previous image digests outside the evidence expiry window. GHCR package retention is an operator setting; this workflow never deletes approved images.
 
 ## Deployment contract
 
 | Setting | Behavior |
 | --- | --- |
-| `LINGER_STATE_DIR` | Account and transcript database directory; defaults to `data/` on the host |
+| `LINGER_STATE_DIR` | Account, transcript, and declared reading-progress database directory; defaults to `data/` on the host |
 | `LINGER_MEMORY_DIR` | Independent account memory directory; defaults to `memories/` on the host |
 | `compose.release.yaml` storage | Explicitly sets `LINGER_STATE_DIR=/var/lib/linger` and `LINGER_MEMORY_DIR=/var/lib/linger/memories`, keeping both in the persistent state volume |
 | `LINGER_STATIC_DIR` set | Built frontend served after API routes; unknown `/api` routes still return 404 |
@@ -130,6 +189,9 @@ CI artifacts, security reports, release evidence, and approval records are retai
 | `/api/ready` | Configuration, storage, corpus, packaged local models, and frontend readiness; no paid inference |
 | `LINGER_IMAGE` | Local build tag or approved immutable registry reference used by `compose.release.yaml` |
 | `LINGER_ENV_FILE` | Private runtime environment file, default `.env`; never copied into the image |
+| `LINGER_DEV_INSPECT` | Defaults to `false`. Local development or demo opt-in for full agent exchanges, connection events, and memory text in account inspection records. Keep disabled for deployments used by real readers. |
+
+The published image targets `linux/amd64`. Apple Silicon hosts use Docker's AMD64 emulation, with a possible performance cost. The release does not include a native ARM64 image.
 
 The Ubuntu 24.04 image uses Python 3.12 and one non-root Uvicorn worker. It includes canonical corpus, runtime skills and prompts, built frontend, local embedding and reranking models, and their file hashes. The model cache is readable by the runtime user and remains owned by root. The frontend intentionally includes the committed synthetic evaluation and architecture catalog snapshots. It excludes provider keys, local Logfire credentials, account databases, private memories, Beads state, raw evaluation reports, and notebooks.
 

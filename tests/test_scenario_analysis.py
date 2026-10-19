@@ -342,7 +342,7 @@ def test_hard_pass_keeps_semantics_unreviewed_until_explicit_review(tmp_path):
     render_analysis_report(path.with_suffix(".json"))
     report = path.read_text()
     assert "2 passed, 0 failed" in report
-    assert "Semantic review: **unreviewed**" in report
+    assert "LLM-review: **unreviewed**" in report
 
 
 def test_wrong_attribution_and_omission_are_separate_from_passing_grade(tmp_path):
@@ -368,7 +368,7 @@ def test_wrong_attribution_and_omission_are_separate_from_passing_grade(tmp_path
     render_analysis_report(data_path)
     report = path.read_text()
     assert "2 passed, 0 failed" in report
-    assert "Semantic review: **failed**" in report
+    assert "LLM-review: **failed**" in report
     assert "Wrong attribution:" in report and "Missing required claim:" in report
     assert json.loads(data_path.read_text())["scenes"][0]["observed"]["grades"] == artifact["scenes"][0]["grades"]
 

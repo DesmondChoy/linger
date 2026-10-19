@@ -9,7 +9,7 @@ import tempfile
 import threading
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -35,7 +35,7 @@ from src.linger.contracts.curation import (
     CurationVerification,
     canonical_digest,
 )
-from src.linger.contracts.privacy import contains_personal_data_or_secret
+from src.linger.contracts.security_validation import validate_credentials
 
 CaptureType = Literal["automatic"]
 
@@ -119,8 +119,15 @@ class SaveResult:
 class MemoryPolicyService:
     """Sole authority for local memory policy, reads, and writes."""
 
-    def __init__(self, root: Path | str = Path("memories")) -> None:
+    def __init__(
+        self,
+        root: Path | str = Path("memories"),
+        *,
+        capture_enabled_by_default: bool = False,
+    ) -> None:
         self.root = Path(root)
+        # Applies only to accounts with no stored policy; a stored policy wins.
+        self._capture_enabled_by_default = capture_enabled_by_default
         self._lock = threading.RLock()
 
     def capture_enabled(self, context: AccountContext) -> bool:
@@ -128,7 +135,7 @@ class MemoryPolicyService:
         with self._lock:
             policy_path = self._account_dir(context) / "policy.json"
             if not policy_path.exists():
-                return False
+                return self._capture_enabled_by_default
             try:
                 policy = json.loads(policy_path.read_text(encoding="utf-8"))
                 if policy.get("schema_version") != 1 or not isinstance(
@@ -171,8 +178,9 @@ class MemoryPolicyService:
                 raise MemoryPolicyError("upstream_review_rejected_capture")
             if candidate.contains_sensitive_content:
                 raise MemoryPolicyError("sensitive_content_not_allowed")
-            if contains_personal_data_or_secret(candidate.text):
-                raise MemoryPolicyError("personal_data_or_secret_not_allowed")
+            validation = validate_credentials(candidate.text)
+            if validation.blocked:
+                raise MemoryPolicyError("credential_not_allowed")
             return self._save(
                 context,
                 text=candidate.text,
@@ -217,10 +225,10 @@ class MemoryPolicyService:
         with self._lock:
             self._validate_approved_sources(context, approved)
             curated = _curated_text(approved.plan.proposal.action)
-            if curated is not None and contains_personal_data_or_secret(curated):
-                raise CurationPolicyError(
-                    "curation_personal_data_or_secret_not_allowed"
-                )
+            if curated is not None:
+                validation = validate_credentials(curated)
+                if validation.blocked:
+                    raise CurationPolicyError("curation_credential_not_allowed")
             curation_dir = self._ensure_curation_dir(context)
             current_events = self._curation_events(context)
             event_id = f"cur_{approved.plan.digest}"
@@ -241,6 +249,10 @@ class MemoryPolicyService:
             ):
                 raise CurationPolicyError("curation_state_stale")
             self._validate_action_state(approved, current_events)
+            applied_at = datetime.now(UTC)
+            if current_events:
+                latest = datetime.fromisoformat(current_events[-1].applied_at)
+                applied_at = max(applied_at, latest + timedelta(microseconds=1))
             event = AppliedCuration(
                 event_id=event_id,
                 account_key=approved.plan.account_key,
@@ -250,7 +262,7 @@ class MemoryPolicyService:
                 provenance_review=approved.review,
                 proposal=approved.plan.proposal,
                 source_snapshots=approved.plan.source_snapshots,
-                applied_at=datetime.now(UTC).isoformat(),
+                applied_at=applied_at.isoformat(),
             )
             try:
                 _create_atomically(
@@ -394,6 +406,26 @@ class MemoryPolicyService:
             events = self._curation_events(context)
             state = _materialize_curation(events)
             return _retrieval_view(records, state)
+
+    def forget(self, context: AccountContext, memory_id: str) -> bool:
+        """Delete one original and every curation built over it; False when absent.
+
+        Curated summaries and topic groups carry their sources' content, so a
+        forgotten memory must not survive inside them.
+        """
+
+        with self._lock:
+            record = self._records_by_id(context).get(memory_id)
+            if record is None:
+                return False
+            curation_dir = self._curation_dir(context)
+            if curation_dir.exists():
+                for path in curation_dir.glob("cur_*.json"):
+                    event = _read_curation_event(path)
+                    if any(item.memory_id == memory_id for item in event.source_snapshots):
+                        path.unlink()
+            (self._account_dir(context) / f"{record.idempotency_key}.md").unlink()
+            return True
 
     def _save(
         self,
@@ -791,7 +823,8 @@ def _serialize(record: MemoryRecord) -> str:
 
 def _read_record(path: Path) -> MemoryRecord:
     try:
-        raw = path.read_text(encoding="utf-8")
+        with path.open(encoding="utf-8", newline="") as handle:
+            raw = handle.read()
         if not raw.startswith("---\n"):
             raise ValueError("missing JSON front matter")
         front_matter, text = raw[4:].split("\n---\n", maxsplit=1)

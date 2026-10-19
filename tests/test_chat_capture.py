@@ -48,12 +48,9 @@ def muse_candidate(source: str, *, nominated: str | None) -> MuseCandidate:
             reason_code="transient_or_low_signal",
         )
     else:
-        start = source.index(nominated)
         memory = MemoryCandidate(
             kind="memory_candidate",
             text=nominated,
-            start_codepoint=start,
-            end_codepoint=start + len(nominated),
             reason_code="durable_reflection",
         )
     return MuseCandidate(reply="A reviewed reply.", memory=memory)
@@ -233,9 +230,45 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("turn-capture-allowed", memories[0].source_event_id)
         self.assertEqual("committed", response.inspection.release.capture.storage)
         self.assertEqual("Saved to your memories.", response.memory_capture.notice)
+        # Inspect carries the saved memory's handle, never its text.
+        self.assertEqual(memories[0].memory_id, response.inspection.memory.captured_memory_id)
+        self.assertNotIn(nominated, response.inspection.model_dump_json().replace(source, ""))
         payload = provenance.run.await_args.args[0]
         self.assertIn(nominated, payload)
         self.assertIn(source, payload)
+
+    async def test_developer_inspect_shows_memory_text_and_agent_exchanges(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        source = "I notice that I fill silence when I feel rushed."
+        nominated = "I fill silence when I feel rushed."
+
+        with patch.object(chat_turn.settings, "linger_dev_inspect", True):
+            response, _ = await self.run_chat(
+                ChatRequest(session_id="capture-dev-inspect", message=source),
+                muse_candidate(source, nominated=nominated),
+                review("allow_capture"),
+            )
+
+        memory = response.inspection.memory
+        self.assertEqual({memory.captured_memory_id: nominated}, memory.texts)
+        exchanges = response.inspection.dev_trace["agent_exchanges"]
+        self.assertEqual(["Muse", "Provenance"], [item["role"] for item in exchanges])
+        self.assertTrue(all(item["status"] == "success" for item in exchanges))
+        self.assertIn(source, exchanges[0]["input_prompt"])
+        self.assertEqual("A reviewed reply.", exchanges[0]["output"]["reply"])
+
+    async def test_inspect_stays_content_free_without_developer_inspect(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        source = "I notice that I fill silence when I feel rushed."
+
+        response, _ = await self.run_chat(
+            ChatRequest(session_id="capture-no-dev-inspect", message=source),
+            muse_candidate(source, nominated="I fill silence when I feel rushed."),
+            review("allow_capture"),
+        )
+
+        self.assertIsNone(response.inspection.memory.texts)
+        self.assertIsNone(response.inspection.dev_trace)
 
     async def test_new_capture_invokes_application_owned_curation_trigger(self) -> None:
         self.service.set_capture_enabled(self.account, True)
@@ -289,6 +322,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             response.inspection.release.capture.reason_code,
         )
         self.assertIsNone(response.memory_capture)
+        self.assertIsNone(response.inspection.memory.captured_memory_id)
 
     async def test_blank_nomination_is_refused_without_blocking_reply(self) -> None:
         self.service.set_capture_enabled(self.account, True)
@@ -322,7 +356,6 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         source = "I want to pause before I answer."
         candidate = muse_candidate(source, nominated=source).model_dump(mode="json")
         candidate["memory"]["text"] = ""
-        candidate["memory"]["end_codepoint"] = 0
 
         with patch.object(
             self.service, "save_automatic", wraps=self.service.save_automatic
@@ -340,7 +373,10 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("validation", response.inspection.release.failure_type)
         self.assertIsNone(response.memory_capture)
         self.assertEqual([], self.service.list_active(self.account))
-        self.assertEqual([], sessions.history(session_id))
+        self.assertEqual(
+            [source, response.reply],
+            [message.parts[0].content for message in sessions.history(session_id)],
+        )
 
     async def test_substantive_nomination_preserves_surrounding_whitespace(self) -> None:
         self.service.set_capture_enabled(self.account, True)
@@ -423,24 +459,23 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             response.inspection.release.capture.reason_code,
         )
 
-    async def test_shaped_personal_data_is_vetoed_without_suppressing_reply(self) -> None:
+    async def test_shaped_personal_data_is_redacted_before_capture(self) -> None:
         self.service.set_capture_enabled(self.account, True)
         self.addCleanup(sessions.clear, "capture-personal-data")
         source = "Email me at jane.doe@example.com about the ending."
+        redacted_source = "Email me at [EMAIL_1] about the ending."
         response, _ = await self.run_chat(
             ChatRequest(session_id="capture-personal-data", message=source),
-            muse_candidate(source, nominated=source),
+            muse_candidate(redacted_source, nominated=redacted_source),
             review("allow_capture"),
         )
 
         self.assertEqual("A reviewed reply.", response.reply)
-        self.assertEqual([], self.service.list_active(self.account))
-        self.assertEqual("refused", response.inspection.release.capture.storage)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed",
-            response.inspection.release.capture.reason_code,
-        )
-        self.assertIsNone(response.memory_capture)
+        self.assertEqual([redacted_source], [
+            record.text for record in self.service.list_active(self.account)
+        ])
+        self.assertEqual("committed", response.inspection.release.capture.storage)
+        self.assertEqual("Saved to your memories.", response.memory_capture.notice)
 
     async def test_inspection_keeps_muse_nomination_separate_from_bad_review(self) -> None:
         self.service.set_capture_enabled(self.account, True)

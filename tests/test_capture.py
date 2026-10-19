@@ -9,10 +9,10 @@ from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.orchestration.capture import (
     CaptureBindingError,
     candidate_from_review,
-    vetoed_candidate,
 )
 from src.linger.services.memory import (
     AccountContext,
+    AutomaticMemoryCandidate,
     MemoryPolicyError,
     MemoryPolicyService,
 )
@@ -22,8 +22,6 @@ def nomination(text: str, *, evidence_ids: tuple[str, ...] = ()) -> MemoryCandid
     return MemoryCandidate(
         kind="memory_candidate",
         text=text,
-        start_codepoint=0,
-        end_codepoint=len(text),
         reason_code="durable_reflection",
         evidence_ids=evidence_ids,
     )
@@ -102,6 +100,16 @@ class CandidateFromReviewTests(unittest.TestCase):
                 source_event_id="turn-4",
             )
 
+    def test_nomination_binds_anywhere_in_the_source(self) -> None:
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination("second sentence"),
+            source_text="First one. A second sentence here.",
+            source_event_id="turn-contained",
+        )
+        assert candidate is not None
+        self.assertEqual("second sentence", candidate.text)
+
     def test_unresolved_candidate_evidence_fails_binding(self) -> None:
         text = "A grounded reflection"
         with self.assertRaisesRegex(CaptureBindingError, "unresolved evidence"):
@@ -112,18 +120,10 @@ class CandidateFromReviewTests(unittest.TestCase):
                 source_event_id="turn-5",
             )
 
-    def test_unreviewed_candidate_fails_closed(self) -> None:
-        text = "Unreviewed"
-        candidate = vetoed_candidate(
-            nomination=nomination(text),
-            source_text=text,
-            source_event_id="turn-6",
-        )
-        self.assertFalse(candidate.review_allows_capture)
-
-    def test_blank_unreviewed_candidate_fails_binding(self) -> None:
+    def test_blank_nomination_fails_binding(self) -> None:
         with self.assertRaisesRegex(CaptureBindingError, "blank"):
-            vetoed_candidate(
+            candidate_from_review(
+                review("allow_capture"),
                 nomination=nomination(" \t\n"),
                 source_text=" \t\n",
                 source_event_id="turn-blank",
@@ -186,7 +186,7 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
             self.service.save_automatic(self.account, candidate)
         self.assertEqual([], self.service.list_active(self.account))
 
-    def test_deterministic_screen_vetoes_shaped_personal_data(self) -> None:
+    def test_storage_does_not_rescan_pii_after_upstream_review(self) -> None:
         text = "Email me at jane.doe@example.com about the ending."
         candidate = candidate_from_review(
             review("allow_capture"),
@@ -197,14 +197,10 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         assert candidate is not None
         self.assertTrue(candidate.review_allows_capture)
 
-        with self.assertRaises(MemoryPolicyError) as caught:
-            self.service.save_automatic(self.account, candidate)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
-        )
-        self.assertEqual([], self.service.list_active(self.account))
+        saved = self.service.save_automatic(self.account, candidate)
+        self.assertEqual(text, saved.record.text)
 
-    def test_deterministic_screen_vetoes_an_email_split_by_a_combining_mark(
+    def test_storage_preserves_pii_outside_the_chat_input_boundary(
         self,
     ) -> None:
         # A combining mark threaded through the address splits the substring
@@ -218,12 +214,8 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         )
         assert candidate is not None
 
-        with self.assertRaises(MemoryPolicyError) as caught:
-            self.service.save_automatic(self.account, candidate)
-        self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
-        )
-        self.assertEqual([], self.service.list_active(self.account))
+        saved = self.service.save_automatic(self.account, candidate)
+        self.assertEqual(text, saved.record.text)
 
     def test_deterministic_screen_vetoes_a_secret_key_split_by_a_combining_mark(
         self,
@@ -240,7 +232,7 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         with self.assertRaises(MemoryPolicyError) as caught:
             self.service.save_automatic(self.account, candidate)
         self.assertEqual(
-            "personal_data_or_secret_not_allowed", caught.exception.reason
+            "credential_not_allowed", caught.exception.reason
         )
         self.assertEqual([], self.service.list_active(self.account))
 
@@ -254,11 +246,11 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
         self.assertEqual("automatic_capture_disabled", caught.exception.reason)
 
     def test_unreviewed_candidate_is_refused(self) -> None:
-        text = "Unreviewed"
-        candidate = vetoed_candidate(
-            nomination=nomination(text),
-            source_text=text,
+        candidate = AutomaticMemoryCandidate(
+            text="Unreviewed",
             source_event_id="turn-unreviewed",
+            review_allows_capture=False,
+            contains_sensitive_content=False,
         )
         with self.assertRaises(MemoryPolicyError) as caught:
             self.service.save_automatic(self.account, candidate)

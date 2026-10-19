@@ -1,0 +1,92 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-decline-insufficient-bridge-v3",
+      "note": "The run found one permitted passage but declined using `unsupported_cue`, rather than identifying the lack of enough usable evidence for a comparison."
+    },
+    {
+      "case_id": "serendipity-decline-generic-bridge-v3",
+      "note": "Some runs turned the shared smallness motif into a specific claim about agency or self-judgment and proposed a connection, although the passages did not support that structure."
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "note": "The run declined but chose `insufficient_evidence` for a vague cue and unrelated results, rather than a reason matching the unsupported cue or lack of a clear winner."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "The first failing run added an unrequested Librarian search to a web-primary outside recommendation; another failing run declined rather than offering a bounded recommendation."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "After the unusable record left only one sound passage, the run declined with `unsupported_cue` instead of identifying insufficient usable evidence."
+    },
+    {
+      "case_id": "serendipity-recall-two-matching-records-v3",
+      "note": "The run declined despite two returned memories directly addressing sleep, rather than recalling both matching records."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "The run declined because the accessible description of the directly topical anti-literacy-law page did not explain the laws' rationale, instead of offering it as a limited starting point."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Decline reason mismatches the limiting factor",
+      "definition": "The run declines, but gives a reason that does not identify the decisive limitation, such as calling an evidence shortage an unclear cue or vice versa.",
+      "case_ids": [
+        "serendipity-decline-insufficient-bridge-v3",
+        "serendipity-rank-tied-top-candidates-v3",
+        "serendipity-unsafe-evidence-leaves-too-little-v3"
+      ]
+    },
+    {
+      "name": "Motif elaborated into unsupported structure",
+      "definition": "The run proposes a specific relationship by adding implications not established by passages that support only a broad shared subject or motif.",
+      "case_ids": [
+        "serendipity-decline-generic-bridge-v3"
+      ]
+    },
+    {
+      "name": "Outside recommendation is over-expanded or over-rejected",
+      "definition": "The run either inspects an unrequested non-web source for an outside recommendation or declines a directly topical outside source because its accessible description does not give the full answer, rather than keeping the recommendation bounded.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Matching memories missed",
+      "definition": "The run declines a recall request despite returned records that directly address the requested subject.",
+      "case_ids": [
+        "serendipity-recall-two-matching-records-v3"
+      ]
+    }
+  ],
+  "target_category": "Outside recommendation is over-expanded or over-rejected",
+  "diagnosis": "The round-2 frontier candidate addresses both failures in this category. Current instructions permit optional expansion when a second source could improve a comparison, even for a web-primary outside recommendation; adding the frontier's route boundary prevents that unrequested book or memory search while preserving explicitly requested cross-source comparisons. Current instructions also permit a recommendation when a page directly covers the topic, but the frontier makes topical fit more operational: judge what the source is about, allow an issue-focused starting point whose accessible description does not establish the cause, state the gap, and reject only loose adjacency. That distinction should help avoid both the unnecessary expansion and the decline of a directly topical source. These are the frontier's two rules; they do not weaken the generic-motif threshold or memory matching criteria.",
+  "edits": [
+    {
+      "find": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.",
+      "replace": "- External recommendation: when `intent` is `get_recommendation`, or the cue\n  explicitly asks for an essay, artwork, song, thinker, public source, or idea\n  outside the supplied book or personal context, use public-web retrieval as\n  the primary source: open a supplied URL, or search when none is supplied.\n  Do not expand to book or memory sources merely to supplement an outside\n  recommendation; inspect another source type only when the reader explicitly\n  requests a comparison involving it.",
+      "reason": "Carries the frontier's source-boundary rule into the recommendation route. It prevents optional-expansion logic from triggering an unrequested search, while preserving the explicit comparison exception."
+    },
+    {
+      "find": "For an external recommendation, a source that directly covers the requested topic may be proposed as a useful starting point even if its accessible description does not state the full explanation the reader asks about. State what it does establish and identify the gap; do not imply that the recommendation answers the full question.",
+      "replace": "For an external recommendation, judge topical fit by what the source is about, not by whether its accessible description resolves the reader’s question: a source substantially about the requested issue may be proposed as a useful starting point even if the description establishes only the issue or its context, not its cause. State that limit; do not imply the recommendation answers the full question. A merely adjacent subject or loose association is not enough.",
+      "reason": "Carries the frontier's clearer topical-fit rule: a source substantially about the requested issue can be offered with its limits stated, while a loose association remains insufficient."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-douglass-route-external-web-v3",
+    "serendipity-douglass-web-with-distractor-v3"
+  ],
+  "at_risk": [
+    "serendipity-expand-to-cross-source-v3",
+    "serendipity-granted-url-opened-directly-v3",
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-douglass-route-external-web-v3"
+  ],
+  "risks": "The source-boundary edit could be misread as barring book or memory evidence even when explicitly requested, so it expressly preserves that exception; the cross-source passing cases request both source types. The topical-fit edit allows only a source substantially about the requested issue, requires the limits to be stated, and keeps loose adjacency insufficient. Those constraints should preserve the passing recommendation cases, whose sources directly address their requested lens or topic."
+}

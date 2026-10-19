@@ -516,9 +516,9 @@ def _structural_findings(
     findings: list[str] = []
     expected_before = 0
     for turn in turns:
-        released = turn.release_source in {"muse_candidate", "application_clarification"}
-        expected_appended = MESSAGES_PER_EXCHANGE if released else 0
-        if not released:
+        stored = turn.release_source in sessions.CHAT_HISTORY_SOURCES
+        expected_appended = MESSAGES_PER_EXCHANGE if stored else 0
+        if turn.release_source not in {"muse_candidate", "application_clarification"}:
             findings.append(f"unreleased_turn:{turn.line_id}")
         if (
             turn.store_messages_appended != expected_appended

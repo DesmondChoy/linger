@@ -1,0 +1,408 @@
+{
+  "schema_version": 2,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "67c96c2679d4466484f090e2f136128b",
+  "generated_at": "2026-10-15T09:53:37.894290Z",
+  "model": "openai:gpt-6-luna",
+  "prompt_digests": {
+    "serendipity.connection-discovery": "31d8275b5c846d0e023b4d81e0f9d479f13cb192f7c93370c4357b7fdfdd75c3"
+  },
+  "dataset_digest": "f3987c5a1f63453503690ecd727ddca3ba36441206864504452606f4a5d9293e",
+  "concurrency": 3,
+  "summary": {
+    "case_count": 2,
+    "repeats": 3,
+    "total_runs": 6,
+    "total_passes": 3,
+    "run_pass_rate": 0.5,
+    "cases_pass_pow_k": 1,
+    "cases_unstable": 0,
+    "cases_never_passed": 1,
+    "cases_with_unstable_decision": 1,
+    "suite_pass_pow_k": false
+  },
+  "tiers": {
+    "capability": {
+      "case_count": 1,
+      "repeats": 3,
+      "total_runs": 3,
+      "total_passes": 0,
+      "run_pass_rate": 0.0,
+      "cases_pass_pow_k": 0,
+      "cases_unstable": 0,
+      "cases_never_passed": 1,
+      "cases_with_unstable_decision": 1,
+      "suite_pass_pow_k": false
+    },
+    "regression": {
+      "case_count": 1,
+      "repeats": 3,
+      "total_runs": 3,
+      "total_passes": 3,
+      "run_pass_rate": 1.0,
+      "cases_pass_pow_k": 1,
+      "cases_unstable": 0,
+      "cases_never_passed": 0,
+      "cases_with_unstable_decision": 0,
+      "suite_pass_pow_k": true
+    }
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-personal-recommendation-memory-first-v3",
+      "primary_behavior": "route_personal_connection_to_memory",
+      "contrast_group": "personal-recommendation",
+      "tier": "capability",
+      "repeats": 3,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "expected_proposal",
+        "missing_required_search:search_memories"
+      ],
+      "mean_latency_seconds": 26.413,
+      "mean_model_requests": 4.33,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "wrong_primary_search:web_search",
+            "missing_required_search:search_memories",
+            "expected_proposal"
+          ],
+          "latency_seconds": 16.583742166985758,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "input_tokens": 18238,
+          "output_tokens": 556,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "I found artworks depicting Sunday leisure, but your cue doesn’t say what your afternoons are like, so I can’t yet identify one that reflects them. Share a detail—such as whether you spend them reading, outdoors, with others, or quietly at home—and I can look for a closer match."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "wrong_primary_search:web_search",
+            "missing_required_search:search_memories",
+            "expected_proposal"
+          ],
+          "latency_seconds": 13.861935541994171,
+          "model_requests": 3,
+          "tool_calls": 3,
+          "input_tokens": 13571,
+          "output_tokens": 546,
+          "response": {
+            "status": "decline",
+            "reason": "insufficient_evidence",
+            "safe_next_step": "Tell me what your Sunday afternoons are like—quiet reading, a walk, friends, chores, or something else—and I can find an artwork that fits."
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "wrong_primary_search:web_search"
+          ],
+          "latency_seconds": 48.793262624996714,
+          "model_requests": 6,
+          "tool_calls": 6,
+          "input_tokens": 30473,
+          "output_tokens": 3055,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-kosuth-words",
+                "tentative_claim": "Joseph Kosuth's *One and Three Chairs* may be a particularly apt conceptual artwork for your Sunday word-list habit: it places a chair beside its photograph and a dictionary definition, making the relation between a word and its meaning the subject.",
+                "evidence_ids": [
+                  "memory-sunday-word-list",
+                  "https://www.moma.org/collection/works/81435"
+                ],
+                "shared_structure": "Your Sunday practice turns new words into something to investigate by looking them up; Kosuth's work likewise makes a dictionary definition part of an inquiry into where a word's meaning resides.",
+                "meaningful_difference": "Your habit is a personal, recurring act of discovery, while Kosuth stages a conceptual question about language through a chair, its image, and a definition. The work does not depict a Sunday routine, but it reflects the word-focused part of yours.",
+                "interpretation": "If the pleasure in your Sunday afternoons is discovering language, this artwork makes the act of consulting a definition feel like an inquiry in its own right. It's a conceptual reflection of your habit rather than a literal depiction of it.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "high",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because it connects specifically to looking up new words, rather than simply matching the general feeling of a quiet afternoon."
+              },
+              {
+                "candidate_id": "candidate-fragonard-reading",
+                "tentative_claim": "Fragonard's *A Young Girl Reading* offers a quieter image of an afternoon given over to words, though it shows reading rather than looking up unfamiliar vocabulary.",
+                "evidence_ids": [
+                  "memory-sunday-word-list",
+                  "https://www.nga.gov/collection/art-object-page.46303.html"
+                ],
+                "shared_structure": "Both the remembered habit and the painting suggest setting aside time for focused engagement with words.",
+                "meaningful_difference": "The painting depicts absorbed reading, while your remembered Sunday activity involves collecting unfamiliar words and checking their meanings. The painting is not specifically a Sunday scene.",
+                "interpretation": "This is a gentler, more atmospheric alternative if focused time with language is what you want reflected. It evokes the quiet attention of your routine, though not its distinctive word-searching activity.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A plausible but less exact alternative: it matches focused attention to language, not the particular act of looking up new words."
+              }
+            ],
+            "selected_candidate_id": "candidate-kosuth-words",
+            "uncertainty": "medium",
+            "presentation": "direct",
+            "suggested_follow_up": "If you'd rather have a painting that evokes a quiet hour with language than an artwork about words themselves, Fragonard's *A Young Girl Reading* is a gentler alternative.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found",
+            "memory:search_memories:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-named-subject-recommendation-web-only-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "personal-recommendation",
+      "tier": "regression",
+      "repeats": 3,
+      "passes": 3,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 20.537,
+      "mean_model_requests": 4.67,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 15.918976084009046,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "input_tokens": 18276,
+          "output_tokens": 873,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-seurat-park",
+                "tentative_claim": "Georges Seurat’s *A Sunday on La Grande Jatte—1884* is a close match: it depicts people of different ages and social classes relaxing along the Seine on a Sunday afternoon.",
+                "evidence_ids": [
+                  "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884"
+                ],
+                "shared_structure": "The scene centers on people spending Sunday leisure time outdoors by the water, matching the requested park-side repose.",
+                "meaningful_difference": "Its figures are arranged with the order of a classical frieze, so the scene feels composed and still rather than like a lively gathering.",
+                "interpretation": "This is the clearest recommendation for the requested quiet, communal park-afternoon feeling: the Art Institute describes people relaxing on the Seine’s banks, and notes the composition’s formal, frieze-like order.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because the source directly describes people relaxing outdoors on a Sunday afternoon; unlike Renoir’s scene, it is not specifically a dance."
+              },
+              {
+                "candidate_id": "candidate-renoir-garden",
+                "tentative_claim": "Renoir’s *Bal du moulin de la Galette* offers a livelier alternative: an outdoor Sunday-afternoon scene of Parisians at leisure in a garden setting.",
+                "evidence_ids": [
+                  "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124"
+                ],
+                "shared_structure": "Both paintings present outdoor Sunday leisure as a shared social scene.",
+                "meaningful_difference": "Renoir’s is specifically a crowded dance, with dappled light, rather than a quieter scene of people simply relaxing in a park.",
+                "interpretation": "Consider this if you would enjoy the same broad Sunday-in-the-open-air mood but prefer it animated by dancing and a crowd. It is a less exact fit for relaxation than Seurat’s painting.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below Seurat: the garden and Sunday leisure are relevant, but the source describes a dance, making it a more energetic and less exact match to the request."
+              }
+            ],
+            "selected_candidate_id": "candidate-seurat-park",
+            "uncertainty": "low",
+            "presentation": "direct",
+            "suggested_follow_up": "Would you like a quieter or more lively alternative as well?",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 17.905126042023767,
+          "model_requests": 4,
+          "tool_calls": 3,
+          "input_tokens": 18228,
+          "output_tokens": 976,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-grande-jatte",
+                "tentative_claim": "Georges Seurat’s *A Sunday on La Grande Jatte* is an especially close match: the Art Institute describes people of different ages and social classes relaxing beside the Seine on a Sunday afternoon.",
+                "evidence_ids": [
+                  "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884"
+                ],
+                "shared_structure": "Both the request and the painting center on a range of people spending Sunday leisure time outdoors in a park-like riverside setting.",
+                "meaningful_difference": "The scene is arranged with the order of a classical frieze, so the leisure feels composed and still rather than like a casual snapshot.",
+                "interpretation": "This is the closest fit if you want a painting of people simply taking their ease outdoors on a Sunday. The Art Institute’s description closely matches that scene, while noting Seurat’s formal, frieze-like arrangement.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because its subject directly matches people relaxing outdoors on Sunday; unlike the alternative, it is not centered on dancing."
+              },
+              {
+                "candidate_id": "candidate-renoir",
+                "tentative_claim": "Renoir’s *Bal du moulin de la Galette* offers a more animated Sunday-outdoors alternative: the Musée d’Orsay describes a crowded dance in an open-air garden, with Parisians at leisure.",
+                "evidence_ids": [
+                  "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124"
+                ],
+                "shared_structure": "Like the requested scene, it depicts people enjoying Sunday leisure in an outdoor garden setting.",
+                "meaningful_difference": "Rather than people quietly relaxing, the focus is a crowded dance, with dappled light and social activity.",
+                "interpretation": "Consider this if by relaxing you mean a sociable, lively afternoon outdoors rather than quiet repose. It matches the Sunday-park mood more loosely, since its central activity is dancing.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "A useful but less exact alternative: it shares Sunday outdoor leisure, but its dancing makes it a looser match than Seurat’s scene."
+              }
+            ],
+            "selected_candidate_id": "candidate-grande-jatte",
+            "uncertainty": "low",
+            "presentation": "direct",
+            "suggested_follow_up": "If you’d like, I can also suggest a quieter or more impressionistic park scene.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 27.786016208003275,
+          "model_requests": 6,
+          "tool_calls": 4,
+          "input_tokens": 28347,
+          "output_tokens": 1396,
+          "response": {
+            "status": "proposal",
+            "shortlist": [
+              {
+                "candidate_id": "candidate-seurat-park-leisure",
+                "tentative_claim": "Georges Seurat’s *A Sunday on La Grande Jatte—1884* is the closest match: it depicts people across ages and social classes relaxing beside the Seine on a Sunday afternoon.",
+                "evidence_ids": [
+                  "https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884"
+                ],
+                "shared_structure": "Both the request and the painting center on a shared Sunday pause outdoors, with people at leisure in a public riverside setting.",
+                "meaningful_difference": "The scene is not simply casual park-life: the Art Institute describes Seurat arranging the figures with the order of a classical frieze, giving the leisure a composed, formal quality.",
+                "interpretation": "I’d recommend Seurat’s *A Sunday on La Grande Jatte—1884*. It directly matches the Sunday-afternoon outdoor relaxation you’re after, while its carefully ordered composition makes the scene feel quietly deliberate rather than merely incidental.",
+                "rubric": {
+                  "cue_fit": "direct",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks first because the museum’s description directly matches people relaxing on a Sunday afternoon; the second painting is outdoors on a Sunday but depicts a more active dance."
+              },
+              {
+                "candidate_id": "candidate-renoir-garden-dance",
+                "tentative_claim": "Pierre-Auguste Renoir’s *Bal du moulin de la Galette* offers a livelier alternative: a crowded Sunday-afternoon gathering in an open-air garden, with Parisians at leisure.",
+                "evidence_ids": [
+                  "https://www.musee-orsay.fr/en/artworks/bal-du-moulin-de-la-galette-1124"
+                ],
+                "shared_structure": "Like the requested scene, it places people together outdoors on a Sunday, making leisure a social, public occasion.",
+                "meaningful_difference": "Rather than people quietly relaxing in a park, Renoir’s scene is specifically a crowded dance, animated by movement and dappled light.",
+                "interpretation": "If you mean a park scene with more bustle than repose, Renoir’s *Bal du moulin de la Galette* could fit: it captures Sunday leisure in an open-air garden, though its focus is dancing rather than people simply resting.",
+                "rubric": {
+                  "cue_fit": "partial",
+                  "reflective_value": "medium",
+                  "safety": "clear",
+                  "disqualifiers": []
+                },
+                "comparison_note": "Ranks below Seurat because the setting and Sunday leisure are relevant, but the dance makes it a less exact fit for a request for people relaxing."
+              }
+            ],
+            "selected_candidate_id": "candidate-seurat-park-leisure",
+            "uncertainty": "low",
+            "presentation": "direct",
+            "suggested_follow_up": "If you’d like, I can suggest another painting with a quieter, less formally composed park atmosphere.",
+            "policy_flags": [
+              "contains_web_claim"
+            ]
+          },
+          "searches": [
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found",
+            "web:web_search:evidence_found",
+            "web:get_page:evidence_found"
+          ],
+          "rate_limit_retries": 0
+        }
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 import json
 import tempfile
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -468,6 +468,78 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(CurationPolicyError) as raised:
             self.service.apply_curation(self.account, stale)
         self.assertEqual("curation_state_stale", raised.exception.reason)
+
+    def test_restore_preserves_application_order_after_clock_adjustment(self) -> None:
+        tombstone_time = datetime(2026, 10, 16, 12, tzinfo=UTC)
+        for name, restore_time in (
+            ("backward", tombstone_time - timedelta(seconds=1)),
+            ("equal", tombstone_time),
+        ):
+            with self.subTest(clock=name):
+                root = Path(self.directory.name) / name
+                self.service = MemoryPolicyService(root)
+                self.service.set_capture_enabled(self.account, True)
+                first, second = self.seed("Same preference.", "Same preference.")
+                records = (first, second)
+
+                def apply(action, sources, captured_at):
+                    approved = self.approved_plan(
+                        self.service, self.account, sources, action
+                    )
+                    with patch(
+                        "src.linger.services.memory.datetime", wraps=datetime
+                    ) as wall_clock:
+                        wall_clock.now.return_value = captured_at
+                        return self.service.apply_curation(self.account, approved)
+
+                linked = apply(
+                    DuplicateLink(
+                        action="link_duplicates",
+                        source_memory_ids=(first.memory_id, second.memory_id),
+                    ),
+                    records,
+                    tombstone_time - timedelta(seconds=2),
+                )
+                tombstoned = apply(
+                    RetrievalTombstone(
+                        action="tombstone_for_retrieval",
+                        source_memory_ids=(first.memory_id, second.memory_id),
+                        memory_id=second.memory_id,
+                        canonical_memory_id=first.memory_id,
+                    ),
+                    records,
+                    tombstone_time,
+                )
+                self.service = MemoryPolicyService(root)
+                restored = apply(
+                    RetrievalRestore(
+                        action="restore_to_retrieval",
+                        source_memory_ids=(second.memory_id,),
+                        memory_id=second.memory_id,
+                    ),
+                    (second,),
+                    restore_time,
+                )
+                self.assertTrue(restored.created)
+                self.assertTrue(restored.verification.verified)
+                reopened = MemoryPolicyService(root)
+                self.assertEqual(
+                    [linked.event, tombstoned.event, restored.event],
+                    list(reopened.list_curation_audit(self.account)),
+                )
+                self.assertEqual(
+                    {first.memory_id, second.memory_id},
+                    {
+                        item.memory_id
+                        for item in reopened.list_for_retrieval(self.account)
+                    },
+                )
+                self.assertLess(tombstoned.event.applied_at, restored.event.applied_at)
+                self.assertTrue(
+                    reopened.verify_curation(
+                        self.account, restored.event.proposal_digest
+                    ).verified
+                )
 
     def test_cross_account_plan_is_named_and_does_not_apply(self) -> None:
         first, second = self.seed("Same preference.", "Same preference.")

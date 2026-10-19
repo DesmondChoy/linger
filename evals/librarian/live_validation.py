@@ -250,6 +250,17 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     final_precision = (
         len(relevant_citations) / len(cited_records) if cited_records else 1.0
     )
+    # Cited lines can cover a fact the reply never states, so grade the wording too.
+    reply_fact_recall = (
+        case.reply_fact_recall(release.reply)
+        if released_candidate is not None
+        else None
+    )
+    missing_reply_facts = (
+        list(case.missing_reply_facts(release.reply))
+        if reply_fact_recall is not None
+        else []
+    )
 
     strengths = [result.evidence_strength for result in librarian_results]
     predicted_strength = strengths[-1] if strengths else "not_run"
@@ -307,6 +318,8 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
         "candidate_declarations": candidate_declarations,
         "final_evidence_recall": final_recall,
         "final_citation_precision": final_precision,
+        "reply_fact_recall": reply_fact_recall,
+        "missing_reply_facts": missing_reply_facts,
         "exact_citations_resolve": exact_citations_resolve,
         "spoiler_exposure": spoiler_exposure,
         "latency_ms": round(latency_ms, 1),
@@ -354,6 +367,12 @@ async def run_validation(
     citation_precision = (
         total_relevant / total_citations if total_citations else 1.0
     )
+    # Report-only: reply fact recall is a pattern gate and sets no target.
+    reply_fact_recalls = [
+        float(item["reply_fact_recall"])  # type: ignore[arg-type]
+        for item in measurements
+        if item["reply_fact_recall"] is not None
+    ]
     strength_accuracy = sum(
         bool(item["strength_correct"]) for item in measurements
     ) / len(measurements)
@@ -402,6 +421,15 @@ async def run_validation(
             "targets_pass": targets_pass,
             "evidence_recall": round(evidence_recall, 4),
             "citation_precision": round(citation_precision, 4),
+            "reply_fact_recall": (
+                round(sum(reply_fact_recalls) / len(reply_fact_recalls), 4)
+                if reply_fact_recalls
+                else None
+            ),
+            "reply_fact_graded_count": len(reply_fact_recalls),
+            "reply_fact_complete_count": sum(
+                recall == 1.0 for recall in reply_fact_recalls
+            ),
             "strength_accuracy": round(strength_accuracy, 4),
             "answerable_release_rate": round(answerable_release_rate, 4),
             "spoiler_exposure_count": spoiler_exposure_count,

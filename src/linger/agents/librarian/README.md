@@ -17,7 +17,12 @@ projected account memories, and private full-work candidates. It distinguishes
 memory-supported chapter progress from exact already-read passages supported
 by earlier reader statements. Application code validates IDs, work identity,
 confidence, and canonical scope before granting retrieval. Private candidates
-do not enter Muse's context through this judgment.
+do not enter Muse's context through this judgment. An explicit current or
+carried boundary, or saved account progress for an identified book, bypasses
+private boundary inference. The interactive application persists only
+reader-confirmed completed chapters; Librarian inference and exact-passage
+grants remain outside that store. Saved values are validated against the
+current registered revision, permitted scope, part, and chapter count.
 
 A chapter candidate accounts for every supplied passage in `event_resolution`,
 selects one occurrence using exact reader wording, and binds each supporting
@@ -31,22 +36,40 @@ their separate reader-statement checks.
 
 Book-request planning receives reader context without candidate passages.
 Application code validates exact reader spans and the selected search target.
-Each planned part gets its own search. Uncertain parts remain eligible, and
-original reader text supplies a fallback search within the same authorized
-scope. Candidate streams are interleaved so an early part cannot consume the
-entire private evidence pool. Answer retrieval allows at most 16 queries of
-2,000 characters, with at most 20 combined candidates. A larger request fails
-explicitly rather than dropping requirements. The final evidence limit remains
-separate from these private search budgets.
+Each named event or book need gets its own search, including each event in a
+sequence. Before a query searches a granted book, application code removes that
+book's registered author-name words unless they also appear in its title or
+aliases. Exact reader spans and evidence text retain their original wording.
+Uncertain parts remain eligible. Original reader text supplies fallback searches within the same authorized scope.
+
+Answer retrieval allows at most 16 distinct queries of 2,000 characters. A
+larger request fails explicitly. Every query searches each granted book, then
+part routing retains four candidates in a clearly matching book or four per
+book when the match is ambiguous. Each whole-context fallback retains two per
+book, or twenty when no plan is available. Interleaving and removal of fully
+contained windows produce a pool of at most twenty records per book. Partially
+overlapping windows remain because their unique lines can contain the answer.
+The caller selects at most five final records across the search.
 
 Evidence assessment receives both the plan and original reader context. It can
 recover omitted needs in `additional_parts`, whose spans must also match the
 original text. Sufficient evidence must cover every planned and recovered part.
 Useful but incomplete evidence retains explicit limitations. The application
-rejects unknown support indices, invented evidence IDs, and excess selections.
+returns invalid spans, missing part coverage, unknown support indices,
+invented evidence IDs, and excess selections to the model's repair loop.
+Application code rejects any invalid result that remains after the retry.
 Planning failures are recorded and use original-text retrieval as a fallback.
 An empty authorized plan also gets that recovery path; no authorized scope
 means no search. Exact-passage grants still assess only the granted records.
+
+Muse's `librarian_search` adapter returns a fixed application sentence as
+`strength_reason` when the judgment is `sufficient`. The selected passages,
+limitations, scope, and evidence ledgers keep their values. `weak` and `none`
+judgments keep the model's reason. Librarian's recorded assessment and
+Serendipity's `search_librarian` result retain the full reason in every case.
+This keeps unverified assessment prose from supplying Muse with facts absent
+from the passages. `tests/test_muse_search_reason.py` covers the adapter and
+the paths that retain the original reason.
 
 Progress search uses focused event locators plus the original progress query,
 then interleaves those candidates with memory searches under a private
@@ -73,6 +96,10 @@ contain only common trust and authority rules. Each run adds its selected
 Fingerprints cover both instruction layers and their contracts. Builders accept
 injected models, and a production role override applies to every skill.
 
+The shared [`ProviderCredentialGuard`](../security.py) checks each provider
+request for detected credentials before dispatch. It preserves canonical
+passage text and other personal data when no credential is detected.
+
 The Librarian subsystem also resolves work identity, searches, filters, fuses,
 deduplicates, reranks, and resolves canonical records. These deterministic
 operations remain application services. They are not extra model skills.
@@ -80,6 +107,15 @@ The runtime registry and default access list include Alice, Animal Farm,
 Pinocchio, Frederick Douglass's Narrative, and The Story of My Life. Preparing
 a new corpus still requires separate registration before conversation use.
 The checked-in retrieval benchmark and live release report cover Alice only.
+
+`HybridLibrarian(read_chapter_cues=True)` includes each chapter's reviewed
+description, characters, and retrieval cues in keyword, semantic, and reranker
+search text. Canonical passage text and evidence identity remain unchanged.
+Chapter cues default to off. The offline retrieval experiments can also pass
+`part_candidates=20` to candidate gathering; production uses four. The
+[retrieval evaluation guide](../../../../evals/librarian/README.md#chapter-cue-and-retrieval-research-experiments)
+documents frozen plans, owner approvals, practice traces, and the distinction
+between a passage reaching the pool and being selected as evidence.
 
 See the [runtime architecture](../../../../docs/agent-skills.md),
 [Librarian subsystem design](../../../../docs/design/librarian-design.md), and

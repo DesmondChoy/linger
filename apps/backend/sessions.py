@@ -1,13 +1,9 @@
-"""In-process conversation history.
+"""In-process conversation history."""
 
-Sessions live only in this process: restarting the server clears every
-conversation. 
-
-NOTE(kay): That is deliberate for the prototype. Swapping in Redis or a
-database means changing this module and nothing else.
-"""
-
-from dataclasses import dataclass
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from threading import Lock
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -20,6 +16,7 @@ from pydantic_ai.messages import (
 )
 
 from src.linger.contracts.session import ReaderStatement
+from src.linger.contracts.security_validation import check_storage_credentials
 from src.linger.contracts.turn import ReleaseSource
 
 _sessions: dict[str, list[ModelMessage]] = {}
@@ -28,6 +25,30 @@ _reading_candidates: dict[str, "ReadingCandidate"] = {}
 _pending_clarifications: dict[str, "PendingClarification"] = {}
 _turn_records: dict[str, list["TurnRecord"]] = {}
 _owners: dict[str, str] = {}
+_reading_progress: dict[str, "_ReadingProgressState"] = {}
+_statement_floors: dict[str, int] = {}
+_active_operations: dict[str, str] = {}
+_operations_lock = Lock()
+
+
+class SessionBusyError(Exception):
+    def __init__(self, account_id: str) -> None:
+        self.account_id = account_id
+        super().__init__("A conversation operation is already running.")
+
+
+@contextmanager
+def exclusive_operation(session_id: str, account_id: str) -> Iterator[None]:
+    """Keep one active operation per session, across request threads and loops."""
+    with _operations_lock:
+        if session_id in _active_operations:
+            raise SessionBusyError(_active_operations[session_id])
+        _active_operations[session_id] = account_id
+    try:
+        yield
+    finally:
+        with _operations_lock:
+            del _active_operations[session_id]
 
 
 class BookSelection(BaseModel):
@@ -56,8 +77,23 @@ class ReadingStateSnapshot:
     """Reading state to restore when a turn fails before release."""
 
     book_selection: BookSelection | None
-    reading_candidate: ReadingCandidate | None
     pending_clarification: PendingClarification | None
+
+
+@dataclass(frozen=True)
+class ReadingProgress:
+    """The reader's declared chapter, outside rollback; `None` marks a retraction."""
+
+    work_id: str
+    book_version_id: str
+    part_id: str
+    chapter_max: int | None
+
+
+@dataclass
+class _ReadingProgressState:
+    active_work_id: str | None = None
+    by_work: dict[str, ReadingProgress] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -81,7 +117,8 @@ def owner(session_id: str) -> str | None:
 
 
 def restore_history(session_id: str, turns: list[tuple[str, str]]) -> None:
-    """Seed released chat history from saved (reader, reply) pairs after a restart."""
+    """Seed released chat history after a restart; boundary judgement skips its reader words."""
+    _statement_floors[session_id] = len(turns)
     _sessions[session_id] = [
         message
         for user_message, assistant_message in turns
@@ -129,24 +166,37 @@ def muse_history(session_id: str) -> list[ModelMessage]:
     return selected
 
 
-def reader_statements(session_id: str) -> tuple[ReaderStatement, ...]:
-    """Snapshot a bounded, contiguous suffix of original retained reader words."""
-    retained = [
+def _reader_words(session_id: str) -> list[str]:
+    return [
         part.content
         for message in history(session_id)
         if isinstance(message, ModelRequest)
         for part in message.parts
         if isinstance(part, UserPromptPart) and isinstance(part.content, str)
     ]
+
+
+def reader_statements(session_id: str) -> tuple[ReaderStatement, ...]:
+    """Snapshot a bounded, contiguous suffix of retained reader words not yet superseded."""
+    retained = _reader_words(session_id)
+    floor = _statement_floors.get(session_id, 0)
     selected: list[ReaderStatement] = []
     remaining_chars = 16_000
-    for ordinal in range(len(retained), max(0, len(retained) - 8), -1):
+    for ordinal in range(len(retained), max(floor, len(retained) - 8), -1):
         text = retained[ordinal - 1]
         if len(text) > remaining_chars:
             break
         selected.append(ReaderStatement(statement_id=f"reader-{ordinal}", text=text))
         remaining_chars -= len(text)
     return tuple(reversed(selected))
+
+
+# A safe decline keeps the reader's Line beside the fixed decline text, so a
+# correction in that Line survives; Muse's rejected draft never reaches the store.
+# Emotional and language boundaries keep the Line out of history.
+CHAT_HISTORY_SOURCES: frozenset[ReleaseSource] = frozenset(
+    {"muse_candidate", "application_clarification", "application_safe_decline"}
+)
 
 
 def append_turn(
@@ -160,8 +210,11 @@ def append_turn(
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
     tool_names: tuple[str, ...] = (),
 ) -> None:
-    """Store content-free evidence and review handles; store chat only if released."""
-    if release_source in {"muse_candidate", "application_clarification"}:
+    """Store content-free evidence and review handles, plus the chat the reader saw."""
+    user_message = check_storage_credentials(user_message)
+    assistant_message = check_storage_credentials(assistant_message)
+    assert isinstance(user_message, str) and isinstance(assistant_message, str)
+    if release_source in CHAT_HISTORY_SOURCES:
         messages: list[ModelMessage] = [
             ModelRequest(parts=[UserPromptPart(content=user_message)]),
             ModelResponse(parts=[TextPart(content=assistant_message)]),
@@ -210,6 +263,8 @@ def clear(session_id: str) -> bool:
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
     _pending_clarifications.pop(session_id, None)
+    _reading_progress.pop(session_id, None)
+    _statement_floors.pop(session_id, None)
     popped_records = _turn_records.pop(session_id, None)
     popped_history = _sessions.pop(session_id, None)
     return bool(popped_history or popped_records)
@@ -219,20 +274,17 @@ def snapshot_reading_state(session_id: str) -> ReadingStateSnapshot:
     """Capture the state that prompt assembly may tentatively change."""
     return ReadingStateSnapshot(
         book_selection=_book_selections.get(session_id),
-        reading_candidate=_reading_candidates.get(session_id),
         pending_clarification=_pending_clarifications.get(session_id),
     )
 
 
 def restore_reading_state(session_id: str, snapshot: ReadingStateSnapshot) -> None:
-    """Roll back tentative reading state after a failed turn."""
+    """Roll back tentative reading state after a failed turn; a reading candidate is never restored."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
     _pending_clarifications.pop(session_id, None)
     if snapshot.book_selection is not None:
         _book_selections[session_id] = snapshot.book_selection
-    if snapshot.reading_candidate is not None:
-        _reading_candidates[session_id] = snapshot.reading_candidate
     if snapshot.pending_clarification is not None:
         _pending_clarifications[session_id] = snapshot.pending_clarification
 
@@ -302,3 +354,31 @@ def set_pending_clarification(session_id: str, pending: PendingClarification) ->
 
 def clear_pending_clarification(session_id: str) -> None:
     _pending_clarifications.pop(session_id, None)
+
+
+def reading_progress(session_id: str) -> ReadingProgress | None:
+    state = _reading_progress.get(session_id)
+    if state is None or state.active_work_id is None:
+        return None
+    return state.by_work[state.active_work_id]
+
+
+def reading_progress_for(session_id: str, work_id: str) -> ReadingProgress | None:
+    state = _reading_progress.get(session_id)
+    return None if state is None else state.by_work.get(work_id)
+
+
+def set_reading_progress(session_id: str, progress: ReadingProgress | None) -> None:
+    if progress is None:
+        state = _reading_progress.get(session_id)
+        if state is not None:
+            state.active_work_id = None
+        return
+    state = _reading_progress.setdefault(session_id, _ReadingProgressState())
+    state.by_work[progress.work_id] = progress
+    state.active_work_id = progress.work_id
+
+
+def supersede_reader_statements(session_id: str) -> None:
+    """Hide every retained reader statement so far from later boundary judgement."""
+    _statement_floors[session_id] = len(_reader_words(session_id))

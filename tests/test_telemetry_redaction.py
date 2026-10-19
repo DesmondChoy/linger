@@ -21,9 +21,6 @@ from apps.backend.contracts import (
     BookScope,
     ConnectionBrief,
     ContextResolution,
-    EvidenceBundle,
-    EvidenceItem,
-    LibrarianRequest,
     MuseDraftInput,
     MuseTurn,
     TurnPolicy,
@@ -31,13 +28,10 @@ from apps.backend.contracts import (
 from apps.backend.config import Settings
 from apps.backend.telemetry import (
     connection_scope_attrs,
-    evidence_attrs,
-    librarian_request_attrs,
     review_attrs,
     run_agent_traced,
 )
 from evals.synthetic_journals.transcript import SceneTranscriptRecorder
-from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.muse.agent import build_muse_agent
 from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
@@ -186,37 +180,7 @@ class EmotionalPreflightTelemetryTests(TelemetryTestCase):
 
 
 class ProjectionRedactionTests(TelemetryTestCase):
-    def test_evidence_projection_drops_excerpts(self) -> None:
-        bundle = EvidenceBundle(
-            items=[
-                EvidenceItem(
-                    evidence_id="alice-ch3-rules",
-                    work_id="pg11",
-                    book_version_id="pg11-v01b38ea4",
-                    chapter_id="pg11-v01b38ea4-ch03",
-                    source_title="Alice",
-                    location="ch3",
-                    chapter=3,
-                    source_sha256=(
-                        "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e"
-                    ),
-                    source_lines=(1, 2),
-                    excerpt=SECRET_EXCERPT,
-                    relevance=0.8,
-                )
-            ],
-            retrieval_note="note",
-        )
-        attrs = evidence_attrs(bundle)
-
-        self.assertNotIn(SECRET_EXCERPT, json.dumps(attrs))
-        self.assertEqual(1, attrs["retrieval.item_count"])
-        self.assertEqual(
-            ["alice-ch3-rules"], attrs["retrieval.evidence_ids"]
-        )
-        self.assertNotIn("chapters", attrs)
-
-    def test_brief_and_request_projections_drop_reader_text(self) -> None:
+    def test_connection_scope_projection_drops_reader_text(self) -> None:
         task = ConnectionDiscoveryInput(
             cue=SECRET_CUE,
             intent="find_connection",
@@ -232,16 +196,10 @@ class ProjectionRedactionTests(TelemetryTestCase):
                 ),
             ),
         )
-        request = LibrarianRequest(query=SECRET_CUE)
-
-        brief_projection = connection_scope_attrs(task)
-        request_projection = librarian_request_attrs(request)
-        self.assertNotIn(SECRET_CUE, json.dumps(brief_projection))
-        self.assertNotIn(SECRET_CUE, json.dumps(request_projection))
-        self.assertNotIn("cue_length", brief_projection)
-        self.assertNotIn("query_length", request_projection)
-        self.assertEqual("serendipity_explore", brief_projection["tool.name"])
-        self.assertEqual("librarian_search", request_projection["tool.name"])
+        projection = connection_scope_attrs(task)
+        self.assertNotIn(SECRET_CUE, json.dumps(projection))
+        self.assertNotIn("cue_length", projection)
+        self.assertEqual("serendipity_explore", projection["tool.name"])
 
     def test_review_projection_keeps_codes_and_drops_quotes(self) -> None:
         review = ProvenanceReview(
@@ -274,30 +232,6 @@ class ProjectionRedactionTests(TelemetryTestCase):
 
 
 class AgentInstrumentationTests(TelemetryTestCase):
-    def test_prompt_digest_covers_only_the_static_artifact(self) -> None:
-        first = PromptFingerprint.from_artifact(
-            template_id="test.prompt",
-            instructions="Static instructions.",
-            input_contract="TestInput.v1",
-            output_contract="TestOutput.v1",
-        )
-        same = PromptFingerprint.from_artifact(
-            template_id="test.prompt",
-            instructions="Static instructions.",
-            input_contract="TestInput.v1",
-            output_contract="TestOutput.v1",
-        )
-        changed = PromptFingerprint.from_artifact(
-            template_id="test.prompt",
-            instructions="Changed static instructions.",
-            input_contract="TestInput.v1",
-            output_contract="TestOutput.v1",
-        )
-
-        self.assertEqual(first.digest, same.digest)
-        self.assertNotEqual(first.digest, changed.digest)
-        self.assertNotIn(SECRET_MESSAGE, first.model_dump_json())
-
     async def test_explicit_agent_span_excludes_all_model_content(self) -> None:
         def respond(_messages, _info):
             return ModelResponse(

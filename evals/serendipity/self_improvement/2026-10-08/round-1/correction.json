@@ -1,0 +1,125 @@
+{
+  "notes": [
+    {
+      "case_id": "serendipity-select-real-semantic-bridge-v3",
+      "note": "The run declined for insufficient evidence after receiving two permitted passages that directly link Alice’s bodily changes to her uncertainty about identity. It withheld a proposal because it did not find enough support for two distinct readings."
+    },
+    {
+      "case_id": "serendipity-exclude-ineligible-evidence-v3",
+      "note": "After the injected item was excluded, a failing run still declined despite the two sound passages supporting the requested relationship. It treated the remaining evidence as insufficient rather than proposing from it."
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "note": "The failing repetition declined with `no_matching_memory` even though the task granted only book evidence and the search returned book passages. The first departure was introducing a memory-based reason for a vague book cue."
+    },
+    {
+      "case_id": "serendipity-expand-to-cross-source-v3",
+      "note": "A failing run opened both the permitted book passage and outside page, then declined because the concise page description did not support two distinct comparisons. The expected bounded comparison was not proposed."
+    },
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "note": "A failing run opened relevant descriptions of both outside sources but declined, judging the descriptions too brief to support a specific lens on Alice. It did not use their stated topics as bounded recommendation evidence."
+    },
+    {
+      "case_id": "serendipity-recommendation-intent-direct-v3",
+      "note": "The runs searched and opened relevant pages, but all declined because the short self-knowledge description was judged insufficient for a recommendation about not recognizing oneself. The first departure was treating a topic-relevant source as needing a more specific account of the reader’s phrase."
+    },
+    {
+      "case_id": "serendipity-granted-url-opened-directly-v3",
+      "note": "A failing run opened the granted page directly and retrieved the book passage, then declined for insufficient evidence. It did not use the page’s stated question about continuity over time as a bounded comparison."
+    },
+    {
+      "case_id": "serendipity-animal-farm-route-external-web-v3",
+      "note": "A failing run opened the outside descriptions but declined because one useful conceptual lens did not provide enough evidence for two distinct interpretations. The expected bounded recommendation was withheld."
+    },
+    {
+      "case_id": "serendipity-douglass-route-external-web-v3",
+      "note": "The first failing run searched the book corpus before web search, although the cue asked for an outside recommendation. The source route departed from the expected web-primary path."
+    },
+    {
+      "case_id": "serendipity-unsafe-evidence-leaves-too-little-v3",
+      "note": "The first failing run declined as `unsupported_cue` even though the cue requested a connection and one usable passage remained after excluding the injected text. It attributed the problem to the cue rather than the insufficiency of the remaining evidence."
+    },
+    {
+      "case_id": "serendipity-recall-no-matching-memory-v3",
+      "note": "A failing run returned the rehearsal note as a recall, explicitly treating it as the closest match despite its not being about starting a new job. It did not decline when no matching earlier statement was present."
+    },
+    {
+      "case_id": "serendipity-douglass-web-with-distractor-v3",
+      "note": "The first failing run searched the book corpus before web search, despite the explicit request for an outside source. It also added an unrequested source search instead of using the web-primary route."
+    },
+    {
+      "case_id": "serendipity-alice-web-with-distractor-v3",
+      "note": "A failing run opened relevant outside entries but declined because their concise descriptions were considered too general to offer a lens on Alice. It failed to make a bounded recommendation from the identity topics they explicitly state."
+    },
+    {
+      "case_id": "serendipity-alice-connect-to-reader-memory-v3",
+      "note": "A failing run found both the relevant personal memory and book passage, then declined because they supported only one specific connection. It did not propose the grounded comparison."
+    }
+  ],
+  "categories": [
+    {
+      "name": "Public-source evidence held to an overly demanding standard",
+      "definition": "A relevant opened public source is declined because its concise description is expected to establish a detailed application or multiple independently developed readings, rather than being used as a bounded recommendation or comparison.",
+      "case_ids": [
+        "serendipity-expand-to-cross-source-v3",
+        "serendipity-route-external-recommendation-v3",
+        "serendipity-recommendation-intent-direct-v3",
+        "serendipity-granted-url-opened-directly-v3",
+        "serendipity-animal-farm-route-external-web-v3",
+        "serendipity-alice-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Supported book or personal bridge withheld",
+      "definition": "A directly supported book or book-and-memory relationship is declined because the run does not develop enough distinct eligible readings for the required shortlist.",
+      "case_ids": [
+        "serendipity-select-real-semantic-bridge-v3",
+        "serendipity-exclude-ineligible-evidence-v3",
+        "serendipity-alice-connect-to-reader-memory-v3"
+      ]
+    },
+    {
+      "name": "Outside-source request routed through the book",
+      "definition": "An explicit request for an outside source triggers a book search first or an unnecessary book search instead of the expected web-primary route.",
+      "case_ids": [
+        "serendipity-douglass-route-external-web-v3",
+        "serendipity-douglass-web-with-distractor-v3"
+      ]
+    },
+    {
+      "name": "Decline reason detached from the available evidence",
+      "definition": "The run invokes a missing-memory or underspecified-cue reason instead of assessing the actual authorized source evidence and its limitations.",
+      "case_ids": [
+        "serendipity-rank-tied-top-candidates-v3",
+        "serendipity-unsafe-evidence-leaves-too-little-v3"
+      ]
+    },
+    {
+      "name": "Near-match memory returned as recall",
+      "definition": "A personal record is returned as a recall because it is the closest available match, although it does not answer the reader’s specific question.",
+      "case_ids": [
+        "serendipity-recall-no-matching-memory-v3"
+      ]
+    }
+  ],
+  "target_category": "Public-source evidence held to an overly demanding standard",
+  "diagnosis": "This category has the most failing runs. The instruction that a candidate must be an argument in which two things illuminate each other, together with the requirement for multiple eligible candidates, encourages treating an outside recommendation as though it must prove a detailed comparison to the book or fully answer the reader’s question. The existing allowance for concise public-page descriptions is conditional on a directly stated relevant idea, but does not clearly distinguish recommending a source on its stated topic from claiming that the source settles the cue. That leads to declines even when an opened page gives enough evidence for a modest, useful recommendation or bounded lens. The correction makes that distinction explicit while retaining the evidence boundary: recommendations and comparisons must still be grounded in what the page actually states.",
+  "edits": [
+    {
+      "find": "An opened public page may provide only a concise description or excerpt. It can\nstill support a tentative recommendation or bounded comparison when it directly\nstates a relevant idea, question, or topic. Keep claims within that stated\ncontent, distinguish an outside lens from proof about a book or reader, and\nacknowledge limits. Do not require fuller text merely because the accessible\ndescription is brief; decline if the proposed connection depends on details the\nopened page does not establish.",
+      "replace": "An opened public page may provide only a concise description or excerpt. For an explicit request for an outside reading or source, its stated topic can support a tentative recommendation when that topic directly addresses a relevant idea or question in the cue. Recommend it as a starting point even if the page does not itself answer the cue fully or discuss the named book or person; do not present it as resolving the question or as evidence about a book or reader. For a comparison, a concise description can support a bounded connection when it directly states the idea, question, or topic being compared; a detailed application or fuller argument is not required. Keep claims within the page’s stated content and acknowledge its limits. Decline if the proposed recommendation or comparison depends on details the page does not establish or lacks a genuinely relevant link.",
+      "reason": "Separates a bounded recommendation based on a source’s stated topic from a claim that the source proves a detailed application. This addresses the repeated declines on concise public descriptions without relaxing the requirement that the connection be directly relevant and grounded in opened-page content."
+    }
+  ],
+  "expected_fixes": [
+    "serendipity-expand-to-cross-source-v3",
+    "serendipity-route-external-recommendation-v3",
+    "serendipity-recommendation-intent-direct-v3",
+    "serendipity-granted-url-opened-directly-v3",
+    "serendipity-animal-farm-route-external-web-v3",
+    "serendipity-alice-web-with-distractor-v3"
+  ],
+  "at_risk": [],
+  "risks": "The edit could make a merely adjacent source seem recommendable, so it explicitly requires the page’s stated topic to directly address a relevant idea or question and limits claims to that content. It does not change source routing, privacy, permissions, the evidence filter, or the requirement to decline unsupported connections. No case that passed every repetition relies on the public-page rule being changed."
+}

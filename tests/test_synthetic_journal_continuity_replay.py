@@ -491,7 +491,7 @@ def test_continuity_replay_records_a_mid_sequence_decline() -> None:
         "application_safe_decline",
         "muse_candidate",
     )
-    assert [turn.store_messages_appended for turn in continuity.turns] == [2, 2, 0, 2]
+    assert [turn.store_messages_appended for turn in continuity.turns] == [2, 2, 2, 2]
     assert continuity.ground_truth_result == "not_applicable"
     assert result.scenes[1].ground_truth_result == "matches_proposal"
 

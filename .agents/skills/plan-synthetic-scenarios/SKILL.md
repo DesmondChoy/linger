@@ -213,7 +213,7 @@ evaluated path, in the stable order `muse`, `librarian`, `serendipity`,
 `sculptor`, `provenance`, omitting absent agents. For an unfinished plan, these
 are the intended participants, not a claim of implemented coverage.
 Examples: `pottery-memory-curation--sculptor--2026-08-29` and
-`alice-quotation-grounding--muse-librarian-provenance--2026-08-31`.
+`event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16`.
 Choose the description from the selected evaluation design and inspected sources;
 do not invent a persona or generate data to obtain a name. Keep status and
 grades out of the name. If it exists, append `-02`, `-03`, and so on without

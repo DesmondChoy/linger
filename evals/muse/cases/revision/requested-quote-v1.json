@@ -1,0 +1,76 @@
+{
+  "case_id": "muse-revision-requested-quote-v1",
+  "rules": [
+    "R10: preserve the reader's request (here, a request for exact wording) while repairing",
+    "R1: keep an accepted claim's mapping and its full quotation declaration when its exact text is retained",
+    "R9: a flagged needs_source sentence is mapped or deleted, not reworded into another unsupported claim"
+  ],
+  "description": "The reader asks for a character's exact words. The draft quotes them correctly, then adds an unsupported claim about the character's past; only that sentence is flagged.",
+  "reader_message": "What exactly does the keeper say to the girl when she arrives? I want his actual words.",
+  "reading": {"work_title": "The Ferry at Lowmere", "chapter_max": 1},
+  "exposed_tools": ["librarian_search"],
+  "draft_tool_calls": ["librarian_search"],
+  "book_evidence": [
+    {
+      "evidence_id": "lowmere-c1-keeper",
+      "chapter": 1,
+      "location": "Chapter 1, passage 4",
+      "text": "The keeper did not look up from the lens when she came in. “You will learn the lamp before you learn my name,” he told her."
+    }
+  ],
+  "draft": {
+    "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. He has clearly been alone at the lighthouse for years and has forgotten how to welcome anyone. What do you make of him putting the lamp before his name?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-keeper",
+        "source_location": "Chapter 1, passage 4",
+        "supported_claims": ["In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."],
+        "exact_quote": "You will learn the lamp before you learn my name,"
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  },
+  "review": {
+    "findings": [
+      {
+        "code": "unsupported_claim",
+        "applies_to": "response",
+        "location": {
+          "kind": "text_span",
+          "source_field": "candidate.response",
+          "path": "",
+          "quote": "He has clearly been alone at the lighthouse for years"
+        },
+        "explanation": "The passage does not say how long the keeper has been alone or what he has forgotten; the sentence presents this as fact about him."
+      }
+    ],
+    "needs_source_sentences": [1],
+    "previously_accepted_claims": ["In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."],
+    "retained_sources": [{"source_kind": "book_corpus", "evidence_id": "lowmere-c1-keeper"}],
+    "source_quote_interiors": ["You will learn the lamp before you learn my name,"]
+  },
+  "expect": {
+    "flagged_sentences": [1],
+    "repaired_sentences": [1],
+    "forbidden_patterns": ["\\bfor years\\b", "\\bforgotten\\b", "\\bclearly\\b", "\\blonely\\b"],
+    "required_patterns": ["“You will learn the lamp before you learn my name,”"],
+    "required_declarations": [
+      {"source_kind": "book_corpus", "evidence_id": "lowmere-c1-keeper", "exact_quote": "You will learn the lamp before you learn my name,"}
+    ],
+    "source_terms": ["keeper", "lamp", "lens", "lighthouse", "alone", "welcome", "name"]
+  },
+  "reference_revision": {
+    "reply": "In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens. What do you make of him putting the lamp before his name?",
+    "evidence_uses": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "lowmere-c1-keeper",
+        "source_location": "Chapter 1, passage 4",
+        "supported_claims": ["In Chapter 1, the keeper tells her, “You will learn the lamp before you learn my name,” without looking up from the lens."],
+        "exact_quote": "You will learn the lamp before you learn my name,"
+      }
+    ],
+    "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
+  }
+}

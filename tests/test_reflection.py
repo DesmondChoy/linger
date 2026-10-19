@@ -1762,3 +1762,33 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(SPOILER_DECLINE, release.reply)
         self.assertEqual(("revise", "reject"), release.provenance_verdicts)
         self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)
+
+
+class FailureLoggingTests(unittest.TestCase):
+    """A failed stage logs why, never the reader's words or the draft."""
+
+    def test_logs_a_fixed_reason_without_the_model_body(self) -> None:
+        from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
+
+        from src.linger.orchestration.reflection import _log_failure
+
+        # Provider adapters build this message from the raw response part.
+        error = UnexpectedModelBehavior(
+            "Unsupported response from Gemini: I read before bed every night",
+            body='{"reply": "I read before bed every night"}',
+        )
+        with self.assertLogs("linger.reflection", level="WARNING") as logs:
+            _log_failure("muse_draft", error)
+            _log_failure("muse_revision", ValueError("I read before bed every night"))
+            _log_failure("muse_draft", UsageLimitExceeded("The next request would exceed the request_limit of 26"))
+
+        self.assertEqual([
+            "WARNING:linger.reflection:Stage failed stage=muse_draft error=UnexpectedModelBehavior "
+            "reason=unexpected model response",
+            "WARNING:linger.reflection:Stage failed stage=muse_revision error=ValueError reason=detail withheld",
+        ], logs.output[:2])
+        self.assertTrue(logs.output[2].startswith(
+            "WARNING:linger.reflection:Stage failed stage=muse_draft error=UsageLimitExceeded "
+            "reason=The next request would exceed the request_limit of 26"
+        ))
+        self.assertNotIn("bed every night", "\n".join(logs.output))

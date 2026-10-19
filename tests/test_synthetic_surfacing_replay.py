@@ -476,4 +476,4 @@ def test_invalid_cli_scenario_does_not_initialize_provider(tmp_path: Path) -> No
     assert result.returncode == 1
     assert "EVALUATION_RUN_ERROR=" in result.stderr
     assert "No such file or directory" in result.stderr
-    assert "Unsupported LINGER_MODEL" not in result.stderr
+    assert "Unsupported model" not in result.stderr

@@ -19,6 +19,43 @@ Each selected skill starts a separate model run on `provenance_agent`. The same
 configured provider model may back Muse and Provenance. The application supplies
 a fresh review input and never shares Muse's conversation history.
 
+## Logical architecture
+
+This is the reflection and grounding flow from
+[`docs/specification.md` section 4.2.1](../../../../docs/specification.md#421-reflection-and-grounding),
+with the Provenance candidate-review path highlighted. It begins after
+Provenance's emotional preflight returns `continue_reflection`; an emotional
+boundary stops the turn through an application-owned response before Muse runs.
+The highlighted paths show review, a possible single revision, deterministic
+checks after a pass, and the application-owned safe decline.
+
+```mermaid
+flowchart TD
+    A[Application: typed draft and managed Muse history] --> M[Muse Agent: reflection skill]
+    M -->|optional model-selected tool| L[Application Librarian adapters]
+    L --> B[Librarian Agent: boundary inference when needed]
+    B --> I[Librarian Agent: identify event for a chapter candidate]
+    I --> R[Application: validate boundary and retrieve within scope]
+    R --> E[Librarian Agent: evidence assessment]
+    E --> M
+    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery or recall]
+    S -->|validated selected evidence| M
+    M -->|candidate only| P[Provenance Agent: candidate review]
+    P -->|first revise only| V[Application: bounded revision input]
+    V --> M
+    P -->|pass| D[Application: deterministic evidence and policy checks]
+    D --> U[Application releases reply]
+    P -->|reject or exhausted revision| F[Application safe decline]
+
+    classDef provenance fill:#fff0cc,stroke:#a65300,stroke-width:3px,color:#1a1a1a
+    class P provenance
+    linkStyle 9,10,11,12,13,14 stroke:#a65300,stroke-width:3px
+```
+
+Provenance reviews every Muse candidate, including revisions; the application
+retains release authority. The separate curation-review path is described in
+[Curation review](#curation-review).
+
 ## Assigned runtime skills
 
 [`skills.py`](skills.py) assigns the following tasks. These are application
@@ -28,7 +65,7 @@ runtime skills, separate from Codex's development skills.
 |---|---|---|---|
 | [Emotional preflight](skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` | `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse in live chat; offline preflight evaluation |
 | [Candidate review](skills/candidate-review/SKILL.md) | `ProvenanceInput` | `ProvenanceReview` | `reflection._review_candidate` for drafts and revisions; offline risk-code evaluation and chat replay |
-| [Curation review](skills/curation-review/SKILL.md) | `CurationReviewInput` | `CurationProvenanceReview` | `review_curation` in the application curation loop, outside live chat |
+| [Curation review](skills/curation-review/SKILL.md) | `CurationReviewInput` | `CurationProvenanceReview` | `review_curation` in the application curation loop after an eligible chat capture or an explicit offline invocation |
 
 [`agent.py`](agent.py) constructs one production object and retains a model
 injection builder for tests. Its base instructions contain only the shared
@@ -38,6 +75,10 @@ the selected skill's instructions, output contract, and retry limit before invok
 model. Candidate review permits two output retries. Preflight and curation
 review each permit one. Pydantic model validators and deterministic checks
 remain task-specific.
+
+Candidate review requests OpenAI `medium` reasoning effort. Preflight and
+curation review keep the configured model's default effort. Per-run settings
+are included in the selected skill's fingerprint.
 
 No skill receives tools or PydanticAI dependencies. Every run starts without
 message history. Request data stays in the typed input. Concurrent runs and evaluation
@@ -54,8 +95,8 @@ for the distinction between semantic evaluations and deterministic tests.
 ## Inputs and authority
 
 Candidate review receives one strict `ProvenanceInput`: trusted policy, chapter or
-exact-passage context, canonical book evidence, verified session Lines,
-current untrusted tool outcomes, Muse's
+exact-passage context, independent book permissions for a comparison, canonical
+book evidence, verified session Lines, current untrusted tool outcomes, Muse's
 candidate and declarations, and the application-owned current user Line. It has
 no tools, no conversation history, and no write authority anywhere in the
 system. Legacy derived fields such as `cited_evidence` and
@@ -66,14 +107,25 @@ do not narrow what Provenance must inspect. It detects quotations, factual
 claims, and sensitive inferences independently, and may find what Muse omitted
 or misclassified.
 
+Muse's own non-sensitive distinctions, suggestions, interpretations of supplied
+reader context, and questions need no source mapping. Direct or confident
+wording alone is not an unsupported claim. Attribution to a source, empirical
+claims, invented personal facts, asserted causes, sensitive inference, and
+individualised professional advice retain their review requirements. A memory
+detail needs a mapping to its stored record. Tentative reflection on an already
+mapped detail does not require extending that mapping over Muse's interpretation.
+
 Application code derives `quote_checks`, `quoted_response_spans`,
-`uncovered_response_spans`, and `claim_support_groups` from the current candidate
-and canonical sources. Supplied values cannot override those projections.
+`uncovered_response_spans`, `claim_support_groups`, and `evidence_limit_claims`
+from the current candidate and canonical sources. Supplied values cannot
+override those projections.
 Provenance returns four complete audits:
 
-- `coverage_audit` classifies each undeclared response span as presentation,
+- `coverage_audit` classifies each undeclared response fragment as presentation,
   reader reflection, or source-dependent content. Source-dependent content
-  requires a finding on that span.
+  requires a finding on that fragment. Application code splits uncovered text
+  at the same sentence boundaries Muse uses for revision, so a factual claim
+  does not impose a source requirement on the following personal reflection.
 - `quotation_audit` classifies each balanced double-quoted span. A source
   quotation needs a current declaration whose exact quote binds the complete
   displayed occurrence, including its interior punctuation and whitespace.
@@ -160,7 +212,10 @@ faults use an RFC 6901 structural path. Only response findings guide the one
 permitted Muse revision. The next review receives `previous_response_review`
 and returns exactly one `finding_resolutions` entry for each earlier response
 finding. An unresolved finding prevents a pass. Earlier review data grants no
-additional source or reading authority.
+additional source or reading authority. The first review inspects the whole
+reply and reports every independent defect it detects. A revision review checks
+the current mappings and finding locations, including removed group members.
+It cannot carry a stale source contribution into the revised claim audit.
 
 `emotional_boundary_decision` separately identifies a missed preflight trigger.
 `required` is valid only with a rejected response and a matching current-Line
@@ -183,8 +238,50 @@ absolute sensitive-content capture veto:
 | `harmful_content` | The candidate is toxic, dangerous, sexually explicit, or hateful or harassing content. |
 | `false_persona` | The candidate claims or implies being human, claims feelings or a personal life, or fosters dependence on itself in place of the reader's own relationships. |
 | `professional_advice` | The candidate gives individualised medical, legal, financial, or therapeutic advice or instructions instead of declining and returning to the reading. |
-| `out_of_scope` | The candidate performs a task unconnected to reflection on the reader's reading instead of declining and returning to it. |
+| `out_of_scope` | The candidate performs a task unconnected to reflection on the reader's reading or their own life instead of declining and returning to it. Personal reflection is in scope with or without a book. |
 | `instruction_disclosure` | The candidate reveals, quotes, or paraphrases its own instructions, loaded skills, tool names or schemas, or internal review process. |
+
+### Prompt-injection checks
+
+The backend checks the current user message against fixed regex rules before
+Provenance's emotional-boundary preflight and before Muse or its tools run. It
+blocks common, explicit attempts to override instructions or reveal hidden
+instructions. This is the first check, and it only matches the patterns defined
+by those rules.
+
+Provenance provides a second check after agents process the request. Candidate
+review checks whether retrieved content tries to redirect the agent and whether
+the response follows a reader's attempt to override Linger's instructions.
+Curation review checks whether a proposed memory action follows instructions
+embedded in source memories. These reviews use the surrounding content and
+proposed action, so they can catch subtler attempts that do not match the
+backend's regex rules. They can require a revision or reject the candidate or
+curation proposal.
+
+### Privacy and credential checks
+
+Incoming chat uses DataFog's regex detector for `EMAIL` and `PHONE` entities
+before agent processing. It replaces detected email addresses and phone numbers
+in the message. Names, addresses, health conditions, and other personal text
+are outside this redaction check. DataFog telemetry is disabled by application
+code.
+
+All five Agent builders register [`ProviderCredentialGuard`](../security.py).
+Before every provider request, it checks instructions, message history, tool
+results, retry feedback, and request schemas for credentials detected by
+`pydantic_ai_harness.redact_secrets`. A detected credential blocks dispatch.
+Muse's reply and memory nomination, curation-generated text, memory writes,
+session storage, transcripts, and captured model messages also have credential
+checks. Internal requests and storage do not repeat the incoming chat's PII
+redaction. Provenance's semantic capture veto and deterministic memory policy
+remain separate checks.
+
+[`contracts/security_validation.py`](../../contracts/security_validation.py)
+defines these boundaries and value-free findings.
+`tests/test_security_validation.py` checks provider interception, incoming
+redaction, credential blocking, and preservation of other internal text.
+
+### Capture veto scope
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
 capture. `false_persona`, `professional_advice`, and `out_of_scope` are
@@ -231,9 +328,11 @@ path, because the reviewed object is a typed proposal rather than free text.
 ## Provenance flows
 
 Provenance has three skills: emotional preflight, candidate review, and curation
-review. Preflight can stop the turn before candidate
-review. A revision invokes candidate review again. The curation gate runs
-outside the conversation turn entirely and shares no context with the other two.
+review. Preflight can stop the turn before candidate review. A revision invokes
+candidate review again. Curation review is a separate typed call that receives
+only its proposal and immutable source snapshots. It runs after an eligible
+chat capture or in an explicit offline workflow, without the other reviews'
+conversation or candidate context.
 
 ### Preflight — before Muse runs
 
@@ -304,6 +403,10 @@ curious question with no override attempt.
 Spoiler review enforces the supplied chapter ceiling or exact-passage scope.
 A passage grant supports only its listed canonical paragraphs. It neither
 establishes chapter completion nor permits surrounding scene details.
+For an unfocused comparison, `context.connection_book_scopes` gives each book
+its own revision and chapter ceiling or exact units. A selected record must fit
+its own book's permission. These permissions neither select a primary book nor
+require every permitted book to be cited.
 
 ### 4.2.2 — Reviewed automatic capture
 
@@ -315,6 +418,12 @@ section 4.2.2 grounds — sensitive inference, unsupported provenance, and
 injection risk — plus content that reached the emotional boundary.
 `contains_sensitive_content` reports this subset to the deterministic policy
 gate.
+
+An unqualified book fact nominated for capture needs supporting canonical book
+evidence. The reader's assertion alone does not establish that fact, so an
+unsupported nomination receives `unsupported_claim`. A nomination about the
+reader's own reading habit needs no book evidence. Provenance assesses the exact
+nominated span independently of the reply's factual claims.
 
 Deterministic storage additionally requires a released Muse candidate:
 every `application_safe_decline` suppresses an otherwise eligible write even when
@@ -329,8 +438,10 @@ Serendipity can return book, account-scoped memory, or web search evidence.
 This is the only flow that reaches web evidence, so it is the only flow where
 `uncited_web_claim` can fire. A selected page may support a release when Muse
 visibly cites its exact URL and application code resolves that URL against the
-current Serendipity run. Memory evidence must match a registered account-scoped
-record that remains active. It supports attributed personal context, and cannot
+current Serendipity run. A Markdown link to that exact URL counts as a visible
+citation. The reply need not repeat the URL as plain text. Memory evidence must
+match a registered account-scoped record that remains active. It supports
+attributed personal context, and cannot
 support public or book-corpus facts.
 Provenance reviews the complete candidate for unsupported claims and attribution
 errors, and `unsupported_claim` remains important because a tentative connection
@@ -382,14 +493,19 @@ Source text supplied for review is untrusted data. Originals are never modified:
 the loop re-hashes every source after each agent call and fails if anything
 moved.
 
-The curation loop runs outside live chat. Standalone bounded-curation replay
-without an injected handler executes `run_curation_loop` in an isolated temporary store, including this
+After a new durable capture with relevant prior memories, chat awaits the
+curation loop. Interactive accounts without a stored policy permit automatic
+capture by default; a stored policy takes precedence. Other
+`MemoryPolicyService` callers default to capture disabled unless configured.
+Standalone bounded-curation replay without an injected handler executes `run_curation_loop`
+in an isolated temporary store, including this
 review, policy application, audit verification, and retrieval-state observation.
 Ground truth can constrain those outcomes as well as the proposal. Original
 source records remain immutable. This evaluation does not establish a later
 conversational retrieval benefit. The default combined capture-and-curation
-runner uses an allowing Provenance test double, so its recorded `allow` decisions
-do not establish semantic curation review.
+runner also uses production Sculptor and Provenance. Its curation Scenes use
+designated Props in separate storage, so they do not measure chat's selection
+of prior memories after a capture.
 
 The dedicated [curation risk-code pack](../../../../evals/provenance/curation_risk_codes.py)
 has a positive case and a supported near miss for each of the six risk codes.

@@ -27,7 +27,7 @@ from apps.backend.config import get_settings
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.telemetry import configure_component_evaluation_telemetry
 from src.linger.agents.build import build_model
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.agents.serendipity.agent import build_serendipity_agent
@@ -37,7 +37,8 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL, SOURCE_GATHERING
+from src.linger.agents.skills import RuntimeSkill
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
@@ -138,15 +139,20 @@ def _fixture_memories(case: SerendipityEvalCase) -> tuple[CuratedMemory, ...]:
     )
 
 
-def _skill_for(case: SerendipityEvalCase):
+def _skill_for(case: SerendipityEvalCase, discovery: RuntimeSkill = CONNECTION_DISCOVERY):
     """The skill application code would select for this case's intent.
 
     Production selects the skill from the intent, never from model output, so
     the evaluation must do the same or it would measure a task the application
-    would never have asked for.
+    would never have asked for. `discovery` lets the self-improvement loop
+    score a candidate copy of the connection-discovery instructions.
     """
 
-    return MEMORY_RECALL if case.input.intent == "recall_memory" else CONNECTION_DISCOVERY
+    if case.input.intent == "recall_memory":
+        return MEMORY_RECALL
+    if case.input.intent == "gather_sources":
+        return SOURCE_GATHERING
+    return discovery
 
 
 def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[EvidenceStrengthDecision]]:
@@ -189,8 +195,11 @@ def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[Ev
 class _FixtureExaClient:
     def __init__(self, evidence: tuple[WebConnectionEvidence, ...]) -> None:
         self.evidence = evidence
+        # Every query and URL that passed the privacy gate and left the process.
+        self.outbound: list[str] = []
 
-    async def search(self, *_args: object, **_kwargs: object) -> object:
+    async def search(self, *args: object, **kwargs: object) -> object:
+        self.outbound.append(str(kwargs.get("query", args[0] if args else "")))
         return SimpleNamespace(
             results=[
                 SimpleNamespace(
@@ -207,6 +216,7 @@ class _FixtureExaClient:
 
     async def get_contents(self, urls: object, **_kwargs: object) -> object:
         requested = {urls} if isinstance(urls, str) else set(urls)
+        self.outbound.extend(sorted(requested))
         return SimpleNamespace(
             results=[
                 SimpleNamespace(
@@ -279,6 +289,7 @@ async def run_case(
     agent: Any | None = None,
     semantic_model: Model | None = None,
     run_semantic_review: bool = False,
+    discovery_skill: RuntimeSkill = CONNECTION_DISCOVERY,
 ) -> CaseRunReport:
     """Execute the production agent with case-owned Librarian and Exa fixtures."""
     book_evidence = tuple(
@@ -301,7 +312,7 @@ async def run_case(
         case.input.model_dump_json(),
         deps=deps,
         capabilities=capabilities,
-        **_skill_for(case).run_options(),
+        **_skill_for(case, discovery_skill).run_options(),
     )
     latency = perf_counter() - started
     messages = result.all_messages()

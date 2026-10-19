@@ -4,11 +4,13 @@ from src.linger.contracts.reading import permits_scope, contains_scope, scope_fi
 
 import asyncio
 import json
+import logging
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
 import logfire
 from pydantic_ai import Agent, UsageLimits
+from pydantic_ai.exceptions import ModelHTTPError, UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -31,7 +33,11 @@ from apps.backend.contracts import (
     MuseRevisionReview,
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
-from src.linger.agents.muse.skills import REFLECTION
+from src.linger.agents.muse.skills import (
+    REFLECTION,
+    reflection_modules,
+    reflection_run_options,
+)
 from src.linger.agents.muse.claim_repair import (
     accepted_claims_for_revision,
     draft_sentences_for_revision,
@@ -83,15 +89,43 @@ from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
-from src.linger.orchestration.turn_context import turn_evidence, active_memories, connection_book_scopes
+from src.linger.orchestration.turn_context import (
+    active_memories,
+    connection_book_scopes,
+    tool_exposure,
+    turn_evidence,
+)
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
+from src.linger.contracts.security_validation import SecurityValidationBlocked
 
 # A grounded turn routes once, searches once per book the reader named, and
 # explores one connection; a two-book comparison is the longest ordinary shape,
 # at four calls. Double that for headroom: PydanticAI refuses a whole batch of
 # parallel tool calls that would cross this line, and a cap that declines a real
 # turn is worse than one that lets a looping model waste a few more calls first.
+# Under the backend's `linger` root, so these reach the file log.
+logger = logging.getLogger("linger.reflection")
+
+
+def _log_failure(stage: str, exc: Exception) -> None:
+    """Log why a stage failed without chat content.
+
+    Only the usage-limit message is fixed text. Any other exception message,
+    including UnexpectedModelBehavior's, can quote a provider response that
+    carries the reader's words or the draft.
+    """
+    if isinstance(exc, UsageLimitExceeded):
+        reason = exc.message
+    elif isinstance(exc, UnexpectedModelBehavior):
+        reason = "unexpected model response"
+    elif isinstance(exc, ModelHTTPError):
+        reason = f"HTTP {exc.status_code} from {exc.model_name}"
+    else:
+        reason = "detail withheld"
+    logger.warning("Stage failed stage=%s error=%s reason=%s", stage, type(exc).__name__, reason)
+
+
 MUSE_TOOL_CALL_LIMIT = 8
 # The tool-call budget above is what stops a tool loop; this one only has to be
 # loose enough never to pre-empt it. Each successful call costs one model
@@ -106,6 +140,26 @@ MUSE_REQUEST_LIMIT = (
 # attempts. A model that answers with calls to tools it was never given would
 # otherwise keep earning fresh retry prompts.
 PROVENANCE_REVIEW_REQUEST_LIMIT = CANDIDATE_REVIEW.output_retries + 1
+
+
+def _reflection_options(*, revision: bool) -> dict[str, Any]:
+    """Muse's run options carrying only the modules this mode and turn's tool exposure need."""
+    exposure = tool_exposure()
+    return reflection_run_options(
+        revision=revision, tools=None if exposure is None else exposure.tools
+    )
+
+
+def _reflection_module_attrs(*, revision: bool) -> dict[str, object]:
+    """The fixed names of the reflection modules the run loaded, for its span."""
+    exposure = tool_exposure()
+    return {
+        "muse.reflection_modules": list(
+            reflection_modules(
+                revision=revision, tools=None if exposure is None else exposure.tools
+            )
+        )
+    }
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
@@ -188,6 +242,8 @@ class ReflectionRelease:
     released_citations: tuple[tuple[CitedSourceKind, str], ...] = ()
     # Muse tools that actually ran in a released turn; a declined turn records none.
     tool_names: tuple[str, ...] = ()
+    security_block_category: str | None = None
+    security_pattern_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:
@@ -204,6 +260,18 @@ class ReflectionRelease:
             raise ValueError("failure_type is required only with failure_stage")
         if has_failure != (self.failure_retryable is not None):
             raise ValueError("failure_retryable is required only with failure_stage")
+
+
+def _security_block_release(span: Any, error: SecurityValidationBlocked) -> ReflectionRelease:
+    """Stop the turn with the validator's fixed safe message."""
+    return _record_release(
+        span,
+        ReflectionRelease(
+            reply=error.user_message,
+            release_source="application_safe_decline",
+            security_block_category=error.category.value,
+        ),
+    )
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -1091,7 +1159,10 @@ async def _reflection_reply(
     )
     try:
         draft_input = MuseDraftInput.model_validate_json(message)
-    except Exception:
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1112,14 +1183,18 @@ async def _reflection_reply(
             prompt_template_id=DRAFT_PROMPT_FINGERPRINT.template_id,
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
+            span_attrs=_reflection_module_attrs(revision=False),
             message_history=history,
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=False),
         )
-    except Exception:
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1135,7 +1210,8 @@ async def _reflection_reply(
             _routing_responses(draft_tool_results)
         )
         draft_clarification = _required_clarification(draft_routing)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_draft", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1160,6 +1236,8 @@ async def _reflection_reply(
             released_user_lines,
             required_clarification=draft_clarification,
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except ReleaseValidationError:
         return _record_release(
             span,
@@ -1172,7 +1250,8 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(candidate),
             ),
         )
-    except Exception:
+    except Exception as exc:
+        _log_failure("provenance_review", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1298,7 +1377,10 @@ async def _reflection_reply(
                 released_reader_lines=released_user_lines,
             ),
         ).model_dump_json()
-    except Exception:
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1331,14 +1413,18 @@ async def _reflection_reply(
             prompt_template_id=REVISION_PROMPT_FINGERPRINT.template_id,
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
+            span_attrs=_reflection_module_attrs(revision=True),
             message_history=[*history, *draft_result.new_messages()],
             usage_limits=UsageLimits(
                 request_limit=MUSE_REQUEST_LIMIT,
                 tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
             ),
-            **REFLECTION.run_options(),
+            **_reflection_options(revision=True),
         )
-    except Exception:
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1365,7 +1451,8 @@ async def _reflection_reply(
             _routing_responses(revised_tool_results)
         )
         revised_clarification = _required_clarification(revised_routing)
-    except Exception:
+    except Exception as exc:
+        _log_failure("muse_revision", exc)
         return _record_release(
             span,
             _safe_decline(
@@ -1408,6 +1495,8 @@ async def _reflection_reply(
             ),
             required_clarification=revised_clarification,
         )
+    except SecurityValidationBlocked as exc:
+        return _security_block_release(span, exc)
     except ReleaseValidationError:
         return _record_release(
             span,
@@ -1428,7 +1517,8 @@ async def _reflection_reply(
                 review_finding_codes=_review_codes(review),
             ),
         )
-    except Exception:
+    except Exception as exc:
+        _log_failure("provenance_review", exc)
         return _record_release(
             span,
             _safe_decline(

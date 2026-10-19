@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import Field, JsonValue, model_validator
 
-from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.base import StrictModel
 from src.linger.agents.muse.models import EvidenceUse
 
 

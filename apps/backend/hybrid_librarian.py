@@ -24,7 +24,7 @@ from apps.backend.librarian import (
     Paragraph,
     _paragraphs,
 )
-from apps.backend.rerank_windows import TokenWindowReranker
+from apps.backend.rerank_windows import MODEL_BATCH_SIZE, TokenWindowReranker
 from src.linger.corpus.units import CorpusUnit, read_unit
 from src.linger.corpus import registry
 
@@ -42,7 +42,7 @@ OVERLAP_DEDUPE_THRESHOLD = 0.5
 
 
 class EmbeddingModel(Protocol):
-    def passage_embed(self, documents: list[str]): ...
+    def passage_embed(self, documents: list[str], batch_size: int): ...
     def query_embed(self, query: str): ...
 
 
@@ -245,7 +245,7 @@ class HybridLibrarian(Librarian):
                 bm25s.tokenize(texts, show_progress=False), show_progress=False
             )
             embeddings = np.asarray(
-                list(self._embedding_model().passage_embed(texts))
+                list(self._embedding_model().passage_embed(texts, batch_size=MODEL_BATCH_SIZE))
             )
         else:
             embeddings = np.empty((0, 0))

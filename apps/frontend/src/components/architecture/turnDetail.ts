@@ -1,11 +1,16 @@
 import { components } from '@linger/architecture-map'
 import type { ComponentId, GraphEdge, Scene } from '@linger/architecture-map'
-import type { TurnRecord } from '../../types'
+import type { AgentExchange, TurnRecord } from '../../types'
+import { NOT_RECORDED } from '../../replay/adapter'
+import { agentStory } from './agentStory'
+import { connectionStory, webStory } from './connectionStory'
 
 export type DetailRecord = {
   label: string
   /** Rendered as JSON. This is the turn's own data, never a description of it. */
   value: unknown
+  /** Long developer-trace records start folded. */
+  collapsed?: boolean
 }
 
 export type ComponentDetail = {
@@ -13,11 +18,23 @@ export type ComponentDetail = {
   role: string
   /** One plain sentence about what happened here, this turn. */
   did: string
+  /** Plain-language steps of what happened, read before the raw records. */
+  story?: string[]
   records: DetailRecord[]
   /** The standing contract, shown under the run data rather than instead of it. */
   receives: string[]
   returns: string[]
   authority: string
+}
+
+/**
+ * The MuseTurn contract as it can honestly be shown. A replayed turn where Muse
+ * never drafted has no recorded contract, so its policy is marked unrecorded.
+ */
+export function museTurnView(turn: TurnRecord): unknown {
+  const contract = turn.inspection.muse_turn
+  if (!turn.replayed || turn.replayed.museTurnRecorded) return contract
+  return { turn_id: contract.turn_id, user_message: contract.user_message, reading_context: contract.reading_context, policy: NOT_RECORDED }
 }
 
 function agentTrace(turn: TurnRecord, agent: string) {
@@ -31,7 +48,64 @@ function agentTrace(turn: TurnRecord, agent: string) {
  * MuseTurn contract, the resolved context, the grounding calls, the release
  * decision. The registry text describing what a component *is* comes last.
  */
+// Which recorded agent runs belong to a map component, under developer inspect.
+const TRACE_OWNERS: Partial<Record<ComponentId, (exchange: AgentExchange) => boolean>> = {
+  muse: (exchange) => exchange.role === 'Muse',
+  preflight: (exchange) => exchange.role === 'Provenance' && exchange.stage.includes('preflight'),
+  provenance: (exchange) => exchange.role === 'Provenance' && !exchange.stage.includes('preflight') && !exchange.stage.includes('curation'),
+  librarian: (exchange) => exchange.role === 'Librarian',
+  serendipity: (exchange) => exchange.role === 'Serendipity',
+  sculptor: (exchange) => exchange.role === 'Sculptor',
+  curation_review: (exchange) => exchange.role === 'Provenance' && exchange.stage.includes('curation'),
+}
+
+function parsed(text: string): unknown {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+/** The developer trace for one component: every run's prompt, steps and output. */
+function traceRecords(id: ComponentId, turn: TurnRecord): DetailRecord[] {
+  const trace = turn.inspection.dev_trace
+  const owns = TRACE_OWNERS[id]
+  if (!trace || !owns) return []
+  const records: DetailRecord[] = trace.agent_exchanges.filter(owns).flatMap((exchange, index) => {
+    const title = `Run ${index + 1} · ${exchange.stage.replaceAll('_', ' ')}${exchange.skill ? ` (${exchange.skill})` : ''} · ${exchange.status}`
+    return [
+      { label: `${title} — input`, value: parsed(exchange.input_prompt), collapsed: true },
+      ...(exchange.steps?.length ? [{ label: `${title} — tool calls and results`, value: exchange.steps, collapsed: true }] : []),
+      { label: `${title} — output`, value: exchange.output ?? exchange.failure_code ?? null, collapsed: true },
+    ]
+  })
+  if (id === 'serendipity' && trace.connection_events.length) {
+    records.unshift({
+      label: 'Search, results and ranked decision, in order',
+      value: trace.connection_events,
+      collapsed: true,
+    })
+  }
+  return records
+}
+
 export function componentDetail(id: ComponentId, turn: TurnRecord): ComponentDetail {
+  const detail = runDetail(id, turn)
+  const traced = traceRecords(id, turn)
+  const owns = TRACE_OWNERS[id]
+  const runs = owns ? turn.inspection.dev_trace?.agent_exchanges.filter(owns) ?? [] : []
+  const story = id === 'serendipity' ? connectionStory(turn)
+    : id === 'web' ? webStory(turn)
+      : agentStory(id, runs, turn)
+  if (story) return { ...detail, did: story.summary, story: story.steps, records: [...detail.records, ...traced] }
+  const did = runs.length && detail.did === 'This component was not exercised on this turn.'
+    ? `Recorded ${runs.length} run${runs.length === 1 ? '' : 's'} on this turn; open them below.`
+    : detail.did
+  return { ...detail, did, records: [...detail.records, ...traced] }
+}
+
+function runDetail(id: ComponentId, turn: TurnRecord): ComponentDetail {
   const definition = components[id]
   const inspection = turn.inspection
   const release = inspection.release
@@ -66,8 +140,8 @@ export function componentDetail(id: ComponentId, turn: TurnRecord): ComponentDet
         ...base,
         did: agentTrace(turn, 'Muse')?.detail ?? 'Muse drafted the candidate reply.',
         records: [
-          { label: 'MuseTurn contract', value: inspection.muse_turn },
-          { label: 'Assembled dynamic input', value: inspection.prompt },
+          { label: 'MuseTurn contract', value: museTurnView(turn) },
+          { label: 'Assembled dynamic input', value: parsed(inspection.prompt) },
         ],
       }
     case 'librarian':
@@ -107,8 +181,22 @@ export function componentDetail(id: ComponentId, turn: TurnRecord): ComponentDet
           : agentTrace(turn, 'Serendipity')?.detail ?? 'Serendipity searched the permitted sources.',
         records: inspection.connection_decline
           ? [{ label: 'Connection decline', value: inspection.connection_decline }]
-          : [{ label: 'Connection grants', value: { allow_connection: inspection.muse_turn.policy.allow_connection } }],
+          : [{ label: 'Connection grants', value: turn.replayed && !turn.replayed.museTurnRecorded ? NOT_RECORDED : { allow_connection: inspection.muse_turn.policy.allow_connection } }],
       }
+    case 'web': {
+      const cited = (turn.sources ?? []).filter((source) => source.kind === 'web')
+      const events = inspection.dev_trace?.connection_events.filter((event) => event.source === 'web') ?? []
+      return {
+        ...base,
+        did: cited.length
+          ? `The reply that reached you cited ${cited.length} web page${cited.length === 1 ? '' : 's'}.`
+          : 'The reply that reached you cited no web page.',
+        records: [
+          ...(cited.length ? [{ label: 'Web pages the reply cited', value: cited.map(({ label, url }) => ({ label, url })) }] : []),
+          ...(events.length ? [{ label: 'Web searches and opened pages, in order', value: events, collapsed: true }] : []),
+        ],
+      }
+    }
     case 'provenance':
       return {
         ...base,
@@ -143,6 +231,7 @@ export function componentDetail(id: ComponentId, turn: TurnRecord): ComponentDet
           : `Capture did not commit (${release?.capture.storage ?? 'not applicable'}).`,
         records: [
           { label: 'Capture decision', value: release?.capture ?? null },
+          { label: 'Memory handles this turn', value: inspection.memory ?? null },
           { label: 'Save notice', value: turn.memory_capture },
         ],
       }
@@ -187,7 +276,7 @@ export function edgeDetail(edge: GraphEdge, turn: TurnRecord): ComponentDetail {
 
 export function detailFor(
   selection: { kind: 'node'; id: ComponentId } | { kind: 'edge'; id: string },
-  scene: Scene,
+  scene: Pick<Scene, 'edges'>,
   turn: TurnRecord,
 ): ComponentDetail | null {
   if (selection.kind === 'node') return componentDetail(selection.id, turn)

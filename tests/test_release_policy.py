@@ -3,6 +3,7 @@
 import pytest
 
 from evals.release.policy import behavioral_failure, parse_threshold, publication_decision
+from evals.release import policy
 
 
 def decision(passed=96, total=100, **kwargs):
@@ -18,6 +19,26 @@ def test_manual_is_default_even_for_a_perfect_score():
     assert result["automated_pass_percentage"] == 100
     assert result["score_scope"] == "adopted deterministic judgments"
     assert result["semantic_assessment"] == "not_automatically_graded"
+
+
+@pytest.mark.parametrize("auto_enabled", [False, True])
+def test_intentionally_skipped_evaluations_require_review_without_a_score(auto_enabled):
+    result = policy.skipped_publication_decision(auto_publish_enabled=auto_enabled, threshold=95)
+    assert result["route"] == "manual"
+    assert result["auto_publish_enabled"] is auto_enabled
+    assert result["threshold"] == "95"
+    assert result["comparison"] == "not_applied"
+    assert result["score_scope"] == "not_evaluated"
+    assert result["semantic_assessment"] == "not_evaluated"
+    assert result["judgments_passed"] is None
+    assert result["judgments_total"] is None
+    assert result["automated_pass_percentage"] is None
+
+
+@pytest.mark.parametrize("auto_enabled", ["false", 0, None])
+def test_skipped_policy_rejects_ambiguous_automatic_publication_setting(auto_enabled):
+    with pytest.raises(ValueError, match="boolean"):
+        policy.skipped_publication_decision(auto_publish_enabled=auto_enabled, threshold=95)
 
 
 @pytest.mark.parametrize(("passed", "threshold", "route"), [

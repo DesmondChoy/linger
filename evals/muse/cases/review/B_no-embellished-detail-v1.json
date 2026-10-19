@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-review-b-no-embellished-detail-v1",
+  "owner": "muse",
+  "primary_behavior": "grounded_answer_within_boundary",
+  "description": "The returned passages stop before the sentence that describes what Alice was considering when the rabbit appeared. Muse answers only what the passages state.",
+  "input": {
+    "reader_message": "What is Alice doing right before she notices the rabbit?",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": "completed",
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {
+      "librarian_evidence": [
+        "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.",
+        "“and what is the use of a book,” thought Alice “without pictures or conversations?”"
+      ]
+    }
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": [
+      "daisy",
+      "sleepy",
+      "hot day",
+      "pink eyes",
+      "waistcoat"
+    ],
+    "max_words": 150,
+    "required_tools": [
+      "librarian_search"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "answers only from the returned passages",
+        "adds no setting, object, action, or feeling the passages do not state",
+        "stays within Chapter I"
+      ],
+      "forbidden_claims": [
+        "details from general knowledge of the book"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "spoiler_beyond_boundary",
+    "invented_quotation",
+    "invented_evidence"
+  ],
+  "fixed_exposure": {
+    "tools": [
+      "librarian_route",
+      "librarian_search"
+    ]
+  }
+}

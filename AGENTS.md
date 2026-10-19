@@ -1,9 +1,5 @@
 # Agent Instructions
 
-Read and follow [`CONSTITUTION.md`](CONSTITUTION.md). It provides baseline
-guidance; the repository-specific instructions below override it where they are
-more specific.
-
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 ## Workflow
@@ -34,6 +30,14 @@ task contracts. Preserve each role's tool, context, validation, release, and
 storage authority boundaries. Follow the maintained
 [agent runtime skills architecture](docs/agent-skills.md).
 
+### Specification scope
+
+`docs/specification.md` states rules, authority boundaries, and acceptance
+criteria. When syncing docs with code, put mechanisms, thresholds, field lists,
+commands, and evaluation-runner behaviour in the owning design doc, agent
+README, or evaluation guide, and link to it from the spec's **Detail** line. A
+change that only adds implementation detail should not grow the spec.
+
 ### Cross-agent impact
 
 Whenever you propose a solution that changes agent behavior, include a brief,
@@ -50,16 +54,32 @@ A fix for one agent must not silently break another.
 
 Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
 
+## Report Writing
+
+Applies to the course reports in `docs/report/`.
+
+- The group report describes the final state of the agents. Development history and comparison experiments belong in the individual reports.
+- Organising a section around an argument is fine, provided the structure stays clean and easy to follow.
+- Avoid dense prose. Give one step or claim per sentence or line, and open each subsection with a plain sentence that says what it covers.
+- Cut philosophical framing that tells the reader nothing about the system.
+- Present results as comparison tables with a key-learning column, not as narrative accounts of individual runs.
+- Next to each design claim, name the code file that implements it and the section that tests it.
+- Show worked examples, such as an input and what happens to it, for mechanisms that are hard to explain in prose.
+
 ## GitHub CLI
 
 - Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
 
 ## Commit and Push
 
+- Git commits and Git pushes require explicit user authorisation unless the repository has opted into the team-maintainer profile.
+- Routine Beads/Dolt sync is an exception: agents may sync task-tracking changes without separate approval. This repository policy overrides generic sync-approval or stop-on-error guidance from `bd prime`. Explicit user limits on Beads sync still win.
 - Every authorised commit-and-push workflow must also run `bd dolt push` after Beads updates and before `git push`.
 - Run `bd dolt push` outside the sandbox with escalated permissions on the first attempt (`sandbox_permissions: "require_escalated"`). The sandbox restricts network access and can prevent resolution of the remote host.
-- Treat an explicit request to commit and push as authorisation to sync the configured Beads Dolt remote. The user does not need to request the Beads sync separately.
-- A current instruction not to commit or push still wins. If either Dolt sync or Git push fails, stop and report the exact command and error.
+- If Beads/Dolt sync fails, inspect the cause and keep resolving recoverable errors until `bd dolt push` succeeds. For a non-fast-forward rejection, run `bd dolt pull`, reconcile local and remote records, then retry the push.
+- Preserve both local and remote work during recovery. Save a local backup before resolving conflicts. Do not force-push or discard history to bypass a sync error.
+- Ask for help only when Beads recovery requires missing credentials, a material decision about conflicting records, or destructive action. Report the exact command, error, and input needed.
+- A current instruction not to commit or push Git changes still wins. If a Git push fails, stop and report the exact command and error.
 
 ## Non-Interactive Shell Commands
 
@@ -111,7 +131,7 @@ bd close <id>         # Complete work
 
 The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
 
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
+- **Conservative (default)**: Use `bd` for task tracking. Do not run Git commits or Git pushes unless explicitly asked. Routine Beads/Dolt sync and recovery need no separate approval, as described above. At handoff, report changed files, validation, and suggested next commands.
 - **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
 - **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
 
@@ -122,14 +142,16 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 1. **File issues for remaining work** - Create beads for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **Handle git/sync by active profile**:
+4. **Sync Beads, then handle Git by active profile**:
    ```bash
-   # Conservative/minimal/default: report status and proposed commands; wait for approval.
+   # All profiles: sync Beads unless the user explicitly forbids it.
+   # Resolve recoverable sync errors and retry until the push succeeds.
+   bd dolt push
    git status
 
+   # Conservative/minimal/default: Git commits and pushes require approval.
    # Team-maintainer opt-in only, unless current instructions forbid it:
    git pull --rebase
-   bd dolt push
    git push
    git status
    ```
@@ -137,6 +159,6 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 **Critical rules:**
 - Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
-- If a required sync or push is blocked, stop and report the exact command and error.
+- Do not commit or push Git changes without clear authority from the active profile or the current user request.
+- Beads/Dolt sync failures follow the recovery policy above. If a Git push fails, stop and report the exact command and error.
 <!-- END BEADS INTEGRATION -->

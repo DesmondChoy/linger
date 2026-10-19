@@ -1,0 +1,74 @@
+name: Deploy published image to Railway
+
+on:
+  workflow_call:
+    inputs:
+      publication_run_id:
+        description: Automatic release run containing the successful publication.
+        required: true
+        type: string
+      publication_attempt:
+        description: Attempt that published the approved image.
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      publication_run_id:
+        description: Automatic release run ID. Retries reuse its published image.
+        required: true
+        type: string
+      publication_attempt:
+        description: Attempt that published the approved image.
+        default: '1'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  deploy:
+    name: Deploy the approved GHCR digest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: railway-production
+      cancel-in-progress: false
+    environment:
+      name: railway-production
+      url: https://linger-production-b81b.up.railway.app
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PUBLICATION_RUN_ID: ${{ inputs.publication_run_id }}
+      PUBLICATION_ATTEMPT: ${{ inputs.publication_attempt }}
+    steps:
+      - name: Require the protected default branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - name: Check out trusted deployment helpers
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+      - name: Install pinned official Railway CLI
+        run: |
+          npm install --prefix "$RUNNER_TEMP/railway-cli" --no-audit --no-fund @railway/cli@5.70.0
+          echo "$RUNNER_TEMP/railway-cli/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Verify publication, deploy its public image, and check health
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          test -n "$RAILWAY_TOKEN"
+          python3 .github/scripts/railway_release.py deploy \
+            --repository "$GITHUB_REPOSITORY" --publication-run-id "$PUBLICATION_RUN_ID" \
+            --publication-attempt "$PUBLICATION_ATTEMPT" --output "$RUNNER_TEMP/railway-deployment.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: railway-deployment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/railway-deployment.json
+          retention-days: 30
+          if-no-files-found: warn
