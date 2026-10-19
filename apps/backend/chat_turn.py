@@ -109,7 +109,7 @@ from .contracts import (
 )
 from .logger import ROOT_NAME
 from .dev_trace import DevTraceSink
-from .progress_store import ReadingProgressStore, SavedProgress
+from .progress_store import ProgressSnapshot, ReadingProgressStore, SavedProgress
 from .schemas import (
     AvailableMemory,
     CaptureInspection,
@@ -1088,10 +1088,13 @@ def _apply_initial_reading(
     )
 
 
-def _saved_readings(store: ReadingProgressStore, account: AccountContext) -> dict[str, ConfirmedReading]:
+def _saved_readings(snapshots: tuple[ProgressSnapshot, ...]) -> dict[str, ConfirmedReading]:
     """Load the account's saved progress that still fits a permitted, registered book."""
     readings: dict[str, ConfirmedReading] = {}
-    for progress in store.list_for(account.account_id):
+    for snapshot in snapshots:
+        progress = snapshot.progress
+        if progress is None:
+            continue
         version = librarian_service.version_for(progress.work_id)
         if version not in settings.allowed_book_version_ids:
             continue
@@ -1307,6 +1310,9 @@ async def _run_chat_pipeline(
     """Run the agent pipeline without adding request content to telemetry."""
     pending_progress, carried = None, False
     declared_progress = None
+    declaration = None
+    carried_snapshot = None
+    withdrawn_work_id = None
     if connection_book_scopes is not None:
         resolution = _apply_connection_book_scopes(request, connection_book_scopes)
     elif initial_reading is not None:
@@ -1320,27 +1326,34 @@ async def _run_chat_pipeline(
         resolution, pending_progress, carried = applied.resolution, applied.pending, applied.carried
         if progress_store is not None:
             if declared_progress is not None:
-                progress_store.restrict(account.account_id, declared_progress)
+                declaration = progress_store.declare(account.account_id, declared_progress)
             if applied.withdrawn is not None:
-                progress_store.forget(account.account_id, applied.withdrawn.work_id)
+                withdrawn_work_id = applied.withdrawn.work_id
+                progress_store.withdraw(account.account_id, withdrawn_work_id)
     # Only the interactive app passes a store; trusted setups and replays stay hermetic.
-    saved_readings = (
-        _saved_readings(progress_store, account)
-        if progress_store is not None and connection_book_scopes is None and initial_reading is None
-        else {}
-    )
-    effective = reading_progress.effective_saved_readings(
-        request, resolution, saved_readings, parser_patterns=PROGRESS_PARSER_PATTERNS,
-    )
-    saved_readings = effective.readings
-    if progress_store is not None and effective.withdrawn is not None:
-        progress_store.forget(account.account_id, effective.withdrawn.work_id)
+    saved_snapshots = ()
+    saved_readings = {}
+    if progress_store is not None and connection_book_scopes is None and initial_reading is None:
+        saved_snapshots = progress_store.list_snapshots(account.account_id)
+        effective = reading_progress.effective_saved_readings(
+            request, resolution, _saved_readings(saved_snapshots), parser_patterns=PROGRESS_PARSER_PATTERNS,
+        )
+        saved_readings = effective.readings
+        if effective.withdrawn is not None and effective.withdrawn.work_id != withdrawn_work_id:
+            progress_store.withdraw(account.account_id, effective.withdrawn.work_id)
     if pending_progress is None and resolution.work_id is not None:
         resolution, pending_progress = _apply_saved_progress(
             request, resolution, saved_readings.get(resolution.work_id),
         )
         # Like a ceiling carried within the session, saved progress says nothing about this message's needs.
         carried = carried or pending_progress is not None
+    if carried and progress_store is not None and resolution.work_id is not None:
+        carried_snapshot = next(
+            (snapshot for snapshot in saved_snapshots if snapshot.work_id == resolution.work_id),
+            None,
+        )
+        if carried_snapshot is None:
+            carried_snapshot = progress_store.snapshot(account.account_id, resolution.work_id)
     prior_evidence = reading_progress.permitted_evidence(
         request.session_id, _rehydrate_session_evidence(request.session_id),
     )
@@ -1539,8 +1552,6 @@ async def _run_chat_pipeline(
     )
     if release.release_source not in {"muse_candidate", "application_clarification"}:
         sessions.restore_reading_state(request.session_id, reading_state)
-    elif progress_store is not None and declared_progress is not None:
-        progress_store.record(account.account_id, declared_progress)
     capture = _commit_automatic_capture(release, service, account)
     curation_outcome = None
     if capture.record is not None:
@@ -1582,6 +1593,18 @@ async def _run_chat_pipeline(
             if settings.linger_dev_inspect else None
         ),
     )
+    stale_snapshot = None
+    if progress_store is not None:
+        if declaration is not None:
+            if release.release_source in {"muse_candidate", "application_clarification"}:
+                if not progress_store.release(declaration):
+                    stale_snapshot = progress_store.snapshot(account.account_id, declaration.progress.work_id)
+            else:
+                current = progress_store.snapshot(account.account_id, declaration.progress.work_id)
+                if current.revision != declaration.revision:
+                    stale_snapshot = current
+        elif carried_snapshot is not None and not progress_store.is_current(carried_snapshot):
+            stale_snapshot = progress_store.snapshot(account.account_id, carried_snapshot.work_id)
     if release.security_block_category is None:
         sessions.append_turn(
             request.session_id,
@@ -1594,8 +1617,18 @@ async def _run_chat_pipeline(
             tool_names=release.tool_names,
         )
         reading_progress.commit(
-            request.session_id, pending_progress, release.release_source
+            request.session_id, pending_progress if stale_snapshot is None else None, release.release_source
         )
+        if stale_snapshot is not None:
+            proposed = pending_progress.declared if pending_progress is not None else sessions.ReadingProgress(
+                resolution.work_id, resolution.book_version_id, resolution.part_id, resolution.chapter_max,
+            )
+            current = stale_snapshot.progress
+            reading_progress.reconcile_stale(
+                request.session_id, proposed,
+                ConfirmedReading(work_id=current.work_id, part_id=current.part_id, chapter_max=current.chapter_max)
+                if current is not None else None,
+            )
     inspection.reading_state = _reading_state_inspection(request.session_id, account, progress_store)
     return inspection, release, capture
 

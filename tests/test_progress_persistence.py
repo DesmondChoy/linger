@@ -139,7 +139,7 @@ def test_restrictions_compare_account_and_session_ceilings_independently(
 def test_withdrawal_preserves_other_books_and_accounts(reader):
     reader.turn("old", declaration(5))
     reader.turn("old", "I have finished chapter 4 of Pinocchio.")
-    reader.store.record("other", SavedProgress(ALICE, "main", 7))
+    reader.store.release(reader.store.declare("other", SavedProgress(ALICE, "main", 7)))
     reader.turn("old", WITHDRAW, "failed")
 
     assert reader.saved() is None
