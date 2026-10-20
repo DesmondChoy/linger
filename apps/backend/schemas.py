@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from src.linger.agents.provenance.models import RiskCode
 from src.linger.agents.serendipity.models import DeclineReason
 from src.linger.contracts.turn import ReleaseSource
+from src.linger.contracts.curation import CurationCandidate
 from .message_normalization import normalize_reader_message
 
 
@@ -62,6 +63,11 @@ class CaptureInspection(BaseModel):
         "applied",
         "failed",
     ] | None = None
+    # The new memory first, then the earlier originals selected beside it.
+    curation_memory_ids: tuple[str, ...] = Field(default=(), max_length=12)
+    # How many earlier originals were scored, and the batch plus its nearest misses.
+    curation_scored_count: int = 0
+    curation_candidates: tuple[CurationCandidate, ...] = ()
 
 
 class ReleaseInspection(BaseModel):

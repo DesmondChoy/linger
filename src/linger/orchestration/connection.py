@@ -172,6 +172,7 @@ def _build_task(
             web_source_urls=public_source_urls() if "web" in allowed_sources else None,
             search_all_granted_books=search_all_granted_books,
         ),
+        prior_reader_statements=reader_statements(),
     )
 
 
@@ -211,7 +212,6 @@ async def _agent_explorer(
         task=task,
         librarian=librarian,
         memories=active_memories(),
-        prior_reader_statements=reader_statements(),
     )
     capabilities = [_web_capability()] if "web" in task.scope.allowed_sources else []
     result = await run_agent_traced(

@@ -118,6 +118,21 @@ export type CaptureInspection = {
   storage: 'committed' | 'refused' | 'suppressed' | 'not_applicable'
   reason_code: string | null
   curation_status?: string | null
+  /** The new memory first, then the earlier originals selected beside it. */
+  curation_memory_ids?: string[]
+  /** How many earlier originals were scored for the batch. */
+  curation_scored_count?: number
+  /** The batch Sculptor got, in rank order, then the nearest memories left out. */
+  curation_candidates?: CurationCandidate[]
+}
+
+export type CurationCandidate = {
+  memory_id: string
+  /** Cosine similarity to the new memory. */
+  similarity: number
+  /** 1-based keyword (BM25) rank; null when no keyword is shared. */
+  keyword_rank: number | null
+  selected: boolean
 }
 
 export type AvailableMemory = {

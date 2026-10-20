@@ -267,7 +267,10 @@ def grade_connection_scene(
                 outbound, scene.line.text,
                 page_url=event.query if event.operation == "get_page" else None,
             )
-            or any(_query_copies_reader_terms(outbound, prop.source_text) for prop in scene.props)
+            or any(
+                _query_copies_reader_terms(outbound, prop.source_text, memory=True)
+                for prop in scene.props
+            )
             for outbound in (
                 (event.query, unquote(event.query)) if event.operation == "get_page" else (event.query,)
             )

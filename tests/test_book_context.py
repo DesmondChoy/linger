@@ -931,3 +931,97 @@ class NaturalProgressDeclarationTests(unittest.TestCase):
                     ChatRequest(session_id="natural-declaration", message=message)
                 )
                 self.assertEqual(("confirmed", work_id, chapter), (context.status, context.work_id, context.chapter_max))
+
+    def test_spoken_whole_book_and_short_completions_confirm_progress(self) -> None:
+        from src.linger.orchestration.grounding import librarian_service
+
+        last = librarian_service.registered_scope(
+            "pg500", librarian_service.version_for("pg500"), part_id="main",
+        ).max_chapter
+        cases = {
+            "I have now completed the book to the ending.": last,
+            "I have finished the book.": last,
+            "I finished reading the whole book last night.": last,
+            "I finished Pinocchio.": last,
+            "I finished Pinocchio, so you can give me the complete cast list now": last,
+            "I finished Pinocchio so you can give me the complete cast list now": last,
+            "I've finished the book, now give me the full cast list.": last,
+            "I finished Pinocchio, you can list everyone now.": last,
+            "I've read the whole thing.": last,
+            "I finished the last chapter.": last,
+            "I've finished chapter four.": 4,
+            "I've finished the fourth chapter.": 4,
+            "I've read chapters 1 to 4.": 4,
+            "I've read the first four chapters.": 4,
+            "I've just read chapter 4.": 4,
+            "I read chapter 4 last night.": 4,
+            "Finished chapter 4.": 4,
+            "Just finished chapter 4!": 4,
+            "Done with chapter 4.": 4,
+            "Chapter 4 done.": 4,
+        }
+        for message, chapter in cases.items():
+            with self.subTest(message=message):
+                sessions.clear("natural-declaration")
+                sessions.set_book_selection("natural-declaration", sessions.BookSelection(
+                    book_id="pg500", book_title="The Adventures of Pinocchio", source="reader_stated",
+                ))
+                context = resolve_reading_context(
+                    ChatRequest(session_id="natural-declaration", message=message)
+                )
+                self.assertEqual(("confirmed", "pg500", chapter), (context.status, context.work_id, context.chapter_max))
+
+    def test_whole_book_by_title_selects_the_book_without_an_active_one(self) -> None:
+        context = resolve_reading_context(
+            ChatRequest(session_id="natural-declaration", message="I finished Pinocchio.")
+        )
+        self.assertEqual(("confirmed", "pg500"), (context.status, context.work_id))
+
+    def test_unfinished_hypothetical_or_quoted_completion_grants_nothing(self) -> None:
+        for message in (
+            "I haven't finished the book.",
+            "I never finished the book.",
+            "I almost finished the book.",
+            "Should I read chapter 4 next?",
+            "Before I read chapter 4, what should I know?",
+            "If I read the whole book, will it get darker?",
+            "Have you finished the book?",
+            "My friend finished the book.",
+            "I finished the book club reading.",
+            "I've only finished the book's first chapter.",
+            'She said "I finished the book" to me.',
+            "I'm done with the book, it's too dark.",
+            "I'm not done with chapter 4.",
+            "Is chapter 4 done well?",
+            "I've read up to chapter 4.",
+            "I haven't finished Pinocchio, so don't spoil it.",
+        ):
+            with self.subTest(message=message):
+                sessions.clear("natural-declaration")
+                sessions.set_book_selection("natural-declaration", sessions.BookSelection(
+                    book_id="pg500", book_title="The Adventures of Pinocchio", source="reader_stated",
+                ))
+                context = resolve_reading_context(
+                    ChatRequest(session_id="natural-declaration", message=message)
+                )
+                self.assertIsNone(context.chapter_max)
+
+    def test_read_progress_phrases_are_not_taken_as_a_new_title(self) -> None:
+        # Reading "up to chapter 4" as a title used to discard the active book.
+        for message in (
+            "I've read up to chapter 4.",
+            "I've read chapters 1 to 4.",
+            "I've read the first four chapters.",
+            "I've read the whole thing.",
+        ):
+            with self.subTest(message=message):
+                sessions.clear("natural-declaration")
+                sessions.set_book_selection("natural-declaration", sessions.BookSelection(
+                    book_id="pg500", book_title="The Adventures of Pinocchio", source="reader_stated",
+                ))
+                context = resolve_reading_context(
+                    ChatRequest(session_id="natural-declaration", message=message)
+                )
+                self.assertEqual("pg500", context.work_id)
+                self.assertIsNone(context.clarification_question)
+                self.assertIsNotNone(sessions.book_selection("natural-declaration"))

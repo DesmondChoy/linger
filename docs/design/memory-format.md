@@ -349,9 +349,12 @@ records. The projection cannot reference an original outside that batch.
 topic groups. Duplicate links preserve source text in the retrieval view.
 
 After a successful automatic capture creates a record, chat selects that record
-and up to eleven earlier originals with positive token overlap for reviewed
-curation. A reused capture, or a capture with no matching prior record, does
-not invoke Sculptor. The released response is already settled; a curation
+and up to eleven earlier originals for reviewed curation. Candidates are ranked
+by reciprocal rank fusion of embedding similarity (`BAAI/bge-small-en-v1.5`)
+and BM25 keyword scores, and an original below 0.5 cosine similarity is never
+selected (`src/linger/orchestration/conversational_memory.py`). A reused
+capture, or a capture with no prior record close enough in meaning, does not
+invoke Sculptor. The released response is already settled; a curation
 failure leaves the source record intact. The
 [memory curation and recall evaluation](../../evals/synthetic_journals/README.md#memory-curation-and-recall-loop-replay)
 measures recall across cumulative curation rounds in isolated synthetic storage.

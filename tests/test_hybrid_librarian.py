@@ -137,7 +137,7 @@ class HybridLibrarianTests(unittest.TestCase):
         )
 
     def test_equivalent_full_book_ceilings_reuse_embeddings(self) -> None:
-        embedding = self.librarian._embedding_model()
+        embedding = self.librarian.embedding_model()
         with patch.object(
             embedding, "passage_embed", wraps=embedding.passage_embed
         ) as embed:
@@ -160,7 +160,7 @@ class HybridLibrarianTests(unittest.TestCase):
             opened.append(path)
             return original(path, *args, **kwargs)
 
-        embedding = self.librarian._embedding_model()
+        embedding = self.librarian.embedding_model()
         with (
             patch.object(Path, "read_text", autospec=True, side_effect=recording_read),
             patch.object(
@@ -184,7 +184,7 @@ class HybridLibrarianTests(unittest.TestCase):
         with (
             patch.object(
                 librarian,
-                "_embedding_model",
+                "embedding_model",
                 side_effect=AssertionError("fetch initialized embeddings"),
             ),
             patch.object(
