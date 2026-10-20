@@ -36,7 +36,8 @@ from src.linger.orchestration.progress_context import (  # noqa: E402
 from .library import router as library_router  # noqa: E402
 from .rate_limit import enforce_chat_rate_limit  # noqa: E402
 from .progress_store import ReadingProgressStore  # noqa: E402
-from .schemas import ChatRequest, ChatResponse, StoredMemory  # noqa: E402
+from .scenario_props import scenario_props  # noqa: E402
+from .schemas import ChatRequest, ChatResponse, CurationHistoryEntry, ScenarioPropsLoaded, StoredMemory  # noqa: E402
 from .transcripts import TranscriptStore, TranscriptTurn, request_fingerprint  # noqa: E402
 
 configure_logging()
@@ -442,19 +443,37 @@ def list_memories(context: AccountDependency, service: MemoryServiceDependency) 
     try:
         originals = service.list_active(context)
         curated = service.list_for_retrieval(context)
+        history = service.curation_history(context)
     except MemoryServiceError as exc:
         raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
     searchable = {item.memory_id for item in curated}
+    retired_for: dict[str, str] = {}
+    for event in history:
+        action = event.proposal.action
+        if action.action == "tombstone_for_retrieval":
+            retired_for[action.memory_id] = action.canonical_memory_id
+        elif action.action == "restore_to_retrieval":
+            retired_for.pop(action.memory_id, None)
+    # The retrieval view omits retired originals, so read links from both ends.
+    duplicates: dict[str, set[str]] = {}
+    for item in curated:
+        for other in item.duplicate_memory_ids:
+            duplicates.setdefault(item.memory_id, set()).add(other)
+            duplicates.setdefault(other, set()).add(item.memory_id)
     show_text = settings.linger_dev_inspect
     rows = [
         StoredMemory(
             memory_id=record.memory_id,
             kind="original",
             created_at=record.created_at,
-            source_turn_id=record.source_event_id,
+            source_turn_id=record.source_event_id if record.capture_type == "automatic" else None,
+            # A scenario Prop's source event is "scenario:<scenario id>:<Prop id>".
+            source_prop_id=record.source_event_id.split(":", 2)[2] if record.capture_type == "scenario_prop" else None,
             source_memory_ids=[record.memory_id],
             searchable=record.memory_id in searchable,
             text=record.text if show_text else None,
+            duplicate_memory_ids=sorted(duplicates.get(record.memory_id, ())),
+            retired_for=retired_for.get(record.memory_id),
         )
         for record in originals
     ] + [
@@ -473,6 +492,34 @@ def list_memories(context: AccountDependency, service: MemoryServiceDependency) 
     return sorted(rows, key=lambda row: row.created_at, reverse=True)
 
 
+@app.get("/api/memories/curation")
+def curation_history(context: AccountDependency, service: MemoryServiceDependency) -> list[CurationHistoryEntry]:
+    """Every curation applied to the reader's memories, oldest first."""
+    try:
+        history = service.curation_history(context)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    result_prefix = {"update_derived_summary": "summary", "assign_topic_group": "topic"}
+    return [
+        CurationHistoryEntry(
+            event_id=event.event_id,
+            applied_at=event.applied_at,
+            action=action.action,
+            source_memory_ids=list(action.source_memory_ids),
+            result_memory_id=(
+                f"{prefix}_{event.proposal_digest}"
+                if (prefix := result_prefix.get(action.action)) else None
+            ),
+            memory_id=getattr(action, "memory_id", None),
+            canonical_memory_id=getattr(action, "canonical_memory_id", None),
+            text=(getattr(action, "summary", None) or getattr(action, "topic_label", None))
+            if settings.linger_dev_inspect else None,
+        )
+        for event in history
+        for action in (event.proposal.action,)
+    ]
+
+
 @app.delete("/api/memories/{memory_id}", status_code=204)
 def forget_memory(memory_id: str, context: AccountDependency, service: MemoryServiceDependency) -> None:
     """Forget one saved memory and every summary or topic group built over it."""
@@ -482,6 +529,22 @@ def forget_memory(memory_id: str, context: AccountDependency, service: MemorySer
         raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
     if not forgotten:
         raise HTTPException(status_code=404, detail="No such memory.")
+
+
+@app.post("/api/scenarios/{scenario_id}/props")
+def load_scenario_props(
+    scenario_id: str, context: AccountDependency, service: MemoryServiceDependency,
+) -> ScenarioPropsLoaded:
+    """Save a recorded scenario's Props in the reader's account, so a live chat starts where the run did."""
+    props = scenario_props(scenario_id)
+    if props is None:
+        raise HTTPException(status_code=404, detail="No such scenario.")
+    try:
+        results = service.load_scenario_props(context, scenario_id, props)
+    except MemoryServiceError as exc:
+        raise HTTPException(status_code=503, detail="Memories are unavailable right now.") from exc
+    loaded = sum(result.created for result in results)
+    return ScenarioPropsLoaded(loaded=loaded, already_saved=len(results) - loaded)
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)

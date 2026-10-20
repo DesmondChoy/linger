@@ -3,7 +3,7 @@ import { rememberAccount, restoreAccount, type Account } from './account'
 import { setUnauthorizedHandler, signOut } from './api'
 import { Chat } from './components/Chat'
 import { Landing } from './components/Landing'
-import { Personas } from './replay/Personas'
+import { Scenarios } from './replay/Scenarios'
 
 type View = 'landing' | 'live' | 'synthetic'
 
@@ -30,12 +30,12 @@ export default function App() {
         username={account.username}
         onHome={() => setView('landing')}
         onSignOut={handleSignOut}
-        onOpenPersonas={() => setView('synthetic')}
+        onOpenScenarios={() => setView('synthetic')}
       />
     )
   }
   if (view === 'synthetic') {
-    return <Personas onHome={() => setView('landing')} />
+    return <Scenarios onHome={() => setView('landing')} signedIn={account !== null} onOpenLive={() => setView('live')} />
   }
   return (
     <Landing

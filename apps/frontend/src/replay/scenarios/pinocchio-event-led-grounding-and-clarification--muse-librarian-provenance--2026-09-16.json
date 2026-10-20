@@ -13,11 +13,13 @@
   "props": [
     {
       "id": "pinocchio-coat-memory",
-      "text": "Yesterday in The Adventures of Pinocchio I read the part where Geppetto returns with the A-B-C book but without his coat, even though it's cold. His excuse that the coat was too warm made me sad, and Pinocchio kissing him made the gratitude feel real. I closed the book there. My sister has been taking my evening chores so I can study, so that little scene landed harder than I expected."
+      "text": "Yesterday in The Adventures of Pinocchio I read the part where Geppetto returns with the A-B-C book but without his coat, even though it's cold. His excuse that the coat was too warm made me sad, and Pinocchio kissing him made the gratitude feel real. I closed the book there. My sister has been taking my evening chores so I can study, so that little scene landed harder than I expected.",
+      "recordedAt": null
     },
     {
       "id": "pinocchio-tomorrow-memory",
-      "text": "When I was dipping into The Adventures of Pinocchio last month, I remember a bit about going to school tomorrow instead and doing something more fun now. I didn't note who said it or where he was going. I read in such short bursts that his promises and changes of mind have run together."
+      "text": "When I was dipping into The Adventures of Pinocchio last month, I remember a bit about going to school tomorrow instead and doing something more fun now. I didn't note who said it or where he was going. I read in such short bursts that his promises and changes of mind have run together.",
+      "recordedAt": null
     }
   ],
   "scenes": [

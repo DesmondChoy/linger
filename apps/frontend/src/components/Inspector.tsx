@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 
-import { forgetMemory, listMemories } from '../api'
-import type { AgentTrace, CaptureInspection, ChatResult, ReadingProgressEntry, ReleaseInspection, StoredMemory, ToolExposureInspection, TurnRecord } from '../types'
+import { forgetMemory, listCurationHistory, listMemories } from '../api'
+import type { AgentTrace, CaptureInspection, ChatResult, ConnectionDecline, CurationAction, CurationHistoryEntry, ReadingProgressEntry, ReleaseInspection, StoredMemory, ToolExposureInspection, TurnRecord } from '../types'
 import { museTurnView } from './architecture/turnDetail'
 import { FINDING_EXPLANATIONS } from './findingExplanations'
 import { formatMachineLabel } from './formatMachineLabel'
@@ -33,7 +33,7 @@ function TurnTimeline({ turn }: { turn: TurnRecord }) {
   const wallClock = events[events.length - 1].elapsed_ms
   const scale = Math.max(wallClock, 1)
   const totals = toAgentTotals(steps)
-    .map((total) => `${total.agent} ${formatSeconds(total.durationMs)}${total.partial ? '+' : ''}`)
+    .map((total) => `${total.agent} ${formatSeconds(total.durationMs)}${total.waitingMs ? ` (+${formatSeconds(total.waitingMs)} waiting)` : ''}`)
     .join(' · ')
 
   return (
@@ -61,12 +61,14 @@ function TurnTimeline({ turn }: { turn: TurnRecord }) {
                 style={{ left: `${(step.startedMs / scale) * 100}%`, width: `${((step.durationMs ?? 0) / scale) * 100}%` }}
               />
             </span>
-            <span className="stage-time">{step.durationMs === null ? '—' : formatSeconds(step.durationMs)}</span>
+            {step.durationMs === null
+              ? <span className="stage-time" title="Reported once, with no measured duration">—</span>
+              : <span className="stage-time">{formatSeconds(step.durationMs)}</span>}
           </li>
         ))}
       </ol>
-      <p className="muted">
-        Time per agent: {totals}. Overlapping bars mean an agent was waiting on one it called.
+      <p className="record-note">
+        Time per agent: {totals}. Waiting is time an agent spent on a stage it called.
         Timing metadata only; prompts and text never enter this stream.
       </p>
     </section>
@@ -85,7 +87,13 @@ function TurnFacts({ turn }: { turn: TurnRecord }) {
         <dt>Reading boundary</dt>
         {/* A replayed turn states only what its run recorded, not live policy wording. */}
         <dd>{turn.replayed ? resolution.explanation : boundarySummary(turn)}</dd>
-        {!turn.replayed && <dd className="muted">{resolution.explanation}</dd>}
+        {!turn.replayed && (
+          <dd className="muted">
+            {resolution.status === 'unknown'
+              ? 'Reflection and permitted public-web connections remain available.'
+              : resolution.explanation}
+          </dd>
+        )}
       </div>
       <div>
         <dt>Outcome</dt>
@@ -149,7 +157,7 @@ function boundarySummary(turn: ChatResult) {
   if (resolution.status === 'inferred') {
     return `Possible book: ${resolution.work_title}; spoiler boundary not validated.`
   }
-  return 'No book context; reflection and permitted public-web connections remain available.'
+  return 'No book in play'
 }
 
 const MEMORY_NEED_LABELS: Record<NonNullable<ToolExposureInspection['triage']>['memory'], string> = {
@@ -201,15 +209,43 @@ function ReleaseDecision({ release, turn }: { release: ReleaseInspection; turn: 
 
 type Decision = { key: string; agent: string; status: AgentTrace['status']; body: ReactNode }
 
+/** What Muse did, from the stages it called, rather than a restatement of the release. */
+function museSummary(turn: TurnRecord, fallback: string) {
+  if (turn.inspection.release?.release_source !== 'muse_candidate') return fallback
+  const called = [...new Set(toAgentSteps(turn.progress ?? [])
+    .filter((step) => step.from === 'Muse' && step.agent !== 'Muse')
+    .map((step) => step.agent))]
+  return `Drafted the reply that was released${called.length ? `, calling ${called.join(' and ')}` : ''}.`
+}
+
+/** Whether the emotional-boundary preflight ran and let reflection continue. */
+function preflightCleared(turn: TurnRecord) {
+  const ran = toAgentSteps(turn.progress ?? [])
+    .some((step) => step.stage === 'emotional_boundary_preflight' && step.status === 'complete')
+  const source = turn.inspection.release?.release_source
+  return ran && source !== 'application_emotional_boundary' && source !== 'application_safe_decline'
+}
+
+function SerendipityDecline({ decline }: { decline: ConnectionDecline }) {
+  return (
+    <p>
+      {decline.failure_code
+        ? 'Connection discovery failed closed, so no connection was surfaced.'
+        : `Declined to surface a connection: ${formatMachineLabel(decline.reason)}.`}
+    </p>
+  )
+}
+
 /**
  * One row per agent that acted. The boundary and memory have their own
  * sections, the release folds into Provenance, and idle agents share one line.
  */
 function AgentDecisions({ turn }: { turn: TurnRecord }) {
-  const { traces, release, tool_exposure: exposure, context_resolution: resolution } = turn.inspection
+  const { traces, release, tool_exposure: exposure, context_resolution: resolution, connection_decline: decline } = turn.inspection
   const decisions: Decision[] = []
   const idle: AgentTrace[] = []
   let releaseShown = false
+  let declineShown = false
   traces.forEach((trace, index) => {
     const key = `${trace.agent}-${index}`
     if (trace.agent === 'Router' && trace.detail === resolution.explanation) return
@@ -219,14 +255,32 @@ function AgentDecisions({ turn }: { turn: TurnRecord }) {
     } else if (trace.agent === 'Router' && exposure && trace.detail.startsWith('Turn triage')) {
       decisions.push({ key, agent: 'Triage', status: trace.status, body: <TriageDecision exposure={exposure} /> })
     } else if (trace.agent === 'Provenance' && release) {
+      // Preflight and review are both Provenance; the release summary covers them once.
+      if (releaseShown) return
       releaseShown = true
-      decisions.push({ key, agent: 'Provenance', status: trace.status, body: <ReleaseDecision release={release} turn={turn} /> })
+      decisions.push({
+        key, agent: 'Provenance', status: trace.status, body: (
+          <>
+            {preflightCleared(turn) && <p>The emotional-boundary preflight let reflection continue.</p>}
+            <ReleaseDecision release={release} turn={turn} />
+          </>
+        ),
+      })
+    } else if (trace.agent === 'Serendipity' && decline) {
+      declineShown = true
+      decisions.push({ key, agent: 'Serendipity', status: trace.status, body: <SerendipityDecline decline={decline} /> })
+    } else if (trace.agent === 'Muse') {
+      if (decisions.some((decision) => decision.agent === 'Muse')) return
+      decisions.push({ key, agent: 'Muse', status: trace.status, body: <p>{museSummary(turn, trace.detail)}</p> })
     } else {
       decisions.push({ key, agent: trace.agent, status: trace.status, body: <p>{trace.detail}</p> })
     }
   })
   if (release && !releaseShown) {
     decisions.push({ key: 'release', agent: 'Release', status: 'complete', body: <ReleaseDecision release={release} turn={turn} /> })
+  }
+  if (decline && !declineShown) {
+    decisions.push({ key: 'decline', agent: 'Serendipity', status: 'declined', body: <SerendipityDecline decline={decline} /> })
   }
   if (!decisions.length && !idle.length) return null
   return (
@@ -246,10 +300,10 @@ function AgentDecisions({ turn }: { turn: TurnRecord }) {
         ))}
       </ul>
       {idle.length > 0 && (
-        <p className="muted idle-agents">
+        <p className="record-note">
           Not used: {idle.map((trace, index) => (
-            <span key={`${trace.agent}-${index}`}>{index > 0 && '; '}<b>{trace.agent}</b>, {trace.detail.replace(/\.$/, '')}</span>
-          ))}.
+            <span key={`${trace.agent}-${index}`}>{index > 0 && ' '}<b>{trace.agent}</b>: {trace.detail}</span>
+          ))}
         </p>
       )}
     </section>
@@ -274,7 +328,8 @@ function releaseLabel(turn: ChatResult) {
 function releaseDecisionSummary(turn: ChatResult) {
   const source = turn.inspection.release?.release_source
   if (source === 'muse_candidate') {
-    return `Provenance approved the Muse candidate (${turn.inspection.release?.provenance_verdicts.join(' → ')}).`
+    const verdicts = turn.inspection.release?.provenance_verdicts ?? []
+    return `Provenance approved the Muse candidate${verdicts.length ? ` (${verdicts.join(' → ')})` : ''}.`
   }
   if (source === 'application_clarification') {
     return "The application delivered Librarian's validated question after safety review."
@@ -434,11 +489,12 @@ function MemoryActivity({ turn }: { turn: TurnRecord }) {
   const groups = [
     { label: 'Saved this turn', ids: memory?.captured_memory_id ? [memory.captured_memory_id] : [] },
     { label: 'Used in the reply', ids: memory?.cited_memory_ids ?? [] },
-    { label: 'Searchable this turn', ids: (searchable ?? []).map((item) => item.memory_id) },
+    { label: `Searchable this turn (${searchable?.length ?? 0})`, ids: (searchable ?? []).map((item) => item.memory_id) },
   ].filter((group) => group.ids.length > 0)
   return (
     <section className="memory-activity">
       <h4>Memory</h4>
+      <div className="record-card">
       {capture && <p>{captureSummary(capture)}</p>}
       {capture?.curation_status && CURATION_SUMMARIES[capture.curation_status] && (
         <p className="muted">{CURATION_SUMMARIES[capture.curation_status]}</p>
@@ -462,6 +518,7 @@ function MemoryActivity({ turn }: { turn: TurnRecord }) {
           {memory.active_count === 1 ? '1 saved memory was' : `${memory.active_count} saved memories were`} available to this turn.
         </p>
       )}
+      </div>
     </section>
   )
 }
@@ -473,13 +530,15 @@ const MEMORY_KIND_LABELS: Record<StoredMemory['kind'], string> = {
 }
 
 function formatStoredAt(iso: string): string {
+  if (!iso) return 'Undated'
   const date = new Date(iso)
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-/** Where a memory came from: the reader message that saved it, or the originals a curated item covers. */
+/** Where a memory came from: the reader message or scenario Prop that saved it, or the originals a curated item covers. */
 function memorySource(row: StoredMemory, turnPosition: Map<string, number>): string {
-  if (row.kind !== 'original') return `Curated from ${row.source_memory_ids.join(', ')}`
+  if (row.kind !== 'original') return `Curated from ${row.source_memory_ids.map(shortId).join(', ')}`
+  if (row.source_prop_id !== null) return `Scenario Prop ${row.source_prop_id}`
   const position = row.source_turn_id === null ? undefined : turnPosition.get(row.source_turn_id)
   return position === undefined ? 'Another conversation' : `Reader message ${String(position + 1).padStart(2, '0')}`
 }
@@ -487,72 +546,192 @@ function memorySource(row: StoredMemory, turnPosition: Map<string, number>): str
 type MemoryTableViewProps = {
   rows: StoredMemory[]
   timeline: TurnRecord[]
+  /** Applied curation, oldest first; omitted when the source has none to show. */
+  history?: CurationHistoryEntry[]
   /** The memory being forgotten right now, so its button can say so. */
-  forgetting: string | null
-  onForget: (row: StoredMemory) => void
+  forgetting?: string | null
+  /** Omitted for a recorded run, which nothing can change. */
+  onForget?: (row: StoredMemory) => void
+  /** Replaces the default note under the count. */
+  note?: string
 }
 
-export function MemoryTableView({ rows, timeline, forgetting, onForget }: MemoryTableViewProps) {
+const shortId = (id: string) => (id.length > 20 ? `${id.slice(0, 16)}…` : id)
+
+/** One set of rows a reader can highlight together, named by what links them. */
+type Highlight = { key: string; ids: Set<string> }
+
+type Badge = { label: string; title: string; highlight: Highlight }
+
+/** Every curation link a row takes part in, each one a group the reader can highlight. */
+export function curationBadges(row: StoredMemory, rows: StoredMemory[]): Badge[] {
+  if (row.kind !== 'original') {
+    const count = row.source_memory_ids.length
+    return [{
+      label: `Covers ${count} ${count === 1 ? 'memory' : 'memories'}`,
+      title: row.source_memory_ids.join(', '),
+      highlight: { key: row.memory_id, ids: new Set([row.memory_id, ...row.source_memory_ids]) },
+    }]
+  }
+  const badges: Badge[] = rows
+    .filter((item) => item.kind !== 'original' && item.source_memory_ids.includes(row.memory_id))
+    .map((item) => ({
+      label: item.kind === 'derived_summary' ? 'In summary' : `Topic · ${item.topic_labels[0] ?? item.text ?? 'group'}`,
+      title: item.memory_id,
+      highlight: { key: item.memory_id, ids: new Set([item.memory_id, ...item.source_memory_ids]) },
+    }))
+  const duplicates = row.duplicate_memory_ids ?? []
+  if (duplicates.length > 0) {
+    const ids = new Set([row.memory_id, ...duplicates])
+    const highlight = { key: `duplicates:${[...ids].sort().join(',')}`, ids }
+    badges.push(row.retired_for
+      ? { label: `Retired · duplicate of ${shortId(row.retired_for)}`, title: row.retired_for, highlight }
+      : { label: `Duplicate of ${duplicates.map(shortId).join(', ')}`, title: duplicates.join(', '), highlight })
+  } else if (row.retired_for) {
+    badges.push({
+      label: `Retired · duplicate of ${shortId(row.retired_for)}`,
+      title: row.retired_for,
+      highlight: { key: `retired:${row.memory_id}`, ids: new Set([row.memory_id, row.retired_for]) },
+    })
+  }
+  return badges
+}
+
+const HISTORY_SENTENCES: Record<CurationAction, (entry: CurationHistoryEntry) => string> = {
+  link_duplicates: (entry) => `Linked ${entry.source_memory_ids.map(shortId).join(' and ')} as duplicates`,
+  update_derived_summary: (entry) => `Summarised ${entry.source_memory_ids.map(shortId).join(', ')}`,
+  assign_topic_group: (entry) => `Grouped ${entry.source_memory_ids.map(shortId).join(', ')} under one topic`,
+  tombstone_for_retrieval: (entry) =>
+    `Retired ${shortId(entry.memory_id ?? '')} from search; ${shortId(entry.canonical_memory_id ?? '')} stays searchable`,
+  restore_to_retrieval: (entry) => `Restored ${shortId(entry.memory_id ?? '')} to search`,
+}
+
+function historyHighlight(entry: CurationHistoryEntry): Highlight {
+  const ids = [...entry.source_memory_ids, entry.result_memory_id, entry.memory_id, entry.canonical_memory_id]
+  return { key: entry.event_id, ids: new Set(ids.filter((id): id is string => id !== null)) }
+}
+
+export function MemoryTableView({ rows, timeline, history = [], forgetting = null, onForget, note }: MemoryTableViewProps) {
+  const [highlight, setHighlight] = useState<Highlight | null>(null)
   const turnPosition = new Map(timeline.map((turn, index) => [turn.inspection.muse_turn.turn_id, index]))
   const showText = rows.some((row) => row.text !== null)
+  const toggle = (next: Highlight) => setHighlight((current) => (current?.key === next.key ? null : next))
+  const rowClass = (row: StoredMemory) => [
+    row.searchable ? '' : 'is-retired',
+    highlight === null ? '' : highlight.ids.has(row.memory_id) ? 'is-highlighted' : 'is-dimmed',
+  ].filter(Boolean).join(' ') || undefined
   return (
     <section className="memory-table" aria-label="Saved memories">
       <p className="muted">
         {rows.length} {rows.length === 1 ? 'memory' : 'memories'}, {rows.filter((row) => !row.searchable).length} retired.
-        Curation can retire an original and search a summary or topic group over it instead.
-        Forgetting a memory also removes every summary or topic group built over it.
+        {note ?? <>
+          {' '}A summary or topic group is added as its own row and never hides its sources; only retiring a duplicate takes an original out of search.
+          Forgetting a memory also removes every summary or topic group built over it.
+        </>}
+      </p>
+      <p className="muted">
+        Rows stay in the order they were stored. Select a curation tag to highlight the memories it links.
       </p>
       {rows.length === 0 ? (
         <p className="empty">Nothing is saved yet.</p>
       ) : (
         <div className="memory-table-scroll">
+          {highlight && (
+            <button type="button" className="quiet-button memory-clear-highlight" onClick={() => setHighlight(null)}>
+              Clear highlight
+            </button>
+          )}
           <table>
             <thead>
               <tr>
                 <th scope="col">Stored</th>
                 <th scope="col">Memory ID</th>
+                {showText && <th scope="col">Memory</th>}
                 <th scope="col">Kind</th>
                 <th scope="col">Source</th>
                 <th scope="col">Status</th>
-                {showText && <th scope="col">Memory</th>}
-                <th scope="col"><span className="visually-hidden">Actions</span></th>
+                <th scope="col">Curation</th>
+                {onForget && <th scope="col"><span className="visually-hidden">Actions</span></th>}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row.memory_id} className={row.searchable ? undefined : 'is-retired'}>
-                  <td><time dateTime={row.created_at}>{formatStoredAt(row.created_at)}</time></td>
-                  <td><code>{row.memory_id}</code></td>
-                  <td>{MEMORY_KIND_LABELS[row.kind]}{row.kind === 'topic_group' && row.text === null && row.topic_labels.length > 0 && ` · ${row.topic_labels.join(', ')}`}</td>
-                  <td>{memorySource(row, turnPosition)}</td>
-                  <td>
-                    <span className={`memory-tag ${row.searchable ? 'is-available' : 'is-unavailable'}`}>
-                      {row.searchable ? 'Searchable' : 'Retired'}
-                    </span>
-                  </td>
-                  {showText && <td className="memory-text">{row.text ?? '—'}</td>}
-                  <td>
-                    {row.kind === 'original' && (
-                      <button
-                        type="button"
-                        className="quiet-button memory-forget"
-                        disabled={forgetting !== null}
-                        onClick={() => onForget(row)}
-                      >
-                        {forgetting === row.memory_id ? 'Forgetting…' : 'Forget'}
-                      </button>
+              {rows.map((row) => {
+                const badges = curationBadges(row, rows)
+                return (
+                  <tr key={row.memory_id} className={rowClass(row)}>
+                    <td><time dateTime={row.created_at}>{formatStoredAt(row.created_at)}</time></td>
+                    <td className="memory-id"><MemoryId id={row.memory_id} /></td>
+                    {showText && <td className="memory-text">{row.text ?? '—'}</td>}
+                    <td>{MEMORY_KIND_LABELS[row.kind]}{row.kind === 'topic_group' && row.text === null && row.topic_labels.length > 0 && ` · ${row.topic_labels.join(', ')}`}</td>
+                    <td>{memorySource(row, turnPosition)}</td>
+                    <td>
+                      <span className={`memory-tag ${row.searchable ? 'is-available' : 'is-unavailable'}`}>
+                        {row.searchable ? 'Searchable' : 'Retired'}
+                      </span>
+                    </td>
+                    <td className="memory-curation">
+                      {badges.length === 0 ? '—' : <div className="memory-curation-tags">{badges.map((badge) => (
+                        <button
+                          key={badge.highlight.key}
+                          type="button"
+                          className={`memory-tag curation-badge${highlight?.key === badge.highlight.key ? ' is-active' : ''}`}
+                          title={badge.title}
+                          aria-pressed={highlight?.key === badge.highlight.key}
+                          onClick={() => toggle(badge.highlight)}
+                        >
+                          {badge.label}
+                        </button>
+                      ))}</div>}
+                    </td>
+                    {onForget && (
+                      <td>
+                        {row.kind === 'original' && (
+                          <button
+                            type="button"
+                            className="quiet-button memory-forget"
+                            disabled={forgetting !== null}
+                            onClick={() => onForget(row)}
+                          >
+                            {forgetting === row.memory_id ? 'Forgetting…' : 'Forget'}
+                          </button>
+                        )}
+                      </td>
                     )}
-                  </td>
-                </tr>
-              ))}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
       )}
-      {rows.length > 0 && !showText && (
+      {rows.length > 0 && !showText && onForget && (
         <p className="muted">
           Memory text appears here when the server runs with <code>LINGER_DEV_INSPECT=true</code>, or read it with <code>uv run python -m apps.backend.show_memories &lt;username&gt; &lt;id&gt;</code>.
         </p>
+      )}
+      {history.length > 0 && (
+        <div className="curation-history">
+          <h4>Applied curation</h4>
+          <p className="muted">Oldest first. Provenance allowed each one; select one to highlight the memories it touched.</p>
+          <ol>
+            {history.map((entry) => (
+              <li key={entry.event_id}>
+                <button
+                  type="button"
+                  className={`curation-history-entry${highlight?.key === entry.event_id ? ' is-active' : ''}`}
+                  aria-pressed={highlight?.key === entry.event_id}
+                  onClick={() => toggle(historyHighlight(entry))}
+                >
+                  <time dateTime={entry.applied_at}>{formatStoredAt(entry.applied_at)}</time>
+                  <span>
+                    {HISTORY_SENTENCES[entry.action](entry)}
+                    {entry.text && <> “{entry.text}”</>}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   )
@@ -561,16 +740,24 @@ export function MemoryTableView({ rows, timeline, forgetting, onForget }: Memory
 /** The signed-in reader's memories, read live from the store; each turn lists only the IDs it touched. */
 export function MemoryTable({ timeline }: { timeline: TurnRecord[] }) {
   const [rows, setRows] = useState<StoredMemory[] | null>(null)
+  const [history, setHistory] = useState<CurationHistoryEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const [forgetting, setForgetting] = useState<string | null>(null)
 
+  const reload = async () => {
+    const [memories, curation] = await Promise.all([listMemories(), listCurationHistory()])
+    setRows(memories)
+    setHistory(curation)
+  }
+
+  // A finished turn can save or curate, so read the store again after each one.
   useEffect(() => {
     let cancelled = false
-    listMemories()
-      .then((loaded) => { if (!cancelled) setRows(loaded) })
+    Promise.all([listMemories(), listCurationHistory()])
+      .then(([memories, curation]) => { if (!cancelled) { setRows(memories); setHistory(curation) } })
       .catch((reason: unknown) => { if (!cancelled) setError(reason instanceof Error ? reason.message : String(reason)) })
     return () => { cancelled = true }
-  }, [])
+  }, [timeline.length])
 
   const forget = async (row: StoredMemory) => {
     const label = row.text ? `“${row.text}”` : row.memory_id
@@ -579,7 +766,7 @@ export function MemoryTable({ timeline }: { timeline: TurnRecord[] }) {
     setError(null)
     try {
       await forgetMemory(row.memory_id)
-      setRows(await listMemories())
+      await reload()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason))
     } finally {
@@ -592,7 +779,7 @@ export function MemoryTable({ timeline }: { timeline: TurnRecord[] }) {
       {error && <p className="empty" role="alert">{error}</p>}
       {rows === null
         ? !error && <p className="muted">Loading memories…</p>
-        : <MemoryTableView rows={rows} timeline={timeline} forgetting={forgetting} onForget={(row) => void forget(row)} />}
+        : <MemoryTableView rows={rows} timeline={timeline} history={history} forgetting={forgetting} onForget={(row) => void forget(row)} />}
     </>
   )
 }
@@ -649,19 +836,6 @@ export function ReadingStateTable({ timeline }: { timeline: TurnRecord[] }) {
   )
 }
 
-function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
-  const decline = turn.inspection.connection_decline
-  if (!decline) return null
-  return (
-    <section className="connection-decision declined">
-      <p className="eyebrow">Connection contract</p>
-      <h4>Serendipity declined to surface a connection</h4>
-      <p className="muted">Reason: {formatMachineLabel(decline.reason)}</p>
-      {decline.failure_code && <p className="muted">Failure: connection discovery failed closed.</p>}
-    </section>
-  )
-}
-
 const ASSESSMENT_LABELS: Record<string, string> = {
   credible_pass: 'Credible pass',
   pass_with_limitations: 'Pass with limitations',
@@ -710,7 +884,6 @@ function TurnOutcome({ turn }: { turn: TurnRecord }) {
       {!turn.grading?.offline && <TurnFacts turn={turn} />}
       <TurnTimeline turn={turn} />
       <AgentDecisions turn={turn} />
-      <ConnectionDeclineDecision turn={turn} />
       <MemoryActivity turn={turn} />
     </>
   )

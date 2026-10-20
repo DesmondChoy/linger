@@ -423,7 +423,7 @@ user-facing frontend must not expose them or depend on their state.
 None of these tools can authorise retrieval, release, capture, or storage.
 
 **Detail:** [chat and developer tools](../apps/README.md#chat-and-developer-tools),
-[persona export](../apps/frontend/README.md).
+[scenario export](../apps/frontend/README.md).
 
 #### 4.2.5 Capture-triggered curation and offline surfacing
 

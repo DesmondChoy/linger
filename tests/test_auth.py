@@ -199,6 +199,96 @@ class SignInTests(unittest.TestCase):
         self.assertEqual([], self.client.get("/api/memories", headers=self.alice).json())
         self.assertEqual(404, self.client.delete(url, headers=self.alice).status_code)
 
+    def test_memory_table_and_history_show_every_curation_link(self) -> None:
+        from src.linger.agents.provenance.curation_models import CurationProvenanceReview
+        from src.linger.agents.sculptor.models import (
+            CurationProposal,
+            DerivedSummary,
+            DuplicateLink,
+            RetrievalTombstone,
+        )
+        from src.linger.contracts.curation import ApprovedCuration
+        from src.linger.orchestration.curation import prepare_curation_plan
+
+        account = AccountContext("user:alice")
+        service = main.memory_service
+        service.set_capture_enabled(account, True)
+        kept, copy, earlier, later = (
+            service.save_automatic(
+                account,
+                AutomaticMemoryCandidate(
+                    text=text,
+                    source_event_id=f"turn-{index}",
+                    review_allows_capture=True,
+                    contains_sensitive_content=False,
+                ),
+            ).record
+            for index, text in enumerate((
+                "I read outdoors.", "I read outdoors.",
+                "Book club meets on Mondays.", "Book club moved to Fridays.",
+            ))
+        )
+        actions = (
+            DuplicateLink(action="link_duplicates", source_memory_ids=(kept.memory_id, copy.memory_id)),
+            RetrievalTombstone(
+                action="tombstone_for_retrieval",
+                source_memory_ids=(copy.memory_id, kept.memory_id),
+                memory_id=copy.memory_id,
+                canonical_memory_id=kept.memory_id,
+            ),
+            DerivedSummary(
+                action="update_derived_summary",
+                source_memory_ids=(earlier.memory_id, later.memory_id),
+                summary="Book club moved from Mondays to Fridays.",
+            ),
+        )
+        for action in actions:
+            plan = prepare_curation_plan(
+                service.select_for_curation(account, action.source_memory_ids),
+                CurationProposal(kind="curation_proposal", action=action),
+                base_state_sha256=service.curation_state_sha256(account),
+            )
+            service.apply_curation(account, ApprovedCuration(
+                plan=plan,
+                review=CurationProvenanceReview(proposal_digest=plan.digest, decision="allow"),
+            ))
+
+        rows = {row["memory_id"]: row for row in self.client.get("/api/memories", headers=self.alice).json()}
+        self.assertEqual([copy.memory_id], rows[kept.memory_id]["duplicate_memory_ids"])
+        self.assertEqual([kept.memory_id], rows[copy.memory_id]["duplicate_memory_ids"])
+        self.assertEqual(kept.memory_id, rows[copy.memory_id]["retired_for"])
+        self.assertFalse(rows[copy.memory_id]["searchable"])
+        self.assertIsNone(rows[kept.memory_id]["retired_for"])
+
+        history = self.client.get("/api/memories/curation", headers=self.alice).json()
+        self.assertEqual(
+            ["link_duplicates", "tombstone_for_retrieval", "update_derived_summary"],
+            [entry["action"] for entry in history],
+        )
+        self.assertEqual((copy.memory_id, kept.memory_id), (history[1]["memory_id"], history[1]["canonical_memory_id"]))
+        self.assertIn(history[2]["result_memory_id"], rows)
+        self.assertEqual("derived_summary", rows[history[2]["result_memory_id"]]["kind"])
+        self.assertEqual([], self.client.get("/api/memories/curation", headers=self.bob).json())
+        self.assertEqual(401, self.client.get("/api/memories/curation").status_code)
+
+    def test_a_reader_loads_a_recorded_scenarios_props_into_their_own_account(self) -> None:
+        url = "/api/scenarios/pottery-memory-curation--sculptor--2026-08-29/props"
+        self.assertEqual(401, self.client.post(url).status_code)
+
+        first = self.client.post(url, headers=self.alice)
+        again = self.client.post(url, headers=self.alice)
+
+        self.assertEqual({"loaded": 15, "already_saved": 0}, first.json())
+        self.assertEqual({"loaded": 0, "already_saved": 15}, again.json())
+        listed = self.client.get("/api/memories", headers=self.alice).json()
+        self.assertEqual(15, len(listed))
+        self.assertIn("prop-summary-date-moved", {row["source_prop_id"] for row in listed})
+        self.assertTrue(all(row["source_turn_id"] is None for row in listed))
+        self.assertEqual([], self.client.get("/api/memories", headers=self.bob).json())
+        for unknown in ("index", "no-such-scenario", "..%2Fsecrets"):
+            with self.subTest(unknown=unknown):
+                self.assertEqual(404, self.client.post(f"/api/scenarios/{unknown}/props", headers=self.alice).status_code)
+
     def history(self, headers: dict[str, str]) -> list[dict]:
         response = self.client.get("/api/history", headers=headers)
         self.assertEqual(200, response.status_code)

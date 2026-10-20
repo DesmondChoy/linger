@@ -26,11 +26,11 @@ export const landing = {
 
   synthetic: {
     enabled: true,
-    heading: 'Synthetic personas',
+    heading: 'Synthetic scenarios',
     body:
-      'Replay recorded conversations from synthetic readers and see how each agent ' +
+      'Replay recorded evaluation scenarios with invented readers and see how each agent ' +
       'handled every scene. No sign-in needed.',
-    openLabel: 'Replay a persona',
+    openLabel: 'Replay a scenario',
   },
 
   footer: 'A course prototype. Accounts are for testing only; do not enter sensitive information.',

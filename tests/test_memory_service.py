@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from contextlib import chdir
+from datetime import UTC, datetime
 from pathlib import Path
 
 from src.linger.services.memory import (
@@ -13,6 +14,7 @@ from src.linger.services.memory import (
     MemoryConflictError,
     MemoryPolicyError,
     MemoryPolicyService,
+    ScenarioProp,
 )
 
 
@@ -253,3 +255,48 @@ class MemoryPolicyServiceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScenarioPropLoadingTests(unittest.TestCase):
+    def setUp(self) -> None:
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.service = MemoryPolicyService(Path(directory.name) / "memories")
+        self.alice = AccountContext("alice")
+        self.props = (
+            ScenarioProp("prop-moved", "I moved the open house to September 21.", datetime(2026, 8, 20, tzinfo=UTC)),
+            ScenarioProp("prop-tea", "I bought jasmine tea for the open house.", None),
+        )
+
+    def test_loads_once_without_the_capture_policy_and_keeps_the_props_date(self) -> None:
+        # Loading is an explicit reader action, so capture being off does not block it.
+        first = self.service.load_scenario_props(self.alice, "pottery", self.props)
+        again = self.service.load_scenario_props(self.alice, "pottery", self.props)
+
+        self.assertEqual([True, True], [result.created for result in first])
+        self.assertEqual([False, False], [result.created for result in again])
+        records = {record.source_event_id: record for record in self.service.list_active(self.alice)}
+        self.assertEqual({"scenario:pottery:prop-moved", "scenario:pottery:prop-tea"}, set(records))
+        moved = records["scenario:pottery:prop-moved"]
+        self.assertEqual("scenario_prop", moved.capture_type)
+        self.assertEqual(datetime(2026, 8, 20, tzinfo=UTC), self.service.recorded_at(moved))
+        self.assertIsNotNone(self.service.recorded_at(records["scenario:pottery:prop-tea"]))
+
+    def test_another_scenario_with_the_same_prop_ids_is_a_separate_memory(self) -> None:
+        self.service.load_scenario_props(self.alice, "pottery", self.props)
+        self.service.load_scenario_props(self.alice, "pottery-rerun", self.props)
+
+        self.assertEqual(4, len(self.service.list_active(self.alice)))
+
+    def test_a_loaded_prop_can_be_forgotten(self) -> None:
+        saved = self.service.load_scenario_props(self.alice, "pottery", self.props)[0].record
+
+        self.assertTrue(self.service.forget(self.alice, saved.memory_id))
+        self.assertEqual(["scenario:pottery:prop-tea"], [r.source_event_id for r in self.service.list_active(self.alice)])
+
+    def test_refuses_a_prop_carrying_a_credential_and_saves_none(self) -> None:
+        leaked = ScenarioProp("prop-key", "My API key is sk-proj-abcdefghijklmnopqrstuvwxyz0123456789", None)
+
+        with self.assertRaises(MemoryPolicyError):
+            self.service.load_scenario_props(self.alice, "pottery", (*self.props, leaked))
+        self.assertEqual([], self.service.list_active(self.alice))
