@@ -180,7 +180,7 @@ class HybridLibrarian(Librarian):
         self._read_chapter_cues = read_chapter_cues
         self._indexes: dict[tuple[tuple[tuple[str, str, str, int, tuple[str, ...]], ...], str], HybridIndex] = {}
 
-    def embedding_model(self) -> EmbeddingModel:
+    def _embedding_model(self) -> EmbeddingModel:
         if self._embedding is None:
             from fastembed import TextEmbedding
 
@@ -245,7 +245,7 @@ class HybridLibrarian(Librarian):
                 bm25s.tokenize(texts, show_progress=False), show_progress=False
             )
             embeddings = np.asarray(
-                list(self.embedding_model().passage_embed(texts))
+                list(self._embedding_model().passage_embed(texts))
             )
         else:
             embeddings = np.empty((0, 0))
@@ -276,7 +276,7 @@ class HybridLibrarian(Librarian):
         index: HybridIndex,
         threshold: float,
     ) -> list[Candidate]:
-        model = self.embedding_model()
+        model = self._embedding_model()
         query_embedding = np.asarray(next(iter(model.query_embed(query))))
         scores = _cosine(query_embedding, index.embeddings)
         order = np.argsort(-scores)[:SEMANTIC_CANDIDATES]

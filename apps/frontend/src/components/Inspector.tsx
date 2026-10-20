@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { forgetMemory, listCurationHistory, listMemories } from '../api'
-import type { AgentTrace, CaptureInspection, ChatResult, ConnectionDecline, CurationAction, CurationCandidate, CurationHistoryEntry, ReadingProgressEntry, ReleaseInspection, StoredMemory, ToolExposureInspection, TurnRecord } from '../types'
+import type { AgentTrace, CaptureInspection, ChatResult, ConnectionDecline, CurationAction, CurationHistoryEntry, ReadingProgressEntry, ReleaseInspection, StoredMemory, ToolExposureInspection, TurnRecord } from '../types'
 import { museTurnView } from './architecture/turnDetail'
 import { FINDING_EXPLANATIONS } from './findingExplanations'
 import { formatMachineLabel } from './formatMachineLabel'
@@ -404,24 +404,12 @@ function captureSummary(capture: CaptureInspection): string {
 
 // What Sculptor did after this turn's save; curation runs only for a fresh save.
 const CURATION_SUMMARIES: Record<string, string> = {
-  no_relevant_prior_memory: 'Sculptor did not run: no earlier memory is close enough in meaning to this one.',
+  no_relevant_prior_memory: 'Sculptor did not run: no earlier memory shares a word with this one.',
   no_change: 'Sculptor looked at this memory beside related ones and proposed no change.',
   provenance_revise: 'Sculptor proposed a change; Provenance asked for a revision, and curation does not retry, so nothing was applied.',
   provenance_reject: 'Sculptor proposed a change; Provenance rejected it.',
   applied: 'Sculptor proposed a change, Provenance allowed it, and it was applied. See the Memories table.',
   failed: 'Sculptor curation failed; the saved memory is unaffected.',
-}
-
-// Mirror EARLIER_LIMIT and SEMANTIC_FLOOR in src/linger/orchestration/conversational_memory.py.
-const CURATION_EARLIER_LIMIT = 11
-const CURATION_SEMANTIC_FLOOR = 0.5
-
-/** The memories Sculptor was given after a save: the new one first, then up to 11 earlier originals closest to it in meaning. */
-function curationBatch(turn: TurnRecord): string[] {
-  const capture = turn.inspection.release?.capture
-  const ids = capture?.curation_memory_ids ?? []
-  // A lone new memory means no earlier one matched, so Sculptor never ran.
-  return ids.length > 1 ? ids : []
 }
 
 function MemoryId({ id }: { id: string }) {
@@ -491,50 +479,6 @@ function CurationProposalDetail({ record }: { record: CurationRecord }) {
   )
 }
 
-/** Why each earlier memory was or was not given to Sculptor after this save. */
-function CurationBatchDetail({ scored, candidates, texts }: {
-  scored: number
-  candidates: CurationCandidate[]
-  texts: Record<string, string> | null | undefined
-}) {
-  const selected = candidates.filter((item) => item.selected)
-  const left = candidates.filter((item) => !item.selected)
-  const row = (item: CurationCandidate, rank: number | null) => (
-    <tr key={item.memory_id}>
-      <td>{rank ?? '—'}</td>
-      <td>{texts?.[item.memory_id] ?? <MemoryId id={item.memory_id} />}</td>
-      <td>{item.similarity.toFixed(2)}</td>
-      <td>{item.keyword_rank === null ? '—' : `#${item.keyword_rank}`}</td>
-    </tr>
-  )
-  return (
-    <div className="curation-batch">
-      <p className="muted">
-        {scored} earlier {scored === 1 ? 'original was' : 'originals were'} scored; {selected.length} given to Sculptor.
-        Meaning must reach {CURATION_SEMANTIC_FLOOR.toFixed(2)}; shared keywords only raise the rank.
-      </p>
-      <table>
-        <thead>
-          <tr><th scope="col">#</th><th scope="col">Memory</th><th scope="col">Meaning</th><th scope="col">Keywords</th></tr>
-        </thead>
-        <tbody>
-          {selected.map((item, index) => row(item, index + 1))}
-          {left.length > 0 && (
-            <tr className="curation-batch-divider">
-              <td colSpan={4}>
-                Not given to Sculptor: {left.some((item) => item.similarity >= CURATION_SEMANTIC_FLOOR)
-                  ? `the nearest left out, below ${CURATION_SEMANTIC_FLOOR.toFixed(2)} or past the ${CURATION_EARLIER_LIMIT}-memory limit`
-                  : `the nearest left out, all below ${CURATION_SEMANTIC_FLOOR.toFixed(2)}`}
-              </td>
-            </tr>
-          )}
-          {left.map((item) => row(item, null))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
 /** Per-turn memory: only which IDs this turn saved, used, and could search. The memory table holds the entries. */
 function MemoryActivity({ turn }: { turn: TurnRecord }) {
   const memory = turn.inspection.memory
@@ -542,12 +486,8 @@ function MemoryActivity({ turn }: { turn: TurnRecord }) {
   if (!memory && !capture) return null
   const searchable = memory?.available_memories
   const curation = curationRecord(turn)
-  const candidates = capture?.curation_candidates ?? []
-  // Turns recorded before scores were kept list only the batch IDs.
-  const batch = candidates.length > 0 ? [] : curationBatch(turn)
   const groups = [
     { label: 'Saved this turn', ids: memory?.captured_memory_id ? [memory.captured_memory_id] : [] },
-    { label: `Given to Sculptor (${batch.length})`, ids: batch },
     { label: 'Used in the reply', ids: memory?.cited_memory_ids ?? [] },
     { label: `Searchable this turn (${searchable?.length ?? 0})`, ids: (searchable ?? []).map((item) => item.memory_id) },
   ].filter((group) => group.ids.length > 0)
@@ -558,9 +498,6 @@ function MemoryActivity({ turn }: { turn: TurnRecord }) {
       {capture && <p>{captureSummary(capture)}</p>}
       {capture?.curation_status && CURATION_SUMMARIES[capture.curation_status] && (
         <p className="muted">{CURATION_SUMMARIES[capture.curation_status]}</p>
-      )}
-      {candidates.length > 0 && (
-        <CurationBatchDetail scored={capture?.curation_scored_count ?? candidates.length} candidates={candidates} texts={memory?.texts} />
       )}
       {curation && <CurationProposalDetail record={curation} />}
       {groups.length > 0 && (

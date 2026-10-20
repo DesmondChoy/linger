@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import ANY, AsyncMock, patch
+from unittest.mock import AsyncMock, patch
 
 from fastapi import HTTPException
 
@@ -287,11 +287,11 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         source = "I now prefer jasmine tea while reading."
         trigger = AsyncMock()
         trigger.return_value = ConversationalCurationOutcome(
-            status="no_change", memory_ids=("mem_new", "mem_earlier")
+            status="no_change", memory_ids=()
         )
 
         with patch.object(chat_turn, "curate_after_capture", trigger):
-            response, _ = await self.run_chat(
+            await self.run_chat(
                 ChatRequest(
                     session_id="capture-curation-trigger",
                     turn_id="turn-capture-curation-trigger",
@@ -307,11 +307,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             captured,
             created=True,
             service=self.service,
-            embedding=ANY,
         )
-        capture = response.inspection.release.capture
-        self.assertEqual(capture.curation_status, "no_change")
-        self.assertEqual(capture.curation_memory_ids, ("mem_new", "mem_earlier"))
 
     async def test_no_nomination_never_reaches_storage(self) -> None:
         self.service.set_capture_enabled(self.account, True)

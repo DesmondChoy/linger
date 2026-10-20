@@ -98,7 +98,7 @@ from src.linger.services.memory import (
 )
 
 from . import reading_progress, sessions
-from .chapter_reference import NUMBER_WORDS, parse_chapter_answer
+from .chapter_reference import parse_chapter_answer
 from .config import get_settings
 from .contracts import (
     ContextResolution,
@@ -167,56 +167,9 @@ TITLE_END_PATTERN = re.compile(
     r"(?:read|finished|completed|through|up to|at|on)\b)",
     re.IGNORECASE,
 )
-# "read" declares progress only before a chapter or a whole-book phrase, never a
-# bare title: "I've read Pinocchio" may mean years ago, not this reading.
-READ_TARGET = (
-    r"read(?=\s+(?:chapters?\b|ch\b|ch\.|the\s+(?:whole|entire|full|book)\b"
-    r"|the\s+(?:[a-z]+[\s-]){1,2}chapters?\b))"
-)
-SENTENCE_START = r"(?:^|(?<=[.!?]\s))\s*"
 COMPLETION_PATTERN = re.compile(
-    rf"\b(?:i(?:['’]ve|['’]d| have| had)\s+{PROGRESS_ADVERBS}(?:finished|completed|read\s+through|got\s+through|{READ_TARGET})|"
-    rf"i\s+{PROGRESS_ADVERBS}(?:finished|completed)|i(?:'m| am)\s+{PROGRESS_ADVERBS}done\s+with)\b"
-    # A simple-past "I read" or a subjectless "Finished" counts only as a
-    # sentence opener, so "Should I read chapter 4?" declares nothing.
-    rf"|{SENTENCE_START}(?:i\s+{PROGRESS_ADVERBS}{READ_TARGET}|{PROGRESS_ADVERBS}(?:finished|completed|done\s+with))\b",
-    re.IGNORECASE,
-)
-NUMBER_WORD_PATTERN = "(?:" + "|".join(
-    word.replace(" ", r"[\s-]") for word in sorted(NUMBER_WORDS, key=len, reverse=True)
-) + ")"
-CHAPTER_NUMBER = rf"(?:[1-9]\d*|{NUMBER_WORD_PATTERN})"
-# Spoken chapter forms, rewritten to "chapter N" before the digit-only parser runs.
-SPOKEN_CHAPTER_PATTERNS = (
-    re.compile(
-        rf"^(?:the\s+)?(?:chapters|ch\.?)\s*{CHAPTER_NUMBER}\s*(?:-|–|to|through|thru|and)\s*"
-        rf"(?:chapter\s+)?(?P<number>{CHAPTER_NUMBER})\b",
-        re.IGNORECASE,
-    ),
-    re.compile(rf"^(?:the\s+)?first\s+(?P<number>{CHAPTER_NUMBER})\s+chapters\b", re.IGNORECASE),
-    re.compile(rf"^(?:the\s+)?(?P<number>{NUMBER_WORD_PATTERN})\s+chapter\b", re.IGNORECASE),
-    re.compile(rf"^(?:chapter|ch\.?)\s*(?P<number>{NUMBER_WORD_PATTERN})\b", re.IGNORECASE),
-)
-CHAPTER_DONE_PATTERN = re.compile(
-    rf"{SENTENCE_START}(?P<location>(?:chapter|ch\.?)\s*{CHAPTER_NUMBER})\s+(?:is\s+)?(?:now\s+)?"
-    r"(?:done|finished|completed?)\b",
-    re.IGNORECASE,
-)
-LOCATION_TRAILER = (
-    r"(?:\s+(?:to|until)\s+the\s+(?:very\s+)?end(?:ing)?)?"
-    r"(?:\s+(?:today|yesterday|tonight|last\s+night|this\s+(?:morning|afternoon|evening|week)|at\s+last|finally|now))?"
-)
-WHOLE_BOOK_PATTERN = re.compile(
-    rf"(?:(?:the|this|that)\s+(?:(?:whole|entire|full)\s+)?(?:book|novel)(?![\w'’])|the\s+(?:whole|entire)\s+thing"
-    rf"|(?:the\s+)?(?:last|final)\s+chapter|it\s+all){LOCATION_TRAILER}",
-    re.IGNORECASE,
-)
-# What follows "I've read" when the reader states progress rather than a title.
-NOT_A_TITLE_PATTERN = re.compile(
-    r"^(?:up\s+to|as\s+far\s+as|through|past|until|chapters?\b|ch\b|it\b|all\b"
-    r"|(?:the\s+)?(?:whole|entire|full|first|last|final|rest)\b"
-    r"|the\s+(?:book|novel|thing)\s*(?:$|[.,!?]|(?:to|until)\s+the\s+end)"
-    r"|(?:the\s+)?(?:[a-z]+[\s-]){1,2}chapters?\b)",
+    rf"\b(?:i(?:['’]ve|['’]d| have| had)\s+{PROGRESS_ADVERBS}(?:finished|completed|read\s+through|got\s+through)|"
+    rf"i\s+{PROGRESS_ADVERBS}(?:finished|completed)|i(?:'m| am)\s+{PROGRESS_ADVERBS}done\s+with)\b",
     re.IGNORECASE,
 )
 COMPLETED_CHAPTER_SUBJECT_PATTERN = re.compile(
@@ -266,8 +219,6 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
         " \"'“”.,:;"
     )
     title = re.sub(r"^part\s+(?:[ivxlcdm]+|\d+)\s+of\s+", "", title, flags=re.IGNORECASE)
-    if NOT_A_TITLE_PATTERN.match(title):
-        return None
     return title or None
 
 
@@ -285,9 +236,9 @@ DECLARATION_SENTENCE_END_PATTERN = re.compile(
     re.IGNORECASE,
 )
 DECLARATION_END_PATTERN = re.compile(
-    DECLARATION_SENTENCE_END_PATTERN.pattern + r"|(?:[,—]\s*|(?<=\s)(?:and|but|so)\s+)"
+    DECLARATION_SENTENCE_END_PATTERN.pattern + r"|(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
-    r"|so|now|because|since|then|you|we|what|why|how|tell|give|show|list|can|could|would|please)\b)",
+    r"|what|why|how|tell|can|could|would|please)\b)",
     re.IGNORECASE,
 )
 READ_NAMED_PATTERN = re.compile(
@@ -338,17 +289,9 @@ def _completed_location(message: str) -> str | None:
     # Someone else's words, quoted or fenced, declare nothing for the reader.
     unquoted = reading_progress.mask_quotes(message)
     completion = COMPLETION_PATTERN.search(unquoted) or READ_NAMED_PATTERN.search(unquoted)
-    if completion is not None and not _asserted_completion(unquoted, completion):
+    if completion is None or not _asserted_completion(unquoted, completion):
         return None
-    if completion is None:
-        done = CHAPTER_DONE_PATTERN.search(unquoted)
-        return _spoken_chapter(done.group("location")) if done else None
-    location = _spoken_chapter(
-        DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
-    )
-    if _whole_book(location):
-        # "Done with the book" can mean giving up on it, so only finishing grants the book.
-        return None if "done" in completion.group().casefold() else location
+    location = DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
     if not re.match(
         rf"(?:reading\s+)?(?:(?:the|that|this)\s+)?(?:editor['’]s\s+)?(?:part|chapter|ch\.?|scene|it|{NAMED_LOCATION})\b",
         location, re.IGNORECASE,
@@ -362,30 +305,6 @@ def _completed_location(message: str) -> str | None:
             return _declaration_sentence(message, completion)
         return None
     return location
-
-
-def _spoken_chapter(location: str) -> str:
-    """Rewrite a spoken chapter reference ("the fourth chapter") as "chapter 4"."""
-    lead = re.match(r"(?:reading\s+)?", location, re.IGNORECASE).group()
-    rest = location[len(lead):]
-    for pattern in SPOKEN_CHAPTER_PATTERNS:
-        if match := pattern.match(rest):
-            number = match.group("number")
-            value = int(number) if number.isdigit() else NUMBER_WORDS[re.sub(r"[\s-]+", " ", number.casefold())]
-            return f"{lead}chapter {value}{rest[match.end():]}"
-    return location
-
-
-def _location_title(location: str) -> str | None:
-    """The registered title a completed location names, as in "I finished Pinocchio"."""
-    title = re.sub(rf"{LOCATION_TRAILER}[\s.!]*$", "", location, flags=re.IGNORECASE)
-    identity = resolve_book_identity(title, settings.allowed_book_version_ids, exact=True) if title else None
-    return title if isinstance(identity, ResolvedBook) else None
-
-
-def _whole_book(location: str) -> bool:
-    location = re.sub(r"^reading\s+", "", location, flags=re.IGNORECASE).rstrip(" .!")
-    return WHOLE_BOOK_PATTERN.fullmatch(location) is not None or _location_title(location) is not None
 
 
 def _declaration_sentence(message: str, match: re.Match[str]) -> str:
@@ -455,17 +374,15 @@ def _named_reading(request: ChatRequest, selection: sessions.BookSelection, loca
         explanation="The reader explicitly completed this named unit; earlier units are not included.")
 
 
-def _chapter_reading(selection: sessions.BookSelection, chapter: int | None) -> dict[str, object]:
-    """Grant a completed chapter, or the selected part's last chapter when `chapter` is None."""
+def _chapter_reading(selection: sessions.BookSelection, chapter: int) -> dict[str, object]:
     version = librarian_service.version_for(selection.book_id)
     scope = librarian_service.registered_scope(selection.book_id, version, part_id=selection.part_id)
-    if scope is None or (chapter is not None and chapter > scope.max_chapter):
+    if scope is None or chapter > scope.max_chapter:
         return {"status": "inferred", "work_id": selection.book_id, "work_title": selection.book_title,
             "book_version_id": version, "clarification_question": "Which part and chapter have you completed?",
             "explanation": "That chapter does not exist in the selected part; no reading permission was granted."}
     return {"status": "confirmed", "work_id": selection.book_id, "work_title": selection.book_title,
-        "book_version_id": version, "chapter_max": scope.max_chapter if chapter is None else chapter,
-        "part_id": selection.part_id,
+        "book_version_id": version, "chapter_max": chapter, "part_id": selection.part_id,
         "boundary_source": "reader_confirmed", "boundary_authorization_basis": "explicit_progress",
         "explanation": "The reader explicitly confirmed this completed chapter in the current message."}
 
@@ -509,9 +426,6 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     explicit_title = _declared_title(progress_message, chapter_match)
     if explicit_title is None:
         explicit_title = _declared_title(request.message, CHAPTER_PATTERN.search(request.message))
-    whole_book = completed and chapter_match is None and _whole_book(progress_message)
-    if whole_book and explicit_title is None:
-        explicit_title = _location_title(re.sub(r"^reading\s+", "", progress_message, flags=re.IGNORECASE))
     named_location = NAMED_LOCATION_PATTERN.search(progress_message) is not None
     if named_location and completed:
         mentioned = resolve_book_identity(progress_message, settings.allowed_book_version_ids)
@@ -570,8 +484,8 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     if completed and named_location and selection and chapter_match is None:
         return _named_reading(request, selection, completed_location)
 
-    if (chapter_match or whole_book) and completed and selection:
-        chapter = int(chapter_match.group(1)) if chapter_match else None
+    if completed and chapter_match and selection:
+        chapter = int(chapter_match.group(1))
         sessions.clear_pending_clarification(request.session_id)
         if candidate and selection.book_id == candidate.book_id:
             sessions.clear_reading_candidate(request.session_id)
@@ -1623,17 +1537,11 @@ async def _run_chat_pipeline(
             capture.record,
             created=capture.created,
             service=service,
-            embedding=librarian_service.embedding_model(),
         )
         capture = replace(
             capture,
             inspection=capture.inspection.model_copy(
-                update={
-                    "curation_status": curation_outcome.status,
-                    "curation_memory_ids": curation_outcome.memory_ids,
-                    "curation_scored_count": curation_outcome.scored_count,
-                    "curation_candidates": curation_outcome.candidates,
-                }
+                update={"curation_status": curation_outcome.status}
             ),
         )
     cited_memory_ids = [

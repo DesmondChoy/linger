@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass, field, replace
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from pydantic_ai import ModelRetry, RunContext
@@ -25,7 +25,8 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.privacy import contains_personal_data_or_secret
+from src.linger.contracts.security_validation import validate_credentials
+from src.linger.contracts.session import ReaderStatement
 from src.linger.corpus import registry
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.book_evidence import retrieve_book_evidence
@@ -36,47 +37,15 @@ MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
 PUBLIC_URL_TOKEN = re.compile(r"(?<![\w/:?&#=+.%~-])https?://[^\s<>\"`]+")
-# At or below this length, the text is protected word by word.
+# At or below this length, treat every word of the reader's text as private.
 SHORT_PRIVATE_TEXT_TOKENS = 8
 # Consecutive reader words that count as copied wording rather than shared topic.
 COPIED_PHRASE_TOKENS = 3
 
-PrivacyBlock = Literal[
-    "personal_data", "capitalised_word", "reader_locator", "uncased_short_text",
-    "copied_phrase", "memory_wording",
-]
-# Retry guidance names why a value was refused without repeating the private words.
-PRIVACY_BLOCK_GUIDANCE: dict[PrivacyBlock, str] = {
-    "personal_data": "it contains a credential, email address, or phone number.",
-    "capitalised_word": (
-        "it repeats a capitalised word or a number from the reader's messages, "
-        "which may be a name or another identifying detail. Leave it out."
-    ),
-    "reader_locator": (
-        "it reuses part of a web address from the reader's messages that is not "
-        "the exact page requested. Open only an exact permitted URL."
-    ),
-    "uncased_short_text": (
-        "it repeats a word from a short reader message written without capitals, "
-        "where any word could be a name. Describe the topic with different words."
-    ),
-    "copied_phrase": (
-        "it copies a run of consecutive words from the reader's messages. "
-        "Describe the topic in your own words."
-    ),
-    "memory_wording": (
-        "it repeats wording from the reader's stored memories, which must never "
-        "reach a public search. Use only concepts from the current request."
-    ),
-}
-
-
-def _words(text: str) -> tuple[str, ...]:
-    return tuple(TOKEN.findall(unicodedata.normalize("NFKC", text)))
-
 
 def _normalised_tokens(text: str) -> tuple[str, ...]:
-    return tuple(word.casefold() for word in _words(text))
+    normalized = unicodedata.normalize("NFKC", text)
+    return tuple(token.casefold() for token in TOKEN.findall(normalized))
 
 
 def _phrases(tokens: tuple[str, ...], size: int) -> set[tuple[str, ...]]:
@@ -115,23 +84,18 @@ def _without_exact_public_url(text: str, url: str) -> str:
 
 
 def _query_copies_reader_terms(
-    query: str, source: str, *, page_url: str | None = None, memory: bool = False,
-) -> PrivacyBlock | None:
-    """Name how a query would carry private wording to a public search, if it does.
+    query: str, source: str, *, page_url: str | None = None,
+) -> bool:
+    """Refuse a query that carries the reader's own wording to a public search.
 
-    How private a single shared word is depends on how much was written. In a
-    short reader message the identifying words are names, which the reader
-    capitalises ("Li and I divorced"), while lowercase words name the topic
-    they asked about ("Yes upbeat music"). A sentence-initial word is
-    capitalised too, so it stays protected even when it is ordinary. A message
-    with no capitals gives no such signal ("will and i divorced"), so every
-    word in it is protected, as is every word of a short memory, which never
-    asks for a search. Any web address the reader typed is protected too,
-    except the exact page being opened. Longer text is mostly topic, and
-    refusing every shared word there blocked ordinary vocabulary such as "why"
-    or "error", so it is protected against runs of consecutive words, which is
-    how copied phrasing actually escapes. A query shorter than that run must
-    not reproduce the wording in full either.
+    How private a single shared word is depends on how much the reader wrote.
+    "Li and I divorced" is four words and all of it is private, so reusing any
+    of them names a real person. A long message about a book is mostly public,
+    and refusing every shared word there blocked every usable query over
+    ordinary vocabulary such as "why" or "error". So short text is protected
+    word by word, and longer text is protected against runs of consecutive
+    words, which is how copied phrasing actually escapes. A query shorter than
+    that run must not reproduce the reader's wording in full either.
 
     For a page open, only its exact locator in reader context is excluded;
     surrounding wording remains private. Memory callers never exclude locators.
@@ -139,36 +103,17 @@ def _query_copies_reader_terms(
     if page_url is not None:
         source = _without_exact_public_url(source, page_url)
     query_tokens = _normalised_tokens(query)
-    source_words = _words(source)
-    if not query_tokens or not source_words:
-        return None
-    if len(source_words) <= SHORT_PRIVATE_TEXT_TOKENS:
-        reason: PrivacyBlock
-        if memory:
-            private, reason = source_words, "memory_wording"
-        elif any(char.isupper() for char in source):
-            private = tuple(word for word in source_words if not word.islower())
-            reason = "capitalised_word"
-        else:
-            private, reason = source_words, "uncased_short_text"
+    source_tokens = _normalised_tokens(source)
+    if not query_tokens or not source_tokens:
+        return False
+    if len(source_tokens) <= SHORT_PRIVATE_TEXT_TOKENS:
         query_terms = {token for token in query_tokens if len(token) > 1}
-        private_terms = {word.casefold() for word in private if len(word) > 1}
-        if query_terms & private_terms:
-            return reason
-        # Any part of a web address the reader typed, other than the exact page
-        # requested, is protected whatever its case.
-        locator_terms = {
-            token for locator in PUBLIC_URL_TOKEN.findall(source)
-            for token in _normalised_tokens(locator) if len(token) > 1
-        }
-        return "reader_locator" if query_terms & locator_terms else None
-    source_tokens = tuple(word.casefold() for word in source_words)
+        source_terms = {token for token in source_tokens if len(token) > 1}
+        return bool(query_terms & source_terms)
     size = min(COPIED_PHRASE_TOKENS, len(query_tokens))
     if len(source_tokens) < size:
-        return None
-    if _phrases(query_tokens, size) & _phrases(source_tokens, size):
-        return "memory_wording" if memory else "copied_phrase"
-    return None
+        return False
+    return bool(_phrases(query_tokens, size) & _phrases(source_tokens, size))
 
 
 @dataclass(frozen=True)
@@ -219,6 +164,7 @@ class SerendipityDependencies:
     librarian: Librarian
     memories: tuple[CuratedMemory, ...] = ()
     strength_judge: StrengthJudge | None = None
+    prior_reader_statements: tuple[ReaderStatement, ...] = ()
     evidence: dict[str, ConnectionEvidence] = field(default_factory=dict)
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
@@ -359,7 +305,7 @@ async def search_librarian(
             purpose="connection_discovery",
             librarian=ctx.deps.librarian,
             strength_judge=ctx.deps.strength_judge,
-            prior_reader_statements=ctx.deps.task.prior_reader_statements,
+            prior_reader_statements=ctx.deps.prior_reader_statements,
         )
     except Exception:
         ctx.deps.record_search(
@@ -388,19 +334,13 @@ async def search_librarian(
 
 def _private_web_input(
     text: str, deps: SerendipityDependencies, *, page_url: str | None = None,
-) -> PrivacyBlock | None:
-    if contains_personal_data_or_secret(text):
-        return "personal_data"
-    reader_texts = (
-        deps.task.cue, *(statement.text for statement in deps.task.prior_reader_statements),
+) -> bool:
+    reader_texts = (deps.task.cue, *(statement.text for statement in deps.prior_reader_statements))
+    return (
+        validate_credentials(text).blocked
+        or any(_query_copies_reader_terms(text, source, page_url=page_url) for source in reader_texts)
+        or any(_query_copies_reader_terms(text, record.text) for record in deps.memories)
     )
-    for source in reader_texts:
-        if reason := _query_copies_reader_terms(text, source, page_url=page_url):
-            return reason
-    for record in deps.memories:
-        if reason := _query_copies_reader_terms(text, record.text, memory=True):
-            return reason
-    return None
 
 
 @dataclass
@@ -423,7 +363,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                     "Use one concise, non-empty public-web query of at most "
                     f"{MAX_WEB_QUERY_CHARS} characters."
                 )
-            if (reason := _private_web_input(query, ctx.deps)) is not None:
+            if _private_web_input(query, ctx.deps):
                 record_connection_event(ConnectionEvaluationEvent(
                     kind="query", status="blocked", source="web", operation=name,
                     query=query, failure_code="private_query",
@@ -437,27 +377,20 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                     else "Rewrite the web query using only a general, non-identifying "
                     "concept; do not copy the reader's wording or personal data."
                 )
-                raise ModelRetry(
-                    f"This web query was blocked because {PRIVACY_BLOCK_GUIDANCE[reason]} {guidance}"
-                )
+                raise ModelRetry(guidance)
         elif name == "get_page":
             requested_url = str(tool_args.get("url", "")).strip()
             permitted_urls = ctx.deps.task.scope.web_source_urls
             if permitted_urls is not None and requested_url not in permitted_urls:
                 raise ModelRetry("The page is outside this request's permitted public sources.")
-            reason = next((
-                blocked for value in (requested_url, unquote(requested_url))
-                if (blocked := _private_web_input(value, ctx.deps, page_url=requested_url))
-            ), None)
-            if reason is not None:
+            if any(_private_web_input(value, ctx.deps, page_url=requested_url) for value in (
+                requested_url, unquote(requested_url),
+            )):
                 record_connection_event(ConnectionEvaluationEvent(
                     kind="query", status="blocked", source="web", operation=name,
                     query=requested_url, failure_code="private_query",
                 ))
-                raise ModelRetry(
-                    "The requested page URL failed the privacy checks because "
-                    f"{PRIVACY_BLOCK_GUIDANCE[reason]}"
-                )
+                raise ModelRetry("The requested page URL failed the privacy checks.")
             if permitted_urls is None and requested_url not in ctx.deps.web_leads:
                 raise ModelRetry(
                     "Without an application-supplied public URL grant, get_page "

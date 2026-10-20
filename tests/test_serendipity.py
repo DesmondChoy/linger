@@ -39,7 +39,6 @@ from src.linger.agents.serendipity.tools import (
 )
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.orchestration.book_evidence import JudgedBookEvidence
 from src.linger.orchestration.inspection_context import (
@@ -177,41 +176,14 @@ class WebQueryPrivacyTests(unittest.TestCase):
         "anyone it happened."
     )
 
-    def test_short_text_protects_names_and_capitalised_words(self) -> None:
-        for source, query, reason in (
-            ("Li and I divorced", "Li divorce", "capitalised_word"),
-            ("Jane and I had an affair", "Jane affair", "capitalised_word"),
-            ("José and I divorced", "Jose\u0301 divorce", "capitalised_word"),
-            ("Mum turns 70 in 2026", "2026 birthday songs", "capitalised_word"),
-            ("Upbeat music please", "upbeat songs", "capitalised_word"),
-        ):
-            with self.subTest(query=query):
-                self.assertEqual(reason, _query_copies_reader_terms(query, source))
-
-    def test_short_text_without_capitals_protects_every_word(self) -> None:
-        for query in ("will divorce", "ｗｉｌｌ divorce", "divorced songs"):
-            with self.subTest(query=query):
-                self.assertEqual(
-                    "uncased_short_text",
-                    _query_copies_reader_terms(query, "will and i divorced"),
-                )
-
-    def test_short_text_allows_the_lowercase_topic_the_reader_asked_about(self) -> None:
+    def test_short_text_protects_every_word_including_a_name(self) -> None:
         for source, query in (
-            ("Yes upbeat music", "upbeat music playlist"),
-            ("Find some music to make me feel better", "feel-good music recommendations"),
-            ("Li and I divorced", "songs about divorce"),
+            ("Li and I divorced", "Li divorce"),
+            ("will and i divorced", "will divorce"),
+            ("Jane and I had an affair", "Jane affair"),
         ):
-            with self.subTest(source=source, query=query):
-                self.assertIsNone(_query_copies_reader_terms(query, source))
-
-    def test_short_memory_protects_every_word(self) -> None:
-        self.assertEqual(
-            "memory_wording",
-            _query_copies_reader_terms(
-                "cassowary essay", "The cassowary anniversary mattered to me.", memory=True,
-            ),
-        )
+            with self.subTest(query=query):
+                self.assertTrue(_query_copies_reader_terms(query, source))
 
     def test_long_text_allows_a_shared_topic_word(self) -> None:
         for query in (
@@ -220,25 +192,20 @@ class WebQueryPrivacyTests(unittest.TestCase):
             "organizational silence error reporting",
         ):
             with self.subTest(query=query):
-                self.assertIsNone(_query_copies_reader_terms(query, self.LONG_CUE))
-                self.assertIsNone(_query_copies_reader_terms(query, self.MEMORY, memory=True))
+                self.assertFalse(_query_copies_reader_terms(query, self.LONG_CUE))
+                self.assertFalse(_query_copies_reader_terms(query, self.MEMORY))
 
     def test_long_text_still_refuses_copied_phrasing(self) -> None:
-        self.assertEqual(
-            "memory_wording",
+        self.assertTrue(
             _query_copies_reader_terms(
-                "fixed the billing error myself over the weekend", self.MEMORY, memory=True,
-            ),
+                "fixed the billing error myself over the weekend", self.MEMORY
+            )
         )
-        self.assertEqual(
-            "memory_wording",
-            _query_copies_reader_terms("billing error", self.MEMORY, memory=True),
-        )
-        self.assertEqual(
-            "copied_phrase",
+        self.assertTrue(_query_copies_reader_terms("billing error", self.MEMORY))
+        self.assertTrue(
             _query_copies_reader_terms(
                 "why people quietly patch up their own mistakes", self.LONG_CUE
-            ),
+            )
         )
 
 
@@ -798,59 +765,6 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
 
                 self.assertIsInstance(result.output, ConnectionDecline)
                 self.assertEqual(0, search_calls)
-
-    async def test_follow_up_cue_sees_the_earlier_request_and_learns_why_a_query_failed(self) -> None:
-        queries: list[str] = []
-        prompts: list[str] = []
-        retries: list[str] = []
-
-        class FakeExaClient:
-            async def search(self, query, **_kwargs):
-                queries.append(query)
-                return SimpleNamespace(results=[], output=None)
-
-        def respond(messages, info: AgentInfo) -> ModelResponse:
-            prompts.extend(
-                str(part.content) for message in messages
-                for part in getattr(message, "parts", ()) if part.part_kind == "user-prompt"
-            )
-            retries[:] = [
-                str(part.content) for message in messages
-                for part in getattr(message, "parts", ()) if isinstance(part, RetryPromptPart)
-            ]
-            searched = sum(
-                isinstance(part, ToolCallPart) for message in messages
-                for part in getattr(message, "parts", ())
-            )
-            if searched < 2:
-                query = "Find music" if searched == 0 else "upbeat music playlist"
-                return ModelResponse(parts=[ToolCallPart("web_search", {"query": query})])
-            return ModelResponse(parts=[ToolCallPart(
-                info.output_tools[1].name,
-                ConnectionDecline(
-                    reason="insufficient_evidence", safe_next_step="Try another genre.",
-                ).model_dump(mode="json"),
-            )])
-
-        active_task = task(allowed_sources=("web",)).model_copy(update={
-            "cue": "Yes upbeat music",
-            "intent": "get_recommendation",
-            "prior_reader_statements": (ReaderStatement(
-                statement_id="reader-1", text="Find some music to make me feel better",
-            ),),
-        })
-        await build_serendipity_agent(FunctionModel(respond)).run(
-            active_task.model_dump_json(),
-            deps=self.deps(active_task),
-            capabilities=[GuardedExaSearch(client=FakeExaClient())],
-            **CONNECTION_DISCOVERY.run_options(),
-        )
-
-        self.assertIn("Find some music to make me feel better", prompts[0])
-        self.assertEqual(["upbeat music playlist"], queries)
-        self.assertEqual(1, len(retries))
-        self.assertIn("capitalised word", retries[0])
-        self.assertNotIn("Find", retries[0])
 
     async def test_failed_librarian_search_records_a_content_free_handoff(self) -> None:
         class FailingLibrarian:

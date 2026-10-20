@@ -56,9 +56,8 @@ def dependencies(librarian, *, scopes=SCOPES, judge=select_all, cue=LINE):
         task=ConnectionDiscoveryInput(
             cue=cue, intent="find_connection", presentation="direct",
             scope=ConnectionScope(allowed_sources=("book_corpus",), book_scopes=scopes),
-            prior_reader_statements=(PRIOR,),
         ),
-        librarian=librarian, strength_judge=judge,
+        librarian=librarian, strength_judge=judge, prior_reader_statements=(PRIOR,),
     )
 
 
@@ -109,7 +108,7 @@ def test_agent_selects_three_named_books_from_five_available_titles():
         ([scope], query) for scope in selected_scopes for query in (LINE, PRIOR.text)
     ]
     assert deps.task.scope.book_scopes == SCOPES
-    assert deps.task.prior_reader_statements == (PRIOR,)
+    assert deps.prior_reader_statements == (PRIOR,)
 
 
 @pytest.mark.parametrize("work_ids", [None, (), ("pg11", "pg11"), ("ungranted-work",)])

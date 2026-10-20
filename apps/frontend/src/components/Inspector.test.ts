@@ -332,39 +332,6 @@ it('tables every memory with when it was stored and its source, and offers Forge
   expect(html).not.toContain('apps.backend.show_memories')
 })
 
-function turnWithCurationBatch(): TurnRecord {
-  const turn = turnWithMemoryStore()
-  turn.inspection.release!.capture = {
-    nomination: 'candidate', provenance_decision: 'allow_capture', binding: 'exact',
-    storage: 'committed', reason_code: null, curation_status: 'no_change',
-    curation_memory_ids: ['mem_new', 'mem_prop'],
-  }
-  return turn
-}
-
-it('lists the memories a turn gave Sculptor', () => {
-  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turnWithCurationBatch()] }))
-  expect(html).toMatch(/<dt>Given to Sculptor \(2\)<\/dt><dd><code>mem_new<\/code><code>mem_prop<\/code><\/dd>/)
-})
-
-it('ranks the batch a save gave Sculptor and shows the nearest memories left out', () => {
-  const turn = turnWithCurationBatch()
-  turn.inspection.release!.capture!.curation_scored_count = 26
-  turn.inspection.release!.capture!.curation_candidates = [
-    { memory_id: 'mem_prop', similarity: 0.6214, keyword_rank: null, selected: true },
-    { memory_id: 'mem_old', similarity: 0.584, keyword_rank: 2, selected: true },
-    { memory_id: 'mem_far', similarity: 0.41, keyword_rank: 1, selected: false },
-  ]
-  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
-  expect(html).toContain('26 earlier originals were scored; 2 given to Sculptor.')
-  expect(html).toMatch(/<td>1<\/td><td><code>mem_prop<\/code><\/td><td>0\.62<\/td><td>—<\/td>/)
-  // Developer inspect supplies the text, so the row reads as the memory itself.
-  expect(html).toMatch(/<td>2<\/td><td>I reread letters when homesick\.<\/td><td>0\.58<\/td><td>#2<\/td>/)
-  expect(html).toContain('Not given to Sculptor: the nearest left out, all below 0.50')
-  expect(html).toMatch(/<td>—<\/td><td><code>mem_far<\/code><\/td><td>0\.41<\/td><td>#1<\/td>/)
-  expect(html).not.toContain('Given to Sculptor (')
-})
-
 const LINKED: StoredMemory[] = [
   { ...STORED[3], memory_id: 'mem_kept', duplicate_memory_ids: ['mem_copy'] },
   { ...STORED[2], memory_id: 'mem_copy', duplicate_memory_ids: ['mem_kept'], retired_for: 'mem_kept' },

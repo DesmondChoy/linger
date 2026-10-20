@@ -68,7 +68,7 @@ class CandidateParagraphTests(unittest.TestCase):
         librarian = HybridLibrarian()
         with (
             patch.object(librarian, "retrieve", side_effect=AssertionError("searched")),
-            patch.object(librarian, "embedding_model", side_effect=AssertionError("embedded")),
+            patch.object(librarian, "_embedding_model", side_effect=AssertionError("embedded")),
             patch.object(librarian, "_reranker_model", side_effect=AssertionError("reranked")),
         ):
             self.assertEqual((self.quote,), librarian.candidate_paragraphs((self.quote,)))

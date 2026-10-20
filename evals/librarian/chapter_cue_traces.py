@@ -97,7 +97,7 @@ def _ranks(librarian: HybridLibrarian, scope: BookScope, query: str, answers: se
     ids, scores = index.bm25.retrieve(bm25s.tokenize(query, show_progress=False), k=total, show_progress=False)
     keyword = np.zeros(total)
     keyword[ids[0].astype(int)] = scores[0]
-    embedding = np.asarray(next(iter(librarian.embedding_model().query_embed(query))))
+    embedding = np.asarray(next(iter(librarian._embedding_model().query_embed(query))))
     meaning = _cosine(embedding, index.embeddings)
     return {
         "query": query, "of": total,
