@@ -19,7 +19,7 @@ WORDS = re.compile(r"[a-z]+")
 
 
 class ConstantEmbedding:
-    def passage_embed(self, documents: list[str]):
+    def passage_embed(self, documents: list[str], batch_size: int):
         return iter(np.ones((len(documents), 2)))
 
     def query_embed(self, query: str):
@@ -33,7 +33,7 @@ class TermReranker:
 
 
 class FailingEmbedding(ConstantEmbedding):
-    def passage_embed(self, documents: list[str]):
+    def passage_embed(self, documents: list[str], batch_size: int):
         raise RuntimeError("embedding unavailable")
 
 

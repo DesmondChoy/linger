@@ -80,8 +80,9 @@ exact passage IDs. Passage permission does not establish chapter completion.
 Interactive chat saves explicit completed-chapter declarations in
 `reading_progress.sqlite3` under `LINGER_STATE_DIR`. Each account and book has
 one saved part and chapter. A released Muse reply or application clarification
-commits the declaration. The latest declaration replaces the earlier value,
-including a lower chapter. Inferred boundaries and named-unit or exact-passage
+commits the declaration only if no newer statement supersedes it. Lower
+ceilings and withdrawals take effect before model execution, even if the turn
+fails. Inferred boundaries and named-unit or exact-passage
 grants do not enter this store.
 
 A later conversation can reuse that chapter after the current turn or
@@ -90,8 +91,10 @@ reuse requires an allowed current revision and a valid chapter in its part.
 Before Muse drafts, direct saved-progress reuse defers to the current session's
 declaration or retraction. If the reader mentions a correction or incomplete
 progress that the parser cannot resolve, the application retracts the carried
-session ceiling. Within a session, lowering or retracting the ceiling takes
-effect immediately. Raising it requires a released reply.
+session ceiling and removes the saved account permission. Raising a ceiling
+requires a released reply. See the
+[progress persistence design](design/librarian-design.md#explicit-session-and-account-progress)
+for ordering across overlapping conversations.
 
 For a connection request, two or more permitted saved books can supply separate
 book scopes, each with its own part and chapter ceiling. A completion declaration

@@ -37,7 +37,7 @@ def candidate_from_review(
         raise CaptureBindingError("review ignored an existing nomination")
     if not nomination.text.strip():
         raise CaptureBindingError("nomination must not be blank")
-    if source_text[nomination.start_codepoint : nomination.end_codepoint] != nomination.text:
+    if nomination.text not in source_text:
         raise CaptureBindingError("nomination is not an exact source-text slice")
     if not set(nomination.evidence_ids).issubset(available_evidence_ids):
         raise CaptureBindingError("nomination cites unresolved evidence")

@@ -415,8 +415,8 @@ class AdditiveGrade(StrictModel):
     - `reply_failures`: the case's optional required URLs, terms, and
       session-line declaration.
     - `memory_failures`: the case's optional nomination kind and reasons; a
-      nominated `memory_candidate` must also be the exact reader-message slice
-      its offsets name.
+      nominated `memory_candidate` must also be a verbatim substring of the
+      reader message.
     """
 
     leak_failures: tuple[str, ...]
@@ -521,11 +521,8 @@ def grade_additive(
         if expected.memory_reasons and reason not in expected.memory_reasons:
             memory_failures.append(f"memory_reason:{reason}")
         if kind == "memory_candidate":
-            start, end = memory.get("start_codepoint"), memory.get("end_codepoint")
-            if (
-                not isinstance(start, int) or not isinstance(end, int)
-                or case.input.reader_message[start:end] != memory.get("text")
-            ):
+            text = memory.get("text")
+            if not isinstance(text, str) or not text.strip() or text not in case.input.reader_message:
                 memory_failures.append("memory_not_exact_slice")
     elif expected.memory_kind is not None or expected.memory_reasons:
         memory_failures.append("memory_not_reported")

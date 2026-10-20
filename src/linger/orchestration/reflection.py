@@ -111,11 +111,14 @@ logger = logging.getLogger("linger.reflection")
 def _log_failure(stage: str, exc: Exception) -> None:
     """Log why a stage failed without chat content.
 
-    Only pydantic-ai's fixed messages are logged; a model body, a validation
-    error, or any other exception text can quote the reader or the draft.
+    Only the usage-limit message is fixed text. Any other exception message,
+    including UnexpectedModelBehavior's, can quote a provider response that
+    carries the reader's words or the draft.
     """
-    if isinstance(exc, (UnexpectedModelBehavior, UsageLimitExceeded)):
+    if isinstance(exc, UsageLimitExceeded):
         reason = exc.message
+    elif isinstance(exc, UnexpectedModelBehavior):
+        reason = "unexpected model response"
     elif isinstance(exc, ModelHTTPError):
         reason = f"HTTP {exc.status_code} from {exc.model_name}"
     else:

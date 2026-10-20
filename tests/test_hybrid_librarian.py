@@ -11,6 +11,7 @@ from unittest.mock import patch
 import numpy as np
 
 from apps.backend.contracts import BookScope, LibrarianRequest
+from apps.backend.rerank_windows import MODEL_BATCH_SIZE
 from apps.backend.hybrid_librarian import (
     EMBEDDING_MODEL,
     RERANKER_MODEL,
@@ -28,7 +29,7 @@ WORDS = re.compile(r"[a-z]+")
 class ConstantEmbedding:
     """Makes semantic retrieval deterministic; the reranker decides relevance."""
 
-    def passage_embed(self, documents: list[str]):
+    def passage_embed(self, documents: list[str], batch_size: int):
         return iter(np.ones((len(documents), 2)))
 
     def query_embed(self, query: str):
@@ -44,10 +45,12 @@ class TermReranker:
 class RecordingEmbedding(ConstantEmbedding):
     def __init__(self) -> None:
         self.batches: list[list[str]] = []
+        self.batch_sizes: list[int] = []
 
-    def passage_embed(self, documents: list[str]):
+    def passage_embed(self, documents: list[str], batch_size: int):
         self.batches.append(documents)
-        return super().passage_embed(documents)
+        self.batch_sizes.append(batch_size)
+        return super().passage_embed(documents, batch_size)
 
 
 class RecordingReranker(TermReranker):
@@ -297,6 +300,9 @@ class HybridLibrarianTests(unittest.TestCase):
         second = librarian.retrieve(LibrarianRequest(query="Alice Geppetto", book_scopes=scopes[::-1]))
 
         self.assertEqual(1, len(embedding.batches))
+        # A whole index is one request, but the model must not run it as one batch.
+        self.assertGreater(len(embedding.batches[0]), MODEL_BATCH_SIZE)
+        self.assertEqual([MODEL_BATCH_SIZE], embedding.batch_sizes)
         self.assertEqual(first.items, second.items)
 
 if __name__ == "__main__":

@@ -246,7 +246,8 @@ completed-chapter progress per account and work in
 `LINGER_STATE_DIR/reading_progress.sqlite3`. It stores the part and chapter,
 then validates those values against the currently registered and permitted
 revision when loading them. A released Muse reply or application clarification
-can save a declaration, including a lower ceiling. Inferred boundaries,
+can save a declaration if no newer statement supersedes it. Lower ceilings and
+withdrawals take effect before model execution. Inferred boundaries,
 named units, and exact passages are absent from this store. Saved progress
 survives session deletion and backend restarts and never selects a book.
 Routing identifies the work before it can bind a saved ceiling.
@@ -256,10 +257,12 @@ part. Lower declarations or unclear corrections reduce or retract that carried
 permission immediately, even when a turn fails. Higher declarations commit
 only after a released Muse reply or application clarification. Context
 preparation prefers that session slot over the account's saved progress.
-An unclear retraction does not erase the saved account record. Later routing
-or a comparison can reuse its saved chapter until a released explicit
-correction replaces it. Earlier session statements and evidence outside the
-reduced permission are excluded.
+A newly accepted retraction also removes the saved account permission.
+An old conversation cannot repeat its withdrawal or save its carried ceiling
+over a newer account declaration. Earlier session statements and evidence
+outside the reduced permission are excluded. The
+[progress persistence design](design/librarian-design.md#explicit-session-and-account-progress)
+describes revision checks for overlapping replies.
 
 For interactive `find_connection` turns, the application combines saved
 progress with any current confirmed permission. When that covers at least two

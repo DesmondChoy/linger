@@ -2,10 +2,13 @@
 
 import json
 import os
+import sqlite3
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from apps.backend.config import get_settings
 
@@ -30,8 +33,9 @@ from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.triage import TurnNeeds
-from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration import routing, turn_context
+from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 ALICE = "pg11"
@@ -105,21 +109,144 @@ class ReadingProgressStoreTests(unittest.TestCase):
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
-        self.store = ReadingProgressStore(Path(directory.name) / "r.sqlite3")
+        self.path = Path(directory.name) / "r.sqlite3"
+        self.store = ReadingProgressStore(self.path)
 
     def test_latest_statement_wins_even_when_lower(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 5))
-        self.store.record("reader", SavedProgress(ALICE, "main", 2))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 2)))
 
         self.assertEqual(SavedProgress(ALICE, "main", 2), self.store.get("reader", ALICE))
 
     def test_progress_is_kept_per_book_and_per_account(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 3))
-        self.store.record("reader", SavedProgress("pg84", "main", 7))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 3)))
+        self.store.release(self.store.declare("reader", SavedProgress("pg84", "main", 7)))
 
         self.assertEqual(3, self.store.get("reader", ALICE).chapter_max)
         self.assertEqual(7, self.store.get("reader", "pg84").chapter_max)
         self.assertIsNone(self.store.get("someone-else", ALICE))
+
+    def test_restriction_only_lowers_an_existing_matching_book_part(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        for account, progress in (
+            ("reader", SavedProgress(ALICE, "other-part", 2)),
+            ("reader", SavedProgress("pg84", "main", 2)),
+            ("someone-else", SavedProgress(ALICE, "main", 2)),
+            ("reader", SavedProgress(ALICE, "main", 7)),
+        ):
+            self.store.declare(account, progress)
+        self.assertEqual((SavedProgress(ALICE, "main", 5),), self.store.list_for("reader"))
+        self.assertEqual((), self.store.list_for("someone-else"))
+
+        self.store.declare("reader", SavedProgress(ALICE, "main", 2))
+        self.assertEqual(SavedProgress(ALICE, "main", 2), self.store.get("reader", ALICE))
+
+    def test_a_later_lower_declaration_wins_before_either_reply_releases(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        later = self.store.declare("reader", SavedProgress(ALICE, "main", 2))
+
+        self.assertEqual(2, self.store.get("reader", ALICE).chapter_max)
+        self.assertFalse(self.store.release(older))
+        self.assertTrue(self.store.release(later))
+
+    def test_an_equal_unreleased_declaration_invalidates_an_older_raise(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        snapshot = self.store.list_snapshots("reader")[0]
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        self.store.declare("reader", SavedProgress(ALICE, "main", 5))
+
+        self.assertFalse(self.store.release(older))
+        self.assertFalse(self.store.is_current(snapshot))
+        self.assertEqual(5, self.store.get("reader", ALICE).chapter_max)
+
+    def test_a_snapshot_expires_when_its_pending_revision_releases_a_different_part(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        pending = self.store.declare("reader", SavedProgress(ALICE, "other-part", 2))
+        snapshot = self.store.snapshot("reader", ALICE)
+        self.assertEqual(pending.revision, snapshot.revision)
+        self.assertTrue(self.store.is_current(snapshot))
+
+        self.assertTrue(self.store.release(pending))
+        self.assertFalse(self.store.is_current(snapshot))
+
+    def test_withdrawal_invalidates_an_unsaved_first_declaration(self) -> None:
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        self.store.withdraw("reader", ALICE)
+
+        self.assertIsNone(self.store.get("reader", ALICE))
+        self.assertFalse(self.store.release(older))
+        self.assertGreater(self.store.snapshot("reader", ALICE).revision, older.revision)
+
+    def test_deletion_and_recreation_do_not_make_an_old_token_current(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        self.store.withdraw("reader", ALICE)
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+
+        self.assertFalse(self.store.release(older))
+        self.assertEqual(5, self.store.get("reader", ALICE).chapter_max)
+
+    def test_revision_survives_another_process_and_reopened_store(self) -> None:
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        subprocess.run([
+            sys.executable, "-B", "-c",
+            "import sys; from pathlib import Path; "
+            "from apps.backend.progress_store import ReadingProgressStore; "
+            "ReadingProgressStore(Path(sys.argv[1])).withdraw('reader', 'pg11')",
+            str(self.path),
+        ], check=True, timeout=10)
+
+        reopened = ReadingProgressStore(self.path)
+        self.assertFalse(reopened.release(older))
+        self.assertIsNone(reopened.get("reader", ALICE))
+        self.assertEqual(self.store.snapshot("reader", ALICE), reopened.snapshot("reader", ALICE))
+
+    def test_declaration_revision_is_scoped_to_account_and_work(self) -> None:
+        alice = self.store.declare("reader", SavedProgress(ALICE, "main", 5))
+        other_account = self.store.declare("other", SavedProgress(ALICE, "main", 7))
+        pinocchio = self.store.declare("reader", SavedProgress("pg500", "main", 4))
+        self.store.withdraw("reader", "pg84")
+
+        self.assertTrue(self.store.release(alice))
+        self.assertTrue(self.store.release(other_account))
+        self.assertTrue(self.store.release(pinocchio))
+
+    def test_a_changed_part_invalidates_an_older_token_without_granting_the_new_part(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        older = self.store.declare("reader", SavedProgress(ALICE, "main", 7))
+        later = self.store.declare("reader", SavedProgress(ALICE, "other-part", 2))
+
+        self.assertEqual(SavedProgress(ALICE, "main", 5), self.store.get("reader", ALICE))
+        self.assertFalse(self.store.release(older))
+        self.assertTrue(self.store.release(later))
+        self.assertEqual(SavedProgress(ALICE, "other-part", 2), self.store.get("reader", ALICE))
+
+    def test_failed_restriction_rolls_back_its_revision_and_permission_together(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        before = self.store.snapshot("reader", ALICE)
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.store.declare("reader", SavedProgress(ALICE, "main", 0))
+
+        self.assertEqual(before, self.store.snapshot("reader", ALICE))
+
+    def test_existing_database_keeps_saved_permissions_when_revisions_are_added(self) -> None:
+        path = self.path.with_name("legacy.sqlite3")
+        with sqlite3.connect(path) as conn:
+            conn.execute(
+                "CREATE TABLE reading_progress (account_id TEXT NOT NULL, work_id TEXT NOT NULL,"
+                " part_id TEXT NOT NULL, chapter_max INTEGER NOT NULL CHECK (chapter_max >= 1),"
+                " updated_at TEXT NOT NULL, PRIMARY KEY (account_id, work_id))"
+            )
+            conn.execute("INSERT INTO reading_progress VALUES ('reader', 'pg11', 'main', 5, 'legacy')")
+        store = ReadingProgressStore(path)
+
+        self.assertEqual(SavedProgress(ALICE, "main", 5), store.get("reader", ALICE))
+        self.assertEqual(0, store.snapshot("reader", ALICE).revision)
+        declared = store.declare("reader", SavedProgress(ALICE, "main", 2))
+        self.assertGreater(declared.revision, 0)
+        self.assertTrue(store.release(declared))
+        self.assertEqual(2, ReadingProgressStore(path).get("reader", ALICE).chapter_max)
 
 
 class SavedProgressResolutionTests(unittest.TestCase):
@@ -208,12 +335,12 @@ class SavedProgressResolutionTests(unittest.TestCase):
     def test_saved_chapter_beyond_the_registered_book_is_not_loaded(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             store = ReadingProgressStore(Path(directory) / "r.sqlite3")
-            store.record("reader", SavedProgress(ALICE, "main", 999))
-            store.record("reader", SavedProgress("unregistered-work", "main", 1))
-            self.assertEqual({}, chat_turn._saved_readings(store, AccountContext("reader")))
-            store.record("reader", SavedProgress(ALICE, "main", 3))
+            store.release(store.declare("reader", SavedProgress(ALICE, "main", 999)))
+            store.release(store.declare("reader", SavedProgress("unregistered-work", "main", 1)))
+            self.assertEqual({}, chat_turn._saved_readings(store.list_snapshots("reader")))
+            store.release(store.declare("reader", SavedProgress(ALICE, "main", 3)))
             self.assertEqual(
-                {ALICE: _saved(3)}, chat_turn._saved_readings(store, AccountContext("reader")),
+                {ALICE: _saved(3)}, chat_turn._saved_readings(store.list_snapshots("reader")),
             )
 
     def test_only_explicit_chapter_progress_is_recorded(self) -> None:
@@ -267,6 +394,7 @@ class CaptureDefaultTests(unittest.TestCase):
 
 class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
     sessions_used = ("progress-day-one", "progress-day-two", "progress-other-reader")
+    RETRACTION = "Wait, I haven't finished chapter 2 yet."
 
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory()
@@ -311,12 +439,25 @@ class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual({"session": alice, "saved": [alice]}, first.inspection.reading_state.model_dump())
         self.assertEqual({"session": None, "saved": [alice]}, second.inspection.reading_state.model_dump())
 
+    async def test_a_withdrawn_chapter_is_not_restored_in_a_new_conversation(self) -> None:
+        ROUTE_RESULTS.clear()
+        with muse_chat_agent.override(model=FunctionModel(_muse)):
+            with provenance_agent.override(model=FunctionModel(_provenance)):
+                await self._turn("progress-day-one", DECLARATION, "reader")
+                await self._turn("progress-day-one", self.RETRACTION, "reader")
+                ROUTE_RESULTS.clear()
+                second = await self._turn("progress-day-two", BOOK_QUESTION, "reader")
+
+        self.assertIsNone(self.store.get("reader", ALICE))
+        self.assertEqual([], second.inspection.reading_state.model_dump()["saved"])
+        self.assertFalse([r for r in ROUTE_RESULTS if r.get("max_chapter_inclusive") is not None])
+
     async def test_another_account_does_not_inherit_progress(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 2))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 2)))
         tokens = (
             turn_context.set_confirmed_reading(None),
             turn_context.set_saved_readings(
-                chat_turn._saved_readings(self.store, AccountContext("other")),
+                chat_turn._saved_readings(self.store.list_snapshots("other")),
             ),
         )
         try:
@@ -324,6 +465,43 @@ class ProgressAcrossConversationsTests(unittest.IsolatedAsyncioTestCase):
         finally:
             turn_context.reset_saved_readings(tokens[1])
             turn_context.reset_confirmed_reading(tokens[0])
+
+    async def test_trusted_connection_setup_does_not_mutate_account_or_session_progress(self) -> None:
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        before = self.store.snapshot("reader", ALICE)
+        scopes = tuple(ReleaseScope(
+            work_id=work_id, book_version_id=chat_turn.librarian_service.version_for(work_id), chapter_max=chapter,
+        ) for work_id, chapter in ((ALICE, 2), ("pg500", 4)))
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(return_value=ReflectionRelease(
+            reply="A reflection.", release_source="muse_candidate",
+        ))):
+            await chat_turn.run_chat_turn(
+                ChatRequest(
+                    session_id=self.sessions_used[0],
+                    message="Relate chapter 2 of Alice's Adventures in Wonderland to my memory.",
+                ), self.service, AccountContext("reader"), progress_store=self.store,
+                connection_book_scopes=scopes,
+            )
+
+        self.assertEqual(before, self.store.snapshot("reader", ALICE))
+        self.assertIsNone(sessions.reading_progress_for(self.sessions_used[0], ALICE))
+
+    async def test_ordinary_scene_reflections_without_progress_do_not_advance_revision(self) -> None:
+        for message in (
+            "The Mad Tea-Party in Alice's Adventures in Wonderland makes me think about belonging.",
+            "The pool of tears in Alice's Adventures in Wonderland reminds me of feeling overwhelmed.",
+            "The rabbit hole in Alice's Adventures in Wonderland reminds me of starting something new.",
+        ):
+            with self.subTest(message=message), patch.object(
+                chat_turn, "reflection_reply", AsyncMock(return_value=ReflectionRelease(
+                    reply="A reflection.", release_source="muse_candidate",
+                )),
+            ):
+                before = self.store.snapshot("reader", ALICE)
+                await self._turn(self.sessions_used[0], message, "reader")
+                self.assertEqual(before, self.store.snapshot("reader", ALICE))
+                self.assertIsNone(sessions.reading_progress_for(self.sessions_used[0], ALICE))
+                sessions.clear(self.sessions_used[0])
 
 
 if __name__ == "__main__":
@@ -394,8 +572,8 @@ class CrossBookComparisonTests(unittest.IsolatedAsyncioTestCase):
             )
 
     async def test_connection_request_compares_every_saved_book_at_its_own_ceiling(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 5))
-        self.store.record("reader", SavedProgress("pg500", "main", 4))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
+        self.store.release(self.store.declare("reader", SavedProgress("pg500", "main", 4)))
 
         response = await self._turn(
             "Alice and Pinocchio both keep being told who they should be. Is there a connection?",
@@ -412,8 +590,8 @@ class CrossBookComparisonTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", response.inspection.release.release_source)
 
     async def test_a_declaration_this_turn_replaces_that_books_saved_ceiling(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 2))
-        self.store.record("reader", SavedProgress("pg500", "main", 4))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 2)))
+        self.store.release(self.store.declare("reader", SavedProgress("pg500", "main", 4)))
 
         response = await self._turn(
             "I've finished chapter 5 of Alice's Adventures in Wonderland. Does it connect to Pinocchio?",
@@ -425,13 +603,13 @@ class CrossBookComparisonTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(5, self.store.get("reader", ALICE).chapter_max)
 
     async def test_ordinary_questions_and_single_books_keep_the_focused_path(self) -> None:
-        self.store.record("reader", SavedProgress(ALICE, "main", 5))
+        self.store.release(self.store.declare("reader", SavedProgress(ALICE, "main", 5)))
         single = await self._turn(
             "Does this connect to anything?", TurnNeeds(book_content="yes", memory="source_comparison"),
         )
         self.assertEqual([], single.inspection.muse_turn["connection_book_scopes"])
 
-        self.store.record("reader", SavedProgress("pg500", "main", 4))
+        self.store.release(self.store.declare("reader", SavedProgress("pg500", "main", 4)))
         sessions.clear(self.session_id)
         ordinary = await self._turn(
             "I've finished chapter 5 of Alice's Adventures in Wonderland.",

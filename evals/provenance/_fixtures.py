@@ -131,20 +131,15 @@ def nomination(
     *,
     reason_code: str = "durable_reflection",
 ) -> MemoryCandidate:
-    """Nominate `span` as the exact codepoint slice of `line` that it is.
+    """Nominate `span`, which must be a verbatim substring of `line`.
 
-    `candidate_from_review` re-slices the source Line with these offsets and
-    fails binding unless the result is identical, so the offsets are derived
-    here rather than written by hand.
+    `candidate_from_review` fails binding unless the text occurs in the source.
     """
-    start = line.find(span)
-    if start < 0:
+    if span not in line:
         raise ValueError(f"nominated span is not present in the Line: {span!r}")
     return MemoryCandidate(
         kind="memory_candidate",
         text=span,
-        start_codepoint=start,
-        end_codepoint=start + len(span),
         reason_code=reason_code,
     )
 

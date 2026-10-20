@@ -34,6 +34,7 @@ COPY data/corpus ./data/corpus
 # Scenario Props a reader can load into their account.
 COPY apps/frontend/src/replay/scenarios ./apps/frontend/src/replay/scenarios
 COPY docker/cache_models.py ./docker/cache_models.py
+COPY docker/entrypoint.py ./docker/entrypoint.py
 RUN uv sync --locked --no-dev --no-editable \
     && python docker/cache_models.py \
     && chmod -R a+rX /opt/linger/models
@@ -47,4 +48,5 @@ USER linger
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/ready', timeout=8)"
+ENTRYPOINT ["python", "/app/docker/entrypoint.py"]
 CMD ["uvicorn", "apps.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

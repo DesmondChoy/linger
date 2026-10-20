@@ -195,8 +195,8 @@
   ],
   "runs": [
     {
-      "id": "cf1b3a365fb24e268e6d2e6919073c07",
-      "startedAt": "2026-09-27T14:16:02.652136+08:00",
+      "id": "1b5a07d4d2464892833bac0dc350a2c7",
+      "startedAt": "2026-10-16T14:02:06.303243+08:00",
       "model": "openai:gpt-6-luna",
       "systemVariant": null,
       "passed": 5,
@@ -204,8 +204,8 @@
       "ungraded": 0,
       "total": 5,
       "executionFailures": 0,
-      "logfireUrl": "https://logfire-us.pydantic.dev/jrlyy/linger/evals/bounded_memory_curation/compare?experiment=01a0e181a6bd69123e2baaf4d7b3ded5-b2d88bd227de8d4f",
-      "verdict": "All five curation outcomes behaved as adopted, including the two negative-shaped cases, so Sculptor distinguishes duplicate, evolving, related and superficial records on this set. No correction is indicated.",
+      "logfireUrl": "https://logfire-us.pydantic.dev/desmond-choy/linger/evals/bounded_memory_curation/compare?experiment=01a1434db4332b51405131c0064d5cea-d18049eade857b0e",
+      "verdict": "All five Scenes passed the automated checks and response review. Sculptor told exact and paraphrased duplicates, an evolving fact with noise, a related topic with a distractor, and a superficial word overlap apart, and every source record stayed unchanged. This result can be retained as the Scenario's final single-run evidence.",
       "scenes": [
         {
           "sceneId": "scene-exact-duplicate",
@@ -213,7 +213,7 @@
           "failures": [],
           "executionFailures": [],
           "assessment": "credible_pass",
-          "analysis": "Action, source set and immutability all match the adopted expectation.",
+          "analysis": "The hard gate compares the action type and the exact set of source identifiers, then the recorded outcome fields. All matched. Identical text is the easiest duplicate case, so this Scene mainly confirms that the end-to-end path works: proposal, Provenance review, apply, audit, and retrieval.",
           "turns": [],
           "curation": {
             "inputMemories": [
@@ -259,7 +259,7 @@
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
                 "startMs": 0,
-                "endMs": 1801,
+                "endMs": 4633,
                 "input": "{\"memories\": [{\"memory_id\": \"prop-exact-notebook-a\", \"text\": \"My kiln maintenance notebook is in the second drawer beneath the wedging table.\"}, {\"memory_id\": \"prop-exact-notebook-b\", \"text\": \"My kiln maintenance notebook is in the second drawer beneath the wedging table.\"}]}",
                 "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-exact-notebook-a\", \"prop-exact-notebook-b\"], \"action\": \"link_duplicates\"}}",
                 "toolCalls": [
@@ -278,8 +278,8 @@
                 "failureCode": null,
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
-                "startMs": 1822,
-                "endMs": 3174,
+                "startMs": 4653,
+                "endMs": 6829,
                 "input": "{\"proposal_digest\":\"22fbe39cc2f272f15b56341a4d13bd58e314e06731602030d19aee906c1340ce\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-exact-notebook-a\",\"prop-exact-notebook-b\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-exact-notebook-a\",\"text\":\"My kiln maintenance notebook is in the second drawer beneath the wedging table.\",\"record_sha256\":\"8014d118d52bcd197c3dd4a1637326de71a437597176980a9698bc8ef6383086\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-exact-notebook-b\",\"text\":\"My kiln maintenance notebook is in the second drawer beneath the wedging table.\",\"record_sha256\":\"d4e515ba0390ef7e1a17ecc490fbb111f88bb84ad6f134ce090c28d8dd02bb84\",\"retrieval_state\":\"active\"}]}",
                 "output": "{\"proposal_digest\": \"22fbe39cc2f272f15b56341a4d13bd58e314e06731602030d19aee906c1340ce\", \"decision\": \"allow\", \"findings\": []}",
                 "toolCalls": []
@@ -293,7 +293,7 @@
           "failures": [],
           "executionFailures": [],
           "assessment": "credible_pass",
-          "analysis": "Matches the expectation; recognising the pair needs meaning, not string overlap.",
+          "analysis": "The same action and identifier gate passed. The two Props share few surface tokens, for example 'top pantry shelf' and 'pantry's highest shelf', and 'spare' and 'extra' key. Linking them therefore needs semantic matching, not string equality.",
           "turns": [],
           "curation": {
             "inputMemories": [
@@ -339,7 +339,7 @@
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
                 "startMs": 0,
-                "endMs": 2386,
+                "endMs": 1859,
                 "input": "{\"memories\": [{\"memory_id\": \"prop-paraphrase-key-a\", \"text\": \"I keep the spare studio key in the blue enamel mug on the top pantry shelf.\"}, {\"memory_id\": \"prop-paraphrase-key-b\", \"text\": \"The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.\"}]}",
                 "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-paraphrase-key-a\", \"prop-paraphrase-key-b\"], \"action\": \"link_duplicates\"}}",
                 "toolCalls": [
@@ -358,8 +358,8 @@
                 "failureCode": null,
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
-                "startMs": 2396,
-                "endMs": 3963,
+                "startMs": 1865,
+                "endMs": 4370,
                 "input": "{\"proposal_digest\":\"491eff1bed4eb37f694a797279ac89724a3814ec42ac1d5d89612931d38434d0\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-paraphrase-key-a\",\"prop-paraphrase-key-b\"],\"action\":\"link_duplicates\"}},\"sources\":[{\"memory_id\":\"prop-paraphrase-key-a\",\"text\":\"I keep the spare studio key in the blue enamel mug on the top pantry shelf.\",\"record_sha256\":\"75410f0d376d507935d3790c7de67111970b6a885956532e3de95e99688c5447\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-paraphrase-key-b\",\"text\":\"The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.\",\"record_sha256\":\"7eb823a73ee1e8eb6d9ee1140916dead60606098ae652339786d3c00a4e44236\",\"retrieval_state\":\"active\"}]}",
                 "output": "{\"proposal_digest\": \"491eff1bed4eb37f694a797279ac89724a3814ec42ac1d5d89612931d38434d0\", \"decision\": \"allow\", \"findings\": []}",
                 "toolCalls": []
@@ -372,8 +372,8 @@
           "status": "passed",
           "failures": [],
           "executionFailures": [],
-          "assessment": "pass_with_limitations",
-          "analysis": "Hard checks passed. I compared the summary with the three Props: it states the move, keeps the time, adds no detail, and omits the posters and tea.",
+          "assessment": "credible_pass",
+          "analysis": "The hard gate passed on the action, the exact three-identifier set (which excludes both noise Props) and the 100-word limit. The gate does not read the summary text. This review checked it against the three adopted criteria and two forbidden claims. All criteria are met and no forbidden claim appears. The electrician detail comes from prop-summary-date-moved, so it is not an unsupported addition.",
           "turns": [],
           "curation": {
             "inputMemories": [
@@ -407,7 +407,7 @@
                   "prop-summary-date-confirmed"
                 ],
                 "action": "update_derived_summary",
-                "summary": "The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged."
+                "summary": "The pottery open house was initially scheduled for Saturday, September 14, from 2:00 to 5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed the September 21 event, still from 2:00 to 5:00 p.m."
               }
             },
             "outcome": {
@@ -421,7 +421,7 @@
                 "prop-summary-date-original",
                 "prop-summary-noise-posters",
                 "prop-summary-noise-tea",
-                "summary_5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e"
+                "summary_148255797a3a8c042aef597053d2dcfa4a2306ab9fbdedd4a235778b6be1b25f"
               ]
             },
             "status": "applied",
@@ -437,9 +437,9 @@
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
                 "startMs": 0,
-                "endMs": 1732,
+                "endMs": 2426,
                 "input": "{\"memories\": [{\"memory_id\": \"prop-summary-date-original\", \"text\": \"I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.\"}, {\"memory_id\": \"prop-summary-date-moved\", \"text\": \"After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.\"}, {\"memory_id\": \"prop-summary-date-confirmed\", \"text\": \"The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.\"}, {\"memory_id\": \"prop-summary-noise-posters\", \"text\": \"For the pottery open house, I chose indigo ink for the posters.\"}, {\"memory_id\": \"prop-summary-noise-tea\", \"text\": \"I ordered jasmine tea for the volunteers at the pottery open house.\"}]}",
-                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-summary-date-original\", \"prop-summary-date-moved\", \"prop-summary-date-confirmed\"], \"action\": \"update_derived_summary\", \"summary\": \"The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged.\"}}",
+                "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-summary-date-original\", \"prop-summary-date-moved\", \"prop-summary-date-confirmed\"], \"action\": \"update_derived_summary\", \"summary\": \"The pottery open house was initially scheduled for Saturday, September 14, from 2:00 to 5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed the September 21 event, still from 2:00 to 5:00 p.m.\"}}",
                 "toolCalls": [
                   {
                     "tool": "final_result_CurationProposal",
@@ -456,10 +456,10 @@
                 "failureCode": null,
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
-                "startMs": 1742,
-                "endMs": 3311,
-                "input": "{\"proposal_digest\":\"5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-summary-date-original\",\"prop-summary-date-moved\",\"prop-summary-date-confirmed\"],\"action\":\"update_derived_summary\",\"summary\":\"The pottery open house was initially scheduled for Saturday, September 14, 2:00–5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed September 21, with the 2:00–5:00 p.m. time unchanged.\"}},\"sources\":[{\"memory_id\":\"prop-summary-date-original\",\"text\":\"I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.\",\"record_sha256\":\"a636c65933c70e9708019b574ae08f5d4da56810b01df0fedde0ad5c4170f16b\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-moved\",\"text\":\"After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.\",\"record_sha256\":\"88d9869560764e0f495db633f8138e7531581c216c2189176f745df5bdda2e9f\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-confirmed\",\"text\":\"The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.\",\"record_sha256\":\"08d10b2e56262910393fcc00eb0a050e75666a03fdef80801778ce4ac4d628a7\",\"retrieval_state\":\"active\"}]}",
-                "output": "{\"proposal_digest\": \"5635a9a3daf1efc016486414c105506ceb5e45b5983352b50973cd4ac24e452e\", \"decision\": \"allow\", \"findings\": []}",
+                "startMs": 2438,
+                "endMs": 5772,
+                "input": "{\"proposal_digest\":\"148255797a3a8c042aef597053d2dcfa4a2306ab9fbdedd4a235778b6be1b25f\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-summary-date-original\",\"prop-summary-date-moved\",\"prop-summary-date-confirmed\"],\"action\":\"update_derived_summary\",\"summary\":\"The pottery open house was initially scheduled for Saturday, September 14, from 2:00 to 5:00 p.m. After the kiln electrician rescheduled, it was moved to Saturday, September 21; the community center confirmed the September 21 event, still from 2:00 to 5:00 p.m.\"}},\"sources\":[{\"memory_id\":\"prop-summary-date-original\",\"text\":\"I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.\",\"record_sha256\":\"a636c65933c70e9708019b574ae08f5d4da56810b01df0fedde0ad5c4170f16b\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-moved\",\"text\":\"After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.\",\"record_sha256\":\"88d9869560764e0f495db633f8138e7531581c216c2189176f745df5bdda2e9f\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-summary-date-confirmed\",\"text\":\"The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.\",\"record_sha256\":\"08d10b2e56262910393fcc00eb0a050e75666a03fdef80801778ce4ac4d628a7\",\"retrieval_state\":\"active\"}]}",
+                "output": "{\"proposal_digest\": \"148255797a3a8c042aef597053d2dcfa4a2306ab9fbdedd4a235778b6be1b25f\", \"decision\": \"allow\", \"findings\": []}",
                 "toolCalls": []
               }
             ]
@@ -470,8 +470,8 @@
           "status": "passed",
           "failures": [],
           "executionFailures": [],
-          "assessment": "pass_with_limitations",
-          "analysis": "Action and source set match; the label covers all three without collapsing them, and the receipt is excluded.",
+          "assessment": "credible_pass",
+          "analysis": "The hard gate passed on the action type and the exact three-identifier set. The bakery receipt shares the 'pottery open house' phrase with two of the accessibility Props, so excluding it is a real discrimination test. The label is concise, names the shared theme, and does not merge or overstate the three preparations.",
           "turns": [],
           "curation": {
             "inputMemories": [
@@ -530,7 +530,7 @@
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
                 "startMs": 0,
-                "endMs": 1371,
+                "endMs": 2027,
                 "input": "{\"memories\": [{\"memory_id\": \"prop-topic-ramp\", \"text\": \"For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.\"}, {\"memory_id\": \"prop-topic-large-print\", \"text\": \"I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.\"}, {\"memory_id\": \"prop-topic-quiet-room\", \"text\": \"I reserved the small side room as a quiet break space during the pottery open house.\"}, {\"memory_id\": \"prop-topic-distractor-receipt\", \"text\": \"I saved the bakery receipt for the pottery open house refreshments in my tax folder.\"}]}",
                 "output": "{\"kind\": \"curation_proposal\", \"action\": {\"source_memory_ids\": [\"prop-topic-ramp\", \"prop-topic-large-print\", \"prop-topic-quiet-room\"], \"action\": \"assign_topic_group\", \"topic_label\": \"Pottery open house accessibility and visitor accommodations\"}}",
                 "toolCalls": [
@@ -549,8 +549,8 @@
                 "failureCode": null,
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
-                "startMs": 1383,
-                "endMs": 2856,
+                "startMs": 2038,
+                "endMs": 4059,
                 "input": "{\"proposal_digest\":\"4353900bcb2e5ae206b052113f4548dad8377231067a2831ff4952e16d183d18\",\"proposal\":{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-topic-ramp\",\"prop-topic-large-print\",\"prop-topic-quiet-room\"],\"action\":\"assign_topic_group\",\"topic_label\":\"Pottery open house accessibility and visitor accommodations\"}},\"sources\":[{\"memory_id\":\"prop-topic-ramp\",\"text\":\"For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.\",\"record_sha256\":\"17458c43ca2d00b70986783390b476ccfe60207adf486b83e89f53169fb712c9\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-topic-large-print\",\"text\":\"I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.\",\"record_sha256\":\"1d98257a4ecb516bd4714861be807300a30c531e7c2211a2d2bb16f1c9d917ae\",\"retrieval_state\":\"active\"},{\"memory_id\":\"prop-topic-quiet-room\",\"text\":\"I reserved the small side room as a quiet break space during the pottery open house.\",\"record_sha256\":\"5859082b2501e35c7f109a0b5c06ea951ff2572cd33eb94b54bf8e71268d4efe\",\"retrieval_state\":\"active\"}]}",
                 "output": "{\"proposal_digest\": \"4353900bcb2e5ae206b052113f4548dad8377231067a2831ff4952e16d183d18\", \"decision\": \"allow\", \"findings\": []}",
                 "toolCalls": []
@@ -563,8 +563,8 @@
           "status": "passed",
           "failures": [],
           "executionFailures": [],
-          "assessment": "credible_pass",
-          "analysis": "Matches the no-change expectation.",
+          "assessment": "pass_with_limitations",
+          "analysis": "The hard gate checks only that the response is a no_curation_proposal and that the outcome fields match. The adopted reason_category 'superficial_similarity' is not graded, because the reply carries free text rather than a category. This review read the reason, and it names the superficial-overlap rationale directly.",
           "turns": [],
           "curation": {
             "inputMemories": [
@@ -579,7 +579,7 @@
             ],
             "response": {
               "kind": "no_curation_proposal",
-              "reason": "These memories describe unrelated facts that only share the word “rib”; grouping them would not improve retrieval."
+              "reason": "These are separate facts about pottery and physiotherapy; their shared word does not create a useful retrieval topic, and there is no basis for linking or summarizing them."
             },
             "outcome": {
               "provenance_decision": "not_reviewed",
@@ -604,9 +604,9 @@
                 "inputOrigin": "Application",
                 "outputReceiver": "Application",
                 "startMs": 0,
-                "endMs": 1413,
+                "endMs": 1550,
                 "input": "{\"memories\": [{\"memory_id\": \"prop-superficial-rib-tool\", \"text\": \"I use a wooden rib tool to smooth clay slabs before trimming them.\"}, {\"memory_id\": \"prop-superficial-rib-stretch\", \"text\": \"My physiotherapist recommended rib stretches after rowing practice.\"}]}",
-                "output": "{\"kind\": \"no_curation_proposal\", \"reason\": \"These memories describe unrelated facts that only share the word “rib”; grouping them would not improve retrieval.\"}",
+                "output": "{\"kind\": \"no_curation_proposal\", \"reason\": \"These are separate facts about pottery and physiotherapy; their shared word does not create a useful retrieval topic, and there is no basis for linking or summarizing them.\"}",
                 "toolCalls": [
                   {
                     "tool": "final_result_NoCurationProposal",

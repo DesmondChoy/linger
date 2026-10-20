@@ -143,7 +143,8 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         response = await self.turn(UNCERTAIN_COMPLETIONS[0])
 
         self.assertIsNone(response.inspection.muse_turn["reading_context"])
-        self.assertEqual(2, self.store.get(self.account.account_id, ALICE).chapter_max)
+        # Withdrawing the ceiling here also erases it for later conversations.
+        self.assertIsNone(self.store.get(self.account.account_id, ALICE))
         self.assertIsNone(sessions.reading_progress(self.session_id).chapter_max)
 
     async def test_qualified_completion_cannot_raise_persisted_progress(self):
@@ -153,7 +154,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
                 await self.turn("I've finished chapter 2 of Alice's Adventures in Wonderland.")
                 response = await self.turn(message)
                 self.assertIsNone(response.inspection.muse_turn["reading_context"])
-                self.assertEqual(2, self.store.get(self.account.account_id, ALICE).chapter_max)
+                self.assertIsNone(self.store.get(self.account.account_id, ALICE))
                 await self.turn("Actually, I've finished chapter 3.")
                 self.assertEqual(3, self.store.get(self.account.account_id, ALICE).chapter_max)
 
@@ -169,7 +170,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         infer.assert_not_awaited()
 
     async def test_new_conversation_retraction_withholds_saved_routing(self):
-        self.store.record(self.account.account_id, SavedProgress(ALICE, "main", 9))
+        self.store.release(self.store.declare(self.account.account_id, SavedProgress(ALICE, "main", 9)))
         infer = AsyncMock(side_effect=AssertionError("A retraction requires reader confirmation."))
         with patch.object(routing, "infer_spoiler_boundary", infer):
             await self.turn(f"{RETRACTION} {BOOK_QUESTION}", route=True)
@@ -181,7 +182,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_retraction_withholds_comparison_on_this_and_later_turns(self):
         await self.turn("I've finished chapter 9 of Alice's Adventures in Wonderland.")
         for work_id in ("pg500", "pg23"):
-            self.store.record(self.account.account_id, SavedProgress(work_id, "main", 4))
+            self.store.release(self.store.declare(self.account.account_id, SavedProgress(work_id, "main", 4)))
 
         first = await self.turn(f"{RETRACTION} Does it connect to anything else?", comparison=True)
         following = await self.turn("Does it connect to anything else?", comparison=True)
@@ -215,7 +216,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_correction_targets_its_book_and_preserves_other_comparison_permissions(self):
         await self.turn("I've finished chapter 9 of Alice's Adventures in Wonderland.")
         await self.turn("I've finished chapter 4 of Pinocchio.")
-        self.store.record(self.account.account_id, SavedProgress("pg23", "main", 4))
+        self.store.release(self.store.declare(self.account.account_id, SavedProgress("pg23", "main", 4)))
         await self.turn(RETRACTION)
 
         self.assertIsNone(sessions.reading_progress_for(self.session_id, ALICE).chapter_max)

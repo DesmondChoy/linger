@@ -26,6 +26,7 @@ describe('scenario gallery and replay', () => {
     expect(html).toContain('collaboration-graph')
     expect(html).not.toContain('<textarea')
     expect(html).not.toContain('>Delete<')
+    expect(html).toContain('Reading progress')
   })
 
   it('offers to load the Props only to a signed-in reader', () => {

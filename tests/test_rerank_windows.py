@@ -14,17 +14,19 @@ def encoder():
     )
     tokenizer.enable_truncation(max_length=32)
     calls = []
+    batch_sizes = []
 
-    def rerank(query, documents):
+    def rerank(query, documents, batch_size):
         calls.extend((query, document) for document in documents)
+        batch_sizes.append(batch_size)
         return [float(4 in tokenizer.encode(query, document).ids) for document in documents]
 
-    return SimpleNamespace(model=SimpleNamespace(tokenizer=tokenizer), rerank=rerank, calls=calls)
+    return SimpleNamespace(model=SimpleNamespace(tokenizer=tokenizer), rerank=rerank, calls=calls, batch_sizes=batch_sizes)
 
 
 def test_library_truncation_reproduces_hidden_tail():
     model = encoder()
-    assert model.rerank("question", ["filler " * 80 + "decisive"]) == [0.0]
+    assert model.rerank("question", ["filler " * 80 + "decisive"], batch_size=1) == [0.0]
 
 
 @pytest.mark.parametrize("long_query", [False, True])
@@ -51,6 +53,15 @@ def test_short_inputs_are_scored_once_without_changes():
     model = encoder()
     assert list(TokenWindowReranker(model).rerank("question", ["decisive", "filler"])) == [1.0, 0.0]
     assert model.calls == [("question", "decisive"), ("question", "filler")]
+
+
+def test_model_runs_in_small_batches_for_fitting_and_overflowing_pairs():
+    from apps.backend.rerank_windows import MODEL_BATCH_SIZE, TokenWindowReranker
+
+    model = encoder()
+    TokenWindowReranker(model).rerank("question", ["decisive", "filler " * 80 + "decisive"])
+    assert len(model.batch_sizes) == 2
+    assert set(model.batch_sizes) == {MODEL_BATCH_SIZE}
 
 
 def test_long_query_with_short_passage_keeps_complete_fitting_pair():
@@ -94,8 +105,8 @@ def test_mixed_batch_preserves_each_fitting_pair_score_and_single_call():
     model = encoder()
     record_call = model.rerank
 
-    def score_full_query(query, documents):
-        record_call(query, documents)
+    def score_full_query(query, documents, batch_size):
+        record_call(query, documents, batch_size)
         return [float(len(query.split()) + {"question": 100, "decisive": 200}.get(document, 0)) for document in documents]
 
     model.rerank = score_full_query

@@ -35,7 +35,7 @@ class ChatRequest(RequestBody):
     @classmethod
     def _normalize_message(cls, value: object) -> object:
         # Runs before the length and emptiness constraints, so every downstream
-        # consumer (session history, prompts, capture offsets, detectors,
+        # consumer (session history, prompts, capture binding, detectors,
         # inspection) sees one normalised string. A non-string is passed
         # through for the usual type error rather than failing here.
         return normalize_reader_message(value) if isinstance(value, str) else value

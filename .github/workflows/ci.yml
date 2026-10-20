@@ -15,8 +15,27 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  release-promotion:
+    name: Release promotion
+    if: github.event_name == 'pull_request' && github.base_ref == 'release-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Require promotion from main
+        run: >-
+          python3 .github/scripts/railway_release.py promotion
+          --repository "$GITHUB_REPOSITORY" --event "$GITHUB_EVENT_PATH"
+
   backend-tests:
     name: Backend tests (pytest)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -44,6 +63,10 @@ jobs:
 
   backend-embeddings-tests:
     name: Backend tests (embeddings)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -80,6 +103,10 @@ jobs:
 
   frontend-tests:
     name: Frontend tests (vitest)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -106,6 +133,22 @@ jobs:
       - name: Run vitest
         run: pnpm test
 
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright browser tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-results
+          path: |
+            apps/frontend/playwright-report/
+            apps/frontend/test-results/
+          retention-days: 7
+
       - name: Test Ground truth reviewer
         run: pnpm --dir ../../.agents/skills/review-synthetic-ground-truth/ui test
 
@@ -117,6 +160,7 @@ jobs:
 
   codeql:
     name: CodeQL (${{ matrix.language }})
+    if: github.event_name != 'pull_request' || github.base_ref == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -151,6 +195,10 @@ jobs:
 
   dependencies:
     name: Dependency security
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -176,6 +224,10 @@ jobs:
 
   image:
     name: Image (amd64)
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/release-candidate') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

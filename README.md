@@ -1,5 +1,8 @@
 # Linger
 
+For the hosted website and deployment of approved public GHCR images, see the
+[Railway guide](docs/railway.md).
+
 For tested images, release approval, and deployment with `compose.release.yaml`,
 see the [release guide](docs/releasing.md).
 
@@ -285,8 +288,14 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-GitHub Actions runs backend and frontend checks for pull requests and pushes to
-`main` and `release-candidate`. Backend tests block model-provider requests.
+GitHub Actions runs full CI for pull requests to `main`, pushes to
+`release-candidate`, and manual dispatch. Pushes to `main`, including merges,
+run only CodeQL. Pull requests to `release-candidate` run only the lightweight
+**Release promotion** check, which requires the source branch to be `main` in
+this repository. Both branches
+must be configured to require reviewed, up-to-date PRs without direct pushes or
+bypasses.
+Backend tests block model-provider requests.
 Separate jobs run `uv run pytest -m "not embeddings"` and
 `uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
 `embeddings` use real local embedding and reranker models, which CI caches.
@@ -294,16 +303,24 @@ Their first local run needs the model files in cache or permission to download
 them. Frontend CI also checks the Ground truth reviewer, lint, and the production
 build. CodeQL, dependency scans, and an AMD64 image scan and smoke check run
 alongside the tests. See the [CI checks reference](docs/release-checks.md#ci-checks)
-for the seven required checks.
+for the seven checks required on `main` PRs and before release.
+
+CodeQL scans on pushes to `main` refresh its GitHub security results without
+starting a release. There is no scheduled scan. Without an eligible pull request,
+push, or manual dispatch, no new scan runs. Trivy scans remain part of full CI,
+with JSON reports stored as workflow artifacts. Newly disclosed dependency and
+image vulnerabilities are checked on the next full CI run.
 
 Live release evaluations and automatic publication are disabled in
 `.github/release-config.json`. Promote changes to `release-candidate` when they
-are ready for release testing. When enabled, the release run builds, scans, and
-tests one Linux AMD64 image, then publishes that same image after the configured
-approval decision. Auto-publishing remains off until evaluation results justify
-a threshold. See the [release guide](docs/releasing.md) for the switches,
-required GitHub protections, and manual approval steps, and the
-[release flow diagram](docs/release-flow-end-to-end.png) for the full process.
+are ready for release. The release run builds, scans, and checks one Linux AMD64
+image, then publishes that same image after human approval. Railway deploys its
+public GHCR digest. Paid evaluations remain optional. Deployment-only retries
+reuse the recorded digest without rebuilding or repeating evaluations.
+Auto-publishing remains off until evaluation results justify a threshold.
+See the [release guide](docs/releasing.md) for the switches, required GitHub
+protections, and approval steps, and the
+[release flow diagram](docs/release-checks.md#release-configuration) for the process.
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported

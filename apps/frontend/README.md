@@ -10,6 +10,30 @@ saved synthetic evaluations that require no account. The browser remembers
 the login token in local storage. **Sign out** revokes that token and returns
 to the landing page; an expired token also returns the reader to sign-in.
 
+## Run browser tests
+
+Use Node 22.12 or newer. From `apps/frontend`, install the dependencies and Chromium once:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+```
+
+Run `pnpm test:e2e` for the Chromium suite, or `pnpm test:e2e:ui` for Playwright's
+interactive runner. Playwright builds the frontend and starts its preview server
+on port 4173. Keep that port free.
+
+The tests cover typing and keyboard submission, book selection and editable
+preset submission, and saved scenario replay with turn inspection. Sign-in,
+history, and chat responses use controlled browser routes. No backend, account,
+or model credentials are required. Scenario replay loads the bundled recordings.
+These tests check frontend behavior; backend and model behavior have separate tests.
+
+CI runs the suite after Vitest. Failed tests retain traces and screenshots in
+`test-results/`. Run `pnpm exec playwright show-report` to open the HTML report.
+CI uploads the report and failure artifacts for seven days. Test files use
+`.e2e.ts` so Vitest does not discover them. The build type-checks the tests.
+
 ## Chat and live inspection
 
 Chat sends session-scoped reflection turns and displays released replies,
@@ -110,10 +134,10 @@ Playback reads [`src/replay/scenarios/`](src/replay/scenarios): a small
 `index.json` for the gallery and one file per scenario, loaded only when that
 scenario opens. The backend reads the same files to load Props, so both
 Dockerfiles copy this folder. The exporter reads each Scenario's
-`backstory.json`, `ground-truth.json`, and adjacent `scenario-run-*` directories
-containing both `evaluation.json` and `summary.json`. Runs without the
-completion summary are excluded. A matching `analysis-report-*.json` supplies
-the completed review when available. The snapshot contains clipped synthetic
+`backstory.json` and `ground-truth.json`, and its retained final run in
+[`results/<scenario>/result.json`](../../results). That file embeds the run's
+`evaluation.json`, `summary.json`, and completed analysis review. Scenarios
+without a retained result are excluded. The snapshot contains clipped synthetic
 agent inputs and outputs, recorded source details, and connection events. Full
 model message transcripts, system instructions, and local paths are excluded.
 

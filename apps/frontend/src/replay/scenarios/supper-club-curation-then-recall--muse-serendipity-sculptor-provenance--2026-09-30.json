@@ -1,0 +1,405 @@
+{
+  "id": "supper-club-curation-then-recall--muse-serendipity-sculptor-provenance--2026-09-30",
+  "title": "Supper club curation, then recall",
+  "dated": "2026-09-30",
+  "description": "Provide the memories and held-out recall Lines for the [self-improving memory loop](../docs/design/self-improving-memory-loop.md), which compares recall before and after Sculptor curates the same memories.",
+  "family": "conversation_and_memory",
+  "objectiveIds": [
+    "longitudinal_memory_retrieval"
+  ],
+  "personId": "person-leila-haddad",
+  "context": "Leila Haddad hosts a weekly supper club for the neighbours on her street and keeps short personal notes about it in a reflection companion. Over several months she recorded ten notes. Two record which night she hosts: first Thursdays, then a move to Tuesdays after the choir took the Thursday slot at the hall next door. Three record the same observation, twice in identical words and once reworded, that guests remember who they sat beside and not the new dishes. One records a week when she tried three recipes she had never cooked before and the lamb came out dry, and her rule of one change a week. One records her hands shaking as she carried the first tray out and what steadied her. One records a guest's nut allergy. Two record routine logistics: borrowed chairs and the washing-up. In later, separate sessions she asks which night to give a new neighbour and whether it was a different night before, whether she has tried several new recipes in one week before, whether she ever found something that helped with jitters at the start of the evening, whether any guest has a food restriction, and how to weigh her sister's suggestion that she start charging, which none of her notes bears on.",
+  "props": [
+    {
+      "id": "prop-night-original",
+      "text": "I host supper club on Thursdays. Thursday suits me because the market delivers that morning.",
+      "recordedAt": "2026-02-05T21:40:00+00:00"
+    },
+    {
+      "id": "prop-night-moved",
+      "text": "Supper club has moved to Tuesdays. The choir took the Thursday slot at the hall next door and parking became impossible, so Tuesday it is from now on.",
+      "recordedAt": "2026-06-16T20:00:00+00:00"
+    },
+    {
+      "id": "prop-faces-a",
+      "text": "People remember who they sat beside at supper club, not the new dishes on the menu.",
+      "recordedAt": "2026-03-05T22:05:00+00:00"
+    },
+    {
+      "id": "prop-faces-b",
+      "text": "People remember who they sat beside at supper club, not the new dishes on the menu.",
+      "recordedAt": "2026-04-16T22:10:00+00:00"
+    },
+    {
+      "id": "prop-faces-c",
+      "text": "Nobody at supper club talks afterwards about the new dishes on the menu. They talk about who they ended up sitting next to.",
+      "recordedAt": "2026-07-07T22:30:00+00:00"
+    },
+    {
+      "id": "prop-one-change",
+      "text": "The lamb came out dry the week I tried three recipes I had never cooked before. One change a week from now on.",
+      "recordedAt": "2026-05-07T21:55:00+00:00"
+    },
+    {
+      "id": "prop-first-tray",
+      "text": "My hands shook carrying the first tray out, until I picked one friendly face and served her before anyone else.",
+      "recordedAt": "2026-04-02T22:20:00+00:00"
+    },
+    {
+      "id": "prop-nut-allergy",
+      "text": "Imran, one of my regular guests, can't eat nuts of any kind, not even a trace. His allergy is serious, so nothing with nuts goes on my table.",
+      "recordedAt": "2026-03-19T17:30:00+00:00"
+    },
+    {
+      "id": "prop-chairs",
+      "text": "I borrow six folding chairs from Mrs. Okafor every week and carry them back the next morning.",
+      "recordedAt": "2026-02-12T18:15:00+00:00"
+    },
+    {
+      "id": "prop-washing-up",
+      "text": "I leave the washing-up until the next morning. Doing it at midnight makes me resent the whole evening.",
+      "recordedAt": "2026-05-21T23:45:00+00:00"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-current-night",
+      "order": 1,
+      "freshSession": true,
+      "objectiveIds": [
+        "longitudinal_memory_retrieval"
+      ],
+      "propIds": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "lines": [
+        "My new neighbour Dario asked whether he could come along to supper club. Which night did I tell you I host it now, and what did I say it used to be?"
+      ],
+      "expected": [
+        "The reply tells her that supper club is now on Tuesdays, which is the night to give Dario.",
+        "The reply confirms that it used to be Thursdays, as the former night only.",
+        "The basis is her two earlier records of the night: the older one that she hosts on Thursdays and the later one that supper club moved to Tuesdays.",
+        "Any use of those records is presented as her own earlier words."
+      ],
+      "prohibited": [
+        "The reply gives Thursday as the current night, or leaves Thursday and Tuesday as equally live options.",
+        "The reply presents an unrelated record, such as the borrowed chairs, the washing-up, the nut allergy, or the note about who people sat beside, as the basis for the night.",
+        "The reply invents a reason, time, or arrangement that appears in none of her records."
+      ]
+    },
+    {
+      "id": "scene-several-changes",
+      "order": 2,
+      "freshSession": true,
+      "objectiveIds": [
+        "longitudinal_memory_retrieval"
+      ],
+      "propIds": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "lines": [
+        "I've found three new recipes and I'm tempted to put all of them on the supper club menu this week. Have I tried something like this before, and how did it go?"
+      ],
+      "expected": [
+        "The one prior basis is her record of the week she tried three recipes she had never cooked before, when the lamb came out dry, and her resolution to make one change a week from then on.",
+        "Any use of that record is presented as her own earlier words, offered tentatively.",
+        "The three copies of her note that people remember who they sat beside, not the new dishes, are left out of the reply's basis. That note is about what guests remember, not about trying several new recipes in one week."
+      ],
+      "prohibited": [
+        "The reply says she has no earlier experience of trying several new recipes in one week.",
+        "The reply presents the note about who people sat beside, in any of its three copies, as her earlier attempt at this, or repeats that note more than once.",
+        "The reply attributes to her a past menu, outcome, or rule that appears in none of her records."
+      ]
+    },
+    {
+      "id": "scene-start-of-evening-nerves",
+      "order": 3,
+      "freshSession": true,
+      "objectiveIds": [
+        "longitudinal_memory_retrieval"
+      ],
+      "propIds": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "lines": [
+        "I still get jittery at the start of the evening, right when everyone is watching me bring the food in. Did I ever find something that helped?"
+      ],
+      "expected": [
+        "The one prior basis is her record that her hands shook carrying the first tray out until she picked one friendly face and served that person before anyone else.",
+        "Any use of that record is presented as her own earlier words, offered tentatively.",
+        "The other nine records are left out of the reply's basis."
+      ],
+      "prohibited": [
+        "The reply says she has written nothing about this, when the first-tray record is available.",
+        "The reply presents an unrelated record, such as leaving the washing-up until morning or the note about who people sat beside, as what helped with the jitters.",
+        "The reply attributes to her a calming technique that appears in none of her records."
+      ]
+    },
+    {
+      "id": "scene-dietary-preservation",
+      "order": 4,
+      "freshSession": true,
+      "objectiveIds": [
+        "longitudinal_memory_retrieval"
+      ],
+      "propIds": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "lines": [
+        "Dario has offered to bring a dessert. Have I mentioned anyone who can't eat something, so I can warn him?"
+      ],
+      "expected": [
+        "The reply tells her that Imran, a regular guest, can't eat nuts of any kind, not even a trace, and that the allergy is serious.",
+        "The one prior basis is her nut-allergy record, presented as her own earlier words."
+      ],
+      "prohibited": [
+        "The reply says she has recorded no dietary restriction.",
+        "The reply names a different guest, a different food, or a milder restriction than her record states.",
+        "The reply presents an unrelated record as the basis for the warning."
+      ]
+    },
+    {
+      "id": "scene-charging-no-match",
+      "order": 5,
+      "freshSession": true,
+      "objectiveIds": [
+        "longitudinal_memory_retrieval"
+      ],
+      "propIds": [
+        "prop-night-original",
+        "prop-night-moved",
+        "prop-faces-a",
+        "prop-faces-b",
+        "prop-faces-c",
+        "prop-one-change",
+        "prop-first-tray",
+        "prop-nut-allergy",
+        "prop-chairs",
+        "prop-washing-up"
+      ],
+      "lines": [
+        "My sister thinks I should start charging a few pounds a head to cover the food. How do I work out whether that would change what supper club is?"
+      ],
+      "expected": [
+        "The question is whether to start charging guests, and none of her ten records is a true prior basis for it.",
+        "A reply can address the question without presenting any recorded note as relevant."
+      ],
+      "prohibited": [
+        "The reply presents a recorded note, such as the note about who people sat beside, the move to Tuesdays, the borrowed chairs, or the dry lamb, as a relevant prior basis for this question.",
+        "The reply attributes to her an earlier view about money or charging that appears in none of her records."
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "4cd03162cbfd441589054d456948243c",
+      "startedAt": "2026-10-16T17:51:47.350515+08:00",
+      "model": "openai:gpt-6-luna",
+      "systemVariant": "8e7c8946",
+      "passed": 1,
+      "failed": 4,
+      "ungraded": 0,
+      "total": 5,
+      "executionFailures": 1,
+      "logfireUrl": "https://logfire-us.pydantic.dev/desmond-choy/linger/evals/memory_curation_recall_loop/compare?experiment=01a1441ffff82eb6f572c3987f4ca5a6-b88237ed2e7a96f2",
+      "verdict": "The run completed, but 7 of 20 recall judgments failed and 4 of 5 Scenes failed at least one arm. Curation did not cause the failures. Sculptor applied one night summary (round 2) and one duplicate link (round 3); neither removed a relevant Prop from the retrieval view. The failures come from three other sources: a 10-second triage timeout that removed memory search in one arm, a lexical memory ranker that misses Props whose wording differs from the query, and borderline Muse and Serendipity judgments. This single repetition shows no recall gain from curation.",
+      "scenes": [
+        {
+          "sceneId": "scene-current-night",
+          "status": "failed",
+          "failures": [
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited"
+          ],
+          "executionFailures": [
+            "Muse turn_triage: request_cancelled"
+          ],
+          "assessment": "supported_failure",
+          "analysis": "Arm 0 failed because memory search was never offered (run.log line 2: elapsed=10.01s failed=true exposed_tools=librarian_route,librarian_search). In arm 3 Muse mapped 'used to host it on Thursdays' to prop-night-original alone. Provenance correctly said that note alone does not support 'used to', and suggested mapping the move note too. Muse instead added a limit claim that casts doubt on a timeline the move note establishes. Its skill says to repair a missing mapping with the actual support. The round-2 summary was retrieved in arms 2 and 3 but never cited.",
+          "turns": [
+            {
+              "userMessage": "My new neighbour Dario asked whether he could come along to supper club. Which night did I tell you I host it now, and what did I say it used to be?",
+              "reply": "",
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "capture": null,
+              "contextResolution": null,
+              "museTurn": null,
+              "prompt": null,
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": []
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-several-changes",
+          "status": "failed",
+          "failures": [
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited",
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited"
+          ],
+          "executionFailures": [],
+          "assessment": "supported_failure",
+          "analysis": "search_memories ranks by the count of shared lowercased tokens, stopwords included, and returns five. prop-one-change's only strong hook is 'tried'. The sat-beside and night-moved notes share 'new', 'menu', 'supper' and 'club' with most queries. In arms 0 and 1 the Prop tied for fifth and won on memory-ID order. The arm 2 and 3 queries dropped 'tried', so it ranked 6th to 8th even without the summary. With the summary present, the arm 0 and 1 queries would also have ranked it sixth. The duplicate link hid nothing.",
+          "turns": [
+            {
+              "userMessage": "I've found three new recipes and I'm tempted to put all of them on the supper club menu this week. Have I tried something like this before, and how did it go?",
+              "reply": "",
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "capture": null,
+              "contextResolution": null,
+              "museTurn": null,
+              "prompt": null,
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": []
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-start-of-evening-nerves",
+          "status": "failed",
+          "failures": [
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited",
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited",
+            "relevant_prop_not_retrieved",
+            "relevant_prop_not_cited"
+          ],
+          "executionFailures": [],
+          "assessment": "supported_failure",
+          "analysis": "The Line uses 'jittery', 'start of the evening' and 'bring the food in'. The Prop uses 'hands shook', 'first tray' and 'friendly face'. They share no content word, so the lexical ranker finds the Prop only through stopwords. The arm-2 hit matched only 'before' and 'I'. Curation never touched prop-first-tray, and the probe gives the same rank with or without the summary. The arm-2 pass is query-wording luck.",
+          "turns": [
+            {
+              "userMessage": "I still get jittery at the start of the evening, right when everyone is watching me bring the food in. Did I ever find something that helped?",
+              "reply": "",
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "capture": null,
+              "contextResolution": null,
+              "museTurn": null,
+              "prompt": null,
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": []
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-dietary-preservation",
+          "status": "passed",
+          "failures": [],
+          "executionFailures": [],
+          "assessment": "credible_pass",
+          "analysis": "The checks passed because the relevant Prop was retrieved and cited, with no distractor cited. Curation never touched this Prop. In arms 0 and 1 retrieval matched only 'can't' and 'eat', and the fifth-place score was the same, so the margin was thin. Arms 2 and 3 ranked it first.",
+          "turns": [
+            {
+              "userMessage": "Dario has offered to bring a dessert. Have I mentioned anyone who can't eat something, so I can warn him?",
+              "reply": "",
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "capture": null,
+              "contextResolution": null,
+              "museTurn": null,
+              "prompt": null,
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": []
+            }
+          ],
+          "curation": null
+        },
+        {
+          "sceneId": "scene-charging-no-match",
+          "status": "failed",
+          "failures": [
+            "distractor_prop_cited"
+          ],
+          "executionFailures": [],
+          "assessment": "supported_failure",
+          "analysis": "Curation did not change prop-faces-c or its retrievability. Round 3 linked only faces-a and faces-b. The difference is Serendipity's judgment on a borderline candidate. It declined as a generic theme match in arms 0 and 1. In arm 2 it proposed the note, but its output validator rejected a shortlist of two candidates resting on one record, and it then declined. In arm 3 it proposed the note alone. Under the adopted Ground truth this is the prohibited outcome. The note does, however, speak to 'what supper club is'.",
+          "turns": [
+            {
+              "userMessage": "My sister thinks I should start charging a few pounds a head to cover the food. How do I work out whether that would change what supper club is?",
+              "reply": "",
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "capture": null,
+              "contextResolution": null,
+              "museTurn": null,
+              "prompt": null,
+              "memorySurfacing": null,
+              "releasedEvidenceIds": [],
+              "sources": [],
+              "groundingCalls": [],
+              "connectionEvents": [],
+              "capturedMemory": null,
+              "exchanges": []
+            }
+          ],
+          "curation": null
+        }
+      ]
+    }
+  ]
+}

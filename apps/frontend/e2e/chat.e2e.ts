@@ -1,0 +1,56 @@
+import { test, expect, reply } from './fixtures.ts'
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Username').fill('browser-reader')
+  await page.getByLabel('Password').fill('browser-test-password')
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByText('Start the conversation below.', { exact: true })).toBeVisible()
+})
+
+test('user types a reflection and submits with Enter', async ({ page, apiRequests }) => {
+  const composer = page.getByRole('textbox')
+  const send = page.getByRole('button', { name: 'Send', exact: true })
+  await expect(send).toBeDisabled()
+  await composer.fill('   ')
+  await expect(send).toBeDisabled()
+  await composer.fill('I kept thinking about the story.')
+  await composer.press('Shift+Enter')
+  await composer.pressSequentially('It reminded me of home.')
+  const message = 'I kept thinking about the story.\nIt reminded me of home.'
+  await expect(composer).toHaveValue(message)
+  expect(apiRequests.filter((request) => request.url().endsWith('/api/chat/stream'))).toHaveLength(0)
+  const submitted = page.waitForRequest('**/api/chat/stream')
+  await composer.press('Enter')
+  const request = await submitted
+  expect(request.postDataJSON()).toEqual({ session_id: expect.any(String), turn_id: expect.any(String), message })
+  expect(request.headers().authorization).toBe('Bearer browser-test-token')
+  await expect(page.locator('.bubble.user')).toHaveText(message)
+  await expect(page.locator('.bubble.assistant')).toHaveText(reply)
+  await expect(composer).toHaveValue('')
+  await expect(send).toBeDisabled()
+  expect(apiRequests.filter((item) => item.url().endsWith('/api/chat/stream'))).toHaveLength(1)
+})
+
+test('user chooses a book, fills a preset, edits it, and clicks Send', async ({ page, apiRequests }) => {
+  await page.getByRole('combobox', { name: 'Book', exact: true }).selectOption('pg11')
+  await page.getByRole('button', { name: 'Keeping spoilers out', exact: true }).click()
+  await page.getByRole('button', { name: /Asks about the ending/ }).click()
+  const composer = page.getByRole('textbox')
+  await expect(composer).toHaveValue("How does Alice's Adventures in Wonderland end?")
+  await expect(composer).toBeFocused()
+  expect(apiRequests.filter((request) => request.url().endsWith('/api/chat/stream'))).toHaveLength(0)
+  await page.getByRole('combobox', { name: 'Book', exact: true }).selectOption('pga0100011')
+  await page.getByRole('button', { name: /Asks about the ending/ }).click()
+  await expect(composer).toHaveValue('In Animal Farm, how does it end for Boxer?')
+  expect(apiRequests.filter((request) => request.url().endsWith('/api/chat/stream'))).toHaveLength(0)
+  const message = 'In Animal Farm, how does it end for Boxer? Please avoid spoilers.'
+  await composer.fill(message)
+  const submitted = page.waitForRequest('**/api/chat/stream')
+  await page.getByRole('button', { name: 'Send', exact: true }).click()
+  expect((await submitted).postDataJSON()).toMatchObject({ message })
+  await expect(page.locator('.bubble.user')).toHaveText(message)
+  await expect(page.locator('.bubble.assistant')).toHaveText(reply)
+  await expect(composer).toHaveValue('')
+  expect(apiRequests.filter((request) => request.url().endsWith('/api/chat/stream'))).toHaveLength(1)
+})
