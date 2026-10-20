@@ -322,7 +322,7 @@ it('tables every memory with when it was stored and its source, and offers Forge
   }))
   expect(html).toContain('4 memories, 1 retired')
   const rows = [...html.matchAll(/<tr( class="is-retired")?><td><time dateTime="([^"]+)">.*?<td class="memory-id"><code[^>]*>([^<]+)<\/code><\/td><td class="memory-text">([^<]+)<\/td><td>([^<]+)<\/td><td>([^<]+)<\/td><td><span[^>]*>([^<]+)<\/span><\/td><td class="memory-curation">(.*?)<\/td><td>(.*?)<\/td><\/tr>/g)]
-    .map((row) => [row[3], row[2], row[5], row[6], row[7], row[8].replace(/<[^>]+>/g, ''), row[4], row[9].includes('Forget')])
+    .map((row) => [row[3], row[2], row[5], row[6], row[7], row[8].split(/<[^>]*>/).join(''), row[4], row[9].includes('Forget')])
   expect(rows).toEqual([
     ['mem_new', '2026-10-04T09:00:00+00:00', 'Original', 'Reader message 01', 'Searchable', '—', '—', true],
     ['summary_abc', '2026-10-03T09:00:00+00:00', 'Summary', 'Curated from mem_old, mem_retired', 'Searchable', 'Covers 2 memories', 'Rereads letters to feel close.', false],
