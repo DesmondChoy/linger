@@ -8,10 +8,11 @@ import os
 import tempfile
 import threading
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import ValidationError
 
@@ -37,7 +38,8 @@ from src.linger.contracts.curation import (
 )
 from src.linger.contracts.security_validation import validate_credentials
 
-CaptureType = Literal["automatic"]
+# A scenario Prop is a reviewed evaluation memory a reader loaded on purpose.
+CaptureType = Literal["automatic", "scenario_prop"]
 
 
 class MemoryServiceError(Exception):
@@ -91,6 +93,15 @@ class AutomaticMemoryCandidate:
     review_allows_capture: bool
     contains_sensitive_content: bool
     evidence_ids: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ScenarioProp:
+    """One reviewed synthetic-scenario memory, with its own capture time if it has one."""
+
+    prop_id: str
+    text: str
+    recorded_at: datetime | None
 
 
 @dataclass(frozen=True)
@@ -186,6 +197,34 @@ class MemoryPolicyService:
                 text=candidate.text,
                 source_event_id=candidate.source_event_id,
                 evidence_ids=candidate.evidence_ids,
+            )
+
+    def load_scenario_props(
+        self,
+        context: AccountContext,
+        scenario_id: str,
+        props: Sequence[ScenarioProp],
+    ) -> tuple[SaveResult, ...]:
+        """Place a scenario's Props in this account, as its evaluation run did.
+
+        Loading is an explicit reader action, so the automatic-capture policy
+        does not apply. Each Prop is keyed by scenario and Prop ID, so loading
+        the same scenario again saves nothing new.
+        """
+        with self._lock:
+            for prop in props:
+                if validate_credentials(prop.text).blocked:
+                    raise MemoryPolicyError("credential_not_allowed")
+            return tuple(
+                self._save(
+                    context,
+                    text=prop.text,
+                    source_event_id=f"scenario:{scenario_id}:{prop.prop_id}",
+                    evidence_ids=(),
+                    capture_type="scenario_prop",
+                    created_at=prop.recorded_at,
+                )
+                for prop in props
             )
 
     def list_active(self, context: AccountContext) -> list[MemoryRecord]:
@@ -398,6 +437,12 @@ class MemoryPolicyService:
             ),
         )
 
+    def curation_history(self, context: AccountContext) -> tuple[AppliedCuration, ...]:
+        """Every applied curation event for this account, oldest first."""
+
+        with self._lock:
+            return self._curation_events(context)
+
     def list_for_retrieval(self, context: AccountContext) -> list[CuratedMemory]:
         """Materialize the account's retrieval view from originals and events."""
 
@@ -434,6 +479,8 @@ class MemoryPolicyService:
         text: str,
         source_event_id: str,
         evidence_ids: tuple[str, ...],
+        capture_type: CaptureType = "automatic",
+        created_at: datetime | None = None,
     ) -> SaveResult:
         _require_text(text, "text")
         _require_text(source_event_id, "source_event_id")
@@ -441,6 +488,7 @@ class MemoryPolicyService:
             idempotency_key = _idempotency_key(
                 context.account_id,
                 source_event_id,
+                capture_type,
             )
             existing = self._existing_idempotent(context, idempotency_key)
             if existing is not None:
@@ -458,6 +506,8 @@ class MemoryPolicyService:
                 source_event_id=source_event_id,
                 idempotency_key=idempotency_key,
                 evidence_ids=evidence_ids,
+                capture_type=capture_type,
+                created_at=created_at,
             )
             return self._commit(context, record)
 
@@ -774,8 +824,9 @@ def _account_key(account_id: str) -> str:
 def _idempotency_key(
     account_id: str,
     source_event_id: str,
+    capture_type: CaptureType,
 ) -> str:
-    material = "\0".join((account_id, source_event_id, "automatic"))
+    material = "\0".join((account_id, source_event_id, capture_type))
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
@@ -790,18 +841,20 @@ def _new_record(
     source_event_id: str,
     idempotency_key: str,
     evidence_ids: tuple[str, ...],
+    capture_type: CaptureType,
+    created_at: datetime | None,
 ) -> MemoryRecord:
-    timestamp = datetime.now(UTC).isoformat()
+    now = datetime.now(UTC).isoformat()
     return MemoryRecord(
         memory_id=_memory_id(idempotency_key),
         account_key=account_key,
         text=text,
-        capture_type="automatic",
+        capture_type=capture_type,
         source_event_id=source_event_id,
         idempotency_key=idempotency_key,
         evidence_ids=tuple(evidence_ids),
-        created_at=timestamp,
-        updated_at=timestamp,
+        created_at=created_at.isoformat() if created_at else now,
+        updated_at=now,
     )
 
 
@@ -831,7 +884,7 @@ def _read_record(path: Path) -> MemoryRecord:
         metadata = json.loads(front_matter)
         if metadata.get("schema_version") != 1:
             raise ValueError("unsupported schema")
-        if metadata.get("capture_type") != "automatic":
+        if metadata.get("capture_type") not in get_args(CaptureType):
             raise ValueError("invalid capture type")
         record = MemoryRecord(
             memory_id=metadata["memory_id"],

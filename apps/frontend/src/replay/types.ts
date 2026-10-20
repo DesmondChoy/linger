@@ -1,4 +1,4 @@
-/** Shape of `personas/*.json`, written by `apps/frontend/scripts/export_personas.py`. */
+/** Shape of `scenarios/*.json`, written by `apps/frontend/scripts/export_scenarios.py`. */
 
 export type RecordedExchange = {
   sequence: number | null
@@ -57,7 +57,7 @@ export type RecordedScene = {
   curation: RecordedCuration | null
 }
 
-export type PersonaRun = {
+export type ScenarioRun = {
   id: string
   startedAt: string | null
   model: string | null
@@ -83,7 +83,7 @@ export type PlannedScene = {
   prohibited: string[]
 }
 
-export type Persona = {
+export type Scenario = {
   id: string
   title: string
   dated: string
@@ -92,18 +92,19 @@ export type Persona = {
   objectiveIds: string[]
   personId: string | null
   context: string
-  props: { id: string; text: string }[]
+  /** Memories placed in the account before the run; `recordedAt` is the Prop's own capture time, when it has one. */
+  props: { id: string; text: string; recordedAt: string | null }[]
   scenes: PlannedScene[]
-  runs: PersonaRun[]
+  runs: ScenarioRun[]
 }
 
-/** One gallery card, from `personas/index.json`; the full persona loads on open. */
-export type PersonaSummary = Pick<Persona, 'id' | 'title' | 'dated' | 'description' | 'family'> & {
-  runs: Pick<PersonaRun, 'id' | 'startedAt' | 'passed' | 'failed' | 'ungraded' | 'total' | 'executionFailures'>[]
+/** One gallery card, from `scenarios/index.json`; the full scenario loads on open. */
+export type ScenarioSummary = Pick<Scenario, 'id' | 'title' | 'dated' | 'description' | 'family'> & {
+  runs: Pick<ScenarioRun, 'id' | 'startedAt' | 'passed' | 'failed' | 'ungraded' | 'total' | 'executionFailures'>[]
 }
 
-export type PersonaIndex = {
+export type ScenarioIndex = {
   source: string
   families: { id: string; label: string }[]
-  personas: PersonaSummary[]
+  scenarios: ScenarioSummary[]
 }

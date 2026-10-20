@@ -63,6 +63,6 @@ is absent from the local checkout. Restore those records before refreshing if
 the archived History must be preserved.
 
 Recorded synthetic conversations use the chat application's separate
-[persona replay](../frontend/README.md#synthetic-personas). Its exporter reads
-completed `scenario-run-*` directories and writes the frontend's persona files.
+[scenario replay](../frontend/README.md#synthetic-scenarios). Its exporter reads
+completed `scenario-run-*` directories and writes the frontend's scenario files.
 It does not supply this explorer's History panel.

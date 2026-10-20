@@ -2,14 +2,14 @@ import { readFileSync } from 'node:fs'
 import { test, expect } from './fixtures.ts'
 
 const alice = JSON.parse(readFileSync(
-  new URL('../src/replay/personas/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03.json', import.meta.url),
+  new URL('../src/replay/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03.json', import.meta.url),
   'utf8',
 ))
 const firstRecordedReply: string = alice.runs[0].scenes[0].turns[0].reply
 
-test('user opens a saved persona, inspects its turns, and returns to the gallery', async ({ page, apiRequests }) => {
+test('user opens a saved scenario, inspects its turns, and returns to the gallery', async ({ page, apiRequests }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Replay a persona', exact: true }).click()
+  await page.getByRole('button', { name: 'Replay a scenario', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Replay a recorded evaluation' })).toBeVisible()
   await page.getByRole('button', { name: /^Alice Pigeon grounding and spoilers/ }).click()
   await expect(page.getByRole('heading', { name: 'Alice Pigeon grounding and spoilers', exact: true })).toBeVisible()
@@ -29,7 +29,7 @@ test('user opens a saved persona, inspects its turns, and returns to the gallery
   await expect(page.getByRole('dialog')).toContainText('the Pigeon calls her a serpent')
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  await page.getByRole('button', { name: 'All personas', exact: true }).click()
+  await page.getByRole('button', { name: 'All scenarios', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Replay a recorded evaluation' })).toBeVisible()
   expect(apiRequests, 'Replay must work without authentication or API calls').toHaveLength(0)
 })

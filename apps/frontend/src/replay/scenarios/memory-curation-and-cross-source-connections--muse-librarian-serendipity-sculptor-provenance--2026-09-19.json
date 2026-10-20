@@ -13,63 +13,78 @@
   "props": [
     {
       "id": "prop-lamp-note-a",
-      "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page."
+      "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page.",
+      "recordedAt": null
     },
     {
       "id": "prop-lamp-note-b",
-      "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page."
+      "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page.",
+      "recordedAt": null
     },
     {
       "id": "prop-library-reminder",
-      "text": "My library card expires on 30 November 2026. I need to renew it at the branch before borrowing another set of books in December."
+      "text": "My library card expires on 30 November 2026. I need to renew it at the branch before borrowing another set of books in December.",
+      "recordedAt": null
     },
     {
       "id": "prop-library-diary",
-      "text": "The next library-card renewal is due by 30 November 2026; I will go to the branch so I can keep borrowing in December."
+      "text": "The next library-card renewal is due by 30 November 2026; I will go to the branch so I can keep borrowing in December.",
+      "recordedAt": null
     },
     {
       "id": "prop-reading-august-plan",
-      "text": "3 August 2026: I have set aside 9:30 to 10:00 each weekday evening for reading. This is my new routine after dinner."
+      "text": "3 August 2026: I have set aside 9:30 to 10:00 each weekday evening for reading. This is my new routine after dinner.",
+      "recordedAt": null
     },
     {
       "id": "prop-reading-august-revision",
-      "text": "18 August 2026: I kept falling asleep during the 9:30 evening reading slot, so I have moved my regular reading to 7:00 each weekday morning."
+      "text": "18 August 2026: I kept falling asleep during the 9:30 evening reading slot, so I have moved my regular reading to 7:00 each weekday morning.",
+      "recordedAt": null
     },
     {
       "id": "prop-reading-september-revision",
-      "text": "9 September 2026: Early work shifts made the weekday morning reading plan impractical. My regular reading time is now Saturday from 9:00 to 10:00 in the morning; weekday sessions will be occasional extras."
+      "text": "9 September 2026: Early work shifts made the weekday morning reading plan impractical. My regular reading time is now Saturday from 9:00 to 10:00 in the morning; weekday sessions will be occasional extras.",
+      "recordedAt": null
     },
     {
       "id": "prop-kitchen-repair",
-      "text": "10 September 2026: I replaced the kitchen tap washer. The dripping stopped, and the spare washer is in the blue toolbox."
+      "text": "10 September 2026: I replaced the kitchen tap washer. The dripping stopped, and the spare washer is in the blue toolbox.",
+      "recordedAt": null
     },
     {
       "id": "prop-circle-venue",
-      "text": "For our neighbourhood reading circle, I prefer the library discussion room because its step-free entrance makes it easier for everyone to get inside."
+      "text": "For our neighbourhood reading circle, I prefer the library discussion room because its step-free entrance makes it easier for everyone to get inside.",
+      "recordedAt": null
     },
     {
       "id": "prop-circle-format",
-      "text": "At our neighbourhood reading circle I would like five quiet minutes at the start so people can find a passage before we begin talking."
+      "text": "At our neighbourhood reading circle I would like five quiet minutes at the start so people can find a passage before we begin talking.",
+      "recordedAt": null
     },
     {
       "id": "prop-circle-books",
-      "text": "For the neighbourhood reading circle, I want us to choose short books that members can borrow from the library instead of having to buy a copy."
+      "text": "For the neighbourhood reading circle, I want us to choose short books that members can borrow from the library instead of having to buy a copy.",
+      "recordedAt": null
     },
     {
       "id": "prop-balcony-herbs",
-      "text": "The basil on my balcony wilts in the afternoon sun. I have moved its pot behind the taller rosemary plant for shade."
+      "text": "The basil on my balcony wilts in the afternoon sun. I have moved its pot behind the taller rosemary plant for shade.",
+      "recordedAt": null
     },
     {
       "id": "prop-reserved-seat",
-      "text": "My seat on the Thursday train is reserved: carriage 3, seat 18. I booked it for the visit to my aunt."
+      "text": "My seat on the Thursday train is reserved: carriage 3, seat 18. I booked it for the visit to my aunt.",
+      "recordedAt": null
     },
     {
       "id": "prop-reserved-conversation",
-      "text": "I was reserved when I first met the new neighbour. Once we started talking about her dog, conversation became easier."
+      "text": "I was reserved when I first met the new neighbour. Once we started talking about her dog, conversation became easier.",
+      "recordedAt": null
     },
     {
       "id": "prop-situated-self",
-      "text": "12 September 2026: In the programme meeting I was precise and decisive; over dinner with my old friends I was playful and happy to follow their lead. Both felt like me, even though I would not describe myself the same way in the two rooms. I promised to host our reading circle next month, and I still want to keep that promise when my mood shifts."
+      "text": "12 September 2026: In the programme meeting I was precise and decisive; over dinner with my old friends I was playful and happy to follow their lead. Both felt like me, even though I would not describe myself the same way in the two rooms. I promised to host our reading circle next month, and I still want to keep that promise when my mood shifts.",
+      "recordedAt": null
     }
   ],
   "scenes": [
