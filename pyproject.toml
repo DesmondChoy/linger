@@ -29,6 +29,12 @@ dev = [
     "pytest>=9.1.1",
 ]
 
+[tool.uv]
+# fastembed caps pillow below 13, which leaves 28 high and critical advisories
+# fixed only in 13.0.0. Linger uses fastembed's text and rerank models, never
+# its image path.
+override-dependencies = ["pillow>=13.0.0"]
+
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
