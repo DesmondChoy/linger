@@ -31,7 +31,7 @@ from src.linger.contracts.security_validation import (
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.contracts.reading import scope_fields
 from apps.backend.contracts import BookScope
-from apps.backend.librarian import RegisteredCorpusScope
+from apps.backend.librarian import CorpusScopeError, RegisteredCorpusScope
 from src.linger.corpus import registry
 from src.linger.corpus.registry import BookClarification, ResolvedBook, resolve_book_identity
 from src.linger.orchestration.connection import web_reach_permitted
@@ -141,10 +141,15 @@ CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\b", re
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
     r"(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
+# "I read on through ..." and "I read those pages" report progress, not a title.
+READ_PROGRESS = (
+    r"(?!\s+(?:through|on|ahead|further|past|until|up\s+to|as\s+far\s+as"
+    r"|those|these|this|that|it)\b)"
+)
 TITLE_PREFIX_PATTERN = re.compile(
     r"(?:\bi(?:'m| am)\s+(?:still\s+|also\s+)?reading|"
-    r"\bi(?:'ve|’ve| have)?\s+read(?!\s+through\b)|"
-    r"^\s*(?:reading|read(?!\s+through\b)))(?>\s+(?P<title>.+))$",
+    rf"\bi(?:'ve|’ve| have)?\s+read{READ_PROGRESS}|"
+    rf"^\s*(?:reading|read{READ_PROGRESS}))(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
 TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)(?>\s+(?P<title>.+))$", re.IGNORECASE)
@@ -162,9 +167,16 @@ TITLE_LEAD_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PROGRESS_ADVERBS = r"(?:(?:now|just|already|finally|recently|only|actually|really)\s+){0,2}"
+DECLARATION_SENTENCE_END_PATTERN = re.compile(
+    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)",
+    re.IGNORECASE,
+)
+# Only the sentence and clause that declare a title can hold it.
 TITLE_END_PATTERN = re.compile(
     rf"(?<!\s)\s*+(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
-    r"(?:read|finished|completed|through|up to|at|on)\b)",
+    r"(?:read|finished|completed|through|up to|at|on)\b"
+    rf"|\b(?:and|but)\s+(?:i\s+)?{PROGRESS_ADVERBS}(?:finished|completed)\b"
+    rf"|{DECLARATION_SENTENCE_END_PATTERN.pattern})",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
@@ -191,11 +203,35 @@ AFFIRMATION_PATTERN = re.compile(
 )
 
 
+def _without_chapter_title(after: str, chapter: int) -> str:
+    """Drop a registered title for this chapter: its "of", "in" or "from" names no book."""
+    titles = set()
+    for registration in registry.CORPORA.values():
+        book = registration.book
+        if book.book_version_id not in settings.allowed_book_version_ids:
+            continue
+        try:
+            units = librarian_service.units_for(book.work_id, book.book_version_id)
+        except CorpusScopeError:
+            continue
+        titles.update(unit.title for unit in units if unit.chapter_number == chapter and unit.title)
+    text = after.replace("’", "'")
+    for title in sorted(titles, key=len, reverse=True):
+        name = re.escape(title.replace("’", "'"))
+        label = re.match(rf"\s*[,(:—–-]?\s*{name}(?!\w)(?:\s*[,)])?", text, re.IGNORECASE)
+        if label:
+            return after[label.end():]
+    return after
+
+
 def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | None:
     if chapter_match:
         after = message[chapter_match.end():]
         before = message[:chapter_match.start()]
         title_match = TITLE_SUFFIX_PATTERN.match(after)
+        if title_match is None:
+            after = _without_chapter_title(after, int(chapter_match.group(1)))
+            title_match = TITLE_SUFFIX_PATTERN.match(after)
         if title_match is None:
             title_match = TITLE_PREFIX_PATTERN.search(before)
         if title_match is None:
@@ -231,10 +267,6 @@ NAMED_LOCATION_KINDS = {
 }
 NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
-DECLARATION_SENTENCE_END_PATTERN = re.compile(
-    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)",
-    re.IGNORECASE,
-)
 DECLARATION_END_PATTERN = re.compile(
     DECLARATION_SENTENCE_END_PATTERN.pattern + r"|(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
