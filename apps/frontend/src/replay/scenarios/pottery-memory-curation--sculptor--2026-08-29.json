@@ -12,63 +12,78 @@
   "props": [
     {
       "id": "prop-exact-notebook-a",
-      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+      "recordedAt": null
     },
     {
       "id": "prop-exact-notebook-b",
-      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+      "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+      "recordedAt": null
     },
     {
       "id": "prop-paraphrase-key-a",
-      "text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf."
+      "text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf.",
+      "recordedAt": null
     },
     {
       "id": "prop-paraphrase-key-b",
-      "text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio."
+      "text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.",
+      "recordedAt": null
     },
     {
       "id": "prop-summary-date-original",
-      "text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m."
+      "text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.",
+      "recordedAt": null
     },
     {
       "id": "prop-summary-date-moved",
-      "text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21."
+      "text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.",
+      "recordedAt": null
     },
     {
       "id": "prop-summary-date-confirmed",
-      "text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m."
+      "text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.",
+      "recordedAt": null
     },
     {
       "id": "prop-summary-noise-posters",
-      "text": "For the pottery open house, I chose indigo ink for the posters."
+      "text": "For the pottery open house, I chose indigo ink for the posters.",
+      "recordedAt": null
     },
     {
       "id": "prop-summary-noise-tea",
-      "text": "I ordered jasmine tea for the volunteers at the pottery open house."
+      "text": "I ordered jasmine tea for the volunteers at the pottery open house.",
+      "recordedAt": null
     },
     {
       "id": "prop-topic-ramp",
-      "text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway."
+      "text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.",
+      "recordedAt": null
     },
     {
       "id": "prop-topic-large-print",
-      "text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read."
+      "text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.",
+      "recordedAt": null
     },
     {
       "id": "prop-topic-quiet-room",
-      "text": "I reserved the small side room as a quiet break space during the pottery open house."
+      "text": "I reserved the small side room as a quiet break space during the pottery open house.",
+      "recordedAt": null
     },
     {
       "id": "prop-topic-distractor-receipt",
-      "text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder."
+      "text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder.",
+      "recordedAt": null
     },
     {
       "id": "prop-superficial-rib-tool",
-      "text": "I use a wooden rib tool to smooth clay slabs before trimming them."
+      "text": "I use a wooden rib tool to smooth clay slabs before trimming them.",
+      "recordedAt": null
     },
     {
       "id": "prop-superficial-rib-stretch",
-      "text": "My physiotherapist recommended rib stretches after rowing practice."
+      "text": "My physiotherapist recommended rib stretches after rowing practice.",
+      "recordedAt": null
     }
   ],
   "scenes": [

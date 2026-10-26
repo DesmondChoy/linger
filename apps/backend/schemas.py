@@ -183,8 +183,10 @@ class StoredMemory(BaseModel):
     memory_id: str
     kind: Literal["original", "derived_summary", "topic_group"]
     created_at: str
-    # The turn whose reply saved it; None for a curated item.
+    # The turn whose reply saved it; None for a curated item or a scenario Prop.
     source_turn_id: str | None = None
+    # The scenario Prop a reader loaded it from; None otherwise.
+    source_prop_id: str | None = None
     # The saved originals a curated item stands for; itself for an original.
     source_memory_ids: list[str]
     # False for an original that curation retired from search.
@@ -192,6 +194,43 @@ class StoredMemory(BaseModel):
     # Developer inspect only (LINGER_DEV_INSPECT).
     text: str | None = None
     topic_labels: list[str] = Field(default_factory=list)
+    # Originals curation linked to this one as the same memory.
+    duplicate_memory_ids: list[str] = Field(default_factory=list)
+    # The duplicate kept searchable in place of this retired original.
+    retired_for: str | None = None
+
+
+class CurationHistoryEntry(BaseModel):
+    """One applied curation event, oldest first in the history."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    event_id: str
+    applied_at: str
+    action: Literal[
+        "link_duplicates",
+        "update_derived_summary",
+        "assign_topic_group",
+        "tombstone_for_retrieval",
+        "restore_to_retrieval",
+    ]
+    source_memory_ids: list[str]
+    # The summary or topic group row this event created; None for other actions.
+    result_memory_id: str | None = None
+    # The original retired or restored, and the duplicate kept in its place.
+    memory_id: str | None = None
+    canonical_memory_id: str | None = None
+    # Summary text or topic label; developer inspect only.
+    text: str | None = None
+
+
+class ScenarioPropsLoaded(BaseModel):
+    """How many of a scenario's Props this load saved, and how many were already saved."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    loaded: int
+    already_saved: int
 
 
 class TurnInspection(BaseModel):

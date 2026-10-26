@@ -3,7 +3,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 
 import { formatMachineLabel } from './formatMachineLabel'
-import { Inspector, MemoryTableView, ReadingStateTable, TurnSummary } from './Inspector'
+import { Inspector, MemoryTableView, ReadingStateTable, TurnSummary, curationBadges } from './Inspector'
 import type { StoredMemory, TurnRecord } from '../types'
 
 describe('formatMachineLabel', () => {
@@ -113,8 +113,8 @@ it('renders per-agent seconds and the handoffs between agents', () => {
   const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
 
   expect(html).toContain('How the turn ran')
-  // Per-agent totals: Muse ran the whole 6.0s span, Serendipity 3.0s of it.
-  expect(html).toContain('Time per agent: Muse 6.0s · Serendipity 3.0s.')
+  // Muse's 6.0s draft spent 3.0s waiting on the Serendipity search it called.
+  expect(html).toContain('Time per agent: Muse 3.0s (+3.0s waiting) · Serendipity 3.0s.')
   expect(html).toContain('search rank select')
   expect(html).toContain('called by Muse')
   // Serendipity's bar starts a quarter of the way along the 6.0s turn and spans half of it.
@@ -155,7 +155,7 @@ it('reads one turn as facts, then each agent once, with idle agents on one line'
   expect(html).toContain('Provenance approved the Muse candidate (pass).')
   expect(html).not.toContain('Recorded review path')
   expect(html).not.toContain('Release decision')
-  expect(html).toContain('Not used: <span><b>Serendipity</b>, Muse did not call serendipity_explore for this turn</span>.')
+  expect(html).toContain('Not used: <span><b>Serendipity</b>: Muse did not call serendipity_explore for this turn.</span>')
   expect(html).not.toContain('not_applicable')
 })
 
@@ -304,30 +304,70 @@ it('lists only the memory IDs a turn saved, used, and could search', () => {
   const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turnWithMemoryStore()] }))
   expect(html).toMatch(/<dt>Saved this turn<\/dt><dd><code>mem_new<\/code><\/dd>/)
   expect(html).toMatch(/<dt>Used in the reply<\/dt><dd><code>summary_abc<\/code><\/dd>/)
-  expect(html).toMatch(/<dt>Searchable this turn<\/dt><dd><code>mem_old<\/code><code>summary_abc<\/code><\/dd>/)
+  expect(html).toMatch(/<dt>Searchable this turn \(2\)<\/dt><dd><code>mem_old<\/code><code>summary_abc<\/code><\/dd>/)
   expect(html).not.toContain('mem_retired')
   expect(html).not.toContain('I reread letters')
 })
 
 const STORED: StoredMemory[] = [
-  { memory_id: 'mem_new', kind: 'original', created_at: '2026-10-04T09:00:00+00:00', source_turn_id: 'turn-new', source_memory_ids: ['mem_new'], searchable: true, text: null, topic_labels: [] },
-  { memory_id: 'summary_abc', kind: 'derived_summary', created_at: '2026-10-03T09:00:00+00:00', source_turn_id: null, source_memory_ids: ['mem_old', 'mem_retired'], searchable: true, text: 'Rereads letters to feel close.', topic_labels: [] },
-  { memory_id: 'mem_retired', kind: 'original', created_at: '2026-10-02T09:00:00+00:00', source_turn_id: 'turn-elsewhere', source_memory_ids: ['mem_retired'], searchable: false, text: null, topic_labels: [] },
+  { memory_id: 'mem_new', kind: 'original', created_at: '2026-10-04T09:00:00+00:00', source_turn_id: 'turn-new', source_prop_id: null, source_memory_ids: ['mem_new'], searchable: true, text: null, topic_labels: [] },
+  { memory_id: 'summary_abc', kind: 'derived_summary', created_at: '2026-10-03T09:00:00+00:00', source_turn_id: null, source_prop_id: null, source_memory_ids: ['mem_old', 'mem_retired'], searchable: true, text: 'Rereads letters to feel close.', topic_labels: [] },
+  { memory_id: 'mem_retired', kind: 'original', created_at: '2026-10-02T09:00:00+00:00', source_turn_id: 'turn-elsewhere', source_prop_id: null, source_memory_ids: ['mem_retired'], searchable: false, text: null, topic_labels: [] },
+  { memory_id: 'mem_prop', kind: 'original', created_at: '2026-10-01T09:00:00+00:00', source_turn_id: null, source_prop_id: 'prop-05', source_memory_ids: ['mem_prop'], searchable: true, text: null, topic_labels: [] },
 ]
 
 it('tables every memory with when it was stored and its source, and offers Forget only on originals', () => {
   const html = renderToStaticMarkup(createElement(MemoryTableView, {
     rows: STORED, timeline: [turnWithMemoryStore()], forgetting: null, onForget: () => {},
   }))
-  expect(html).toContain('3 memories, 1 retired')
-  const rows = [...html.matchAll(/<tr( class="is-retired")?><td><time dateTime="([^"]+)">.*?<code>([^<]+)<\/code><\/td><td>([^<]+)<\/td><td>([^<]+)<\/td><td><span[^>]*>([^<]+)<\/span><\/td><td class="memory-text">([^<]+)<\/td><td>(.*?)<\/td><\/tr>/g)]
-    .map((row) => [row[3], row[2], row[4], row[5], row[6], row[7], row[8].includes('Forget')])
+  expect(html).toContain('4 memories, 1 retired')
+  const rows = [...html.matchAll(/<tr( class="is-retired")?><td><time dateTime="([^"]+)">.*?<td class="memory-id"><code[^>]*>([^<]+)<\/code><\/td><td class="memory-text">([^<]+)<\/td><td>([^<]+)<\/td><td>([^<]+)<\/td><td><span[^>]*>([^<]+)<\/span><\/td><td class="memory-curation">(.*?)<\/td><td>(.*?)<\/td><\/tr>/g)]
+    .map((row) => [row[3], row[2], row[5], row[6], row[7], row[8].split(/<[^>]*>/).join(''), row[4], row[9].includes('Forget')])
   expect(rows).toEqual([
-    ['mem_new', '2026-10-04T09:00:00+00:00', 'Original', 'Reader message 01', 'Searchable', '—', true],
-    ['summary_abc', '2026-10-03T09:00:00+00:00', 'Summary', 'Curated from mem_old, mem_retired', 'Searchable', 'Rereads letters to feel close.', false],
-    ['mem_retired', '2026-10-02T09:00:00+00:00', 'Original', 'Another conversation', 'Retired', '—', true],
+    ['mem_new', '2026-10-04T09:00:00+00:00', 'Original', 'Reader message 01', 'Searchable', '—', '—', true],
+    ['summary_abc', '2026-10-03T09:00:00+00:00', 'Summary', 'Curated from mem_old, mem_retired', 'Searchable', 'Covers 2 memories', 'Rereads letters to feel close.', false],
+    ['mem_retired', '2026-10-02T09:00:00+00:00', 'Original', 'Another conversation', 'Retired', 'In summary', '—', true],
+    ['mem_prop', '2026-10-01T09:00:00+00:00', 'Original', 'Scenario Prop prop-05', 'Searchable', '—', '—', true],
   ])
   expect(html).not.toContain('apps.backend.show_memories')
+})
+
+const LINKED: StoredMemory[] = [
+  { ...STORED[3], memory_id: 'mem_kept', duplicate_memory_ids: ['mem_copy'] },
+  { ...STORED[2], memory_id: 'mem_copy', duplicate_memory_ids: ['mem_kept'], retired_for: 'mem_kept' },
+  { ...STORED[3], memory_id: 'mem_open', source_prop_id: 'prop-06' },
+  { ...STORED[1], memory_id: 'topic_x', kind: 'topic_group', text: null, topic_labels: ['Open house'], source_memory_ids: ['mem_open', 'mem_kept'] },
+]
+
+it('tags every curation link a row takes part in, each highlighting its own group', () => {
+  const byId = Object.fromEntries(LINKED.map((row) => [row.memory_id, curationBadges(row, LINKED)]))
+  const view = (id: string) => byId[id].map((badge) => [badge.label, [...badge.highlight.ids].sort()])
+  expect(view('mem_kept')).toEqual([
+    ['Topic · Open house', ['mem_kept', 'mem_open', 'topic_x']],
+    ['Duplicate of mem_copy', ['mem_copy', 'mem_kept']],
+  ])
+  expect(view('mem_copy')).toEqual([['Retired · duplicate of mem_kept', ['mem_copy', 'mem_kept']]])
+  expect(view('topic_x')).toEqual([['Covers 2 memories', ['mem_kept', 'mem_open', 'topic_x']]])
+  // Both ends of one duplicate link highlight the same group.
+  expect(byId.mem_kept[1].highlight.key).toBe(byId.mem_copy[0].highlight.key)
+})
+
+it('keeps rows in stored order and lists applied curation as a history', () => {
+  const html = renderToStaticMarkup(createElement(MemoryTableView, {
+    rows: LINKED,
+    timeline: [],
+    history: [
+      { event_id: 'cur_1', applied_at: '2026-10-05T09:00:00+00:00', action: 'link_duplicates', source_memory_ids: ['mem_kept', 'mem_copy'], result_memory_id: null, memory_id: null, canonical_memory_id: null, text: null },
+      { event_id: 'cur_2', applied_at: '2026-10-05T09:01:00+00:00', action: 'tombstone_for_retrieval', source_memory_ids: ['mem_copy', 'mem_kept'], result_memory_id: null, memory_id: 'mem_copy', canonical_memory_id: 'mem_kept', text: null },
+      { event_id: 'cur_3', applied_at: '2026-10-05T09:02:00+00:00', action: 'restore_to_retrieval', source_memory_ids: ['mem_copy'], result_memory_id: null, memory_id: 'mem_copy', canonical_memory_id: null, text: null },
+    ],
+  }))
+  expect([...html.matchAll(/<tr[^>]*><td><time[^>]*>.*?<code>([^<]+)<\/code>/g)].map((row) => row[1]))
+    .toEqual(['mem_kept', 'mem_copy', 'mem_open', 'topic_x'])
+  expect(html).toContain('Linked mem_kept and mem_copy as duplicates')
+  expect(html).toContain('Retired mem_copy from search; mem_kept stays searchable')
+  expect(html).toContain('Restored mem_copy to search')
+  expect(html).not.toContain('Last curation')
 })
 
 it('disables every Forget button while one memory is being forgotten', () => {
@@ -335,5 +375,52 @@ it('disables every Forget button while one memory is being forgotten', () => {
     rows: STORED, timeline: [], forgetting: 'mem_new', onForget: () => {},
   }))
   expect(html).toContain('Forgetting…')
-  expect(html.match(/<button[^>]*disabled=""[^>]*>/g)).toHaveLength(2)
+  expect(html.match(/<button[^>]*disabled=""[^>]*>/g)).toHaveLength(3)
+})
+
+it('shows a recorded run read-only: no Forget, its own note, and undated Props', () => {
+  const html = renderToStaticMarkup(createElement(MemoryTableView, {
+    rows: [{ ...STORED[3], created_at: '', text: 'My kiln notebook is in the second drawer.' }],
+    timeline: [],
+    note: 'Recorded run note.',
+  }))
+  expect(html).toContain('Recorded run note.')
+  expect(html).toContain('Undated')
+  expect(html).toContain('Scenario Prop prop-05')
+  expect(html).not.toContain('Forget')
+  expect(html).not.toContain('LINGER_DEV_INSPECT')
+})
+
+it('reads a no-book turn without restating the boundary, release, or decline', () => {
+  const turn = exampleTurn()
+  turn.inspection.release = { ...turn.inspection.release!, release_source: 'muse_candidate', provenance_verdicts: ['pass'] }
+  turn.inspection.connection_decline = { reason: 'no_matching_memory', failure_code: null }
+  turn.inspection.traces = [
+    { agent: 'Serendipity', status: 'declined', detail: 'Serendipity returned a typed decline; no diagnostic content was exposed.' },
+    { agent: 'Muse', status: 'complete', detail: 'Provenance and deterministic release validation approved the candidate that was released.' },
+    { agent: 'Provenance', status: 'complete', detail: 'Recorded review path: pass.' },
+  ]
+  const at = (sequence: number, elapsed_ms: number, agent: 'Muse' | 'Provenance' | 'Serendipity', stage: string, status: 'running' | 'complete', input_origin: 'Application' | 'Muse' = 'Application') => (
+    { sequence, elapsed_ms, agent, stage, status, detail: '', input_origin, output_receiver: input_origin }
+  )
+  turn.progress = [
+    at(1, 0, 'Provenance', 'emotional_boundary_preflight', 'running'),
+    at(2, 3000, 'Provenance', 'emotional_boundary_preflight', 'complete'),
+    at(3, 3000, 'Muse', 'draft', 'running'),
+    at(4, 5000, 'Serendipity', 'memory_recall', 'running', 'Muse'),
+    at(5, 9000, 'Serendipity', 'memory_recall', 'complete', 'Muse'),
+    at(6, 12000, 'Muse', 'draft', 'complete'),
+  ]
+
+  const html = renderToStaticMarkup(createElement(TurnSummary, { turn, position: 6 }))
+
+  expect(html).toContain('No book in play')
+  expect(html).not.toContain('No confirmed book')
+  expect(html).toContain('Drafted the reply that was released, calling Serendipity.')
+  expect(html).not.toContain('deterministic release validation')
+  expect(html).toContain('The emotional-boundary preflight let reflection continue.')
+  expect(html).toContain('Declined to surface a connection: no matching memory.')
+  expect(html).not.toContain('typed decline')
+  expect(html).not.toContain('Connection contract')
+  expect(html).toContain('Time per agent: Provenance 3.0s · Muse 5.0s (+4.0s waiting) · Serendipity 4.0s.')
 })

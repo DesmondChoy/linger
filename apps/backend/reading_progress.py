@@ -110,6 +110,8 @@ def _words(text: str) -> str:
 def _earlier_places(slot: sessions.ReadingProgress) -> set[str]:
     """Multi-word catalog titles and locations from chapters before the slot."""
     places = set()
+    if slot.chapter_max is None:
+        return places
     for unit in librarian_service.units_for(slot.work_id, slot.book_version_id):
         if unit.part_id != slot.part_id or unit.chapter_number is None or unit.chapter_number >= slot.chapter_max:
             continue
@@ -165,7 +167,7 @@ def effective_saved_readings(
                 readings[work_id] = ConfirmedReading(
                     work_id=work_id, chapter_max=progress.chapter_max, part_id=progress.part_id,
                 )
-    if resolution.status == "confirmed" or not saved:
+    if resolution.status == "confirmed":
         return EffectiveSavedReadings(readings)
     work_id = resolution.work_id
     route = librarian_service.route_work(request.message, get_settings().allowed_book_version_ids)
@@ -173,20 +175,29 @@ def effective_saved_readings(
         work_id = route.scope.work_id
     # An old session tombstone masks permission, but a new withdrawal must still
     # revoke progress the reader confirmed in another conversation meanwhile.
+    selection = sessions.book_selection(request.session_id)
     current = readings.get(work_id) or saved.get(work_id)
     if current is None:
+        if work_id is None:
+            return EffectiveSavedReadings(readings)
+        version = librarian_service.version_for(work_id)
+        if version not in get_settings().allowed_book_version_ids:
+            return EffectiveSavedReadings(readings)
+        part_id = selection.part_id if selection is not None and selection.book_id == work_id else resolution.part_id
+        if librarian_service.registered_scope(work_id, version, part_id=part_id) is None:
+            return EffectiveSavedReadings(readings)
+        progress = sessions.ReadingProgress(work_id, version, part_id, chapter_max=None)
+    else:
+        progress = sessions.ReadingProgress(
+            current.work_id, librarian_service.version_for(current.work_id), current.part_id, current.chapter_max,
+        )
+    if selection is not None and selection.book_id == progress.work_id and selection.part_id != progress.part_id:
+        readings.pop(progress.work_id, None)
         return EffectiveSavedReadings(readings)
-    selection = sessions.book_selection(request.session_id)
-    if selection is not None and selection.book_id == current.work_id and selection.part_id != current.part_id:
-        readings.pop(current.work_id, None)
-        return EffectiveSavedReadings(readings)
-    progress = sessions.ReadingProgress(
-        current.work_id, librarian_service.version_for(current.work_id), current.part_id, current.chapter_max,
-    )
     if unparsed_progress(request.message, progress, parser_patterns):
         withdrawn = replace(progress, chapter_max=None)
         _retract(request.session_id, withdrawn)
-        readings.pop(current.work_id, None)
+        readings.pop(progress.work_id, None)
         return EffectiveSavedReadings(readings, withdrawn)
     return EffectiveSavedReadings(readings)
 
@@ -256,6 +267,22 @@ def commit(session_id: str, pending: PendingProgress | None, release_source: Rel
         and sessions.reading_progress(session_id) is pending.expected
     ):
         sessions.set_reading_progress(session_id, pending.declared)
+
+
+def reconcile_stale(
+    session_id: str, proposed: sessions.ReadingProgress, current: ConfirmedReading | None,
+) -> None:
+    """Clamp a superseded turn's session permission and hide its obsolete reader statements."""
+    active = sessions.reading_progress(session_id)
+    retained = sessions.reading_progress_for(session_id, proposed.work_id) or proposed
+    chapter = retained.chapter_max
+    if current is None or current.chapter_max is None or current.part_id != retained.part_id:
+        chapter = None
+    elif chapter is not None:
+        chapter = min(chapter, current.chapter_max)
+    _retract(session_id, replace(retained, chapter_max=chapter))
+    if active is None or active.work_id != proposed.work_id:
+        sessions.set_reading_progress(session_id, active)
 
 
 def permitted_evidence(session_id: str, records: Iterable[EvidenceRecord]) -> tuple[EvidenceRecord, ...]:

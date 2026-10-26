@@ -13,11 +13,13 @@
   "props": [
     {
       "id": "alice-pool-memory",
-      "text": "Last Thursday I read Alice's Adventures in Wonderland on the train. Alice had been swimming in her own tears, and she kept upsetting the Mouse by talking about her cat and then a dog. I put the book down when she and the animals swam ashore. I recognised that awful urge to keep talking when I can feel a conversation going wrong."
+      "text": "Last Thursday I read Alice's Adventures in Wonderland on the train. Alice had been swimming in her own tears, and she kept upsetting the Mouse by talking about her cat and then a dog. I put the book down when she and the animals swam ashore. I recognised that awful urge to keep talking when I can feel a conversation going wrong.",
+      "recordedAt": null
     },
     {
       "id": "alice-bottle-memory",
-      "text": "I was reading Alice's Adventures in Wonderland in little scraps a few weeks ago. The bit that stuck was Alice drinking from a bottle and ending up the wrong size to get where she wanted. I remember laughing, but I've mixed up the setting and what came before it. I lost the paper bookmark when I changed bags."
+      "text": "I was reading Alice's Adventures in Wonderland in little scraps a few weeks ago. The bit that stuck was Alice drinking from a bottle and ending up the wrong size to get where she wanted. I remember laughing, but I've mixed up the setting and what came before it. I lost the paper bookmark when I changed bags.",
+      "recordedAt": null
     }
   ],
   "scenes": [

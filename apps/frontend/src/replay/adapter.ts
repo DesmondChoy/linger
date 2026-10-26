@@ -9,9 +9,10 @@ import type {
   MuseTurnContract,
   ProgressEvent,
   ReleaseInspection,
+  StoredMemory,
   TurnRecord,
 } from '../types'
-import type { Persona, PersonaRun, PlannedScene, RecordedExchange, RecordedScene, RecordedTurn } from './types'
+import type { Scenario, ScenarioRun, PlannedScene, RecordedExchange, RecordedScene, RecordedTurn } from './types'
 
 /** Shown wherever a recorded run kept no value, so nothing is invented to fill the gap. */
 export const NOT_RECORDED = 'Not recorded in this run.'
@@ -189,9 +190,9 @@ function record(options: {
   }
 }
 
-function curationPrompt(scene: PlannedScene, persona: Persona, recorded: { id: string; text: string }[]): string {
+function curationPrompt(scene: PlannedScene, scenario: Scenario, recorded: { id: string; text: string }[]): string {
   // The memories Sculptor actually received, falling back to the Scene's planned Props.
-  const props = recorded.length ? recorded : persona.props.filter((prop) => scene.propIds.includes(prop.id))
+  const props = recorded.length ? recorded : scenario.props.filter((prop) => scene.propIds.includes(prop.id))
   const listed = props.map((prop) => `• ${prop.text}`).join('\n')
   return `Offline curation task (no reader message). Sculptor was given ${props.length} saved ${props.length === 1 ? 'memory' : 'memories'}:\n${listed}`
 }
@@ -219,7 +220,30 @@ function grading(scene: RecordedScene, planned: PlannedScene | undefined): TurnR
   }
 }
 
-export type Replay = { messages: Message[]; timeline: TurnRecord[] }
+export type Replay = { messages: Message[]; timeline: TurnRecord[]; memories: StoredMemory[] }
+
+function memoryRow(row: Pick<StoredMemory, 'memory_id' | 'text'> & Partial<StoredMemory>): StoredMemory {
+  return {
+    kind: 'original', created_at: '', source_turn_id: null, source_prop_id: null,
+    source_memory_ids: [row.memory_id], searchable: true, topic_labels: [], ...row,
+  }
+}
+
+/** A curation Scene's applied summary or topic group, in the shape the memory table lists. */
+function curatedRow(scene: RecordedScene): StoredMemory | null {
+  const response = scene.curation?.response
+  if (scene.curation?.status !== 'applied' || response?.kind !== 'curation_proposal') return null
+  const action = (response.action ?? {}) as Record<string, unknown>
+  const sources = Array.isArray(action.source_memory_ids) ? action.source_memory_ids.map(String) : []
+  const memory_id = `${scene.sceneId} result`
+  if (action.action === 'update_derived_summary') {
+    return memoryRow({ memory_id, kind: 'derived_summary', source_memory_ids: sources, text: String(action.summary ?? '') })
+  }
+  if (action.action === 'assign_topic_group') {
+    return memoryRow({ memory_id, kind: 'topic_group', source_memory_ids: sources, text: null, topic_labels: [String(action.topic_label ?? '')] })
+  }
+  return null
+}
 
 /**
  * Turn one recorded run into the chat feed and turn records the live UI renders.
@@ -227,18 +251,34 @@ export type Replay = { messages: Message[]; timeline: TurnRecord[] }
  * Each Scene opens its own labelled conversation; its answer key rides on the
  * Scene's last turn so the turn summary can show it beside what was recorded.
  */
-export function replayRun(persona: Persona, run: PersonaRun): Replay {
-  const planned = new Map(persona.scenes.map((scene) => [scene.id, scene]))
+export function replayRun(scenario: Scenario, run: ScenarioRun): Replay {
+  const planned = new Map(scenario.scenes.map((scene) => [scene.id, scene]))
   const ordered = [...run.scenes].sort((a, b) => (planned.get(a.sceneId)?.order ?? 0) - (planned.get(b.sceneId)?.order ?? 0))
   const messages: Message[] = []
   const timeline: TurnRecord[] = []
+  const memories: StoredMemory[] = scenario.props.map((prop) => memoryRow({
+    memory_id: prop.id, created_at: prop.recordedAt ?? '', source_prop_id: prop.id, text: prop.text,
+  }))
+  // An applied duplicate link adds no row; mark it on the Props it links instead.
+  for (const scene of ordered) {
+    const response = scene.curation?.response
+    if (scene.curation?.status !== 'applied' || response?.kind !== 'curation_proposal') continue
+    const action = (response.action ?? {}) as Record<string, unknown>
+    if (action.action !== 'link_duplicates' || !Array.isArray(action.source_memory_ids)) continue
+    const linked = action.source_memory_ids.map(String)
+    for (const row of memories) {
+      if (!linked.includes(row.memory_id)) continue
+      const others = linked.filter((id) => id !== row.memory_id)
+      row.duplicate_memory_ids = [...new Set([...(row.duplicate_memory_ids ?? []), ...others])]
+    }
+  }
   ordered.forEach((scene, sceneIndex) => {
     const plan = planned.get(scene.sceneId)
     const sessionId = `${run.id}:${scene.sceneId}`
     const label = `Scene ${sceneIndex + 1} · ${scene.sceneId} · ${scene.status}`
     const turns: { userMessage: string; reply: string; turn: RecordedTurn }[] = scene.curation && plan
       ? [{
-        userMessage: curationPrompt(plan, persona, scene.curation.inputMemories),
+        userMessage: curationPrompt(plan, scenario, scene.curation.inputMemories),
         reply: curationReply(scene.curation.response),
         turn: {
           userMessage: '', reply: '', releaseSource: null, provenanceVerdicts: [], capture: null,
@@ -257,7 +297,12 @@ export function replayRun(persona: Persona, run: PersonaRun): Replay {
         id, sessionId, userMessage: item.userMessage, reply: item.reply, turn: item.turn,
         grading: turnIndex === turns.length - 1 ? grading(scene, plan) : undefined,
       }))
+      const saved = item.turn.capturedMemory
+      // A retried capture saves the same memory again; list it once.
+      if (saved?.memoryId && !memories.some((row) => row.memory_id === saved.memoryId)) memories.push(memoryRow({ memory_id: saved.memoryId, source_turn_id: id, text: saved.text }))
     })
+    const curated = curatedRow(scene)
+    if (curated) memories.push(curated)
   })
-  return { messages, timeline }
+  return { messages, timeline, memories }
 }

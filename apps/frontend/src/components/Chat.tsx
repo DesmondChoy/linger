@@ -18,10 +18,10 @@ type Props = {
   username: string
   onHome: () => void
   onSignOut: () => void
-  onOpenPersonas: () => void
+  onOpenScenarios: () => void
 }
 
-export function Chat({ username, onHome, onSignOut, onOpenPersonas }: Props) {
+export function Chat({ username, onHome, onSignOut, onOpenScenarios }: Props) {
   // Earlier conversations sit above in the same feed; each sign-in starts a new one.
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID())
   const [historyLoaded, setHistoryLoaded] = useState(false)
@@ -204,7 +204,7 @@ export function Chat({ username, onHome, onSignOut, onOpenPersonas }: Props) {
           onFill={(text) => composer.current?.fill(text)}
           onNewChat={handleNewChat}
           canStartNewChat={conversationHasTurns}
-          onOpenPersonas={onOpenPersonas}
+          onOpenScenarios={onOpenScenarios}
         />
         <Composer ref={composer} disabled={pending || !historyLoaded} onSend={handleSend} />
       </section>

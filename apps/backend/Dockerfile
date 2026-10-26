@@ -16,6 +16,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY apps/backend apps/backend
 COPY src src
 COPY data/corpus data/corpus
+COPY apps/frontend/src/replay/scenarios apps/frontend/src/replay/scenarios
 RUN uv sync --frozen --no-dev
 
 RUN groupadd --system linger \

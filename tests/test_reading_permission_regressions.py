@@ -17,6 +17,7 @@ from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
+from src.linger.contracts.librarian import BoundaryUncertain
 from src.linger.contracts.triage import TurnNeeds
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration import routing, turn_context
@@ -147,6 +148,50 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.store.get(self.account.account_id, ALICE))
         self.assertIsNone(sessions.reading_progress(self.session_id).chapter_max)
 
+    async def test_completion_in_second_book_sentence_persists_only_that_book(self):
+        response = await self.turn(
+            "I'm reading Alice's Adventures in Wonderland. In Animal Farm, "
+            "I've finished chapter 5."
+        )
+
+        self.assertEqual("pga0100011", response.inspection.muse_turn["reading_context"]["work_id"])
+        self.assertIsNone(self.store.get(self.account.account_id, ALICE))
+        self.assertEqual(5, self.store.get(self.account.account_id, "pga0100011").chapter_max)
+
+        sessions.clear(self.session_id)
+        await self.turn("In Animal Farm, why do the animals accept Napoleon's decisions?", route=True)
+
+        self.assertEqual([("pga0100011", 5)], [
+            (result["work_id"], result["max_chapter_inclusive"]) for result in self.routes
+            if result["kind"] == "routed"
+        ])
+
+    async def test_new_title_starting_with_on_cannot_persist_the_previous_books_progress(self):
+        await self.turn("I've finished chapter 2 of Alice's Adventures in Wonderland.")
+        response = await self.turn(
+            "I read On the Road by Jack Kerouac last night. I've finished Chapter 5."
+        )
+
+        self.assertIsNone(response.inspection.muse_turn["reading_context"])
+        saved = self.store.get(self.account.account_id, ALICE)
+        self.assertTrue(saved is None or saved.chapter_max == 2)
+        self.assertIsNone(sessions.book_selection(self.session_id))
+
+        sessions.clear(self.session_id)
+        uncertain = BoundaryUncertain(
+            kind="uncertain", work_id=ALICE,
+            book_version_id=chat_turn.librarian_service.version_for(ALICE),
+            reason_code="insufficient_context", clarification_question="Which chapter have you finished?",
+        )
+        with patch.object(routing, "infer_spoiler_boundary", AsyncMock(return_value=uncertain)):
+            await self.turn(BOOK_QUESTION, route=True)
+
+        self.assertTrue(self.routes)
+        for result in self.routes:
+            self.assertTrue(result["kind"] == "clarification" or (
+                result["kind"] == "routed" and result["max_chapter_inclusive"] == 2
+            ))
+
     async def test_qualified_completion_cannot_raise_persisted_progress(self):
         for message in QUALIFIED_COMPLETIONS:
             with self.subTest(message=message):
@@ -170,7 +215,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         infer.assert_not_awaited()
 
     async def test_new_conversation_retraction_withholds_saved_routing(self):
-        self.store.record(self.account.account_id, SavedProgress(ALICE, "main", 9))
+        self.store.release(self.store.declare(self.account.account_id, SavedProgress(ALICE, "main", 9)))
         infer = AsyncMock(side_effect=AssertionError("A retraction requires reader confirmation."))
         with patch.object(routing, "infer_spoiler_boundary", infer):
             await self.turn(f"{RETRACTION} {BOOK_QUESTION}", route=True)
@@ -182,7 +227,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_retraction_withholds_comparison_on_this_and_later_turns(self):
         await self.turn("I've finished chapter 9 of Alice's Adventures in Wonderland.")
         for work_id in ("pg500", "pg23"):
-            self.store.record(self.account.account_id, SavedProgress(work_id, "main", 4))
+            self.store.release(self.store.declare(self.account.account_id, SavedProgress(work_id, "main", 4)))
 
         first = await self.turn(f"{RETRACTION} Does it connect to anything else?", comparison=True)
         following = await self.turn("Does it connect to anything else?", comparison=True)
@@ -216,7 +261,7 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_correction_targets_its_book_and_preserves_other_comparison_permissions(self):
         await self.turn("I've finished chapter 9 of Alice's Adventures in Wonderland.")
         await self.turn("I've finished chapter 4 of Pinocchio.")
-        self.store.record(self.account.account_id, SavedProgress("pg23", "main", 4))
+        self.store.release(self.store.declare(self.account.account_id, SavedProgress("pg23", "main", 4)))
         await self.turn(RETRACTION)
 
         self.assertIsNone(sessions.reading_progress_for(self.session_id, ALICE).chapter_max)

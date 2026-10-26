@@ -25,6 +25,7 @@ SAFE_AGENTS = frozenset(
 # so new instrumentation cannot leak a stage label that describes content.
 SAFE_STAGE_LABELS = {
     "emotional_boundary_preflight": "Emotional boundary preflight",
+    "turn_triage": "Turn triage",
     "boundary_inference": "Spoiler boundary inference",
     "draft": "Muse candidate generation",
     "revision": "Muse candidate revision",
