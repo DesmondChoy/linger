@@ -17,6 +17,7 @@ from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
+from src.linger.contracts.librarian import BoundaryUncertain
 from src.linger.contracts.triage import TurnNeeds
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration import routing, turn_context
@@ -146,6 +147,50 @@ class ReadingPermissionPipelineTests(unittest.IsolatedAsyncioTestCase):
         # Withdrawing the ceiling here also erases it for later conversations.
         self.assertIsNone(self.store.get(self.account.account_id, ALICE))
         self.assertIsNone(sessions.reading_progress(self.session_id).chapter_max)
+
+    async def test_completion_in_second_book_sentence_persists_only_that_book(self):
+        response = await self.turn(
+            "I'm reading Alice's Adventures in Wonderland. In Animal Farm, "
+            "I've finished chapter 5."
+        )
+
+        self.assertEqual("pga0100011", response.inspection.muse_turn["reading_context"]["work_id"])
+        self.assertIsNone(self.store.get(self.account.account_id, ALICE))
+        self.assertEqual(5, self.store.get(self.account.account_id, "pga0100011").chapter_max)
+
+        sessions.clear(self.session_id)
+        await self.turn("In Animal Farm, why do the animals accept Napoleon's decisions?", route=True)
+
+        self.assertEqual([("pga0100011", 5)], [
+            (result["work_id"], result["max_chapter_inclusive"]) for result in self.routes
+            if result["kind"] == "routed"
+        ])
+
+    async def test_new_title_starting_with_on_cannot_persist_the_previous_books_progress(self):
+        await self.turn("I've finished chapter 2 of Alice's Adventures in Wonderland.")
+        response = await self.turn(
+            "I read On the Road by Jack Kerouac last night. I've finished Chapter 5."
+        )
+
+        self.assertIsNone(response.inspection.muse_turn["reading_context"])
+        saved = self.store.get(self.account.account_id, ALICE)
+        self.assertTrue(saved is None or saved.chapter_max == 2)
+        self.assertIsNone(sessions.book_selection(self.session_id))
+
+        sessions.clear(self.session_id)
+        uncertain = BoundaryUncertain(
+            kind="uncertain", work_id=ALICE,
+            book_version_id=chat_turn.librarian_service.version_for(ALICE),
+            reason_code="insufficient_context", clarification_question="Which chapter have you finished?",
+        )
+        with patch.object(routing, "infer_spoiler_boundary", AsyncMock(return_value=uncertain)):
+            await self.turn(BOOK_QUESTION, route=True)
+
+        self.assertTrue(self.routes)
+        for result in self.routes:
+            self.assertTrue(result["kind"] == "clarification" or (
+                result["kind"] == "routed" and result["max_chapter_inclusive"] == 2
+            ))
 
     async def test_qualified_completion_cannot_raise_persisted_progress(self):
         for message in QUALIFIED_COMPLETIONS:

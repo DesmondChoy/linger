@@ -31,7 +31,7 @@ from src.linger.contracts.security_validation import (
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.contracts.reading import scope_fields
 from apps.backend.contracts import BookScope
-from apps.backend.librarian import RegisteredCorpusScope
+from apps.backend.librarian import CorpusScopeError, RegisteredCorpusScope
 from src.linger.corpus import registry
 from src.linger.corpus.registry import BookClarification, ResolvedBook, resolve_book_identity
 from src.linger.orchestration.connection import web_reach_permitted
@@ -141,10 +141,16 @@ CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\b", re
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
     r"(?:chapter|ch\.?)\s*+[:#]?\s*+([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
+# Match progress phrases, not single words that can begin a book title.
+READ_PROGRESS = (
+    r"(?!\s+(?:through\b"
+    r"|(?:on|ahead|further)(?:\s+(?:through|to|until|past)\b|\s*(?:[.!?;]|$))"
+    r"|(?:those|these|this|that)\s+(?:pages?|chapters?|sections?|passages?)\b))"
+)
 TITLE_PREFIX_PATTERN = re.compile(
     r"(?:\bi(?:'m| am)\s+(?:still\s+|also\s+)?reading|"
-    r"\bi(?:'ve|’ve| have)?\s+read(?!\s+through\b)|"
-    r"^\s*(?:reading|read(?!\s+through\b)))(?>\s+(?P<title>.+))$",
+    rf"\bi(?:'ve|’ve| have)?\s+read{READ_PROGRESS}|"
+    rf"^\s*(?:reading|read{READ_PROGRESS}))(?>\s+(?P<title>.+))$",
     re.IGNORECASE,
 )
 TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)(?>\s+(?P<title>.+))$", re.IGNORECASE)
@@ -162,9 +168,16 @@ TITLE_LEAD_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PROGRESS_ADVERBS = r"(?:(?:now|just|already|finally|recently|only|actually|really)\s+){0,2}"
+DECLARATION_SENTENCE_END_PATTERN = re.compile(
+    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)",
+    re.IGNORECASE,
+)
+# Only the sentence and clause that declare a title can hold it.
 TITLE_END_PATTERN = re.compile(
     rf"(?<!\s)\s*+(?:,|;|\band\s+i(?:'m| am| have|['’]ve|['’]d| had)\s+{PROGRESS_ADVERBS}"
-    r"(?:read|finished|completed|through|up to|at|on)\b)",
+    r"(?:read|finished|completed|through|up to|at|on)\b"
+    rf"|\b(?:and|but)\s+(?:i\s+)?{PROGRESS_ADVERBS}(?:finished|completed)\b"
+    rf"|{DECLARATION_SENTENCE_END_PATTERN.pattern})",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
@@ -191,13 +204,56 @@ AFFIRMATION_PATTERN = re.compile(
 )
 
 
+def _without_chapter_title(after: str, chapter: int) -> str:
+    """Drop a registered title for this chapter: its "of", "in" or "from" names no book."""
+    titles = set()
+    for registration in registry.CORPORA.values():
+        book = registration.book
+        if book.book_version_id not in settings.allowed_book_version_ids:
+            continue
+        try:
+            units = librarian_service.units_for(book.work_id, book.book_version_id)
+        except CorpusScopeError:
+            continue
+        titles.update(unit.title for unit in units if unit.chapter_number == chapter and unit.title)
+    text = after.replace("’", "'")
+    for title in sorted(titles, key=len, reverse=True):
+        name = re.escape(title.replace("’", "'"))
+        label = re.match(rf"\s*+[,(:—–-]?\s*+{name}(?!\w)(?:\s*[,)])?", text, re.IGNORECASE)
+        if label:
+            return after[label.end():]
+    return after
+
+
+def _last_title_prefix(message: str) -> re.Match[str] | None:
+    unquoted = reading_progress.mask_quotes(message)
+    starts = [0, *(match.end() for match in DECLARATION_SENTENCE_END_PATTERN.finditer(unquoted))]
+    ends = [*starts[1:], len(message)]
+    for start, end in reversed(list(zip(starts, ends))):
+        if match := TITLE_PREFIX_PATTERN.search(unquoted[start:end]):
+            prefix = unquoted[start:start + match.start()]
+            report = re.search(r"\b(?:said|says|wrote|writes|told\s+me)\s*:\s*$", prefix, re.IGNORECASE)
+            if report and not re.search(
+                rf"\bi(?:['’]ve|['’]d| have| had)?\s+{PROGRESS_ADVERBS}$",
+                prefix[:report.start()], re.IGNORECASE,
+            ):
+                continue
+            # Keep a quoted book title, but never a declaration inside a quote.
+            return TITLE_PREFIX_PATTERN.search(message[start:end], match.start())
+    return None
+
+
 def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | None:
     if chapter_match:
-        after = message[chapter_match.end():]
-        before = message[:chapter_match.start()]
+        start, end = _declaration_bounds(reading_progress.mask_quotes(message), chapter_match)
+        after = message[chapter_match.end():end]
+        before = message[start:chapter_match.start()]
         title_match = TITLE_SUFFIX_PATTERN.match(after)
         if title_match is None:
-            title_match = TITLE_PREFIX_PATTERN.search(before)
+            after = _without_chapter_title(after, int(chapter_match.group(1)))
+            title_match = TITLE_SUFFIX_PATTERN.match(after)
+        if title_match is None:
+            title_match = _last_title_prefix(before)
         if title_match is None:
             suffix = re.split(r"[.!?]", after, maxsplit=1)[0]
             candidate = TITLE_SUFFIX_SEARCH_PATTERN.search(suffix)
@@ -211,8 +267,10 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
                     title_match = candidate
         if title_match is None:
             title_match = TITLE_LEAD_PATTERN.match(before)
+        if title_match is None:
+            title_match = _last_title_prefix(message[:start])
     else:
-        title_match = TITLE_PREFIX_PATTERN.search(message)
+        title_match = _last_title_prefix(message)
     if title_match is None:
         return None
     title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(
@@ -231,10 +289,6 @@ NAMED_LOCATION_KINDS = {
 }
 NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
-DECLARATION_SENTENCE_END_PATTERN = re.compile(
-    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)",
-    re.IGNORECASE,
-)
 DECLARATION_END_PATTERN = re.compile(
     DECLARATION_SENTENCE_END_PATTERN.pattern + r"|(?:[,—]\s*|(?<=\s)(?:and|but)\s+)"
     r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
@@ -425,7 +479,14 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     chapter_match = CHAPTER_PATTERN.search(progress_message)
     explicit_title = _declared_title(progress_message, chapter_match)
     if explicit_title is None:
-        explicit_title = _declared_title(request.message, CHAPTER_PATTERN.search(request.message))
+        title_chapter = CHAPTER_PATTERN.search(request.message)
+        if completed:
+            unquoted = reading_progress.mask_quotes(request.message)
+            completion = COMPLETION_PATTERN.search(unquoted) or READ_NAMED_PATTERN.search(unquoted)
+            if completion is not None:
+                start, end = _declaration_bounds(unquoted, completion)
+                title_chapter = CHAPTER_PATTERN.search(request.message, start, end)
+        explicit_title = _declared_title(request.message, title_chapter)
     named_location = NAMED_LOCATION_PATTERN.search(progress_message) is not None
     if named_location and completed:
         mentioned = resolve_book_identity(progress_message, settings.allowed_book_version_ids)
