@@ -354,6 +354,88 @@ class BookContextTests(unittest.TestCase):
         self.assertIsNone(context.work_id)
         self.assertIsNotNone(context.clarification_question)
 
+    def test_completed_chapter_uses_the_book_in_its_own_sentence(self) -> None:
+        for message, work_id in (
+            ("I'm reading Alice's Adventures in Wonderland. In Animal Farm, "
+             "I've finished chapter 5.", "pga0100011"),
+            ("I'm reading Alice's Adventures in Wonderland. I'm also reading "
+             "Animal Farm and I've finished chapter 5.", "pga0100011"),
+            ("I'm reading Animal Farm. In Alice's Adventures in Wonderland, "
+             "I've finished chapter 5.", "pg11"),
+            ("I'm reading Alice's Adventures in Wonderland, chapter 2. "
+             "In Animal Farm, I've finished chapter 5.", "pga0100011"),
+        ):
+            with self.subTest(message=message):
+                sessions.clear("context-test")
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test", message=message,
+                ))
+                self.assertEqual("confirmed", context.status)
+                self.assertEqual(work_id, context.work_id)
+                self.assertEqual(5, context.chapter_max)
+
+    def test_completed_chapter_can_follow_the_latest_reader_book_declaration(self) -> None:
+        for declaration, work_id in (
+            ("I'm reading Alice's Adventures in Wonderland.", "pg11"),
+            ("I'm reading Alice's Adventures in Wonderland. I'm also reading Animal Farm.", "pga0100011"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "My friend said, 'I'm reading Animal Farm'.", "pg11"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "My friend said: I'm reading Animal Farm.", "pg11"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "As I said, I am reading Animal Farm.", "pga0100011"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "As I said: I am reading Animal Farm.", "pga0100011"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "As I just said: I am reading Animal Farm.", "pga0100011"),
+            ("I'm reading Alice's Adventures in Wonderland. "
+             "As Alice said, I am reading Animal Farm.", "pga0100011"),
+            ('I\'m reading "Animal Farm".', "pga0100011"),
+        ):
+            with self.subTest(declaration=declaration):
+                sessions.clear("context-test")
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message=f"{declaration} I've finished chapter 5.",
+                ))
+
+                self.assertEqual("confirmed", context.status)
+                self.assertEqual(work_id, context.work_id)
+                self.assertEqual(5, context.chapter_max)
+
+    def test_a_period_inside_a_quote_cannot_select_the_quoted_book(self) -> None:
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message=("I am reading Alice's Adventures in Wonderland. My friend said, "
+                     '"I am reading Animal Farm. It is good." I have finished chapter 5.'),
+        ))
+
+        self.assertEqual("pg11", context.work_id)
+
+    def test_title_starting_with_a_progress_word_cannot_reuse_the_previous_book(self) -> None:
+        for title in (
+            "On the Road by Jack Kerouac",
+            "This Side of Paradise",
+            "It by Stephen King",
+            "It",
+        ):
+            with self.subTest(title=title):
+                sessions.clear("context-test")
+                resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message="I've finished chapter 2 of Alice's Adventures in Wonderland.",
+                ))
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message=f"I read {title} last night. I've finished Chapter 5.",
+                ))
+
+                self.assertEqual("unknown", context.status)
+                self.assertIsNone(context.work_id)
+                self.assertIsNone(context.chapter_max)
+                self.assertIsNotNone(context.clarification_question)
+                self.assertIsNone(sessions.book_selection("context-test"))
+
     def test_registered_chapter_title_is_not_read_as_a_book_title(self) -> None:
         # "Advice from a Caterpillar" is Chapter 5's own title; its "from" does
         # not introduce a book.
@@ -380,6 +462,9 @@ class BookContextTests(unittest.TestCase):
         for book_id, message in (
             ("pga0100011", "Tonight I read on through his decision to build the windmill."),
             ("pg11", "I read those pages tonight and stopped."),
+            ("pg11", "I read on."),
+            ("pg11", "I read ahead to the next conversation."),
+            ("pg11", "I read these chapters tonight and stopped."),
         ):
             with self.subTest(message=message):
                 sessions.set_book_selection("context-test", sessions.BookSelection(
