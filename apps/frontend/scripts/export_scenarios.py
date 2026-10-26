@@ -1,9 +1,9 @@
-"""Export recorded synthetic-persona runs for the read-only replay view.
+"""Export recorded synthetic-scenario runs for the read-only replay view.
 
 Each scenario under `synthetic-journal-evaluation/scenarios` with a retained
-final run in `results/<scenario>/result.json` becomes a persona. That file
-embeds the run's evaluation artifact, summary and analysis review. The snapshot
-keeps what the replay renders: the persona and the Props placed in the account before
+final run in `results/<scenario>/result.json` is exported. That file embeds the
+run's evaluation artifact, summary and analysis review. The snapshot keeps
+what the replay renders: the scenario and the Props placed in the account before
 the run, each Scene's Lines and adopted checks, and per run the recorded turns,
 agent activity, grades and the completed analysis review.
 
@@ -11,10 +11,10 @@ Nothing is inferred. Values are copied from committed records. Each agent's
 input (the synthetic prompt it received) is kept, clipped; full model message
 transcripts, system instructions and local paths are left out.
 
-Output: `personas/index.json` for the gallery and one `personas/<id>.json` per
-persona, so the replay loads only the persona being viewed.
+Output: `scenarios/index.json` for the gallery and one `scenarios/<id>.json` per
+scenario, so the replay loads only the scenario being viewed.
 
-    uv run python apps/frontend/scripts/export_personas.py [--check]
+    uv run python apps/frontend/scripts/export_scenarios.py [--check]
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ TITLES = {work_id: registration.book.title for work_id, registration in CORPORA.
 SCENARIOS = REPO / "synthetic-journal-evaluation/scenarios"
 RESULTS = REPO / "results"
 CATALOG = REPO / "synthetic-journal-evaluation/evaluation-objectives.yaml"
-OUTPUT = REPO / "apps/frontend/src/replay/personas"
+OUTPUT = REPO / "apps/frontend/src/replay/scenarios"
 
 TEXT_LIMIT = 4000
 OUTPUT_LIMIT = 4000
@@ -308,7 +308,7 @@ def run_projection(retained: dict, planned: dict[str, dict]) -> dict | None:
     }
 
 
-def persona_projection(folder: Path, entry: dict, families: dict[str, str]) -> dict | None:
+def scenario_projection(folder: Path, entry: dict, families: dict[str, str]) -> dict | None:
     backstory = json.loads((folder / "backstory.json").read_text())
     truth = json.loads((folder / "ground-truth.json").read_text())
     lines = {line.get("line_id"): line.get("text", "") for line in records(backstory.get("lines"))}
@@ -349,7 +349,7 @@ def persona_projection(folder: Path, entry: dict, families: dict[str, str]) -> d
         "personId": person.get("person_id"),
         "context": person.get("context", ""),
         "props": [
-            {"id": prop.get("prop_id"), "text": prop.get("source_text", "")}
+            {"id": prop.get("prop_id"), "text": prop.get("source_text", ""), "recordedAt": prop.get("recorded_at")}
             for prop in records(backstory.get("props"))
         ],
         "scenes": scenes,
@@ -366,36 +366,36 @@ def export() -> dict:
     )
     families = {item["id"]: (item.get("menu") or {}).get("family") for item in objectives}
     entries = {entry["scenario"]: entry for entry in discover(REPO)}
-    personas = []
+    scenarios = []
     for folder in sorted(SCENARIOS.iterdir()):
         if not (folder / "backstory.json").is_file() or not (folder / "ground-truth.json").is_file():
             continue
-        persona = persona_projection(folder, entries.get(folder.name, {}), families)
-        if persona is not None:
-            personas.append(persona)
-    return {"source": str(SCENARIOS.relative_to(REPO)), "families": family_labels, "personas": personas}
+        scenario = scenario_projection(folder, entries.get(folder.name, {}), families)
+        if scenario is not None:
+            scenarios.append(scenario)
+    return {"source": str(SCENARIOS.relative_to(REPO)), "families": family_labels, "scenarios": scenarios}
 
 
 def files(snapshot: dict) -> dict[str, str]:
-    """Gallery index plus one file per persona, keyed by file name."""
+    """Gallery index plus one file per scenario, keyed by file name."""
     index = {
         "source": snapshot["source"],
         "families": snapshot["families"],
-        "personas": [
+        "scenarios": [
             {
-                "id": persona["id"], "title": persona["title"], "dated": persona["dated"],
-                "description": persona["description"], "family": persona["family"],
+                "id": scenario["id"], "title": scenario["title"], "dated": scenario["dated"],
+                "description": scenario["description"], "family": scenario["family"],
                 "runs": [
                     {key: run[key] for key in ("id", "startedAt", "passed", "failed", "ungraded", "total", "executionFailures")}
-                    for run in persona["runs"]
+                    for run in scenario["runs"]
                 ],
             }
-            for persona in snapshot["personas"]
+            for scenario in snapshot["scenarios"]
         ],
     }
     output = {"index.json": json.dumps(index, ensure_ascii=False, indent=2) + "\n"}
-    for persona in snapshot["personas"]:
-        output[f"{persona['id']}.json"] = json.dumps(persona, ensure_ascii=False, indent=2) + "\n"
+    for scenario in snapshot["scenarios"]:
+        output[f"{scenario['id']}.json"] = json.dumps(scenario, ensure_ascii=False, indent=2) + "\n"
     return output
 
 
@@ -407,8 +407,8 @@ if __name__ == "__main__":
     if args.check:
         current = {path.name: path.read_text() for path in OUTPUT.glob("*.json")} if OUTPUT.is_dir() else {}
         if current != expected:
-            raise SystemExit("Persona snapshot is stale. Run apps/frontend/scripts/export_personas.py.")
-        print("Persona snapshot matches the scenario archive.")
+            raise SystemExit("Scenario snapshot is stale. Run apps/frontend/scripts/export_scenarios.py.")
+        print("Scenario snapshot matches the scenario archive.")
     else:
         OUTPUT.mkdir(parents=True, exist_ok=True)
         for stale in OUTPUT.glob("*.json"):
