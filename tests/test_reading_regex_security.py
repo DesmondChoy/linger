@@ -62,6 +62,39 @@ def test_long_malformed_declarations_complete_without_backtracking_explosion():
     )
 
 
+@pytest.mark.parametrize("after", [
+    "\t,\u00a0Advice from a Caterpillar, in Alice's Adventures in Wonderland.",
+    "  ( Advice from a Caterpillar ) in Alice's Adventures in Wonderland.",
+    "\t—\tAdvice from a Caterpillar in Alice's Adventures in Wonderland.",
+])
+def test_chapter_title_delimiters_preserve_the_following_book(after):
+    assert chat_turn._without_chapter_title(after, 5) == " in Alice's Adventures in Wonderland."
+
+
+def test_maximum_size_chapter_declarations_do_not_block_the_request_worker():
+    # Repeating accepted-size requests exposes quadratic matching while leaving
+    # ample time for process startup and ordinary corpus metadata reads.
+    subprocess.run(
+        [sys.executable, "-c", (
+            "from pydantic_ai.models import override_allow_model_requests\n"
+            "from apps.backend import chat_turn, sessions\n"
+            "from apps.backend.schemas import ChatRequest\n"
+            "prefix = \"I've finished Chapter 5\"\n"
+            "message = prefix + ' ' * (8000 - len(prefix) - 1) + 'x'\n"
+            "request = ChatRequest(session_id='whitespace-regression', message=message)\n"
+            "assert len(request.message) == 8000\n"
+            "with override_allow_model_requests(False):\n"
+            "    for _ in range(10):\n"
+            "        sessions.set_book_selection(request.session_id, sessions.BookSelection(book_id='pg11'))\n"
+            "        context = chat_turn.resolve_reading_context(request)\n"
+            "        assert context.work_id == 'pg11'\n"
+            "        assert context.chapter_max == 5\n"
+            "        sessions.clear(request.session_id)\n"
+        )],
+        text=True, capture_output=True, check=True, timeout=10,
+    )
+
+
 @pytest.mark.parametrize("message", [
     "He said “stop” and left",
     "« bonjour » ok",
