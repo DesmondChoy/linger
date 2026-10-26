@@ -10,36 +10,44 @@ its `production` environment, `linger` service, and `linger-state` volume.
 ## Promote and deploy a release
 
 1. Merge feature PRs into `main` after review and CI.
-2. [Synchronize the branch history](releasing.md#synchronize-the-branch-history)
-   if `release-candidate` is not an ancestor of `main`. Complete this step before
-   each subsequent promotion.
-3. Open a promotion PR from this repository's `main` to `release-candidate`.
-4. Obtain the required approval and use **Create a merge commit**. Both branches
-   require the seven application and security checks. `release-candidate` also
-   requires **Release promotion** to verify the PR source.
-5. Wait for CI on the resulting `release-candidate` commit to succeed.
-6. Open **Release checks after candidate promotion**. The release job builds one
+2. Open a promotion PR from this repository's `main` to `release-candidate`.
+   Routine promotion does not require merging `release-candidate` back into `main`.
+3. Obtain the required approval and use **Create a merge commit**. PRs into
+   `main` require the seven application and security checks. The candidate PR
+   requires only **Release promotion** to verify the PR source.
+4. Wait for full CI on the resulting `release-candidate` commit to succeed.
+5. Open **Release checks after candidate promotion**. The release job builds one
    Linux AMD64 image, scans it, and checks offline startup and persistent state.
-   It saves that image for publication. Paid evaluations stay disabled in
-   [`.github/release-config.json`](../.github/release-config.json).
-7. Review the retained build evidence and approve **linger-release**. The publish
-   job loads and publishes the saved image to `ghcr.io/desmondchoy/linger`, without
-   rebuilding. Its `approved-release.json` records the immutable image digest,
-   candidate commit, CI run, and publication authorization. The authorization's
-   `evaluation_status` is `skipped` while live evaluations are disabled.
-8. The deployment job verifies that the exact image can be pulled anonymously,
+   It saves that image for publication. Once the enabled configuration reaches
+   `release-candidate`, six live Scenarios containing 22 Scenes run per repetition.
+   Two live HTTP turns then check the saved image.
+6. Inspect the evaluation decision. Without blockers, a score strictly above the
+   configured threshold publishes through **linger-release-auto**. At or below
+   the threshold, review the evidence and approve **linger-release** if acceptable.
+   Security, execution, and missing-evidence blockers stop both routes. The
+   publish job loads and publishes the saved image to `ghcr.io/desmondchoy/linger`
+   without rebuilding. Its `approved-release.json` records the immutable digest,
+   candidate commit, CI run, configuration identity, and publication authorization.
+7. The deployment job verifies that the exact image can be pulled anonymously,
    updates the existing Railway service's image source, and deploys it. Railway
    runs the published image directly.
-9. Inspect the `railway-deployment` artifact. The job waits for the specific new
+8. Inspect the `railway-deployment` artifact. The job waits for the specific new
    deployment ID, verifies its image digest and state mount, confirms it is
    active on the existing service, and checks public HTML and `/api/ready`.
 
-Live evaluations and automatic publication are currently disabled. Disabled live
-evaluations always require human publication approval, including when the
-automatic-publication switch is enabled. The behavioral summary records
+Live evaluations and automatic publication are enabled in
+[`.github/release-config.json`](../.github/release-config.json). Each run reads
+the controls from the current `release-candidate` tip and retains that snapshot.
+Follow [Run the full automatic flow](releasing.md#run-the-full-automatic-flow)
+for setup, evidence, and the procedure to disable it after a trial. A change on
+`main` alone does not change release settings.
+
+Disabled live evaluations always require human publication approval, including
+when the automatic-publication switch is enabled. The behavioral summary records
 `status: skipped`, `publication.score_scope: not_evaluated`, and `null` scores.
-Enabling paid evaluations adds the existing live evidence requirements before
-publication. Post-deployment HTTP checks make no model or search calls.
+Approving that route can still publish and deploy. A failed or incomplete live
+evaluation cannot use the disabled route. Post-deployment HTTP checks make no
+model or search calls.
 
 Railway consumes `release-publication-<sha>-<run>-<attempt>`, produced by the
 existing [publication workflow](release-checks.md#triggers-and-approval).
@@ -93,21 +101,30 @@ from a Railway-only failure.
 ## Configure GitHub once
 
 1. Protect both branches with one required approval, dismissal of stale approvals,
-   up-to-date PRs, and administrator enforcement. Prohibit direct pushes and PR
+   and administrator enforcement. Prohibit direct pushes and PR
    bypasses. Block force pushes and branch deletion. Require the seven full CI
-   checks listed in the [reference](release-checks.md#ci-checks) on `main`.
-   Require only **Release promotion** on `release-candidate` to match its
-   promotion-only PR policy. Full CI runs on the resulting candidate commit
+   checks listed in the [reference](release-checks.md#ci-checks) on `main`, and
+   require its PR branches to be up to date. Require only **Release promotion**
+   on `release-candidate`. Leave its **Require branches to be up to date before
+   merging** setting disabled. Full CI runs on the resulting candidate commit
    after merge and must pass before release. Verify the actual GitHub settings
    against the [release setup guide](releasing.md#configure-github-once).
 2. Configure required human reviewers on **linger-release**. Permit `main` and
-   `release-candidate` workflow contexts for image publication.
-3. Configure **railway-production** to allow `main` only. Automatic `workflow_run`
+   `release-candidate` workflow contexts for image publication. Disable
+   administrator bypass for this environment.
+3. Configure **linger-evaluations** and **linger-release-auto** to allow `main`
+   and `release-candidate`, without required reviewers for unattended execution.
+   Add the evaluation secrets listed in the [release setup guide](releasing.md#configure-github-once).
+4. Configure **railway-production** to allow `main` only. Leave required reviewers
+   unset for unattended deployment. Automatic `workflow_run`
    jobs and deployment-only retries execute trusted helpers from the protected
    default branch, while validating the candidate commit independently.
-4. Store a Railway project token scoped to Linger's `production` environment as
+5. Store a Railway project token scoped to Linger's `production` environment as
    the **environment secret** `RAILWAY_TOKEN` in `railway-production`.
-5. Merge the release and deployment workflows into `main`, then promote `main`
+6. Permit Actions to publish to GHCR and verify that the package is public.
+   If the package does not exist yet, complete the [first-publication setup](#make-the-ghcr-package-public)
+   and use the deployment-only retry after making it public.
+7. Merge the release and deployment workflows into `main`, then promote `main`
    to `release-candidate`. Keep
    Railway GitHub auto-deploys and image auto-updates disabled so they cannot
    bypass successful publication and the selected immutable digest.

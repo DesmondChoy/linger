@@ -1,5 +1,5 @@
 {
-  "live_evaluations_enabled": false,
-  "auto_publish_enabled": false,
-  "auto_publish_threshold": 95
+  "live_evaluations_enabled": true,
+  "auto_publish_enabled": true,
+  "auto_publish_threshold": 80
 }

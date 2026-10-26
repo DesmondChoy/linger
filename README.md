@@ -292,9 +292,9 @@ GitHub Actions runs full CI for pull requests to `main`, pushes to
 `release-candidate`, and manual dispatch. Pushes to `main`, including merges,
 run only CodeQL. Pull requests to `release-candidate` run only the lightweight
 **Release promotion** check, which requires the source branch to be `main` in
-this repository. Both branches
-must be configured to require reviewed, up-to-date PRs without direct pushes or
-bypasses.
+this repository. Both branches require reviewed PRs without direct pushes or
+bypasses. Configure the up-to-date requirement on `main` only. Candidate
+promotions proceed directly from `main`, with full CI after merge.
 Backend tests block model-provider requests.
 Separate jobs run `uv run pytest -m "not embeddings"` and
 `uv run pytest -m embeddings`, with slow-test timing reports. Tests marked
@@ -311,16 +311,22 @@ push, or manual dispatch, no new scan runs. Trivy scans remain part of full CI,
 with JSON reports stored as workflow artifacts. Newly disclosed dependency and
 image vulnerabilities are checked on the next full CI run.
 
-Live release evaluations and automatic publication are disabled in
-`.github/release-config.json`. Promote changes to `release-candidate` when they
-are ready for release. The release run builds, scans, and checks one Linux AMD64
-image, then publishes that same image after human approval. Railway deploys its
-public GHCR digest. Paid evaluations remain optional. Deployment-only retries
-reuse the recorded digest without rebuilding or repeating evaluations.
-Auto-publishing remains off until evaluation results justify a threshold.
+The committed `.github/release-config.json` enables live release evaluations
+and automatic publication once promoted to `release-candidate`. Complete the
+GitHub environment, secret, and package setup before promotion. The release run
+builds, scans, and checks one Linux AMD64 image, then runs the live suite and
+HTTP checks. Complete results above the configured threshold publish that same
+image automatically. Results at or below the threshold require human approval;
+security, execution, and evidence blockers stop publication. Railway deploys the
+published public GHCR digest. Deployment-only retries reuse that digest without
+rebuilding or repeating evaluations.
+
+Setting both switches to `false` stops paid evaluations and automatic publication
+for new runs. Image checks and publication with human approval remain available.
+Cancel running or waiting release runs separately to stop them before publication.
 See the [release guide](docs/releasing.md) for the switches, required GitHub
 protections, and approval steps, and the
-[release flow diagram](docs/release-checks.md#release-configuration) for the process.
+[release configuration reference](docs/release-checks.md#release-configuration).
 
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported

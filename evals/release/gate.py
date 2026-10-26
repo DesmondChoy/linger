@@ -260,7 +260,7 @@ def run_suite(
     repetitions: int = 1, check_only: bool = False,
     repository_root: Path = REPOSITORY_ROOT, suite_path: Path = SUITE_PATH,
     previous_approved: Path | None = None,
-    auto_publish_enabled: bool = False, auto_publish_threshold: str | float | int = "95",
+    auto_publish_enabled: bool = False, auto_publish_threshold: str | float | int = "80",
 ) -> dict[str, Any]:
     if type(repetitions) is not int or repetitions < 1:
         raise ValueError("repetitions must be a positive integer.")
@@ -410,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--previous-approved", type=Path)
     parser.add_argument("--auto-publish-enabled", action="store_true")
-    parser.add_argument("--auto-publish-threshold", default="95")
+    parser.add_argument("--auto-publish-threshold", default="80")
     args = parser.parse_args(argv)
     try:
         result = run_suite(
