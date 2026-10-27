@@ -2,6 +2,22 @@ name: Release evidence and approval
 
 on:
   workflow_call:
+    secrets:
+      RELEASE_EVAL_OPENAI_API_KEY:
+        description: OpenAI key from linger-evaluations, required when the selected model uses OpenAI.
+        required: false
+      RELEASE_EVAL_ANTHROPIC_API_KEY:
+        description: Anthropic key from linger-evaluations, required when the selected model uses Anthropic.
+        required: false
+      RELEASE_EVAL_GOOGLE_API_KEY:
+        description: Google key from linger-evaluations, required when the selected model uses Google.
+        required: false
+      RELEASE_EVAL_EXA_API_KEY:
+        description: Exa key from linger-evaluations, checked by live Scenario preflight.
+        required: false
+      RELEASE_EVAL_LOGFIRE_TOKEN:
+        description: Logfire token from linger-evaluations, checked by live Scenario preflight.
+        required: false
     inputs:
       candidate_sha:
         required: true

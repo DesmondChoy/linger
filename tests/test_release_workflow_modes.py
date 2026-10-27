@@ -1,4 +1,4 @@
-"""Exercise the workflow's publication conditions, including skipped jobs."""
+"""Exercise release routing and credential contracts across workflow calls."""
 
 import ast
 from pathlib import Path
@@ -9,6 +9,60 @@ import yaml
 
 
 WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/release-checks.yml"
+EVALUATION_SECRETS = {
+    "RELEASE_EVAL_OPENAI_API_KEY", "RELEASE_EVAL_ANTHROPIC_API_KEY",
+    "RELEASE_EVAL_GOOGLE_API_KEY", "RELEASE_EVAL_EXA_API_KEY", "RELEASE_EVAL_LOGFIRE_TOKEN",
+}
+
+
+def workflow(name):
+    # BaseLoader preserves GitHub's `on` key instead of treating it as a YAML 1.1 boolean.
+    return yaml.load(WORKFLOW.with_name(name).read_text(), Loader=yaml.BaseLoader)
+
+
+def referenced_secrets(value):
+    return set(re.findall(r"\bsecrets\.([A-Za-z_][A-Za-z_0-9]*)", yaml.safe_dump(value)))
+
+
+@pytest.mark.parametrize("caller_name", ["release-auto.yml", "release.yml"])
+def test_release_callers_forward_only_the_declared_evaluation_secrets(caller_name):
+    caller = workflow(caller_name)["jobs"]["release"]
+    assert caller["uses"] == "./.github/workflows/release-checks.yml"
+    assert caller.get("secrets") == {
+        name: "${{ secrets." + name + " }}" for name in EVALUATION_SECRETS
+    }
+    called = workflow("release-checks.yml")
+    assert set(called["on"]["workflow_call"]["secrets"]) == EVALUATION_SECRETS
+    assert referenced_secrets(called["jobs"]["evaluate"]) == EVALUATION_SECRETS
+
+
+def test_evaluation_secret_values_are_optional_until_live_preflight():
+    declarations = workflow("release-checks.yml")["on"]["workflow_call"]["secrets"]
+    assert set(declarations) == EVALUATION_SECRETS
+    # Disabled evaluations and unused model providers must not require credentials.
+    assert all(secret["required"] == "false" for secret in declarations.values())
+
+
+def test_evaluation_credentials_stay_in_the_protected_evaluation_job():
+    called = workflow("release-checks.yml")
+    assert called["jobs"]["evaluate"]["environment"] == "linger-evaluations"
+    assert not referenced_secrets(called.get("env", {}))
+    for name, job in called["jobs"].items():
+        if name != "evaluate":
+            assert not referenced_secrets(job) & EVALUATION_SECRETS
+
+
+def test_railway_call_forwards_only_its_required_deployment_token():
+    caller = workflow("release-auto.yml")["jobs"]["railway"]
+    assert caller["uses"] == "./.github/workflows/railway-deploy.yml"
+    assert caller.get("secrets") == {"RAILWAY_TOKEN": "${{ secrets.RAILWAY_TOKEN }}"}
+    called = workflow("railway-deploy.yml")
+    declarations = called["on"]["workflow_call"]["secrets"]
+    assert set(declarations) == {"RAILWAY_TOKEN"}
+    assert declarations["RAILWAY_TOKEN"]["required"] == "true"
+    assert "workflow_dispatch" in called["on"]
+    assert called["jobs"]["deploy"]["environment"]["name"] == "railway-production"
+    assert referenced_secrets(called["jobs"]["deploy"]) == {"RAILWAY_TOKEN"}
 
 
 def expression(source, needs, *, cancelled=False, success=True):

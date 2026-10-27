@@ -2,6 +2,10 @@ name: Deploy published image to Railway
 
 on:
   workflow_call:
+    secrets:
+      RAILWAY_TOKEN:
+        description: Railway project token from the railway-production environment.
+        required: true
     inputs:
       publication_run_id:
         description: Automatic release run containing the successful publication.
