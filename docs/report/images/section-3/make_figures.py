@@ -175,9 +175,9 @@ def muse_turn() -> None:
     f = Figure(1000, 470)
     f.legend(20, 14)
     f.box(20, 60, 130, 70, "User's Line", kind="note")
-    f.box(190, 60, 210, 70, "Step 1. Triage", ["Muse; this Line only", "no tools, no history"], kind="agent")
+    f.box(190, 60, 210, 70, "Step 1. Triage", ["Skill: turn-triage", "this Line only; no tools"], kind="agent")
     f.box(480, 60, 190, 70, "Tool grants", ["Labels to tools", "(Table 3.2)"])
-    f.box(750, 60, 230, 70, "Step 2. Draft", ["Muse; bounded history", "plus the typed MuseTurn"], kind="agent")
+    f.box(750, 60, 230, 70, "Step 2. Draft", ["Skill: reflection", "bounded history + MuseTurn"], kind="agent")
     f.arrow([(150, 95), (190, 95)])
     f.arrow([(400, 95), (480, 95)], "three labels,\nno tool names", at=(440, 66))
     f.arrow([(670, 95), (750, 95)], "granted\ntools", at=(710, 66))
@@ -192,13 +192,13 @@ def muse_turn() -> None:
     f.arrow([(770, 130), (770, 160), (515, 160), (515, 200)])
     f.box(380, 340, 270, 50, "Provenance review", ["Section 3.4"], kind="agent")
     f.arrow([(515, 280), (515, 340)])
-    f.box(40, 200, 260, 80, "Step 3. Revise", ["Muse rewrites flagged sentences;", "sentence labels keep the rest;",
+    f.box(40, 200, 260, 80, "Step 3. Revise", ["Skill: reflection, revision mode;", "rewrites flagged sentences only;",
                                                   "same tools as the draft"], kind="agent")
     f.arrow([(380, 365), (170, 365), (170, 280)], "revise, at most once", at=(275, 357))
     f.arrow([(300, 240), (380, 240)])
     f.text(515, 420, "Pass goes to the release checks. Reject, or no pass after the revision, ends in a safe decline.",
            size=11.5, fill=SOFT, style="italic")
-    f.text(515, 445, "Muse can neither release its reply nor write memory.", size=11.5, fill=SOFT, style="italic")
+    f.text(515, 445, "One agent, two skills. Muse can neither release its reply nor write memory.", size=11.5, fill=SOFT, style="italic")
     f.save("figure-3-muse-turn")
 
 
@@ -207,10 +207,10 @@ def librarian() -> None:
     f.legend(20, 14)
     f.box(20, 60, 170, 70, "Book request", ["From librarian_route", "or librarian_search"], kind="note")
     f.box(230, 60, 210, 70, "Boundary confirmed?", ["Stated by the user, or", "saved for this account and book"])
-    f.box(480, 60, 200, 70, "Infer ceiling", ["Librarian, private", "full-work candidates"], kind="agent")
+    f.box(480, 60, 200, 70, "Infer ceiling", ["Skill: boundary-inference;", "private full-work candidates"], kind="agent")
     f.box(720, 50, 260, 95, "Application gate", ["Rejects a ceiling that rests on", "the Line alone, has confidence",
                                                      "below 0.75, or differs from its", "highest supporting chapter"])
-    f.box(720, 185, 260, 70, "Identify stopping event", ["Librarian, separate run;", "must agree with the ceiling"], kind="agent")
+    f.box(720, 185, 260, 70, "Identify stopping event", ["Skill: event-identification;", "must agree with the ceiling"], kind="agent")
     f.box(420, 190, 230, 60, "Which book and chapter", ["have you finished? No search"], kind="exit")
     f.arrow([(190, 95), (230, 95)])
     f.arrow([(440, 95), (480, 95)], "no", at=(460, 88))
@@ -222,86 +222,130 @@ def librarian() -> None:
     f.arrow([(850, 255), (850, 300), (335, 300)], "agrees: ceiling lasts this turn only", at=(600, 293))
     xs, w, y = (20, 268, 516, 764), 216, 340
     cards = [
-        ("Plan request", ["Librarian; spans copied", "exactly from the user's words"], "agent"),
+        ("Plan request", ["Skill: book-request; spans", "copied exactly from user's words"], "agent"),
         ("Retrieval", ["Application; hybrid search", "opens only chapters ≤ boundary"], "app"),
-        ("Judge evidence", ["Librarian; retrieved records only,", "each once, within budget"], "agent"),
+        ("Judge evidence", ["Skill: evidence-assessment;", "retrieved records only, once each"], "agent"),
         ("Typed result to Muse", ["Ids looked up again; chapter grant", "from records; fixed strength sentence"], "app"),
     ]
     for i, (title, lines, kind) in enumerate(cards):
         f.box(xs[i], y, w, 80, title, lines, kind=kind)
         if i:
             f.arrow([(xs[i - 1] + w, y + 40), (xs[i], y + 40)])
-    f.text(500, 455, "Text beyond the boundary never reaches the judge, Muse, the index, or the reranker.",
+    f.text(500, 455, "One agent, four skills. Text beyond the boundary never reaches the judge, Muse, the index, or the reranker.",
            size=11.5, fill=SOFT, style="italic")
     f.save("figure-3-librarian")
 
 
 def serendipity() -> None:
-    f = Figure(1000, 450)
+    f = Figure(1000, 545)
     f.legend(20, 14)
-    f.box(20, 60, 200, 80, "serendipity_explore", ["Muse passes an intent only;", "a pinned intent is checked"], kind="note")
-    f.box(250, 60, 240, 80, "Build request scope", ["Active memories, confirmed reading,", "web policy. Recall: memory only"])
-    f.box(250, 200, 240, 56, "Decline", ["Agent not called"], kind="exit")
-    f.arrow([(220, 100), (250, 100)])
-    f.arrow([(370, 140), (370, 200)], "no permitted\nsource", at=(380, 162), anchor="start")
-    f.box(520, 40, 460, 260, "Serendipity run: at most 14 tool calls and 16 model requests", kind="panel")
-    f.arrow([(490, 100), (520, 100)])
-    tx, tw = (535, 683, 831), 135
-    tools = [("search_librarian", ["Book, via Librarian"]), ("search_memories", ["No account identity"]),
-             ("Exa search, open", ["Only if web granted"])]
-    steps = [("1. Search", ["granted sources"]), ("2. Drop", ["ineligible evidence"]), ("3. Rank", ["top-two tie: decline"])]
-    for i in range(3):
-        f.box(tx[i], 70, tw, 54, tools[i][0], tools[i][1], title_size=12)
-        f.box(tx[i], 170, tw, 54, steps[i][0], steps[i][1], kind="agent", title_size=12)
-        if i:
-            f.arrow([(tx[i - 1] + tw, 197), (tx[i], 197)])
-    bus = 147
-    f.parts.append(f'<path d="M{tx[0] + tw / 2},170 L{tx[0] + tw / 2},{bus} L{tx[2] + tw / 2},{bus}" '
-                   f'fill="none" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
-    for i in range(3):
-        f.arrow([(tx[i] + tw / 2, bus), (tx[i] + tw / 2, 124)], dashed=True)
-    f.text(750, 258, "Returns exactly one:", size=11.5, fill=SOFT)
-    f.text(750, 278, "ConnectionProposal · MemoryRecall · ConnectionDecline", size=12, weight="bold")
-    f.box(520, 340, 220, 76, "Application recheck", ["Evidence within the grant; web", "pages opened in this run"])
-    f.box(770, 340, 210, 76, "Back to Muse", ["Selected evidence only;", "one result cached per turn"])
-    f.arrow([(630, 300), (630, 340)])
-    f.arrow([(740, 378), (770, 378)])
-    f.text(250, 330, "Nothing is stored on the shared Agent", size=11.5, fill=SOFT, style="italic", anchor="start")
-    f.text(250, 348, "between requests.", size=11.5, fill=SOFT, style="italic", anchor="start")
+    f.box(20, 60, 200, 70, "serendipity_explore", ["Muse passes an intent;", "a pinned intent is checked"], kind="note")
+    f.box(260, 60, 270, 70, "Build request scope", ["Active memories, confirmed reading,", "web policy; recall: memory only"])
+    f.box(640, 67, 200, 56, "Decline", ["Agent not called"], kind="exit")
+    f.arrow([(220, 95), (260, 95)])
+    f.arrow([(530, 95), (640, 95)], "no permitted\nsource", at=(585, 80))
+    f.box(10, 170, 735, 250, "Live skills", kind="panel")
+    cards = [
+        ("connection-discovery", ["Intent: find_connection or", "get_recommendation", "Searches books, memories, web",
+                                  "Ranks candidates; a top-two", "tie produces a decline",
+                                  "Returns ConnectionProposal", "or ConnectionDecline"]),
+        ("source-gathering", ["Intent: gather_sources", "Collects every source the", "user named, side by side",
+                              "Searches books, memories, web", "Does not rank or pick a winner",
+                              "Returns SourceBundle", "or ConnectionDecline"]),
+        ("memory-recall", ["Intent: recall_memory", "Searches memories only", "Finds the user's own",
+                           "earlier words on the topic", "Returns MemoryRecall", "or ConnectionDecline"]),
+    ]
+    xs, w = (22, 262, 502), 228
+    f.parts.append(f'<path d="M{xs[0] + w / 2},150 L{xs[2] + w / 2},150" fill="none" stroke="{INK}" stroke-width="1.2"/>')
+    f.parts.append(f'<path d="M395,130 L395,150" fill="none" stroke="{INK}" stroke-width="1.2"/>')
+    f.text(625, 147, "skill chosen by intent; each run is capped", size=11, anchor="start", fill=SOFT, style="italic")
+    f.text(625, 161, "at 14 tool calls and 16 model requests", size=11, anchor="start", fill=SOFT, style="italic")
+    f.parts.append(f'<path d="M{xs[0] + w / 2},440 L{xs[2] + w / 2},440" fill="none" stroke="{INK}" stroke-width="1.2"/>')
+    for x, (title, lines) in zip(xs, cards):
+        f.arrow([(x + w / 2, 150), (x + w / 2, 205)])
+        f.box(x, 205, w, 190, title, lines, kind="agent")
+        f.parts.append(f'<path d="M{x + w / 2},395 L{x + w / 2},440" fill="none" stroke="{INK}" stroke-width="1.2"/>')
+    f.box(765, 170, 225, 250, "Offline only", kind="panel")
+    f.box(777, 205, 201, 190, "self-review", ["No user and no tools", "Reads its own failed", "practice cases", "Proposes exact edits to",
+                                               "connection-discovery", "Kept only if a rerun", "does better"], kind="agent")
+    f.arrow([(300, 440), (300, 465)])
+    f.box(150, 465, 300, 64, "Application recheck", ["Evidence within the grant; web pages", "opened in this run; ids in run ledger"])
+    f.box(500, 465, 245, 64, "Back to Muse", ["Selected evidence only;", "one result cached per turn"])
+    f.arrow([(450, 497), (500, 497)])
     f.save("figure-3-serendipity")
 
 
 def provenance() -> None:
+    f = Figure(1000, 600)
+    f.legend(20, 14)
+    f.text(20, 58, "One agent, three skills. Every run has no tools, no conversation history, and a fresh typed input.",
+           weight="bold", anchor="start")
+    cols = [
+        ("Every turn, before Muse runs",
+         ("Input", ["Current message", "Versioned emotional policy", "Nothing else"]),
+         "emotional-preflight",
+         ("Output", ["continue_reflection or", "apply_boundary; a self-harm", "phrase skips the model"]),
+         ("Application then", ["Writes the boundary reply or", "lets Muse run; a failure ends", "in a safe decline"])),
+        ("Every Muse draft and its revision",
+         ("Input, ordered by trust", ["1. Application context and policy", "2. Canonical evidence",
+                                      "3. Untrusted tool outcomes", "4. Untrusted candidate"]),
+         "candidate-review",
+         ("Three separate decisions", ["Response: pass, revise, or reject", "Capture: allow or veto",
+                                       "Emotional boundary: apply or not"]),
+         ("Application then", ["Validates the review, then", "rechecks quotes and ids", "before release (Figure 3.8)"])),
+        ("After each Sculptor proposal",
+         ("Input", ["Sculptor's proposal", "Exact source memory snapshots", "The proposal digest"]),
+         "curation-review",
+         ("Output", ["allow, revise, or reject,", "echoing the proposal digest"]),
+         ("Application then", ["Memory and Policy Service", "re-reads the sources and", "rejects a stale plan"])),
+    ]
+    xs, w = (20, 345, 670), 310
+    for x, (when, (it, il), skill, (ot, ol), (tt, tl)) in zip(xs, cols):
+        cx = x + w / 2
+        f.box(x, 75, w, 44, when, kind="note")
+        f.box(x, 145, w, 96, it, il, title_size=12)
+        f.box(x, 267, w, 50, skill, kind="agent")
+        f.box(x, 343, w, 80, ot, ol, title_size=12)
+        f.box(x, 449, w, 72, tt, tl, title_size=12)
+        for top, bottom in ((119, 145), (241, 267), (317, 343), (423, 449)):
+            f.arrow([(cx, top), (cx, bottom)])
+    f.text(500, 560, "In candidate review, a spoiler, prompt injection, policy override, harmful content, or instruction",
+           size=11.5, fill=SOFT, style="italic")
+    f.text(500, 578, "disclosure requires rejection, never revision.", size=11.5, fill=SOFT, style="italic")
+    f.save("figure-3-provenance")
+
+
+def sculptor() -> None:
     f = Figure(1000, 470)
     f.legend(20, 14)
-    f.text(20, 58, "ProvenanceInput, ordered by trust", weight="bold", anchor="start")
-    layers = [
-        ("Trusted application context", ["Policy, reading scope"], "app"),
-        ("Canonical evidence", ["From application registries"], "app"),
-        ("Untrusted tool outcomes", [], "exit"),
-        ("Untrusted candidate", ["Muse's reply, declarations, nomination"], "exit"),
+    f.text(20, 58, "One agent, five skills. Each skill only proposes; Provenance, the application, or a person decides.",
+           weight="bold", anchor="start")
+    f.box(10, 75, 980, 135, "After a memory capture (live)", kind="panel")
+    f.box(25, 105, 270, 90, "memory-curation", ["The new record and up to 11 related", "ones; no account identity",
+                                                 "Returns one action or no change"], kind="agent")
+    f.box(345, 105, 230, 90, "Provenance review", ["Skill: curation-review;", "verdict echoes the digest"], kind="agent")
+    f.box(625, 105, 350, 90, "Memory and Policy Service", ["Re-reads and re-hashes the sources;",
+                                                            "rejects a stale plan; appends an audit",
+                                                            "event; never edits the originals"])
+    f.arrow([(295, 150), (345, 150)])
+    f.arrow([(575, 150), (625, 150)], "allow", at=(600, 143))
+    f.box(10, 235, 980, 215, "Offline only: no output reaches a user without human approval", kind="panel")
+    cards = [
+        ("memory-surfacing", ["Evaluation only", "Should stored memories be", "suggested now, later, or never?",
+                              "Returns SurfaceNow, Defer,", "or DoNotSurface"]),
+        ("chapter-cues", ["Revises each chapter's search", "aids so retrieval finds the", "chapter a user means",
+                          "A person approves before", "search reads them"]),
+        ("retrieval-error-analysis", ["Reads practice retrieval traces", "Groups first failures into", "counted categories",
+                                      "Proposes no fix"]),
+        ("retrieval-research", ["Web search and page reads", "Specifies one fix for the top", "approved failure category",
+                                "A developer builds it", "(Experiment 4)"]),
     ]
-    for i, (title, lines, kind) in enumerate(layers):
-        f.box(20, 70 + 54 * i, 290, 46, title, lines, kind=kind, title_size=12)
-    f.box(370, 130, 210, 110, "Provenance", ["Candidate review", "no tools, no history,", "fresh input every run"], kind="agent")
-    f.arrow([(310, 185), (370, 185)])
-    outs = [
-        ("Response: pass, revise, or reject", ["Spoiler, prompt injection, policy override, harmful",
-                                               "content, or instruction disclosure: reject, never revise"]),
-        ("Capture: allow or veto", ["Can veto a nomination; cannot authorise a write"]),
-        ("Emotional boundary: apply or not", []),
-    ]
-    oy = (60, 150, 220)
-    for i, (title, lines) in enumerate(outs):
-        h = 74 if i == 0 else (56 if lines else 44)
-        f.box(640, oy[i], 340, h, title, lines, title_size=12)
-        f.arrow([(580, 185), (640, oy[i] + h / 2)])
-    f.text(20, 330, "The same agent runs two other skills", weight="bold", anchor="start")
-    f.box(20, 345, 300, 70, "Emotional preflight", ["Line and policy only:", "continue_reflection or apply_boundary"], kind="agent")
-    f.box(345, 345, 300, 70, "Curation review", ["Sculptor's proposal and exact sources:", "verdict must echo the proposal digest"], kind="agent")
-    f.box(680, 345, 300, 70, "Application validates", ["Review checked against its own input;", "a pass is necessary, never sufficient"])
-    f.arrow([(810, 264), (830, 345)], "all three decisions", at=(826, 310), anchor="start")
-    f.save("figure-3-provenance")
+    for i, (title, lines) in enumerate(cards):
+        f.box(25 + 240 * i, 265, 225, 125, title, lines, kind="agent", title_size=12)
+    f.text(500, 422, "Improvement loop: retrieval-error-analysis, then owner approves the categories, then retrieval-research,",
+           size=11.5, fill=SOFT, style="italic")
+    f.text(500, 439, "then owner approves the specification before a developer builds it.", size=11.5, fill=SOFT, style="italic")
+    f.save("figure-3-sculptor-skills")
 
 
 def release() -> None:
@@ -340,5 +384,5 @@ def release() -> None:
 
 
 if __name__ == "__main__":
-    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, release):
+    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, sculptor, release):
         make()

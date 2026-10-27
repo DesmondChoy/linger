@@ -42,11 +42,11 @@ These restrictions follow the principle of least privilege, and each one address
 
 #### 3.2.1 Muse
 
-Muse is the conversational agent. It is the only agent that writes user-facing text, but it can neither release that text nor write to memory. Each turn proceeds through up to three steps, shown in Figure 3.3.
+Muse is the conversational agent. It is the only agent that writes user-facing text, but it can neither release that text nor write to memory. It has two skills. `turn-triage` classifies the message, and `reflection` drafts the reply and, in revision mode, repairs it. Each turn proceeds through up to three steps, shown in Figure 3.3.
 
 ![Muse turn: triage, tool grants, draft, review, and one revision](images/section-3/figure-3-muse-turn.svg)
 
-**Figure 3.3.** The steps of one Muse turn.
+**Figure 3.3.** The steps of one Muse turn, with the skill used at each step.
 
 In the triage step, Muse classifies the message by three needs: whether it requires book content, whether it requires memory, and whether it attempts to override the companion's instructions. The classification names needs rather than tools, and application code maps the needs to tool grants (Table 3.2). This indirection limits the effect of prompt injection. An instruction embedded in the message, such as a request to use the web tool, can at most alter a label, and a message classified as an override attempt receives no additional tools. If triage fails, Muse receives only the book tools, which have access to neither the web nor the user's memories. In the component evaluation, triage produced an acceptable classification in 0.99 to 1.00 of 92 cases, each run three times (Section 4.6).
 
@@ -65,11 +65,11 @@ In the revision step, Muse may rewrite only the sentences that Provenance flagge
 
 #### 3.2.2 Librarian
 
-Librarian restricts book answers to what the user has read. It makes judgements only. Search, reranking and permission checks are performed by application code. Its work has two stages, shown in Figure 3.4: resolving the user's reading boundary, and then retrieving and assessing evidence within it.
+Librarian restricts book answers to what the user has read. It makes judgements only. Search, reranking and permission checks are performed by application code. It has four skills, each a single typed judgement: `boundary-inference`, `event-identification`, `book-request` and `evidence-assessment`. The application runs them in two stages, shown in Figure 3.4: resolving the user's reading boundary, and then retrieving and assessing evidence within it.
 
 ![Librarian: boundary resolution, then planning, retrieval, and judgement](images/section-3/figure-3-librarian.svg)
 
-**Figure 3.4.** Librarian's sequence of typed judgements.
+**Figure 3.4.** Librarian's four skills, in the order the application runs them.
 
 Spoiler prevention does not depend on a model judgement. Retrieval opens only the chapters within the resolved boundary, so text beyond it never reaches a model that could reproduce it. No spoiler exposure was recorded in any of the five retrieval configurations benchmarked or in the live evaluation (Section 4.6).
 
@@ -81,27 +81,27 @@ Muse does not receive Librarian's free-text reasoning. It receives a fixed sente
 
 #### 3.2.3 Serendipity
 
-Serendipity proposes a single connection between the user's reflection and a book passage, a stored memory or a web page. Under a separate intent, it instead recalls the user's own earlier words. Figure 3.5 shows one request.
+Serendipity finds material from outside the current conversation: a connection to another book, a stored memory or a web page, or the user's own earlier words. It has four skills, shown in Figure 3.5, and the intent that Muse passes determines which live skill runs. `connection-discovery` handles `find_connection` and `get_recommendation`. It searches the permitted sources, ranks the candidates and proposes a single connection. `source-gathering` handles `gather_sources`, which applies when the user has already named the sources to compare. It collects each named source without ranking them, so that Muse can present them side by side. `memory-recall` handles `recall_memory`. It searches only the user's memories and returns their own earlier words. The fourth skill, `self-review`, runs only offline. It reads Serendipity's failed practice cases and proposes edits to the `connection-discovery` instructions. The application keeps an edit only if a rerun of the same cases improves without breaking cases that already passed.
 
 ![Serendipity: scope, bounded search loop, recheck](images/section-3/figure-3-serendipity.svg)
 
-**Figure 3.5.** One Serendipity request.
+**Figure 3.5.** Serendipity's four skills and the path of one request.
 
 The application builds the scope of each request from the user's active memories, confirmed reading and the web policy before the agent runs. If no source is permitted, the application declines without calling the agent, so no search occurs and no content can be disclosed. Within a run, Serendipity is limited to 14 tool calls and 16 model requests. This is sufficient for two rounds of one book search, one web search and five page retrievals (`src/linger/orchestration/connection.py`). The limit matters because Serendipity chooses its own searches and is therefore the agent with the least predictable cost.
 
-When the two highest-rated candidates are tied, Serendipity returns a decline rather than choosing between them. An arbitrary choice between equally supported connections would be presented to the user as a considered suggestion. Declining is a valid typed output, so the model is never required to invent a preference.
+When the two highest-rated candidates in `connection-discovery` are tied, Serendipity returns a decline rather than choosing between them. An arbitrary choice between equally supported connections would be presented to the user as a considered suggestion. Declining is a valid typed output, so the model is never required to invent a preference.
 
 Candidate selection is the agent's weakest step. In the component suite of 46 cases, each run five times, 0.913 of runs passed, but only 38 cases passed all five repetitions (Section 4.6). In the Scenarios, Serendipity sometimes preferred an identity comparison to the passages the question required. It also did not follow an instruction that the selected connection must cover every source the user named. This is the clearest instance in the project of a prompt instruction failing where a code check would have held (Section 8.1).
 
 #### 3.2.4 Provenance
 
-Provenance is the independent reviewer. It reviews every draft, memory nomination and curation proposal before the application acts on it. It has no tools and no conversation history, and it receives a fresh typed input on every run. The same agent performs three tasks: the emotional preflight (Section 3.1), candidate review (Section 3.4) and curation review (Section 3.6). Figure 3.6 shows candidate review.
+Provenance is the independent reviewer. It reviews every draft, memory nomination and curation proposal before the application acts on it. It has no tools and no conversation history, and it receives a fresh typed input on every run. The same agent runs three skills, shown side by side in Figure 3.6. `emotional-preflight` classifies each message before Muse runs (Section 3.1). `candidate-review` checks every Muse draft and revision (Section 3.4). `curation-review` checks each Sculptor proposal against its source records (Section 3.6). The skills differ in when they run and what they receive, but each returns a typed verdict that the application validates before acting on it.
 
 ![Provenance: input ordered by trust, three decisions, and two other skills](images/section-3/figure-3-provenance.svg)
 
-**Figure 3.6.** Provenance candidate review.
+**Figure 3.6.** Provenance's three skills: when each runs, what it receives, and how the application uses its verdict.
 
-The review input is ordered by trust. Application context and policy appear first, followed by evidence drawn from application registries. Tool outcomes and the candidate itself appear last and are marked as untrusted. Instructions injected into a retrieved web page therefore reach the reviewer labelled as material under review rather than as guidance.
+The `candidate-review` input is ordered by trust. Application context and policy appear first, followed by evidence drawn from application registries. Tool outcomes and the candidate itself appear last and are marked as untrusted. Instructions injected into a retrieved web page therefore reach the reviewer labelled as material under review rather than as guidance.
 
 Certain findings require rejection rather than revision. These are spoilers, prompt injection, policy overrides, harmful content and disclosure of instructions. For these categories, a revision could reword the problem without removing it.
 
@@ -210,9 +210,13 @@ First, the system was able to disagree with the user. The limit that Librarian s
 
 ### 3.6 Sculptor in the Background
 
-Sculptor is the only agent that does not take part in a chat turn. It curates stored memories after a capture, and it proposes improvements to the system offline. In both roles it only makes proposals.
+Sculptor is the only agent that does not take part in a chat turn. It curates stored memories after a capture, and it proposes improvements to the system offline. In both roles it only makes proposals. Figure 3.14 shows its five skills. Only `memory-curation` runs in the live system, after a memory is captured. The other four run offline. `memory-surfacing` is used only in evaluation, and `chapter-cues` revises the search aids for each chapter. `retrieval-error-analysis` and `retrieval-research` form the supervised improvement loop described below. None of these outputs reaches a user without approval from Provenance, the Memory and Policy Service or a person.
 
-*[Figure 3.14, existing. Sculptor curates memories in the background.]*
+![Sculptor's five skills: one live, four offline](images/section-3/figure-3-sculptor-skills.svg)
+
+**Figure 3.14.** Sculptor's five skills.
+
+*[Figure 3.15, existing. Sculptor curates memories in the background.]*
 
 Curation never modifies the original records. Sculptor's summaries and duplicate links are stored in a separate curated layer (`src/linger/orchestration/curation.py`), so an inaccurate summary can be withdrawn without losing what the user said. "No change" is a valid proposal. A curator obliged to produce a change would eventually propose a merge that loses information.
 
@@ -236,4 +240,4 @@ In its offline role, Sculptor diagnosed a cause of missed passages in Experiment
 
 The fix was not enabled for users, because complete selection on 20 needs did not justify a 2.5-fold increase in input cost on every turn. Harness² (Xu et al., 2026) runs a comparable propose, probe and compose loop without human involvement. In Linger, a person approves each round, because Sculptor is proposing changes to the system that reviews its own output.
 
-*[Figure 3.15, existing. Sculptor helps improve the system, and a person approves each round.]*
+*[Figure 3.16, existing. Sculptor helps improve the system, and a person approves each round.]*
