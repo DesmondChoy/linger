@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
+<rect width="1000" height="480" fill="#fff"/>
+<rect x="20" y="14" width="16" height="12" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="28.0" y="24.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="42" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Application code</text>
+<rect x="150" y="14" width="16" height="12" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="158.0" y="24.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="172" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Agent</text>
+<rect x="220" y="14" width="22" height="12" rx="6" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="248" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Fixed reply, turn ends</text>
+<rect x="20" y="60" width="170" height="70" rx="3" fill="#fff" stroke="#999" stroke-width="1.2"/>
+<text x="105.0" y="84.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Book request</text>
+<text x="105.0" y="101.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">From librarian_route</text>
+<text x="105.0" y="116.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">or librarian_search</text>
+<rect x="230" y="60" width="210" height="70" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="335.0" y="84.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Boundary confirmed?</text>
+<text x="335.0" y="101.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Stated by the user, or</text>
+<text x="335.0" y="116.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">saved for this account and book</text>
+<rect x="480" y="60" width="200" height="70" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="580.0" y="84.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Infer ceiling</text>
+<text x="580.0" y="101.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Librarian, private</text>
+<text x="580.0" y="116.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">full-work candidates</text>
+<rect x="720" y="50" width="260" height="95" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="850.0" y="71.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Application gate</text>
+<text x="850.0" y="88.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Rejects a ceiling that rests on</text>
+<text x="850.0" y="103.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">the Line alone, has confidence</text>
+<text x="850.0" y="118.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">below 0.75, or differs from its</text>
+<text x="850.0" y="133.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">highest supporting chapter</text>
+<rect x="720" y="185" width="260" height="70" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="850.0" y="209.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Identify stopping event</text>
+<text x="850.0" y="226.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Librarian, separate run;</text>
+<text x="850.0" y="241.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">must agree with the ceiling</text>
+<rect x="420" y="190" width="230" height="60" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="535.0" y="216.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Which book and chapter</text>
+<text x="535.0" y="233.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">have you finished? No search</text>
+<path d="M190,95 L230,95" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<path d="M440,95 L480,95" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="460" y="88" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">no</text>
+<path d="M680,95 L720,95" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<path d="M760,145 L760,165 L600,165 L600,190" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="690" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">rejected</text>
+<path d="M900,145 L900,185" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="910" y="170" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">passed</text>
+<path d="M720,220 L650,220" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="685" y="212" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">disagrees</text>
+<path d="M335,130 L335,300 L127,300 L127,340" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="345" y="160" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">yes</text>
+<path d="M850,255 L850,300 L335,300" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="600" y="293" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">agrees: ceiling lasts this turn only</text>
+<rect x="20" y="340" width="216" height="80" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="128.0" y="369.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Plan request</text>
+<text x="128.0" y="386.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Librarian; spans copied</text>
+<text x="128.0" y="401.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">exactly from the user&#x27;s words</text>
+<rect x="268" y="340" width="216" height="80" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="376.0" y="369.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Retrieval</text>
+<text x="376.0" y="386.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Application; hybrid search</text>
+<text x="376.0" y="401.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">opens only chapters ≤ boundary</text>
+<path d="M236,380 L268,380" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="516" y="340" width="216" height="80" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="624.0" y="369.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Judge evidence</text>
+<text x="624.0" y="386.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Librarian; retrieved records only,</text>
+<text x="624.0" y="401.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">each once, within budget</text>
+<path d="M484,380 L516,380" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="764" y="340" width="216" height="80" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="872.0" y="369.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Typed result to Muse</text>
+<text x="872.0" y="386.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Ids looked up again; chapter grant</text>
+<text x="872.0" y="401.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">from records; fixed strength sentence</text>
+<path d="M732,380 L764,380" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="455" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">Text beyond the boundary never reaches the judge, Muse, the index, or the reranker.</text>
+</svg>

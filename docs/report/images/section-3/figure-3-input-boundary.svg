@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="740" viewBox="0 0 1000 740">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
+<rect width="1000" height="740" fill="#fff"/>
+<rect x="40" y="20" width="16" height="12" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="48.0" y="30.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="62" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Application code</text>
+<rect x="170" y="20" width="16" height="12" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="178.0" y="30.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="192" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Agent</text>
+<rect x="240" y="20" width="22" height="12" rx="6" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="268" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Fixed reply, turn ends</text>
+<rect x="130" y="60" width="180" height="36" rx="3" fill="#fff" stroke="#999" stroke-width="1.2"/>
+<text x="220.0" y="82.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">User&#x27;s Line</text>
+<path d="M220.0,96 L220.0,120" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="120" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="141.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">1. Rate limit</text>
+<text x="220.0" y="158.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">apps/backend/rate_limit.py</text>
+<path d="M400,145.0 L600,145.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="138.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">11th message in a minute</text>
+<rect x="600" y="120" width="360" height="50" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="141.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">“Too many requests…”</text>
+<text x="780.0" y="158.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">No agent runs</text>
+<path d="M220.0,170 L220.0,194" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="194" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="215.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">2. Hidden-character removal</text>
+<text x="220.0" y="232.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Strips invisible Unicode; visible words kept</text>
+<path d="M220.0,244 L220.0,268" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="268" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="289.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">3. Privacy and credential check</text>
+<text x="220.0" y="306.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Redacts emails and phone numbers</text>
+<path d="M400,293.0 L600,293.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="286.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">credential found</text>
+<rect x="600" y="268" width="360" height="50" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="289.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">“…blocked because it contains a credential.”</text>
+<text x="780.0" y="306.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Blocked turn is not saved</text>
+<path d="M220.0,318 L220.0,342" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="342" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="363.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">4. English check</text>
+<text x="220.0" y="380.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Skipped if step 6 would match</text>
+<path d="M400,367.0 L600,367.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="360.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">mostly not English</text>
+<rect x="600" y="342" width="360" height="50" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="371.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">“Linger can only read and reply in English…”</text>
+<path d="M220.0,392 L220.0,416" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="416" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="437.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">5. Injection rules</text>
+<text x="220.0" y="454.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Adopted override and disclosure patterns</text>
+<path d="M400,441.0 L600,441.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="434.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">rule matches</text>
+<rect x="600" y="416" width="360" height="50" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="437.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Fixed security decline</text>
+<text x="780.0" y="454.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Reason is not revealed</text>
+<path d="M220.0,466 L220.0,490" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="490" width="360" height="50" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="511.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">6. Self-harm phrase match</text>
+<text x="220.0" y="528.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">First-person phrase; no model call</text>
+<path d="M400,515.0 L600,515.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="508.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">phrase matches</text>
+<rect x="600" y="490" width="360" height="50" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="511.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Self-harm reply</text>
+<text x="780.0" y="528.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Someone you trust, a doctor, a crisis line</text>
+<path d="M220.0,540 L220.0,564" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="40" y="564" width="360" height="56" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="581.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">7. Emotional preflight</text>
+<text x="220.0" y="598.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Provenance, no tools: continue_reflection</text>
+<text x="220.0" y="613.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">or apply_boundary</text>
+<path d="M400,589.0 L600,589.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="500" y="582.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">apply_boundary</text>
+<rect x="600" y="564" width="360" height="56" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="780.0" y="581.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">“That sounds deeply distressing…”</text>
+<text x="780.0" y="598.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">No search and no memory capture.</text>
+<text x="780.0" y="613.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">A failed preflight gets a safe decline</text>
+<path d="M220.0,620 L220.0,654" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="230.0" y="642" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">continue_reflection</text>
+<rect x="100" y="654" width="240" height="44" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="220.0" y="680.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Muse (Section 3.2.1)</text>
+</svg>

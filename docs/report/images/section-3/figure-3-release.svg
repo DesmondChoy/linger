@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="480" viewBox="0 0 1020 480">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
+<rect width="1020" height="480" fill="#fff"/>
+<rect x="20" y="14" width="16" height="12" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="28.0" y="24.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="42" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Application code</text>
+<rect x="150" y="14" width="16" height="12" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="158.0" y="24.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111"></text>
+<text x="172" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Agent</text>
+<rect x="220" y="14" width="22" height="12" rx="6" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="248" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Fixed reply, turn ends</text>
+<rect x="20" y="70" width="172" height="86" rx="3" fill="#fff" stroke="#999" stroke-width="1.2"/>
+<text x="106.0" y="102.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">MuseCandidate</text>
+<text x="106.0" y="119.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Reply, declarations,</text>
+<text x="106.0" y="134.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">nomination</text>
+<rect x="222" y="70" width="172" height="86" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="308.0" y="102.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Candidate validator</text>
+<text x="308.0" y="119.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Claimed spans are exact;</text>
+<text x="308.0" y="134.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">evidence ids resolve</text>
+<path d="M192,113.0 L222,113.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="424" y="70" width="172" height="86" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="510.0" y="109.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Provenance review</text>
+<text x="510.0" y="126.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Fresh input, no history</text>
+<path d="M394,113.0 L424,113.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="626" y="70" width="172" height="86" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="712.0" y="94.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Release recheck</text>
+<text x="712.0" y="111.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">No leaked instructions;</text>
+<text x="712.0" y="126.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">ids, locations, and quotes</text>
+<text x="712.0" y="141.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">match reply and record</text>
+<path d="M596,113.0 L626,113.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="611.0" y="107.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">pass</text>
+<rect x="828" y="70" width="172" height="86" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="914.0" y="102.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Release to user</text>
+<text x="914.0" y="119.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Only text that passed</text>
+<text x="914.0" y="134.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">every check</text>
+<path d="M798,113.0 L828,113.0" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="813.0" y="107.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">pass</text>
+<path d="M282,70 L282,52 L130,52 L130,70" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="207" y="46" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">error: Muse repairs</text>
+<rect x="270" y="215" width="230" height="66" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="385.0" y="237.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Muse revises</text>
+<text x="385.0" y="254.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Flagged sentences only;</text>
+<text x="385.0" y="269.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">at most once</text>
+<path d="M464,156 L464,215" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="456" y="196" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="end" font-weight="normal" font-style="italic" fill="#444">revise</text>
+<path d="M270,248 L250,248 L250,156" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="20" y="320" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">The revised draft is validated again,</text>
+<text x="20" y="334" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">and the second review must resolve</text>
+<text x="20" y="348" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">each earlier finding.</text>
+<rect x="480" y="370" width="300" height="54" rx="16" fill="#fff" stroke="#111" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="630.0" y="393.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Safe decline</text>
+<text x="630.0" y="410.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Fixed text; reveals nothing; writes nothing</text>
+<path d="M574,156 L574,370" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="566" y="320" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="end" font-weight="normal" font-style="italic" fill="#444">reject, or no pass</text>
+<text x="566" y="333" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="end" font-weight="normal" font-style="italic" fill="#444">after the revision</text>
+<path d="M690,156 L690,370" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="698" y="320" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">fail</text>
+<rect x="800" y="215" width="200" height="116" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="900.0" y="239.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Memory capture</text>
+<text x="900.0" y="256.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Memory and Policy Service</text>
+<text x="900.0" y="271.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">commits only if the turn was</text>
+<text x="900.0" y="286.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">released, capture is on,</text>
+<text x="900.0" y="301.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Provenance allowed it, and</text>
+<text x="900.0" y="316.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">the span is exact, nonsensitive</text>
+<path d="M914.0,156 L914.0,215" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
+<text x="922.0" y="190" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">if nominated</text>
+<text x="460" y="455" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="italic" fill="#444">A Provenance pass is necessary but never sufficient: the application rechecks before release.</text>
+</svg>
