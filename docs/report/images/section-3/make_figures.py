@@ -366,7 +366,7 @@ def handoffs() -> None:
     f.arrow([(570, 200), (710, 126)], "6, 7", at=(670, 170), anchor="start", both=True)
     f.arrow([(430, 280), (290, 362)], "9", at=(325, 325), anchor="end", both=True)
     f.arrow([(570, 280), (730, 362)], "11, 12", at=(690, 318), anchor="start")
-    f.text(500, 448, "No agent calls another directly. Numbers refer to the rows of Table 3.6.", size=11.5, fill=SOFT,
+    f.text(500, 448, "No agent calls another directly. Numbers refer to the rows of the hand-off table.", size=11.5, fill=SOFT,
            style="italic")
     f.save("figure-3-handoffs")
 
