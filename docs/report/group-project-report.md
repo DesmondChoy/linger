@@ -95,7 +95,7 @@ Linger is built for a reader who wants to talk through what they are reading alo
 
 - **Text in English only.** Photographs, voice notes, and non-English messages are not supported. A non-English message receives a fixed request to rephrase.
 - **Five public-domain books only.** Readers cannot add their own books, and copyrighted texts are excluded.
-- **No memory controls.** Readers cannot view, edit, or delete saved memories, or save one by hand.
+- **Limited memory controls.** Readers can view their saved memories and forget one, but cannot edit a memory or save one by hand.
 - **Only inside a conversation.** Linger sends no notifications and does not resurface memories outside an active chat.
 - **Not a wellbeing tool.** Linger does not diagnose or assess mental health. A distressing disclosure ends the questioning with a fixed message pointing to support, and a self-harm disclosure adds a crisis-line link.
 
