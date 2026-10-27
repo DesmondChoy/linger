@@ -206,7 +206,7 @@ _OBSERVED_KEYS = (
     "semantic_spoiler_results", "source_immutable", "input_immutable", "turns",
     "actual_outcome", "curation_status", "source_hashes_before", "source_hashes_after",
     "session_turn_release_sources", "existing_memories_unchanged", "retry", "trace_id", "events",
-    "semantic_review_required", "late_provenance_findings", "injection", "line_attack",
+    "semantic_review_required", "late_provenance_findings", "injection", "line_attack", "release", "memory_capture",
     "handler_error", "observation_errors",
 )
 

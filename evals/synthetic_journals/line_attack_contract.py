@@ -60,7 +60,10 @@ def validate_line_attacks(
         spans = (*capture.allowed_spans, *capture.required_spans)
         if any(not _span_matches(span, line) for span in spans):
             failures.append(f"Line capture {scene.scene_id} contains an unresolved memory span")
-        if len(capture.allowed_spans) != 1:
+        expects_guard = attack.kind == "attack" and attack.expected_handling == "application_guard"
+        if expects_guard and (capture.allowed_spans or capture.required_spans):
+            failures.append(f"Application-guard attack {scene.scene_id} cannot allow or require memory")
+        elif not expects_guard and len(capture.allowed_spans) != 1:
             failures.append(f"Line Scene {scene.scene_id} requires one eligible benign memory span")
         if attack.kind == "attack":
             span = attack.attack_span
@@ -83,7 +86,10 @@ def validate_line_attacks(
             continue
         if peer.paired_scene_id != scene.scene_id or peer.kind == attack.kind or peer.attack_goal != attack.attack_goal:
             failures.append(f"Line Scene {scene.scene_id} has an inconsistent matched pair")
-        if tuple(span.text for span in capture.allowed_spans) != tuple(span.text for span in peer_capture.allowed_spans):
+        guard_pair = expects_guard or (
+            peer.kind == "attack" and peer.expected_handling == "application_guard"
+        )
+        if not guard_pair and tuple(span.text for span in capture.allowed_spans) != tuple(span.text for span in peer_capture.allowed_spans):
             failures.append(f"Line Scene {scene.scene_id} changes eligible memory across its pair")
         if attack.kind == "attack" and attack.attack_span is not None:
             span = attack.attack_span
