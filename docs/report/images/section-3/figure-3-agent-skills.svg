@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1090" height="430" viewBox="0 0 1090 430">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker></defs>
+<rect width="1090" height="430" fill="#fff"/>
+<text x="20" y="30" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="start" font-weight="bold" font-style="normal" fill="#111">Five reusable agents, eighteen skills. The application selects one skill for each run.</text>
+<rect x="20" y="50" width="140" height="48" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="78.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Muse</text>
+<path d="M160,74.0 L200,74.0" fill="none" stroke="#111" stroke-width="1.2"/>
+<rect x="200" y="50" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="284.0" y="70" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">turn-triage</text>
+<text x="284.0" y="86" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Labels the message</text>
+<rect x="377" y="50" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="461.0" y="70" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">reflection</text>
+<text x="461.0" y="86" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Drafts and revises</text>
+<rect x="20" y="114" width="140" height="48" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="142.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Librarian</text>
+<path d="M160,138.0 L200,138.0" fill="none" stroke="#111" stroke-width="1.2"/>
+<rect x="200" y="114" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="284.0" y="134" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">boundary-inference</text>
+<text x="284.0" y="150" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Infers reading position</text>
+<rect x="377" y="114" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="461.0" y="134" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">event-identification</text>
+<text x="461.0" y="150" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Confirms the event</text>
+<rect x="554" y="114" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="638.0" y="134" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">book-request</text>
+<text x="638.0" y="150" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Plans exact spans</text>
+<rect x="731" y="114" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="815.0" y="134" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">evidence-assessment</text>
+<text x="815.0" y="150" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Judges the passages</text>
+<rect x="20" y="178" width="140" height="48" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="206.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Serendipity</text>
+<path d="M160,202.0 L200,202.0" fill="none" stroke="#111" stroke-width="1.2"/>
+<rect x="200" y="178" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="284.0" y="198" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">connection-discovery</text>
+<text x="284.0" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Proposes one connection</text>
+<rect x="377" y="178" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="461.0" y="198" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">source-gathering</text>
+<text x="461.0" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Collects named sources</text>
+<rect x="554" y="178" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="638.0" y="198" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">memory-recall</text>
+<text x="638.0" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Finds earlier words</text>
+<rect x="731" y="178" width="168" height="48" rx="3" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="815.0" y="198" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#444">self-review</text>
+<text x="815.0" y="214" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Edits own instructions</text>
+<rect x="20" y="242" width="140" height="48" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="270.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Provenance</text>
+<path d="M160,266.0 L200,266.0" fill="none" stroke="#111" stroke-width="1.2"/>
+<rect x="200" y="242" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="284.0" y="262" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">emotional-preflight</text>
+<text x="284.0" y="278" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Checks for distress</text>
+<rect x="377" y="242" width="168" height="48" rx="3" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="461.0" y="262" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">candidate-review</text>
+<text x="461.0" y="278" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Reviews each draft</text>
+<rect x="554" y="242" width="168" height="48" rx="3" fill="#f4f4f4" stroke="#111" stroke-width="1.2"/>
+<text x="638.0" y="262" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">curation-review</text>
+<text x="638.0" y="278" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Reviews curation</text>
+<rect x="20" y="306" width="140" height="48" rx="3" fill="#e6e6e6" stroke="#111" stroke-width="1.2"/>
+<text x="90.0" y="334.0" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Sculptor</text>
+<path d="M160,330.0 L200,330.0" fill="none" stroke="#111" stroke-width="1.2"/>
+<rect x="200" y="306" width="168" height="48" rx="3" fill="#f4f4f4" stroke="#111" stroke-width="1.2"/>
+<text x="284.0" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">memory-curation</text>
+<text x="284.0" y="342" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Proposes one change</text>
+<rect x="377" y="306" width="168" height="48" rx="3" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="461.0" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#444">memory-surfacing</text>
+<text x="461.0" y="342" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Evaluation only</text>
+<rect x="554" y="306" width="168" height="48" rx="3" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="638.0" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#444">chapter-cues</text>
+<text x="638.0" y="342" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Revises search aids</text>
+<rect x="731" y="306" width="168" height="48" rx="3" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="815.0" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#444">retrieval-error-analysis</text>
+<text x="815.0" y="342" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Groups failures</text>
+<rect x="908" y="306" width="168" height="48" rx="3" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="992.0" y="326" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" font-style="normal" fill="#444">retrieval-research</text>
+<text x="992.0" y="342" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Specifies one fix</text>
+<rect x="20" y="376" width="22" height="14" rx="2" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="50" y="387" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Runs in a chat turn</text>
+<rect x="250" y="376" width="22" height="14" rx="2" fill="#f4f4f4" stroke="#111" stroke-width="1.2"/>
+<text x="280" y="387" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Runs after a memory capture</text>
+<rect x="480" y="376" width="22" height="14" rx="2" fill="#fff" stroke="#888" stroke-width="1.2" stroke-dasharray="2 3"/>
+<text x="510" y="387" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" font-style="normal" fill="#444">Offline only</text>
+<text x="20" y="418" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="start" font-weight="normal" font-style="italic" fill="#444">A skill fixes the task instructions, typed input and output, permitted tools, and validators.</text>
+</svg>

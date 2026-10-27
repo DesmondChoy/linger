@@ -371,6 +371,95 @@ def handoffs() -> None:
     f.save("figure-3-handoffs")
 
 
+SKILLS = [
+    ("Muse", [("turn-triage", "Labels the message", "live"), ("reflection", "Drafts and revises", "live")]),
+    ("Librarian", [("boundary-inference", "Infers reading position", "live"),
+                   ("event-identification", "Confirms the event", "live"),
+                   ("book-request", "Plans exact spans", "live"),
+                   ("evidence-assessment", "Judges the passages", "live")]),
+    ("Serendipity", [("connection-discovery", "Proposes one connection", "live"),
+                     ("source-gathering", "Collects named sources", "live"),
+                     ("memory-recall", "Finds earlier words", "live"),
+                     ("self-review", "Edits own instructions", "offline")]),
+    ("Provenance", [("emotional-preflight", "Checks for distress", "live"),
+                    ("candidate-review", "Reviews each draft", "live"),
+                    ("curation-review", "Reviews curation", "capture")]),
+    ("Sculptor", [("memory-curation", "Proposes one change", "capture"),
+                  ("memory-surfacing", "Evaluation only", "offline"),
+                  ("chapter-cues", "Revises search aids", "offline"),
+                  ("retrieval-error-analysis", "Groups failures", "offline"),
+                  ("retrieval-research", "Specifies one fix", "offline")]),
+]
+
+
+def skill_map(f: Figure, top: float) -> float:
+    """Draw one row per agent with its skill cards; return the y below the map."""
+    cw, ch, gap, rh, x0 = 168, 48, 9, 64, 200
+    styles = {
+        "live": ("#fff", INK, ""),
+        "capture": (PANEL, INK, ""),
+        "offline": ("#fff", "#888", ' stroke-dasharray="2 3"'),
+    }
+    for i, (agent, skills) in enumerate(SKILLS):
+        y = top + rh * i
+        f.box(20, y, 140, ch, agent, kind="agent")
+        f.parts.append(f'<path d="M160,{y + ch / 2} L{x0},{y + ch / 2}" fill="none" stroke="{INK}" stroke-width="1.2"/>')
+        for j, (name, desc, when) in enumerate(skills):
+            x = x0 + (cw + gap) * j
+            fill, stroke, dash = styles[when]
+            f.parts.append(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="3" fill="{fill}" '
+                           f'stroke="{stroke}" stroke-width="1.2"{dash}/>')
+            ink = SOFT if when == "offline" else INK
+            f.text(x + cw / 2, y + 20, name, size=11.5, weight="bold", fill=ink)
+            f.text(x + cw / 2, y + 36, desc, size=10.5, fill=SOFT)
+    y = top + rh * len(SKILLS) + 6
+    for k, (when, label) in enumerate((("live", "Runs in a chat turn"), ("capture", "Runs after a memory capture"),
+                                       ("offline", "Offline only"))):
+        fill, stroke, dash = styles[when]
+        x = 20 + 230 * k
+        f.parts.append(f'<rect x="{x}" y="{y}" width="22" height="14" rx="2" fill="{fill}" stroke="{stroke}" '
+                       f'stroke-width="1.2"{dash}/>')
+        f.text(x + 30, y + 11, label, size=11, anchor="start", fill=SOFT)
+    return y + 14
+
+
+def agent_skills() -> None:
+    f = Figure(1090, 430)
+    f.text(20, 30, "Five reusable agents, eighteen skills. The application selects one skill for each run.",
+           weight="bold", anchor="start", size=13)
+    skill_map(f, 50)
+    f.text(20, 418, "A skill fixes the task instructions, typed input and output, permitted tools, and validators.",
+           size=11.5, anchor="start", fill=SOFT, style="italic")
+    f.save("figure-3-agent-skills")
+
+
+def before_after() -> None:
+    f = Figure(1090, 640)
+    f.text(20, 30, "Before: one Agent object per task", weight="bold", anchor="start", size=14)
+    f.text(20, 50, "Each task carried its own copy of the role's configuration, tools, and authority rules.",
+           size=11.5, anchor="start", fill=SOFT)
+    before = [("Muse", "Reflection and", "revision"), ("Librarian", "Boundary", "inference"),
+              ("Librarian", "Evidence", "assessment"), ("Sculptor", "Curation", "proposals"),
+              ("Sculptor", "Surfacing", "decisions"), ("Serendipity", "Connection", "discovery"),
+              ("Provenance", "Emotional", "preflight"), ("Provenance", "Candidate", "review"),
+              ("Provenance", "Curation", "review")]
+    w, gap = 108, 8
+    for i, (role, a, b) in enumerate(before):
+        x = 20 + (w + gap) * i
+        f.box(x, 66, w, 70, role, [a, b], kind="agent", title_size=12)
+    px = 20 + (w + gap) * 6 - 5
+    f.parts.append(f'<rect x="{px}" y="60" width="{(w + gap) * 3 + 2}" height="82" rx="6" fill="none" '
+                   f'stroke="{INK}" stroke-width="1.2" stroke-dasharray="5 3"/>')
+    f.text(px + (w + gap) * 1.5, 160, "One role, three separate Agent objects", size=11, fill=SOFT, style="italic")
+    f.arrow([(545, 172), (545, 218)], "Keep the role; extract its tasks as skills", at=(560, 200), anchor="start")
+    f.text(20, 248, "After: one reusable Agent per role, with a skill selected for each run", weight="bold",
+           anchor="start", size=14)
+    f.text(20, 268, "Role rules live in one place; each skill adds only its task instructions and typed contract.",
+           size=11.5, anchor="start", fill=SOFT)
+    skill_map(f, 286)
+    f.save("figure-before-after-skills")
+
+
 def release() -> None:
     f = Figure(1020, 480)
     f.legend(20, 14)
@@ -407,5 +496,5 @@ def release() -> None:
 
 
 if __name__ == "__main__":
-    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, sculptor, handoffs, release):
+    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, sculptor, handoffs, release, agent_skills, before_after):
         make()
