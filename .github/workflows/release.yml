@@ -25,6 +25,12 @@ jobs:
   release:
     if: github.ref == 'refs/heads/release-candidate'
     uses: ./.github/workflows/release-checks.yml
+    secrets:
+      RELEASE_EVAL_OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
+      RELEASE_EVAL_ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
+      RELEASE_EVAL_GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
+      RELEASE_EVAL_EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
+      RELEASE_EVAL_LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
     with:
       candidate_sha: ${{ inputs.candidate_sha }}
       repetitions: ${{ inputs.repetitions }}
