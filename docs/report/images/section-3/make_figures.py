@@ -348,6 +348,29 @@ def sculptor() -> None:
     f.save("figure-3-sculptor-skills")
 
 
+def handoffs() -> None:
+    f = Figure(1000, 470)
+    f.legend(20, 14)
+    f.box(390, 200, 220, 80, "Application", ["Builds every input and", "checks every output"])
+    nodes = {
+        "Muse": (60, 212, 180, "agent"), "Provenance": (760, 212, 180, "agent"),
+        "Librarian": (200, 70, 180, "agent"), "Serendipity": (620, 70, 180, "agent"),
+        "Sculptor": (200, 362, 180, "agent"),
+    }
+    for name, (x, y, w, kind) in nodes.items():
+        f.box(x, y, w, 56, name, kind=kind)
+    f.box(620, 362, 220, 56, "Memory and Policy Service")
+    f.arrow([(390, 240), (240, 240)], "2, 3, 4, 6", at=(315, 232), both=True)
+    f.arrow([(610, 240), (760, 240)], "1, 8, 10", at=(685, 232), both=True)
+    f.arrow([(430, 200), (290, 126)], "4, 5, 7", at=(330, 170), anchor="end", both=True)
+    f.arrow([(570, 200), (710, 126)], "6, 7", at=(670, 170), anchor="start", both=True)
+    f.arrow([(430, 280), (290, 362)], "9", at=(325, 325), anchor="end", both=True)
+    f.arrow([(570, 280), (730, 362)], "11, 12", at=(690, 318), anchor="start")
+    f.text(500, 448, "No agent calls another directly. Numbers refer to the rows of Table 3.6.", size=11.5, fill=SOFT,
+           style="italic")
+    f.save("figure-3-handoffs")
+
+
 def release() -> None:
     f = Figure(1020, 480)
     f.legend(20, 14)
@@ -384,5 +407,5 @@ def release() -> None:
 
 
 if __name__ == "__main__":
-    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, sculptor, release):
+    for make in (input_boundary, visibility, muse_turn, librarian, serendipity, provenance, sculptor, handoffs, release):
         make()

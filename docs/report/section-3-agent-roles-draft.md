@@ -163,20 +163,34 @@ The order of the checks encodes their relative priority. A first-person self-har
 
 #### 3.7.2 Hand-offs Between Agents
 
-Agents do not call one another. Every exchange between them passes through application code as a typed Pydantic object that carries only the fields the next step requires and rejects unknown fields (Table 3.6). The application resolves every identifier that an agent returns, so an agent cannot cite a record it was not given. Full transcripts are never passed between agents.
+Agents do not call one another. Every exchange passes through application code, which builds the input for the next step and checks the output before passing it on (Figure 3.11). Each exchange is a typed Pydantic object that carries only the fields the next step needs and rejects any other field. Full transcripts are never passed between agents. Table 3.6 lists the exchanges in the order they occur in a turn, followed by the memory exchanges that happen after it.
 
-| Hand-off | Input to output | Authority note |
-|---|---|---|
-| Muse to Librarian, via tools | `librarian_route`, `librarian_search` to `LibrarianResponse` | Muse writes no query; the application supplies the request id and scope |
-| Muse to Serendipity, via tool | `serendipity_explore` to `ConnectionProposal`, `SourceBundle`, `MemoryRecall` or `ConnectionDecline` | Cited identifiers and scope are rechecked after the run |
-| Serendipity to Librarian, via tool | `search_librarian` to `InternalSearchResult` | Work identifiers outside the grant are rejected |
-| Muse to Provenance | `MuseCandidate` inside `ProvenanceInput` to `ProvenanceReview` | Fresh input with no history; a revision review must resolve each earlier finding |
-| Provenance to Muse | Findings inside `MuseRevisionInput` to a revised `MuseCandidate` | Keeps the original turn's authority; at most one revision |
-| Sculptor to Provenance | `CurationProposal` inside `CurationReviewInput` to `CurationProvenanceReview` | The verdict must echo the proposal digest |
+![Hub diagram: every agent exchanges work only with the application](images/section-3/figure-3-handoffs.svg)
 
-**Table 3.6.** Typed hand-offs between agents, in order of occurrence.
+**Figure 3.11.** Every hand-off passes through the application. Numbers refer to the rows of Table 3.6.
 
-Because every hand-off is a typed and recorded object, evidence can be traced through each stage of a turn. This analysis showed that retrieval found 0.97 of the required passages, but only 0.53 were cited in the final reply (Section 7.5). The losses occurred at the hand-offs between agents rather than within a single agent. End-to-end pass rates alone would not have revealed this. Figure 3.11 shows one recorded hand-off. The request contains no search text, and the response states the scope that was searched, so the exchange can be audited without inspecting the agent's reasoning.
+| # | From → to | What is passed | What the application enforces |
+|---|---|---|---|
+| | **Before drafting** | | |
+| 1 | Application → Provenance (`emotional-preflight`) | The current message and the emotional policy | Nothing else is sent; the application writes the resulting reply |
+| 2 | Application → Muse (`turn-triage`) | The current message | Muse returns need labels only; the application decides which tools to grant |
+| | **Drafting and evidence** | | |
+| 3 | Application → Muse (`reflection`) | The message, recent history and the granted tools | At most one revision, with the same tools as the draft |
+| 4 | Muse → Librarian (book tools) | A book identifier, with no search text | The application supplies the user's exact words and the reading scope |
+| 5 | Application → Librarian (four skills) | The user's words and candidate passages | Request spans must be exact user text; unknown passage identifiers are rejected; the chapter grant comes from the supporting passages, not the model |
+| 6 | Muse → Serendipity (`serendipity_explore`) | An intent, with no search text | The application picks the skill from the intent and rechecks every cited identifier and source afterwards |
+| 7 | Serendipity → Librarian (`search_librarian`) | Which granted books to search | The application supplies the user's words; books outside the grant are rejected; cited passages must come from this run |
+| | **Review** | | |
+| 8 | Application → Provenance (`candidate-review`) | The draft, its evidence and the policy, with no history | A second review must resolve each earlier finding |
+| | **After a memory capture** | | |
+| 9 | Application → Sculptor (`memory-curation`) | 2 to 12 memories, without account identity | Sculptor returns one proposed change or no change |
+| 10 | Application → Provenance (`curation-review`) | The proposal and the exact source memories | The verdict must repeat the proposal's digest |
+| 11 | Application → Memory and Policy Service | An approved curation plan | Accepted only with a matching approval; rejected if the sources have changed |
+| 12 | Application → Memory and Policy Service | A captured memory | Accepted only if capture is on, review allowed it, and it holds nothing sensitive |
+
+**Table 3.6.** Hand-offs in order of occurrence. Typed contracts: `src/linger/agents/*/models.py` and `apps/backend/contracts.py`.
+
+Because every hand-off is a typed and recorded object, evidence can be traced through each stage of a turn. This analysis showed that retrieval found 0.97 of the required passages, but only 0.53 were cited in the final reply (Section 7.5). The losses occurred at the hand-offs between agents rather than within a single agent. End-to-end pass rates alone would not have revealed this. Figure 3.12 shows one recorded hand-off. The request contains no search text, and the response states the scope that was searched, so the exchange can be audited without inspecting the agent's reasoning.
 
 ```json
 {
@@ -192,17 +206,17 @@ Because every hand-off is a typed and recorded object, evidence can be traced th
 }
 ```
 
-**Figure 3.11.** A recorded hand-off from Muse to Librarian.
+**Figure 3.12.** A recorded hand-off from Muse to Librarian.
 
 Serial composition also has a cost in reliability. A connection Scene involves about eight to ten model calls, any of which can end in a decline. Even if the weakest of the four connection Scenes passed half the time, all four would pass in the same run only about five per cent of the time (Section 8.1). Because every failure ends in a safe decline, this cost appears as reduced helpfulness rather than as harm to the user. Nevertheless, each additional agent in the chain raises the reliability that every other agent must achieve.
 
 #### 3.7.3 Release and Memory Writes
 
-Text reaches the user, and records reach storage, only through the application. Figure 3.12 shows the path a draft follows. Any failure along this path ends in a safe decline: a fixed message that reveals nothing from the rejected draft and writes nothing to storage.
+Text reaches the user, and records reach storage, only through the application. Figure 3.13 shows the path a draft follows. Any failure along this path ends in a safe decline: a fixed message that reveals nothing from the rejected draft and writes nothing to storage.
 
 ![Release path: validator, Provenance review, one revision, release recheck, safe decline, memory capture](images/section-3/figure-3-release.svg)
 
-**Figure 3.12.** The path from draft to release and memory capture.
+**Figure 3.13.** The path from draft to release and memory capture.
 
 The release recheck exists because model review alone proved insufficient. During evaluation, Provenance passed an uncited web claim and an incorrect speaker attribution. After a pass, the application therefore verifies mechanically that every quotation appears verbatim in both the reply and its source record. It also confirms that every evidence identifier and source location resolves, and that no Muse instructions have leaked into the reply. Deterministic checks were most effective when their errors were returned to the model's bounded retry. For example, a check that reports a dropped source back to Muse caught every revision that had lost one (Section 8.1).
 
@@ -241,12 +255,12 @@ Table 3.8 shows what each agent received and decided. Serendipity obtains book e
 
 **Table 3.8.** Scene 09, step by step.
 
-The released reply begins: "I don't see Hume's account backing the 'off the hook' conclusion …". The Scene passed all six graded stages on live replay, and it illustrates several properties of the design. First, the system was able to disagree with the user. The limit that Librarian stated, that no passage shows a change of mood cancels a promise, was carried through to the reply. Second, the volume of evidence narrowed at each stage without losing what mattered. Retrieval returned 61 passages, Librarian retained three, and Muse cited one. Third, Maya's stored promise reached the reply only because Serendipity returned it as evidence, since Muse has no direct access to stored memories. Finally, Librarian planned its three lookups (the idea, the temptation and the excuse) as spans of her exact message rather than as a model's restatement of it. Figures 3.13 to 3.16 show each agent's step as recorded in the trace.
+The released reply begins: "I don't see Hume's account backing the 'off the hook' conclusion …". The Scene passed all six graded stages on live replay, and it illustrates several properties of the design. First, the system was able to disagree with the user. The limit that Librarian stated, that no passage shows a change of mood cancels a promise, was carried through to the reply. Second, the volume of evidence narrowed at each stage without losing what mattered. Retrieval returned 61 passages, Librarian retained three, and Muse cited one. Third, Maya's stored promise reached the reply only because Serendipity returned it as evidence, since Muse has no direct access to stored memories. Finally, Librarian planned its three lookups (the idea, the temptation and the excuse) as spans of her exact message rather than as a model's restatement of it. Figures 3.14 to 3.17 show each agent's step as recorded in the trace.
 
-*[Figure 3.13, existing. Scene 09, Muse: triage labels become code grants.]*
+*[Figure 3.14, existing. Scene 09, Muse: triage labels become code grants.]*
 
-*[Figure 3.14, existing. Scene 09, Serendipity: searches, ranks, and returns one connection.]*
+*[Figure 3.15, existing. Scene 09, Serendipity: searches, ranks, and returns one connection.]*
 
-*[Figure 3.15, existing. Scene 09, Librarian: plans and judges; code stops at her page.]*
+*[Figure 3.16, existing. Scene 09, Librarian: plans and judges; code stops at her page.]*
 
-*[Figure 3.16, existing. Scene 09, Provenance: reviews twice; code releases.]*
+*[Figure 3.17, existing. Scene 09, Provenance: reviews twice; code releases.]*
