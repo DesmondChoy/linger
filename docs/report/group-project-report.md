@@ -22,7 +22,7 @@ Master of Technology in Intelligent Systems, Institute of Systems Science, Natio
 
 - [1. Introduction](#1-introduction)
   - [1.1 Problem and objective](#11-problem-and-objective)
-  - [1.2 Scope](#12-scope)
+  - [1.2 Scope and limitations](#12-scope-and-limitations)
   - [1.3 Constraints and assumptions](#13-constraints-and-assumptions)
   - [1.4 Project key terms](#14-project-key-terms)
 - [2. System Overview and Architecture](#2-system-overview-and-architecture)
@@ -79,17 +79,27 @@ Large language models make it straightforward to build a companion that discusse
 
 A reader tells Linger about a book they are reading and about their own life. Linger helps them articulate why a passage or an experience mattered, preserves that reflection, and suggests tentative connections between their reading, their earlier reflections, and public sources. It is grounded in five public-domain works: *Alice's Adventures in Wonderland*, *Animal Farm*, *Narrative of the Life of Frederick Douglass*, *The Adventures of Pinocchio*, and Helen Keller's *The Story of My Life*.
 
-### 1.2 Scope
+### 1.2 Scope and limitations
 
-Linger is built for a reader who wants to think through what they are reading alongside their own life. Within the prototype, a reader can:
+Linger is built for a reader who wants to talk through what they are reading alongside their own life. This section lists what the prototype does and what it deliberately does not do.
 
-- **Reflect on reading and life.** The reader describes a passage or an experience, and Linger helps them say why it mattered.
-- **Ask about the book.** Exact quotations and questions about what happened are answered from the text, only up to the point the reader has reached.
-- **Find connections.** Linger can suggest a tentative link between a reflection and another book, the reader's own earlier reflections, or a public web page, with the source shown.
-- **Recall earlier reflections.** Asked what they said before, the reader gets their own words back rather than a paraphrase.
-- **Keep a record.** A reflection worth keeping is saved to the reader's account with a visible notice, and related memories are curated without changing the originals.
+**In scope**
 
-Behind the uses above, five design decisions distinguish the solution:
+- **Reflect on reading and life.** The reader describes a passage or an experience, and Linger helps them say why it mattered. An independent reviewer checks every reply before the reader sees it. A reply that fails review is replaced with a fixed, safe decline.
+- **Ask about the book.** Exact quotations and questions about what happened are answered from the text, only up to the point the reader has reached. The reader can state their chapter, which is saved for that book, or Linger can infer it from the event they describe.
+- **Find connections.** Linger can suggest one tentative link between a reflection and a book passage the reader has reached, their own saved reflections, or a public web page, with the source shown. When nothing supports a link, it says so rather than inventing one.
+- **Recall earlier reflections.** Asked what they said before, the reader gets up to three of their own saved records back, in their own words, rather than a paraphrase.
+- **Keep a record.** Linger saves a reflection automatically when it judges it worth keeping, using the reader's exact words and showing a visible notice. The reviewer can veto a save, and sensitive content is never saved. Related memories are then curated in the background: duplicates are linked, related memories are grouped, and summaries are added, without changing the originals.
+
+**Out of scope**
+
+- **Text in English only.** Photographs, voice notes, and non-English messages are not supported. A non-English message receives a fixed request to rephrase.
+- **Five public-domain books only.** Readers cannot add their own books, and copyrighted texts are excluded.
+- **No memory controls.** Readers cannot view, edit, or delete saved memories, or save one by hand.
+- **Only inside a conversation.** Linger sends no notifications and does not resurface memories outside an active chat.
+- **Not a wellbeing tool.** Linger does not diagnose or assess mental health. A distressing disclosure ends the questioning with a fixed message pointing to support, and a self-harm disclosure adds a crisis-line link.
+
+Behind the in-scope uses, five design decisions distinguish the solution:
 
 - **Five agents, one deterministic memory writer.** Muse, Librarian, Serendipity, Provenance, and Sculptor are arranged around one deterministic Memory and Policy Service, which alone writes personal memories and curation records. Separate application stores persist accounts, transcripts, and reading progress. No model may release its own output or widen its own authority.
 - **Independent review before every release.** Every reply is drafted as a typed candidate, reviewed by a Provenance agent that has no tools and no conversation history, and validated by application code against a request-scoped evidence index before any text reaches the reader. Any failure becomes a fixed, application-authored decline.
