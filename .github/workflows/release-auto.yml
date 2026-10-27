@@ -19,6 +19,12 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     uses: ./.github/workflows/release-checks.yml
+    secrets:
+      RELEASE_EVAL_OPENAI_API_KEY: ${{ secrets.RELEASE_EVAL_OPENAI_API_KEY }}
+      RELEASE_EVAL_ANTHROPIC_API_KEY: ${{ secrets.RELEASE_EVAL_ANTHROPIC_API_KEY }}
+      RELEASE_EVAL_GOOGLE_API_KEY: ${{ secrets.RELEASE_EVAL_GOOGLE_API_KEY }}
+      RELEASE_EVAL_EXA_API_KEY: ${{ secrets.RELEASE_EVAL_EXA_API_KEY }}
+      RELEASE_EVAL_LOGFIRE_TOKEN: ${{ secrets.RELEASE_EVAL_LOGFIRE_TOKEN }}
     with:
       candidate_sha: ${{ github.event.workflow_run.head_sha }}
       ci_run_id: ${{ format('{0}', github.event.workflow_run.id) }}
@@ -34,6 +40,8 @@ jobs:
       actions: read
       pull-requests: read
     uses: ./.github/workflows/railway-deploy.yml
+    secrets:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     with:
       publication_run_id: ${{ format('{0}', github.run_id) }}
       publication_attempt: ${{ format('{0}', github.run_attempt) }}

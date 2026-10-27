@@ -66,6 +66,8 @@ These values take effect when the configuration reaches `release-candidate`. A m
 
 The optional repository variables `RELEASE_REPETITIONS` and `RELEASE_MODEL` control automatic-run evaluation defaults. Their defaults are `1` and `openai:gpt-6-luna`. Neither variable enables live evaluations or automatic publication.
 
+Both release entry points explicitly pass the five named `RELEASE_EVAL_*` secrets to `release-checks.yml`. The evaluation job obtains their values from `linger-evaluations`. GitHub requires this handoff even for secrets stored only in an environment. See [GitHub's reusable-workflow secret rules](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#using-inputs-and-secrets-in-a-reusable-workflow). The secret declarations are optional so disabled evaluations and unused model providers need no credentials. Enabled evaluations still reject missing required credentials during preflight. The automatic Railway caller passes only `RAILWAY_TOKEN`, which the deployment job obtains from `railway-production`.
+
 The live-evaluation switch is not a publication stop switch. Setting it to `false` permits publication after common checks and protected human approval. Cancelling an Actions run stops that run before publication. A configuration change does not cancel a run already in progress.
 
 ## Behavioral release suite
