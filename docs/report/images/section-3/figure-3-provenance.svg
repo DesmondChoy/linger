@@ -52,7 +52,7 @@
 <text x="500.0" y="466.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle" font-weight="bold" font-style="normal" fill="#111">Application then</text>
 <text x="500.0" y="483.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">Validates the review, then</text>
 <text x="500.0" y="498.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">rechecks quotes and ids</text>
-<text x="500.0" y="513.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">before release (Figure 3.8)</text>
+<text x="500.0" y="513.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="normal" font-style="normal" fill="#444">before release</text>
 <path d="M500.0,119 L500.0,145" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
 <path d="M500.0,241 L500.0,267" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>
 <path d="M500.0,317 L500.0,343" fill="none" stroke="#111" stroke-width="1.2" marker-end="url(#a)"/>

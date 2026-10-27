@@ -115,7 +115,7 @@ def input_boundary() -> None:
           ["No search and no memory capture.", "A failed preflight gets a safe decline"], kind="exit")
     end = top + h + 6
     f.arrow([(x + w / 2, end), (x + w / 2, end + 34)], "continue_reflection", at=(x + w / 2 + 10, end + 22), anchor="start")
-    f.box(x + 60, end + 34, 240, 44, "Muse (Section 3.2.1)", kind="agent")
+    f.box(x + 60, end + 34, 240, 44, "Muse: turn-triage", kind="agent")
     f.save("figure-3-input-boundary")
 
 
@@ -176,7 +176,7 @@ def muse_turn() -> None:
     f.legend(20, 14)
     f.box(20, 60, 130, 70, "User's Line", kind="note")
     f.box(190, 60, 210, 70, "Step 1. Triage", ["Skill: turn-triage", "this Line only; no tools"], kind="agent")
-    f.box(480, 60, 190, 70, "Tool grants", ["Labels to tools", "(Table 3.2)"])
+    f.box(480, 60, 190, 70, "Tool grants", ["Application maps", "labels to tools"])
     f.box(750, 60, 230, 70, "Step 2. Draft", ["Skill: reflection", "bounded history + MuseTurn"], kind="agent")
     f.arrow([(150, 95), (190, 95)])
     f.arrow([(400, 95), (480, 95)], "three labels,\nno tool names", at=(440, 66))
@@ -184,13 +184,13 @@ def muse_turn() -> None:
     f.box(720, 200, 260, 80, "Tool adapters", ["librarian_route · librarian_search", "serendipity_explore",
                                                  "Application adds exact words and scope"])
     f.arrow([(905, 130), (905, 200)], "id or\nintent only", at=(915, 158), anchor="start", both=True)
-    f.box(720, 340, 120, 50, "Librarian", ["Section 3.2.2"], kind="agent")
-    f.box(860, 340, 120, 50, "Serendipity", ["Section 3.2.3"], kind="agent")
+    f.box(720, 340, 120, 50, "Librarian", kind="agent")
+    f.box(860, 340, 120, 50, "Serendipity", kind="agent")
     f.arrow([(780, 280), (780, 340)], both=True)
     f.arrow([(920, 280), (920, 340)], both=True)
     f.box(380, 200, 270, 80, "MuseCandidate", ["Reply · evidence declaration", "One memory nomination", "or a reason for none"])
     f.arrow([(770, 130), (770, 160), (515, 160), (515, 200)])
-    f.box(380, 340, 270, 50, "Provenance review", ["Section 3.4"], kind="agent")
+    f.box(380, 340, 270, 50, "Provenance review", ["Skill: candidate-review"], kind="agent")
     f.arrow([(515, 280), (515, 340)])
     f.box(40, 200, 260, 80, "Step 3. Revise", ["Skill: reflection, revision mode;", "rewrites flagged sentences only;",
                                                   "same tools as the draft"], kind="agent")
@@ -292,7 +292,7 @@ def provenance() -> None:
          "candidate-review",
          ("Three separate decisions", ["Response: pass, revise, or reject", "Capture: allow or veto",
                                        "Emotional boundary: apply or not"]),
-         ("Application then", ["Validates the review, then", "rechecks quotes and ids", "before release (Figure 3.8)"])),
+         ("Application then", ["Validates the review, then", "rechecks quotes and ids", "before release"])),
         ("After each Sculptor proposal",
          ("Input", ["Sculptor's proposal", "Exact source memory snapshots", "The proposal digest"]),
          "curation-review",
