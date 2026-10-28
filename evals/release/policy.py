@@ -50,6 +50,13 @@ _MEMORY_REFUSAL_OBJECTIVES = frozenset({
     "longitudinal_memory_retrieval", "untrusted_content_injection_resistance",
 })
 _MEMORY_REFUSAL_EVIDENCE = "memory_injection_safe_refusal"
+_CONNECTION_BOOK_CODES = frozenset({
+    "authorized_book_citation_mismatch", "authorized_book_selection_mismatch",
+})
+_CONNECTION_BOOK_OBJECTIVES = frozenset({
+    "cross_source_tentative_connection", "weak_evidence_safe_decline",
+})
+_CONNECTION_BOOK_EVIDENCE = "authorized_connection_book_evidence"
 
 
 def _requires_memory_refusal_evidence(runner: str, objective_ids: tuple[str, ...], code: str) -> bool:
@@ -94,13 +101,21 @@ def load_behavioral_allowlist(path: Path = ALLOWLIST_PATH) -> tuple[BehavioralEx
             raise ValueError("Behavioral allowlist matches exact identifiers, without wildcards or suffixes.")
         if any(not isinstance(raw[field], str) or not raw[field].strip() for field in ("reason", "reference")):
             raise ValueError("Every behavioral exception needs a reason and an evidence or issue reference.")
-        if raw.get("evidence_requirement") not in (None, "memory_injection_safe_refusal"):
+        if raw.get("evidence_requirement") not in (None, _MEMORY_REFUSAL_EVIDENCE, _CONNECTION_BOOK_EVIDENCE):
             raise ValueError("Unknown behavioral exception evidence requirement.")
         if type(raw.get("evidence_id_suffix", False)) is not bool:
             raise ValueError("evidence_id_suffix must be a boolean.")
         entry = BehavioralException(**(raw | {"objective_ids": tuple(sorted(objectives))}))
         if entry.code in _MANDATORY_FAILURE_CODES:
             raise ValueError(f"Failure {entry.code} is a mandatory release blocker.")
+        if (entry.code in _CONNECTION_BOOK_CODES or entry.evidence_requirement == _CONNECTION_BOOK_EVIDENCE) and (
+            entry.runner != "connection_replay" or len(entry.objective_ids) != 1
+            or not set(entry.objective_ids) <= _CONNECTION_BOOK_OBJECTIVES
+            or entry.code not in _CONNECTION_BOOK_CODES
+            or entry.evidence_requirement != _CONNECTION_BOOK_EVIDENCE
+            or entry.evidence_id_suffix
+        ):
+            raise ValueError("A connection book exception requires its exact scope and verified book evidence.")
         if (_requires_memory_refusal_evidence(entry.runner, entry.objective_ids, entry.code)
                 or entry.evidence_requirement == _MEMORY_REFUSAL_EVIDENCE) and (
             entry.runner != "retrieval_replay" or set(entry.objective_ids) != _MEMORY_REFUSAL_OBJECTIVES
@@ -125,6 +140,12 @@ def behavioral_exception(
     code, separator, evidence_id = detail.partition(":")
     key = (runner.removeprefix("evals.synthetic_journals."), tuple(sorted(objective_ids)), code)
     if code in _MANDATORY_FAILURE_CODES:
+        return None
+    if code in _CONNECTION_BOOK_CODES and (
+        key[0] != "connection_replay" or len(objective_ids) != 1
+        or not set(objective_ids) <= _CONNECTION_BOOK_OBJECTIVES
+        or _CONNECTION_BOOK_EVIDENCE not in verified_evidence
+    ):
         return None
     if _requires_memory_refusal_evidence(*key) and (
         key[0] != "retrieval_replay" or set(objective_ids) != _MEMORY_REFUSAL_OBJECTIVES

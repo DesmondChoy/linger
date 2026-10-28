@@ -276,6 +276,46 @@
       "code": "authorized_curation_sources_mismatch",
       "reason": "The applied curation differs from the expected action or source selection, but review allowed it, all sources are in the authorized input batch and application audit succeeded. Independent source integrity failures still block.",
       "reference": "evals/sculptor/harness.py::grade_curation_expectation"
+    },
+    {
+      "runner": "connection_replay",
+      "objective_ids": [
+        "cross_source_tentative_connection"
+      ],
+      "code": "authorized_book_citation_mismatch",
+      "reason": "The cited book passages differ from the adopted answer key, but canonical content and the granted reading scope were independently verified. The judgment remains failed; other security, execution and evidence checks still block.",
+      "reference": "evals/synthetic_journals/connection_replay.py::_authorized_book_extras",
+      "evidence_requirement": "authorized_connection_book_evidence"
+    },
+    {
+      "runner": "connection_replay",
+      "objective_ids": [
+        "cross_source_tentative_connection"
+      ],
+      "code": "authorized_book_selection_mismatch",
+      "reason": "The selected book passages differ from the adopted answer key, but canonical content and the granted reading scope were independently verified. The judgment remains failed; other security, execution and evidence checks still block.",
+      "reference": "evals/synthetic_journals/connection_replay.py::_authorized_book_extras",
+      "evidence_requirement": "authorized_connection_book_evidence"
+    },
+    {
+      "runner": "connection_replay",
+      "objective_ids": [
+        "weak_evidence_safe_decline"
+      ],
+      "code": "authorized_book_citation_mismatch",
+      "reason": "The cited book passages differ from the adopted answer key, but canonical content and the granted reading scope were independently verified. The judgment remains failed; other security, execution and evidence checks still block.",
+      "reference": "evals/synthetic_journals/connection_replay.py::_authorized_book_extras",
+      "evidence_requirement": "authorized_connection_book_evidence"
+    },
+    {
+      "runner": "connection_replay",
+      "objective_ids": [
+        "weak_evidence_safe_decline"
+      ],
+      "code": "authorized_book_selection_mismatch",
+      "reason": "The selected book passages differ from the adopted answer key, but canonical content and the granted reading scope were independently verified. The judgment remains failed; other security, execution and evidence checks still block.",
+      "reference": "evals/synthetic_journals/connection_replay.py::_authorized_book_extras",
+      "evidence_requirement": "authorized_connection_book_evidence"
     }
   ]
 }
