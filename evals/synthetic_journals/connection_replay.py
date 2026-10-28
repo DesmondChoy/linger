@@ -18,8 +18,11 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from src.linger.agents.contracts import PromptFingerprint
 from apps.backend import sessions
+from apps.backend.librarian import Librarian
 from apps.backend.schemas import ChatRequest, ChatResponse
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
+from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.evaluation_transcript import (
     ConnectionEvaluationEvent,
@@ -165,7 +168,7 @@ def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str,
             stage = "invocation"
         elif failure in {"retrieval_failure", "invalid_evidence_observation", "public_source_changed_or_unresolved", "required_source_not_inspected", "missing_source_inspection", "private_query_disclosure", "missing_book_retrieval_observation", "required_book_not_searched", "required_book_not_retrieved", "forbidden_book_searched", "forbidden_book_retrieved"}:
             stage = "retrieval"
-        elif failure in {"discovery_failure", "connection_decision_mismatch", "invalid_connection_proposal", "unpermitted_selected_evidence"}:
+        elif failure in {"discovery_failure", "connection_decision_mismatch", "invalid_connection_proposal", "unpermitted_selected_evidence", "authorized_book_selection_mismatch"}:
             stage = "serendipity_selection"
         elif failure.startswith("missing_required_citation"):
             stage = "muse_presentation"
@@ -177,6 +180,43 @@ def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str,
             stage = "deterministic_release"
         result.setdefault(stage, failure)
     return result
+
+
+def _authorized_book_extras(
+    scene: ValidatedConnectionScene, expectation: ConnectionExpectation,
+    extra_ids: set[str], ledger: dict[str, dict],
+) -> bool:
+    """Distinguish extra canonical passages from evidence outside reading authority."""
+    if not extra_ids or scene.source_setup is None or expectation.decision == "not_requested":
+        return False
+    scopes = tuple(ReleaseScope(
+        work_id=scope.work_id, book_version_id=scope.book_version_id,
+        chapter_max=scope.safe_ceiling_chapter,
+    ) for scope in scene.source_setup.book_scopes)
+    forbidden = set(expectation.book_retrieval.forbidden_work_ids) if expectation.book_retrieval else set()
+    librarian = Librarian()
+    try:
+        for identity in extra_ids:
+            raw = ledger[identity]
+            if raw["source_kind"] != "book_corpus" or raw["trust_level"] != "canonical":
+                return False
+            observed = EvidenceRecord.model_validate({
+                "evidence_id": raw["evidence_id"], "work_id": raw["work_id"],
+                "book_version_id": raw["book_version_id"], "chapter_id": raw["chapter_id"],
+                "chapter_number": raw["chapter"], "part_id": raw["part_id"],
+                "location": raw["location"], "source_sha256": raw["source_sha256"],
+                "source_lines": tuple(raw["source_lines"]), "text": raw["excerpt"],
+            }, strict=True)
+            canonical = librarian.fetch_by_id(identity)
+            if (
+                observed != canonical or observed.evidence_id != identity
+                or observed.work_id in forbidden
+                or not any(permits_scope(scope, observed) for scope in scopes)
+            ):
+                return False
+    except (KeyError, TypeError, ValueError, OSError):
+        return False
+    return True
 
 
 def lookup_failures(
@@ -469,8 +509,12 @@ def grade_connection_scene(
         ):
             failures.append("required_source_not_inspected")
         permitted = set().union(*(mapped[item] for item in expectation.permitted_evidence_ids))
-        if cited - permitted:
-            failures.append("unpermitted_citation")
+        if extra_citations := cited - permitted:
+            failures.append(
+                "authorized_book_citation_mismatch"
+                if _authorized_book_extras(scene, expectation, extra_citations, ledger)
+                else "unpermitted_citation"
+            )
         for evidence_id in expectation.required_evidence_ids:
             if not (accepted_ids(evidence_id) & cited):
                 failures.append(f"missing_required_citation:{evidence_id}")
@@ -486,8 +530,12 @@ def grade_connection_scene(
                     selected_ids = set(selected.evidence_ids)
                 else:
                     raise ValueError("expected a proposal or a gathered bundle")
-                if not selected_ids <= permitted:
-                    failures.append("unpermitted_selected_evidence")
+                if extra_selected := selected_ids - permitted:
+                    failures.append(
+                        "authorized_book_selection_mismatch"
+                        if _authorized_book_extras(scene, expectation, extra_selected, ledger)
+                        else "unpermitted_selected_evidence"
+                    )
             except ValueError:
                 failures.append("invalid_connection_proposal")
         stage_failures = _stage_failures(failures, release.failure_stage if release else None)

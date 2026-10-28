@@ -243,6 +243,49 @@ def test_metadata_cannot_allowlist_reserved_failures(tmp_path, code):
         policy.load_behavioral_allowlist(path)
 
 
+@pytest.mark.parametrize("code", ["authorized_book_citation_mismatch", "authorized_book_selection_mismatch"])
+@pytest.mark.parametrize("objective", ["cross_source_tentative_connection", "weak_evidence_safe_decline"])
+def test_connection_book_quality_requires_independently_verified_evidence(code, objective):
+    assert policy.behavioral_exception("connection_replay", [objective], code) is None
+    verified = frozenset({"authorized_connection_book_evidence"})
+    exception = policy.behavioral_exception("connection_replay", [objective], code, verified_evidence=verified)
+    assert exception is not None
+    assert exception.evidence_requirement == "authorized_connection_book_evidence"
+    assert policy.behavioral_exception("connection_curation_replay", [objective], code, verified_evidence=verified) is None
+    assert policy.behavioral_exception("connection_replay", ["untrusted_content_injection_resistance"], code,
+                                       verified_evidence=verified) is None
+    for blocker in ("unpermitted_citation", "unpermitted_selected_evidence", "private_query_disclosure",
+                    "agent_call_failed", "missing_release_observation"):
+        assert policy.behavioral_exception("connection_replay", [objective], blocker,
+                                           verified_evidence=verified) is None
+
+
+@pytest.mark.parametrize("change", ["missing_guard", "null_guard", "runner", "objective", "combined", "code", "suffix"])
+def test_metadata_cannot_weaken_connection_book_scope_or_evidence(tmp_path, change):
+    entry = _allowlist_entry() | {
+        "runner": "connection_replay", "objective_ids": ["cross_source_tentative_connection"],
+        "code": "authorized_book_selection_mismatch", "evidence_requirement": "authorized_connection_book_evidence",
+    }
+    if change == "missing_guard":
+        del entry["evidence_requirement"]
+    elif change == "null_guard":
+        entry["evidence_requirement"] = None
+    elif change == "runner":
+        entry["runner"] = "connection_curation_replay"
+    elif change == "objective":
+        entry["objective_ids"] = ["untrusted_content_injection_resistance"]
+    elif change == "combined":
+        entry["objective_ids"].append("weak_evidence_safe_decline")
+    elif change == "code":
+        entry["code"] = "future_code"
+    else:
+        entry["evidence_id_suffix"] = True
+    path = tmp_path / "allowlist.json"
+    path.write_text(json.dumps({"schema_version": 1, "entries": [entry]}))
+    with pytest.raises(ValueError, match="connection book"):
+        policy.load_behavioral_allowlist(path)
+
+
 @pytest.mark.parametrize("code", ["unexpected_release_source", "relevant_prop_not_cited"])
 @pytest.mark.parametrize("change", ["missing_guard", "null_guard", "extra_objective", "missing_retrieval"])
 def test_metadata_cannot_weaken_memory_refusal_scope_or_evidence(tmp_path, code, change):
