@@ -110,7 +110,15 @@ def main():
     try:
         wait_until_ready()
         username = "release-" + secrets.token_hex(6)
-        token = request("/api/auth/signup", body={"username": username, "password": secrets.token_urlsafe(24)})["token"]
+        signed_in = request("/api/auth/signup", body={"username": username, "password": secrets.token_urlsafe(24)})
+        token = signed_in["token"]
+        from apps.backend.config import get_settings
+        from src.linger.services.memory import AccountContext, MemoryPolicyService
+        service = MemoryPolicyService(get_settings().linger_memory_dir, capture_enabled_by_default=True)
+        account = AccountContext("user:" + signed_in["username"])
+        service.set_capture_enabled(account, False)
+        if service.capture_enabled(account) or service.list_active(account):
+            raise ValueError("The live smoke requires disabled capture and empty memory before chat.")
         backstory = json.loads(BACKSTORY_PATH.read_text())
         lines = {line["line_id"]: line["text"] for line in backstory["lines"]}
         for line_id, streamed in (("alice-race-line", False), ("alice-bottle-line", True)):
@@ -124,10 +132,6 @@ def main():
             findings = validate_response(response["response"] if streamed else response, grounded=not streamed)
             entry["task_findings"] = findings
             report["task_findings"].extend({"line_id": line_id, "detail": finding} for finding in findings)
-        from apps.backend.config import get_settings
-        from src.linger.services.memory import AccountContext, MemoryPolicyService
-        service = MemoryPolicyService(get_settings().linger_memory_dir)
-        account = AccountContext("user:" + username)
         if service.capture_enabled(account) or service.list_active(account):
             raise ValueError("The live smoke changed its disabled memory policy or stored memory.")
         report["status"] = "passed"
