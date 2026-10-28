@@ -9,6 +9,7 @@ import pytest
 
 from docker.live_smoke import parse_sse, validate_response
 from docker import live_smoke
+from src.linger.services.memory import AccountContext, MemoryPolicyService, ScenarioProp
 
 
 def frame(name, data):
@@ -168,6 +169,9 @@ def prepare_main(monkeypatch, tmp_path):
 
 def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypatch, tmp_path):
     report_path = prepare_main(monkeypatch, tmp_path)
+    monkeypatch.setattr(live_smoke.secrets, "token_hex", lambda _: "ABCDEF")
+    api_memory = MemoryPolicyService(tmp_path / "memories", capture_enabled_by_default=True)
+    accounts = []
     ungrounded_answer = chat_response()
     ungrounded_answer["inspection"]["release"]["released_evidence_ids"] = []
     ungrounded_answer["sources"] = []
@@ -177,8 +181,14 @@ def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypat
     def request(path, **kwargs):
         paths.append(path)
         if path == "/api/auth/signup":
-            return {"token": "synthetic-token"}
+            username = kwargs["body"]["username"].lower()
+            account = AccountContext("user:" + username)
+            accounts.append(account)
+            assert api_memory.capture_enabled(account)
+            return {"username": username, "token": "synthetic-token"}
         assert kwargs["token"] == "synthetic-token"
+        assert not api_memory.capture_enabled(accounts[0])
+        assert api_memory.list_active(accounts[0]) == []
         response = next(responses)
         if kwargs["stream"]:
             return parse_sse(frame("progress", {"sequence": 1}) + frame("result", response))
@@ -190,11 +200,75 @@ def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypat
     assert report["status"] == "passed"
     assert paths == ["/api/auth/signup", "/api/chat", "/api/chat/stream"]
     assert len(report["turns"]) == 2
+    assert not api_memory.capture_enabled(accounts[0])
     assert all(turn["task_findings"] and turn["evidence"] for turn in report["turns"])
     assert {item["detail"] for item in report["task_findings"]} >= {
         "runtime_model_failure:muse_draft", "expected_grounded_book_answer_missing",
         "expected_boundary_clarification_missing",
     }
+
+
+@pytest.mark.parametrize("problem", ["capture_still_enabled", "existing_memory"])
+def test_invalid_memory_setup_stops_before_chat(monkeypatch, tmp_path, problem):
+    report_path = prepare_main(monkeypatch, tmp_path)
+    api_memory = MemoryPolicyService(tmp_path / "memories", capture_enabled_by_default=True)
+    if problem == "capture_still_enabled":
+        monkeypatch.setattr(MemoryPolicyService, "set_capture_enabled", lambda *args: None)
+    accounts, paths = [], []
+
+    def request(path, **kwargs):
+        paths.append(path)
+        assert path == "/api/auth/signup"
+        username = kwargs["body"]["username"]
+        account = AccountContext("user:" + username)
+        accounts.append(account)
+        if problem == "existing_memory":
+            api_memory.load_scenario_props(account, "smoke", [ScenarioProp("existing", "Existing synthetic memory.", None)])
+        return {"username": username, "token": "synthetic-token"}
+
+    monkeypatch.setattr(live_smoke, "request", request)
+    assert live_smoke.main() == 1
+    report = json.loads(report_path.read_text())
+    assert report["status"] == "failed"
+    assert "before chat" in report["error"]
+    assert paths == ["/api/auth/signup"]
+    if problem == "existing_memory":
+        assert len(api_memory.list_active(accounts[0])) == 1
+
+
+@pytest.mark.parametrize("change", ["policy_deleted", "capture_reenabled", "stored_memory"])
+def test_smoke_detects_policy_or_storage_changes_after_chat(monkeypatch, tmp_path, change):
+    report_path = prepare_main(monkeypatch, tmp_path)
+    api_memory = MemoryPolicyService(tmp_path / "memories", capture_enabled_by_default=True)
+    accounts = []
+
+    def request(path, **kwargs):
+        if path == "/api/auth/signup":
+            username = kwargs["body"]["username"]
+            accounts.append(AccountContext("user:" + username))
+            return {"username": username, "token": "synthetic-token"}
+        account = accounts[0]
+        assert not api_memory.capture_enabled(account)
+        response = chat_response() if path == "/api/chat" else chat_response(source="application_clarification")
+        if kwargs["stream"]:
+            if change == "policy_deleted":
+                policy, = (tmp_path / "memories").rglob("policy.json")
+                policy.unlink()
+            elif change == "capture_reenabled":
+                api_memory.set_capture_enabled(account, True)
+            else:
+                api_memory.load_scenario_props(account, "smoke", [ScenarioProp("unexpected", "Unexpected synthetic memory.", None)])
+            return parse_sse(frame("progress", {"sequence": 1}) + frame("result", response))
+        return response
+
+    monkeypatch.setattr(live_smoke, "request", request)
+    assert live_smoke.main() == 1
+    report = json.loads(report_path.read_text())
+    assert len(report["turns"]) == 2
+    assert report["status"] == "failed"
+    assert "changed its disabled memory policy or stored memory" in report["error"]
+    if change == "stored_memory":
+        assert len(api_memory.list_active(accounts[0])) == 1
 
 
 def test_http_authentication_error_keeps_smoke_failed_and_records_error(monkeypatch, tmp_path):
