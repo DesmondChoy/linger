@@ -835,10 +835,8 @@ def _capture_failures(
     expected_record_count = int(capture_expected)
     if len(records) != expected_record_count:
         failures.append("stored_record_count_mismatch")
-    expected_created_ids = (
-        {record.memory_id for record in records} if capture_expected else set()
-    )
-    if set(created_ids) != expected_created_ids:
+    observed_record_ids = {record.memory_id for record in records}
+    if set(created_ids) != observed_record_ids:
         failures.append("unexpected_memory_writes")
     if nomination is None and not isinstance(expected.nomination, UnavailableCandidate):
         failures.append("muse_nomination_unavailable")
@@ -873,27 +871,31 @@ def _capture_failures(
         if retry is None:
             failures.append("capture_retry_unavailable")
         elif (
-            retry.error is not None
-            or retry.created is not False
+            retry.created is True
             or not retry.original_unchanged
             or not retry.store_unchanged
-            or retry.memory_id not in expected_created_ids
+            or (retry.memory_id is not None and retry.memory_id not in observed_record_ids)
         ):
             failures.append("capture_retry_not_idempotent")
-    behavioral_codes = {
-        "nominated_span_mismatch": "authorized_capture_span_mismatch",
-        "stored_text_mismatch": "authorized_stored_text_mismatch",
-    }
-    if (
-        capture_expected
-        and failures
-        and set(failures) <= behavioral_codes.keys()
-        and capture_enabled
+        elif retry.error is not None:
+            failures.append("capture_retry_failed")
+        elif retry.created is not False or retry.memory_id not in observed_record_ids:
+            failures.append("capture_retry_unavailable")
+    authorized_capture = bool(records) and (
+        capture_enabled
+        and actual_stages == ("candidate", "allow_capture", "exact", "committed")
         and _authorized_capture_variant(
             input_line=input_line, source_event_id=source_event_id, account=account,
             nomination=nomination, records=records, exchanges=agent_exchanges, reply=reply,
         )
-    ):
+    )
+    if records and not authorized_capture:
+        failures.append("unapproved_capture_committed")
+    behavioral_codes = {
+        "nominated_span_mismatch": "authorized_capture_span_mismatch",
+        "stored_text_mismatch": "authorized_stored_text_mismatch",
+    }
+    if capture_expected and failures and set(failures) <= behavioral_codes.keys() and authorized_capture:
         failures = [behavioral_codes[code] for code in failures]
     return tuple(failures)
 
@@ -908,23 +910,19 @@ def _authorized_capture_variant(
     exchanges: tuple[AgentExchange, ...],
     reply: str,
 ) -> bool:
-    """Prove approval and storage binding before relaxing an expected-span mismatch."""
+    """Prove final approval and current-turn storage binding independently of expected spans."""
     if not isinstance(nomination, MemoryCandidate) or len(records) != 1:
-        return False
-    if any(
-        exchange.status != "success" or exchange.failure_code or exchange.failure_category
-        or exchange.provider_status_code or exchange.provider_error_kind
-        or any(tool.outcome != "success" for tool in exchange.tool_exchanges)
-        for exchange in exchanges
-    ):
         return False
     reviews = [exchange for exchange in exchanges
                if exchange.role == "Provenance" and exchange.stage == "review"]
-    if not reviews:
+    if not reviews or (
+        reviews[-1].status != "success" or reviews[-1].failure_code or reviews[-1].failure_category
+        or reviews[-1].provider_status_code or reviews[-1].provider_error_kind
+    ):
         return False
     try:
         task = ProvenanceInput.model_validate_json(reviews[-1].input_prompt)
-        review = ProvenanceReview.model_validate(reviews[-1].output)
+        review = ProvenanceReview.model_validate_json(json.dumps(reviews[-1].output))
         task.validate_review(review)
         bound = candidate_from_review(
             review, nomination=nomination, source_text=input_line,

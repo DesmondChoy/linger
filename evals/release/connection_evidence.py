@@ -5,11 +5,20 @@ from __future__ import annotations
 import json
 
 
-
 _CODES = frozenset({"authorized_book_citation_mismatch", "authorized_book_selection_mismatch"})
 
 
 def verified_connection_book_evidence(
+    scene: dict, planned: dict, backstory: dict, truth: dict, runner: str,
+) -> bool:
+    """Verify book authority from successful observations, retaining unrelated failed attempts."""
+    try:
+        return _verified_connection_book_evidence(scene, planned, backstory, truth, runner)
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
+def _verified_connection_book_evidence(
     scene: dict, planned: dict, backstory: dict, truth: dict, runner: str,
 ) -> bool:
     """Prove every claimed book mismatch without trusting its recorded label."""
@@ -49,26 +58,25 @@ def verified_connection_book_evidence(
     ):
         return False
     releases = [event for event in observed.events if event.kind == "release"]
-    discoveries = [event for event in observed.events if event.kind == "discovery"]
+    discoveries = [event for event in observed.events
+                   if event.kind == "discovery" and event.status in {"proposal", "gathered"}]
     if (
         len(releases) != 1 or len(discoveries) != 1 or observed.events[-1] != releases[0]
         or releases[0].status != "released" or releases[0].release_source != observed.release_source
         or releases[0].released_evidence_ids != observed.released_evidence_ids
         or not releases[0].provenance_verdicts or releases[0].provenance_verdicts[-1] != "pass"
-        or any(event.failure_code or event.failure_stage for event in observed.events)
+        or releases[0].failure_code or releases[0].failure_stage
     ):
         return False
     exchanges = observed.agent_exchanges
-    if tuple(item.sequence for item in exchanges) != tuple(range(1, len(exchanges) + 1)) or not exchanges or any(
-        item.status != "success" or item.failure_code or item.failure_category
-        or item.provider_status_code or item.provider_error_kind or item.output is None
-        or any(tool.outcome != "success" for tool in item.tool_exchanges)
-        for item in exchanges
-    ):
+    if tuple(item.sequence for item in exchanges) != tuple(range(1, len(exchanges) + 1)) or not exchanges:
         return False
-    selections = [item for item in exchanges if item.role == "Serendipity"]
-    reviews = [item for item in exchanges if item.role == "Provenance" and item.stage == "review"]
-    candidates = [item for item in exchanges if item.role == "Muse" and item.stage in {"draft", "revision"}]
+    successful = [item for item in exchanges if item.status == "success" and item.output is not None
+                  and not item.failure_code and not item.failure_category
+                  and not item.provider_status_code and not item.provider_error_kind]
+    selections = [item for item in successful if item.role == "Serendipity"]
+    reviews = [item for item in successful if item.role == "Provenance" and item.stage == "review"]
+    candidates = [item for item in successful if item.role == "Muse" and item.stage in {"draft", "revision"}]
     if len(selections) != 1 or not reviews or not candidates:
         return False
     if (selections[0].input_contract != "src.linger.agents.serendipity.models.ConnectionDiscoveryInput"
@@ -84,7 +92,7 @@ def verified_connection_book_evidence(
         return False
     selected = set(decision.selected_candidate.evidence_ids if isinstance(decision, ConnectionProposal)
                    else decision.evidence_ids)
-    response_flow = [item for item in exchanges if (
+    response_flow = [item for item in successful if (
         (item.role == "Muse" and item.stage in {"draft", "revision"})
         or (item.role == "Provenance" and item.stage == "review")
     )]
@@ -137,7 +145,8 @@ def verified_connection_book_evidence(
     ):
         return False
     ledger = _evidence_ledger(observed.events)
-    book_tools = [tool for tool in selections[0].tool_exchanges if tool.tool_name == "search_librarian"]
+    book_tools = [tool for tool in selections[0].tool_exchanges
+                  if tool.tool_name == "search_librarian" and tool.outcome == "success"]
     returned_books = {}
     searched_books = _evidence_ledger(tuple(
         event for event in observed.events
@@ -145,7 +154,7 @@ def verified_connection_book_evidence(
         and event.source == "book_corpus" and event.status == "evidence_found"
     ))
     assessments = []
-    for exchange in exchanges:
+    for exchange in successful:
         if exchange.role != "Librarian" or exchange.stage != "evidence_strength":
             continue
         request = LibrarianEvidenceStrengthInput.model_validate_json(exchange.input_prompt)
@@ -159,7 +168,7 @@ def verified_connection_book_evidence(
     for tool in book_tools:
         result = InternalSearchResult.model_validate(tool.result)
         if result.outcome == "retrieval_unavailable":
-            return False
+            continue
         returned_records = tuple(evidence_record_from_item(item) for item in result.evidence)
         if not any(
             strength == result.judgement.evidence_strength

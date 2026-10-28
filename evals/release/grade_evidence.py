@@ -29,12 +29,23 @@ def _result_matches(result: str, failures: tuple[str, ...], passed: bool | None 
 
 
 def _complete_exchanges(exchanges) -> None:
-    if not exchanges or any(
-        item.status != "success" or item.failure_code or item.failure_category
-        or item.provider_status_code or item.provider_error_kind or item.output is None
-        for item in exchanges
-    ):
-        raise ValueError("Required execution transcripts are missing or failed.")
+    if not exchanges:
+        raise ValueError("Required execution transcripts are missing.")
+    for item in exchanges:
+        if item.status == "success":
+            valid = not any((
+                item.failure_code, item.failure_category, item.provider_status_code,
+                item.provider_error_kind,
+            )) and item.output is not None
+        else:
+            valid = (
+                item.status in {"failure", "cancelled"}
+                and bool(item.failure_code) and bool(item.failure_category)
+                and item.failure_code != "incomplete_agent_exchange"
+                and (item.status == "cancelled") == (item.failure_category == "cancelled")
+            )
+        if not valid:
+            raise ValueError("Required execution transcript has no consistent terminal outcome.")
 
 
 def _curation_review(status: str, decision: str | None, exchanges, *, response=None, input_memories=None):
@@ -43,11 +54,13 @@ def _curation_review(status: str, decision: str | None, exchanges, *, response=N
     if (
         len(sculptors) != 1 or sculptors[0].stage != "curation"
         or sculptors[0].input_contract != "src.linger.agents.sculptor.models.AccountScopedMemories"
+        or len(sculptors) + len(reviewers) != len(exchanges)
         or any(
-            tool.outcome != "success" or (item.role, tool.tool_name) not in {
+            (item.role, tool.tool_name) not in {
                 ("Sculptor", "final_result_CurationProposal"),
                 ("Sculptor", "final_result_NoCurationProposal"),
             }
+            or tool.outcome not in ({"success"} if item.status == "success" else {None, "success", "failed"})
             for item in (*sculptors, *reviewers) for tool in item.tool_exchanges
         )
     ):
@@ -58,34 +71,43 @@ def _curation_review(status: str, decision: str | None, exchanges, *, response=N
     memories = TypeAdapter(tuple[CurationMemory, ...]).validate_json(json.dumps(payload.get("memories")))
     existing = ExistingCuration.model_validate_json(json.dumps(payload.get("existing_curation", {})))
     by_id = {item.memory_id: item for item in memories}
-    actual_response = SCULPTOR_RESPONSE_ADAPTER.validate_json(json.dumps(sculptors[0].output))
     if (
         not 2 <= len(memories) <= 12 or len(by_id) != len(memories)
         or existing.referenced_memory_ids() - by_id.keys()
-        or (response is not None and actual_response != response)
         or (input_memories is not None and (memories != input_memories or existing != ExistingCuration()))
     ):
         raise ValueError("Curation Sculptor input or output differs from the observed source batch and proposal.")
-    expected = {
-        "no_change": "not_reviewed", "provenance_revise": "revise",
-        "provenance_reject": "reject", "applied": "allow",
-    }.get(status)
-    if expected is None or (decision or "not_reviewed") != expected:
-        raise ValueError("Curation application and approval evidence disagree.")
-    if expected == "not_reviewed":
-        if reviewers or actual_response.kind != "no_curation_proposal":
-            raise ValueError("Unreviewed curation unexpectedly contains a proposal or review.")
-        return actual_response, memories, None
+    if sculptors[0].status != "success":
+        if status != "failed" or decision is not None or reviewers or response is not None:
+            raise ValueError("Failed Sculptor execution cannot authorize a curation outcome.")
+        return None, memories, None
+    actual_response = SCULPTOR_RESPONSE_ADAPTER.validate_json(json.dumps(sculptors[0].output))
+    if response is not None and actual_response != response:
+        raise ValueError("Curation Sculptor output differs from the observed proposal.")
+    if status == "failed":
+        if decision is not None or len(reviewers) > 1 or (reviewers and reviewers[0].status == "success"):
+            raise ValueError("Failed curation lacks a recorded failure before application.")
+        if not reviewers:
+            return actual_response, memories, None
+    else:
+        expected = {
+            "no_change": "not_reviewed", "provenance_revise": "revise",
+            "provenance_reject": "reject", "applied": "allow",
+        }.get(status)
+        if expected is None or (decision or "not_reviewed") != expected:
+            raise ValueError("Curation application and approval evidence disagree.")
+        if expected == "not_reviewed":
+            if reviewers or actual_response.kind != "no_curation_proposal":
+                raise ValueError("Unreviewed curation unexpectedly contains a proposal or review.")
+            return actual_response, memories, None
     if (
         len(reviewers) != 1 or reviewers[0].stage != "curation_review"
         or reviewers[0].input_contract != "src.linger.agents.provenance.curation_models.CurationReviewInput"
     ):
         raise ValueError("Curation has no exact recorded Provenance review.")
     review_input = CurationReviewInput.model_validate_json(reviewers[0].input_prompt)
-    review = CurationProvenanceReview.model_validate_json(json.dumps(reviewers[0].output))
-    review_input.validate_review(review)
     if (
-        review.decision != expected or review_input.proposal != actual_response
+        review_input.proposal != actual_response
         or any(
             source.memory_id not in by_id or source.text != by_id[source.memory_id].text
             or source.recorded_at != by_id[source.memory_id].recorded_at
@@ -93,6 +115,14 @@ def _curation_review(status: str, decision: str | None, exchanges, *, response=N
         )
     ):
         raise ValueError("Curation review is not bound to the exact observed proposal and source memories.")
+    if status == "failed":
+        return actual_response, memories, review_input
+    if reviewers[0].status != "success":
+        raise ValueError("Applied or reviewed curation requires a completed Provenance decision.")
+    review = CurationProvenanceReview.model_validate_json(json.dumps(reviewers[0].output))
+    review_input.validate_review(review)
+    if review.decision != expected:
+        raise ValueError("Curation application and approval evidence disagree.")
     return actual_response, memories, review_input
 
 
@@ -151,10 +181,12 @@ def _memory_loop(artifact: dict, scene: dict, planned: dict, backstory: dict, pr
     trusted_content = Counter((item.text, item.recorded_at) for item in trusted_memories.values())
     seeded_batches = {}
     approved_derived = {}
+    previous_views = {}
     for observation in sorted(rounds, key=lambda item: (item.repetition, item.round)):
         _complete_exchanges(observation.agent_exchanges)
-        if observation.status == "failed" or observation.failure:
-            raise ValueError("Memory-loop curation execution failed.")
+        failed = observation.status == "failed"
+        if failed != bool(observation.failure):
+            raise ValueError("Memory-loop curation failure outcome is incomplete or inconsistent.")
         response, memories, _ = _curation_review(observation.status, observation.provenance_decision, observation.agent_exchanges)
         if (
             Counter((item.text, item.recorded_at) for item in memories) != trusted_content
@@ -166,7 +198,14 @@ def _memory_loop(artifact: dict, scene: dict, planned: dict, backstory: dict, pr
             for item in observation.retrieval_view
         ):
             raise ValueError("Memory-loop curation refers to unauthorized source Props.")
-        if response.kind == "no_curation_proposal":
+        view = Counter((item.kind, item.source_prop_ids, item.text) for item in observation.retrieval_view)
+        if failed:
+            previous = previous_views.get(
+                observation.repetition, Counter(("original", (identity,), None) for identity in bank),
+            )
+            if observation.action is not None or observation.source_prop_ids or view != previous:
+                raise ValueError("Failed curation changed retrieval state or invents an applied action.")
+        elif response.kind == "no_curation_proposal":
             if observation.action is not None or observation.source_prop_ids:
                 raise ValueError("Memory-loop no-change observation invents an action.")
         else:
@@ -191,6 +230,7 @@ def _memory_loop(artifact: dict, scene: dict, planned: dict, backstory: dict, pr
             for item in observation.retrieval_view
         ):
             raise ValueError("Memory-loop retrieval projection has no matching applied reviewed action.")
+        previous_views[observation.repetition] = view
 
 
 def _curation(scene: dict, planned: dict, backstory: dict, proposals: list[dict]) -> None:

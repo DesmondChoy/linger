@@ -295,8 +295,53 @@ def test_failed_review_fallback_is_not_successful_restraint(verdicts):
         provenance_verdicts=verdicts,
     ))
     grades = grade_connection_scene(scene, observed, events, {"memory": "memory-runtime"})
-    assert all("missing_review_approval" in grade.failures for grade in grades)
+    assert all(grade.failures == ("response_not_approved",) for grade in grades)
     assert all(grade.first_failure_stage == "provenance_review" for grade in grades)
+
+
+def test_rejected_candidate_evidence_does_not_claim_an_invalid_release():
+    from evals.release.policy import failure_category
+
+    plan, *_ = scenario()
+    scene = plan.scenes[1]
+    observed = response()
+    observed.inspection.release = observed.inspection.release.model_copy(update={
+        "release_source": "application_safe_decline", "failure_stage": "deterministic_validation",
+    })
+    events = (*restraint_events(scene)[:-1], ConnectionEvaluationEvent(
+        kind="release", status="declined", release_source="application_safe_decline",
+        provenance_verdicts=("pass",), failure_stage="deterministic_validation",
+    ))
+
+    grades = grade_connection_scene(scene, observed, events, {"memory": "memory-runtime"})
+
+    assert all(grade.failures == ("candidate_evidence_rejected",) for grade in grades)
+    assert all(grade.first_failure_stage == "deterministic_release" for grade in grades)
+    assert failure_category("candidate_evidence_rejected") == "quality"
+
+
+@pytest.mark.parametrize("release_source,expected,category", [
+    ("application_safe_decline", "response_not_approved", "quality"),
+    ("muse_candidate", "missing_review_approval", "security"),
+])
+def test_missing_approval_distinguishes_refusal_from_an_unreviewed_release(release_source, expected, category):
+    from evals.release.policy import failure_category
+
+    plan, *_ = scenario()
+    scene = plan.scenes[1]
+    observed = response()
+    observed.inspection.release = observed.inspection.release.model_copy(update={
+        "release_source": release_source, "provenance_verdicts": (),
+    })
+    events = (*restraint_events(scene)[:-1], ConnectionEvaluationEvent(
+        kind="release", status="declined" if release_source == "application_safe_decline" else "released",
+        release_source=release_source, provenance_verdicts=(),
+    ))
+
+    grades = grade_connection_scene(scene, observed, events, {"memory": "memory-runtime"})
+
+    assert all(grade.failures == (expected,) for grade in grades)
+    assert failure_category(expected) == category
 
 
 def test_sent_private_query_fails_but_blocked_query_is_not_disclosure():

@@ -163,8 +163,8 @@ def publication_evidence(route="manual", enabled=False):
             "status": "passed", "execution_status": "completed", "returncode": 0, "problems": [],
             "telemetry": {"flushed": True, "url": "https://example.test/trace"},
             "results": {
-                "blocking_failures": [], "execution_failures": [], "scenes_ungraded": 0,
-                "handled_execution_failures": [], "blocking_execution_failures": [], "safe_fallbacks": [],
+                "failures": [], "behavioral_failures": [], "blocking_failures": [],
+                "execution_failures": [], "scenes_ungraded": 0,
                 "judgments_passed": 2, "judgments_failed": 0, "judgments_total": 2,
             },
         }],
@@ -356,6 +356,8 @@ def test_authorize_cli_distinguishes_skipped_record_from_evaluation_summary(monk
     snapshot.write_text(json.dumps(configuration))
     summary.parent.mkdir()
     evidence = publication_evidence() if live_enabled else candidate.skipped_evaluations(SHA, IMAGE, configuration, image_checks())
+    if live_enabled:
+        retain_evaluation(evidence, summary.parent)
     summary.write_text(json.dumps(evidence))
     approvals, output = tmp_path / "approvals.json", tmp_path / "authorization.json"
     approvals.write_text(json.dumps([{"state": "approved", "environments": [{"name": "linger-release"}]}]))
@@ -420,12 +422,15 @@ def test_execution_failure_cannot_be_hidden_by_automatic_route_label(change):
 
 def test_security_failure_cannot_be_hidden_by_automatic_route_label():
     summary = publication_evidence("automatic", True)
-    summary["runs"][0]["results"]["blocking_failures"] = [{"detail": "attack_succeeded"}]
+    failure = {"scene_id": "attack", "detail": "private_query_disclosure"}
+    results = summary["runs"][0]["results"]
+    results["failures"] = [failure]
+    results["blocking_failures"] = [failure | {"category": "security"}]
     with pytest.raises(ValueError):
         authorize(summary, route="automatic", auto_enabled="true", approvals=[])
 
 
-def handled_failure_evidence(passed=81):
+def task_failure_evidence(passed=81):
     summary = publication_evidence("automatic", True)
     counts = {"judgments_passed": passed, "judgments_failed": 100 - passed, "judgments_total": 100}
     summary["totals"].update(counts)
@@ -433,15 +438,17 @@ def handled_failure_evidence(passed=81):
     run["status"] = "review_required"
     results = run["results"]
     results.update(counts)
-    failure = {"scene_id": "boundary", "detail": "Librarian boundary_inference: boundary_inference_model_failed"}
-    results["execution_failures"] = [failure]
-    results["handled_execution_failures"] = [failure.copy()]
-    results["safe_fallbacks"] = [{
-        "kind": "book_boundary_clarification", "scene_id": "boundary", "line_id": "reader-line",
-        "reason": "The invalid decision was contained by the application clarification.",
-        "scene_sha256": "d" * 64, "behavioral_details": ["boundary_decision_differs_from_ground_truth"],
-        "execution_details": [failure["detail"]], "exchange_sequences": [5],
+    # This completed replay retained Muse's malformed Librarian call and its failed
+    # adopted judgment. No repair or specially verified fallback is required.
+    results["execution_failures"] = [{
+        "scene_id": "alice-spoiler-inference", "detail": "Muse draft: muse_model_failed",
     }]
+    results["failures"] = [
+        {"scene_id": "alice-spoiler-inference", "detail": detail}
+        for detail in ("grounding_call_did_not_return_evidence_result",
+                       "response_not_released_from_allowed_source", "provenance_did_not_pass_release")
+    ]
+    results["behavioral_failures"] = copy.deepcopy(results["failures"])
     summary["publication"] = candidate.publication_decision(
         judgments_passed=passed, judgments_total=100, complete=True, blocked=False,
         auto_publish_enabled=True, threshold=80,
@@ -450,8 +457,8 @@ def handled_failure_evidence(passed=81):
 
 
 @pytest.mark.parametrize("passed,route", [(81, "automatic"), (80, "manual")])
-def test_handled_failure_keeps_raw_errors_and_routes_by_actual_score(passed, route):
-    summary = handled_failure_evidence(passed)
+def test_completed_agent_failure_keeps_raw_errors_and_routes_by_actual_score(passed, route):
+    summary = task_failure_evidence(passed)
     original = copy.deepcopy(summary)
     record = authorize(
         summary, route=route, auto_enabled="true", threshold="80",
@@ -465,57 +472,63 @@ def test_handled_failure_keeps_raw_errors_and_routes_by_actual_score(passed, rou
 
 
 @pytest.mark.parametrize("mutation", [
-    "missing_partition", "unaccounted", "duplicate", "missing_proof", "wrong_scene", "unknown_kind",
-    "missing_digest", "provider_failure", "blocking_error", "security_failure",
+    "missing_partition", "unaccounted", "duplicate", "wrong_scene", "invalid_agent_error",
+    "security_in_quality", "security_failure", "evidence_failure",
 ])
-def test_handled_error_label_cannot_hide_missing_proof_or_other_blockers(mutation):
-    summary = handled_failure_evidence()
+def test_quality_classification_cannot_hide_missing_evidence_or_other_blockers(mutation):
+    summary = task_failure_evidence()
     results = summary["runs"][0]["results"]
     if mutation == "missing_partition":
-        results.pop("blocking_execution_failures")
+        results.pop("behavioral_failures")
     elif mutation == "unaccounted":
-        results["execution_failures"].append({"scene_id": "another", "detail": "provider_failure"})
+        results["failures"].append({"scene_id": "another", "detail": "future_quality_failure"})
     elif mutation == "duplicate":
-        results["handled_execution_failures"] *= 2
-    elif mutation == "missing_proof":
-        results["safe_fallbacks"] = []
+        results["behavioral_failures"] *= 2
     elif mutation == "wrong_scene":
-        results["safe_fallbacks"][0]["scene_id"] = "another"
-    elif mutation == "unknown_kind":
-        results["safe_fallbacks"][0]["kind"] = "anything_is_safe"
-    elif mutation == "missing_digest":
-        results["safe_fallbacks"][0].pop("scene_sha256")
-    elif mutation == "provider_failure":
-        results["execution_failures"][0]["detail"] = "provider_failure"
-        results["handled_execution_failures"][0]["detail"] = "provider_failure"
-        results["safe_fallbacks"][0]["execution_details"] = ["provider_failure"]
-    elif mutation == "blocking_error":
-        results["blocking_execution_failures"] = results["handled_execution_failures"]
-        results["handled_execution_failures"] = []
-        results["safe_fallbacks"] = []
+        results["behavioral_failures"][0]["scene_id"] = "another"
+    elif mutation == "invalid_agent_error":
+        results["execution_failures"][0].pop("detail")
     else:
-        results["blocking_failures"] = [{"scene_id": "boundary", "detail": "private_query_disclosure"}]
+        failure = {"scene_id": "alice-spoiler-inference", "detail": (
+            "missing_release_observation" if mutation == "evidence_failure" else "private_query_disclosure"
+        )}
+        results["failures"].append(failure)
+        if mutation == "security_in_quality":
+            results["behavioral_failures"].append(failure.copy())
+        else:
+            results["blocking_failures"].append(failure | {
+                "category": "evidence" if mutation == "evidence_failure" else "security",
+            })
     with pytest.raises(ValueError):
         candidate.validate_publication_evidence(summary)
 
 
-@pytest.mark.parametrize("mutation", [None, "artifact_changed", "scene_changed", "missing", "outside", "missing_scene", "malformed"])
-def test_publication_binds_fallback_proof_to_retained_artifact(tmp_path, mutation):
-    summary = handled_failure_evidence()
-    run = summary["runs"][0]
-    proof = run["results"]["safe_fallbacks"][0]
-    scene = {"scene_id": "boundary", "reply": "Which chapter have you completed?"}
-    proof["scene_sha256"] = hashlib.sha256(json.dumps(scene, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    directory = tmp_path / "behavioral"
+def retain_evaluation(summary, directory):
     artifact = directory / "repeat-1" / "scenario-1" / "evaluation.json"
     artifact.parent.mkdir(parents=True)
-    artifact.write_text(json.dumps({"scenes": [scene]}))
+    artifact.write_text(json.dumps({"scenes": [{
+        "scene_id": "alice-spoiler-inference", "reply": "Something went wrong on my side.",
+    }]}))
+    run = summary["runs"][0]
     run["artifact"] = "/original/runner/release-evidence/behavioral/repeat-1/scenario-1/evaluation.json"
     run["artifact_sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    return artifact
+
+
+@pytest.mark.parametrize("with_agent_failure", [False, True])
+@pytest.mark.parametrize("mutation", [
+    None, "artifact_changed", "wrong_digest", "missing", "outside", "missing_scene", "malformed",
+    "missing_identity", "invalid_path",
+])
+def test_publication_binds_every_replay_to_retained_artifact(tmp_path, mutation, with_agent_failure):
+    summary = task_failure_evidence() if with_agent_failure else publication_evidence()
+    directory = tmp_path / "behavioral"
+    artifact = retain_evaluation(summary, directory)
+    run = summary["runs"][0]
     if mutation == "artifact_changed":
-        artifact.write_text(json.dumps({"scenes": [scene | {"reply": "Changed"}]}))
-    elif mutation == "scene_changed":
-        proof["scene_sha256"] = "a" * 64
+        artifact.write_text(json.dumps({"scenes": [{"scene_id": "alice-spoiler-inference", "reply": "Changed"}]}))
+    elif mutation == "wrong_digest":
+        run["artifact_sha256"] = "a" * 64
     elif mutation == "missing":
         artifact.unlink()
     elif mutation == "outside":
@@ -526,11 +539,15 @@ def test_publication_binds_fallback_proof_to_retained_artifact(tmp_path, mutatio
     elif mutation in {"missing_scene", "malformed"}:
         artifact.write_text(json.dumps({"scenes": []} if mutation == "missing_scene" else []))
         run["artifact_sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    elif mutation == "missing_identity":
+        run.pop("artifact")
+    elif mutation == "invalid_path":
+        run["artifact"] = "../../evaluation.json"
     if mutation is None:
-        candidate.validate_fallback_artifacts(summary, directory)
+        candidate.validate_evaluation_artifacts(summary, directory)
     else:
         with pytest.raises((ValueError, OSError)):
-            candidate.validate_fallback_artifacts(summary, directory)
+            candidate.validate_evaluation_artifacts(summary, directory)
 
 
 @pytest.mark.parametrize("passed", [94, 95])
