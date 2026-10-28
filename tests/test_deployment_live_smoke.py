@@ -1,7 +1,9 @@
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import sys
 from types import SimpleNamespace
 from urllib.error import HTTPError
 
@@ -311,3 +313,67 @@ fi
         env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "LINGER_MODEL": "test:model", "REPORT_STATUS": report_status},
     )
     assert (result.returncode == 0) == (report_status == "passed")
+
+
+@pytest.mark.parametrize("corpus_present", [True, False])
+def test_live_smoke_launcher_resolves_the_application_corpus(tmp_path, corpus_present):
+    repository = Path(__file__).resolve().parents[1]
+    application = tmp_path / "app"
+    installed = tmp_path / "site-packages"
+    for target in (application, installed):
+        for relative in (
+            "src/__init__.py", "src/linger/__init__.py", "src/linger/corpus/__init__.py",
+            "src/linger/corpus/alice.py", "src/linger/corpus/book.py",
+        ):
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(repository / relative, destination)
+    catalog = Path("data/corpus/alice-in-wonderland/pg11-v01b38ea4/catalog.json")
+    if corpus_present:
+        (application / catalog).parent.mkdir(parents=True)
+        shutil.copyfile(repository / catalog, application / catalog)
+    probe = tmp_path / "corpus-probe.py"
+    probe.write_text("""import json, os
+from pathlib import Path
+from src.linger.corpus.alice import BOOK_VERSION_ID, DEFAULT_OUTPUT
+catalog = json.loads((DEFAULT_OUTPUT / "catalog.json").read_text())
+assert catalog["book_version_id"] == BOOK_VERSION_ID
+Path(os.environ["SMOKE_CONTAINER_REPORT"]).write_text(json.dumps({
+    "status": "passed", "corpus_root": str(DEFAULT_OUTPUT),
+}))
+""")
+    fake_docker = tmp_path / "docker"
+    fake_docker.write_text(f"#!{sys.executable}\n" + """import os, shutil, subprocess, sys
+arguments = sys.argv[1:]
+if arguments[0] == "cp":
+    source, destination = arguments[1:]
+    if source == "docker/live_smoke.py":
+        shutil.copyfile(os.environ["SMOKE_PROBE"], os.environ["SMOKE_COPIED_SCRIPT"])
+    elif source.endswith(":/tmp/http-smoke.json"):
+        shutil.copyfile(os.environ["SMOKE_CONTAINER_REPORT"], destination)
+elif arguments[0] == "exec":
+    arguments = arguments[1:]
+    if arguments[0] == "--workdir":
+        assert arguments[1] == "/app"
+        arguments = arguments[2:]
+    container, executable, *command = arguments
+    assert executable == "python"
+    command = [item.replace("/tmp/linger-live-smoke.py", os.environ["SMOKE_COPIED_SCRIPT"]) for item in command]
+    sys.exit(subprocess.call([sys.executable, *command], cwd=os.environ["SMOKE_APPLICATION"]))
+""")
+    fake_docker.chmod(0o755)
+    result = subprocess.run(
+        ["bash", str(repository / "docker/live-smoke.sh"), "synthetic-image"],
+        cwd=tmp_path, capture_output=True, text=True,
+        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "LINGER_MODEL": "test:model",
+             "PYTHONPATH": str(installed), "SMOKE_APPLICATION": str(application),
+             "SMOKE_PROBE": str(probe), "SMOKE_COPIED_SCRIPT": str(tmp_path / "copied-smoke.py"),
+             "SMOKE_CONTAINER_REPORT": str(tmp_path / "container-report.json")},
+    )
+    if corpus_present:
+        assert result.returncode == 0, result.stderr
+        report = json.loads((tmp_path / "release-evidence/http-smoke.json").read_text())
+        assert report["corpus_root"] == str((application / catalog).parent)
+    else:
+        assert result.returncode != 0
+        assert str(application / catalog) in result.stderr
