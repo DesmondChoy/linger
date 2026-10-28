@@ -21,6 +21,6 @@ docker run -d --name "$name" \
   --tmpfs /var/lib/linger:uid=10001,gid=10001,mode=0700 "$image" >/dev/null
 docker cp docker/live_smoke.py "$name:/tmp/linger-live-smoke.py"
 docker cp synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json "$name:/tmp/backstory.json"
-docker exec "$name" python /tmp/linger-live-smoke.py
+docker exec --workdir /app "$name" python -c 'import runpy; runpy.run_path("/tmp/linger-live-smoke.py", run_name="__main__")'
 docker cp "$name:/tmp/http-smoke.json" release-evidence/http-smoke.json
 python3 -c 'import json; assert json.load(open("release-evidence/http-smoke.json"))["status"] == "passed"'
