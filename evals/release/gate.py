@@ -18,7 +18,9 @@ from evals.release.exception_evidence import verified_exception_evidence
 from evals.release.grade_evidence import validate_special_scene_grade
 from evals.release.policy import (
     ALLOWLIST_PATH, behavioral_exception, load_behavioral_allowlist, parse_threshold, publication_decision,
+    validate_execution_classification,
 )
+from evals.release.safe_fallbacks import verified_safe_fallbacks
 from evals.synthetic_journals.line_guard import application_guard_failures
 from evals.synthetic_journals.run_scenario import run_path
 from evals.synthetic_journals.scenario_catalog import (
@@ -119,12 +121,21 @@ def validate_artifact(artifact: dict[str, Any], scenario: Path, entry: dict[str,
     ids = [scene.get("scene_id") for scene in observations if isinstance(scene, dict)]
     if len(ids) != len(observations) or len(set(ids)) != len(ids) or set(ids) != set(planned):
         raise ValueError("Replay must cover every expected Scene exactly once.")
+    fallbacks = {
+        scene["scene_id"]: verified_safe_fallbacks(
+            artifact, scene, planned[scene["scene_id"]], backstory, truth, entry["runner"],
+        ) for scene in observations
+    }
     for scene in observations:
+        handled_sequences = {
+            sequence for proof in fallbacks[scene["scene_id"]] for sequence in proof.exchange_sequences
+        }
         holders = [scene, *scene.get("grades", [])] if isinstance(scene.get("grades", []), list) else [scene]
-        if any(exchange.get("failure_code") or exchange.get("failure_category") or exchange.get("status") != "success"
+        if any((exchange.get("failure_code") or exchange.get("failure_category") or exchange.get("status") != "success")
+               and (holder is not scene or exchange.get("sequence") not in handled_sequences)
                for holder in holders if isinstance(holder, dict)
                for exchange in holder.get("agent_exchanges", [])):
-            raise ValueError("Replay records an agent execution failure, even if its final grade passes.")
+            raise ValueError("Replay records an unhandled agent execution failure, even if its final grade passes.")
         result = scene.get("ground_truth_result")
         continuity_target = (
             planned[scene["scene_id"]]["objective_ids"] == ["session_scoped_conversation_continuity"]
@@ -242,12 +253,30 @@ def validate_artifact(artifact: dict[str, Any], scenario: Path, entry: dict[str,
     proposals = {proposal["proposal_id"]: proposal for proposal in truth["proposals"]}
     summary["behavioral_failures"] = []
     summary["blocking_failures"] = []
+    summary["safe_fallbacks"] = [
+        asdict(proof) | {"scene_id": scene["scene_id"], "scene_sha256": _json_hash(scene)}
+        for scene in observations for proof in fallbacks[scene["scene_id"]]
+    ]
+    summary["handled_execution_failures"] = []
+    summary["blocking_execution_failures"] = []
+    for failure in summary["execution_failures"]:
+        handled = any(failure["detail"] in proof.execution_details for proof in fallbacks[failure["scene_id"]])
+        summary["handled_execution_failures" if handled else "blocking_execution_failures"].append(failure)
+    validate_execution_classification(summary)
     verified = {
         scene["scene_id"]: verified_exception_evidence(
             artifact, scene, planned[scene["scene_id"]], backstory, truth, entry["runner"],
         ) for scene in observations
     }
     for failure in summary["failures"]:
+        fallback = next((proof for proof in fallbacks[failure["scene_id"]]
+                         if failure["detail"] in proof.behavioral_details), None)
+        if fallback is not None:
+            summary["behavioral_failures"].append(failure | {"exception": {
+                "reason": fallback.reason, "reference": "evals/release/safe_fallbacks.py",
+                "evidence_requirement": fallback.kind, "line_id": fallback.line_id,
+            }})
+            continue
         objectives = (
             [proposals[failure["proposal_id"]]["objective_id"]]
             if failure.get("proposal_id") in proposals else planned[failure["scene_id"]]["objective_ids"]
@@ -294,8 +323,12 @@ def _report(result: dict[str, Any], output: Path) -> None:
         for failure in run.get("results", {}).get("behavioral_failures", []):
             exception = failure["exception"]
             lines += ["", f"{run['scenario']}, repetition {run['repetition']}, {failure['scene_id']}: "
-                      f"`{failure['detail']}` remains a failed judgment. {exception['reason']} "
+                      f"`{failure['detail']}` remains a failed check; adopted judgment counts are unchanged. {exception['reason']} "
                       f"Reference: `{exception['reference']}`."]
+        for failure in run.get("results", {}).get("handled_execution_failures", []):
+            lines += ["", f"{run['scenario']}, repetition {run['repetition']}, {failure['scene_id']}: "
+                      f"Recorded execution error `{failure['detail']}` was contained by a verified safe fallback. "
+                      "The raw error is retained; it is not an evaluation crash or a passing judgment."]
         if run.get("problems"):
             lines += ["", f"{run['scenario']}, repetition {run['repetition']}:"]
             lines.extend(f"- {problem}" for problem in run["problems"])
@@ -404,9 +437,9 @@ def run_suite(
                             run["runtime_identity"] = {
                                 key: artifact.get(key) for key in ("system_variant", "runtime_prompt_fingerprints", "dataset_version")
                             }
-                            if run["results"]["blocking_failures"] or run["results"]["execution_failures"]:
+                            if run["results"]["blocking_failures"] or run["results"]["blocking_execution_failures"]:
                                 run["problems"].append("Mandatory safety, execution, or unrecognized checks failed.")
-                            elif run["results"]["behavioral_failures"]:
+                            elif run["results"]["behavioral_failures"] or run["results"]["handled_execution_failures"]:
                                 run["status"] = "review_required"
                             if run.get("execution_status") != "completed" or run.get("returncode") != 0:
                                 run["problems"].append("Replay execution did not complete successfully.")

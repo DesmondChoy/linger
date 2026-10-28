@@ -61,7 +61,7 @@ Use manual dispatch to select a candidate in either evaluation mode.
 2. Open **Actions → Release checks (manual) → Run workflow**. Select `release-candidate` as the workflow branch.
 3. Enter the candidate SHA and model. Keep **repetitions** at `1` initially, or enter another positive integer. The model and repetition inputs apply when live evaluations are enabled.
 4. Inspect the run summary and `release-image-evidence-<sha>-<run>-<attempt>`. A failed candidate, configuration, image, security, or offline smoke check blocks publication in either mode.
-5. If live evaluations are enabled, also inspect `release-evidence-<sha>-<run>-<attempt>`. Every requested repetition counts. Invalid adoption, execution errors, missing observations, and missing Logfire evidence block publication. Ordinary behavioral shortfalls remain visible for human review. Failed evaluation never falls back to the skipped-evaluation route.
+5. If live evaluations are enabled, also inspect `release-evidence-<sha>-<run>-<attempt>`. Every requested repetition counts. Invalid adoption, unhandled execution errors, missing observations, and missing Logfire evidence block publication. Ordinary behavioral shortfalls and independently verified safe fallbacks remain visible with their original failed results. Failed evaluation never falls back to the skipped-evaluation route.
 6. Check the selected publication route. If it is `manual`, complete [review and approval](#review-and-approve-a-candidate). If it is `automatic`, publication proceeds through `linger-release-auto` without human approval. Manual dispatch selects the candidate; it does not force manual publication. With live evaluations off, human approval is required even if `auto_publish_enabled=true`.
 
 The run builds and tests a fresh image at the selected SHA. It saves that image for the approval and publication job in the same run. This image artifact expires after seven days. If it expires before publication, start a new release run and review its new image and evidence.
@@ -111,6 +111,8 @@ Unknown failures block publication until their meaning has been reviewed. To add
 Known quality mismatches may use precise authorized-failure codes after the owning grader verifies permissions, source integrity and approval. Old ambiguous codes and missing proof stay blocking; do not rename them in saved evidence. Ordinary recall, permitted unnecessary memory searches, different valid book anchors, approved capture spans and authorized curation choices have scoped entries.
 
 The release summary and report record every matched exception. The allowlist does not change the configured 80% threshold or grant approval. A complete result with no blockers still follows the configured automatic or manual route.
+
+For a handled application error, first inspect the [safe-fallback classification](release-checks.md#publication-decision). Supported boundary clarifications and continuity refusals are verified by mechanism, without adding each Scene to the allowlist. Check the retained raw error and its `safe_fallbacks` evidence, and confirm `blocking_execution_failures` is empty. An unsuccessful model response alone is not proof that the evaluation crashed, and a fallback label alone is not proof that the outcome was safe. Missing proof or an additional blocker still stops publication.
 
 ## Adjust automatic publication
 
