@@ -229,9 +229,47 @@ def test_provider_failure_inside_zero_exit_artifact_is_execution_error(scenario_
 
     assert result["status"] == "failed"
     assert result["results"]["execution_failures"]
+    assert result["blocking_problems"] == []
+    assert result["evaluation_findings"]
     analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert analysis["category"] == "execution"
     assert analysis["summary"]["execution_failures"]
+
+
+@pytest.mark.parametrize("returncode,flushed", [(0, True), (7, True), (0, False)])
+def test_recorded_model_validation_failure_does_not_hide_replay_blockers(
+    scenario_repo, monkeypatch, returncode, flushed,
+):
+    repository, _ = scenario_repo
+    menu, number = _menu(repository)
+    artifact = _artifact(failed=True)
+    artifact["scenes"][0]["agent_exchanges"] = [{
+        "role": "Librarian", "stage": "boundary_inference", "status": "failure",
+        "failure_code": "boundary_inference_model_failed", "failure_category": "model_response_error",
+    }]
+    original = json.dumps(artifact, sort_keys=True)
+    _stub_replay(monkeypatch, artifact=artifact, returncode=returncode, stderr=_marker(flushed=flushed))
+
+    result = run_scenario.run_selected(menu, number, "openai:confirmed-model", repository_root=repository)
+
+    assert result["status"] == "failed"
+    assert result["execution_status"] == ("failed" if returncode else "completed")
+    assert result["results"]["execution_failures"] == [{
+        "scene_id": artifact["scenes"][0]["scene_id"],
+        "detail": "Librarian boundary_inference: boundary_inference_model_failed",
+    }]
+    assert len(result["evaluation_findings"]) == 1
+    assert bool(result["blocking_problems"]) == bool(returncode or not flushed)
+    assert all("artifact records" not in problem for problem in result["blocking_problems"])
+    if returncode:
+        assert any("exited with status 7" in problem for problem in result["blocking_problems"])
+    if not flushed:
+        assert any("telemetry flush" in problem for problem in result["blocking_problems"])
+    assert set(result["problems"]) == set(result["blocking_problems"] + result["evaluation_findings"])
+    assert json.dumps(json.loads(Path(result["artifact"]).read_text()), sort_keys=True) == original
+    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    assert analysis["category"] == ("telemetry" if not flushed and not returncode else "execution")
+    assert analysis["summary"]["execution_failures"] == result["results"]["execution_failures"]
 
 
 def test_menu_discovers_scenarios_and_extracts_description_without_generation(scenario_repo) -> None:
@@ -432,7 +470,7 @@ def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatc
 
     assert result["status"] == "failed"
     assert result["execution_status"] == "timed_out"
-    assert any("0.25-second execution limit" in problem for problem in result["problems"])
+    assert any("0.25-second execution limit" in problem for problem in result["blocking_problems"])
     assert Path(result["analysis_report"]).parent == scenario
     log = Path(result["run_log"]).read_text(encoding="utf-8")
     assert "partial provider response" in log
@@ -515,6 +553,7 @@ def test_incomplete_results_preserve_evidence_without_claiming_success(scenario_
     assert result["status"] == "failed"
     assert result["execution_status"] == "completed"
     assert result["problems"]
+    assert result["blocking_problems"]
     assert "results" not in result
     assert json.loads(Path(result["artifact"]).read_text(encoding="utf-8")) == artifact
     assert json.loads(Path(result["summary_file"]).read_text(encoding="utf-8"))["status"] == "failed"

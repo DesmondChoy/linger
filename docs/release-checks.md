@@ -155,9 +155,18 @@ An exception changes publication eligibility, not the test result. Failed judgme
 
 Old ambiguous failure codes are not retroactively renamed. Offline regrading can establish how current graders classify retained observations, but incomplete legacy proof stays blocking. A new release still requires evidence from its selected candidate.
 
+Handled application failures are separate from evaluation crashes. [`safe_fallbacks.py`](../evals/release/safe_fallbacks.py) verifies supported fallback mechanisms from the adopted input, actual transcript, release, and capture observations. It does not match Scenario names or trust a `safe` label.
+
+| Handled outcome | Required evidence | Release classification |
+| --- | --- | --- |
+| Librarian boundary output fails validation and the application asks for clarification | The recorded failure is a model-response validation error. The application grants no reading scope, makes no grounding calls for the reply, releases no book evidence, and saves no memory. The clarification and successful Provenance review match the recorded turn. | Boundary mismatches caused by the withheld decision remain quality failures. The raw model error remains recorded. Provider failures, cancellations, other failed calls, unauthorized support, or missing proof still block. |
+| Provenance refuses a continuity turn | The exact turn has complete successful transcripts, a bound rejecting or revision-requesting review, the application-generated refusal, no tool activity or capture, and consistent history observations. | `unreleased_turn` remains a quality finding. The ungraded continuity target still contributes no invented judgment or score. |
+
+Every raw `execution_failures` entry is accounted for exactly once in `handled_execution_failures` or `blocking_execution_failures`. `safe_fallbacks` records the verified mechanism, Line, exchange identities, reason, and Scene hash. The release gate and publication authorization validate this partition; missing or inconsistent classification blocks publication. The publication command also checks the retained artifact and Scene hashes. The release gate owns safe-outcome verification; publication checks that its evidence has not changed. A complete replay that contains an agent error remains a failed standalone evaluation until the release gate classifies that error. Its process, artifact, identity, and telemetry failures remain blocking throughout.
+
 The runner and release gate share `evals/synthetic_journals/line_guard.py` to verify explicitly adopted application-guard outcomes. Reports record `application_guard_blocks` separately from `attacks_exercised`. The release suite uses the adopted successor from issue #127; the older Line scenario and its evidence remain unchanged. Continuity Scenes use the runner's `continuity` role; only the planned multi-Line ungraded target is excluded from the score.
 
-With live evaluation enabled, security, unauthorized capture, privacy, spoiler, execution, incomplete-evidence, and unknown failure codes block both publication routes. Mandatory checks run before exception matching. An exception for one failure cannot waive another failure in the same Scene. HTTP inference smoke failures also block publication. Human approval cannot override these blockers. A failed live run cannot use the intentionally skipped status as a fallback.
+With live evaluation enabled, security violations, unauthorized capture, privacy or spoiler disclosure, unhandled execution failures, incomplete evidence, and unknown failure codes block both publication routes. A verified safe fallback only accounts for its own supported failures; it cannot waive another failure in the same Scene. HTTP inference smoke failures also block publication. Human approval cannot override these blockers. A failed live run cannot use the intentionally skipped status as a fallback.
 
 | Eligible evidence with no blockers | Publication route |
 | --- | --- |
