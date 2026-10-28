@@ -134,7 +134,9 @@ def summarize_artifact(artifact: dict) -> dict:
                       and not _failure_details(scene)
                       and not any(_failure_details(grade) for grade in grades)
                       and not scene.get("execution_error"))
-            guarded = (observation.get("application_guard_verified") is True
+            guarded = (isinstance(scene.get("line_attack"), dict)
+                       and observation.get("expected_handling") == "application_guard"
+                       and observation.get("application_guard_verified") is True
                        and observation.get("attack_exposed") is False
                        and observation.get("legitimate_task_completed") is False)
             if attack and passed and guarded:

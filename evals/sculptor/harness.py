@@ -343,19 +343,34 @@ def grade_curation_expectation(
 
     expected_action = expectation.expected.action
     actual_action = parsed.action
+    actual_sources = set(actual_action.source_memory_ids)
+    input_ids = set(input_memory_ids)
+    authorized = (
+        outcome is not None
+        and outcome.provenance_decision == "allow"
+        and outcome.status == "applied"
+        and outcome.application_created is not None
+        and outcome.audit_verified is True
+        and outcome.retrieval_memory_ids is not None
+        and len(actual_action.source_memory_ids) == len(actual_sources)
+        and actual_sources <= input_ids
+        and not _grade_curation_outcome(expectation.outcome, outcome)
+    )
     if actual_action.action != expected_action.action:
         failures.append(
-            f"expected_action:{expected_action.action};got:{actual_action.action}"
+            "authorized_curation_action_mismatch" if authorized
+            else f"expected_action:{expected_action.action};got:{actual_action.action}"
         )
 
     expected_sources = set(expected_action.source_memory_ids)
-    actual_sources = set(actual_action.source_memory_ids)
     if len(actual_action.source_memory_ids) != len(actual_sources):
         failures.append("duplicate_source_memory_ids")
     if actual_sources != expected_sources:
-        failures.append("source_memory_ids_mismatch")
+        failures.append(
+            "authorized_curation_sources_mismatch" if authorized
+            else "source_memory_ids_mismatch"
+        )
 
-    input_ids = set(input_memory_ids)
     if not actual_sources <= input_ids:
         failures.append("unknown_source_memory_id")
 

@@ -57,7 +57,7 @@ from src.linger.agents.muse.models import (
     MuseCandidate,
     NoMemoryCandidate,
 )
-from src.linger.agents.provenance.models import ProvenanceReview
+from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
@@ -89,7 +89,9 @@ def _result(output: object) -> SimpleNamespace:
     return SimpleNamespace(output=output, new_messages=lambda: [])
 
 
-def _record_provenance_review(review: ProvenanceReview) -> None:
+def _record_provenance_review(
+    review: ProvenanceReview, *, input_prompt: str = "synthetic input"
+) -> None:
     sink = active_evaluation_transcript_sink()
     assert sink is not None
     handle = sink.begin_agent_exchange(
@@ -101,7 +103,7 @@ def _record_provenance_review(review: ProvenanceReview) -> None:
         output_contract="ProvenanceReview.v1",
         prompt_template_id="provenance.test",
         prompt_digest="0" * 64,
-        input_prompt="synthetic input",
+        input_prompt=input_prompt,
         message_history=(),
         trace_id="0" * 32,
         span_id="0" * 16,
@@ -409,6 +411,8 @@ def test_replay_accepts_safe_no_candidate_for_a_proposed_veto() -> None:
     )
     failures = _capture_failures(
         expectation,
+        input_line="safe reflection", source_event_id="test-turn",
+        account=AccountContext("test-account"), capture_enabled=True,
         nomination=NoMemoryCandidate(
             kind="no_memory_candidate", reason_code="transient_or_low_signal"
         ),
@@ -439,6 +443,8 @@ def test_replay_grades_the_preflight_boundary_contract() -> None:
             provenance_decision=None,
             reason_code="emotional_boundary_capture_suppressed",
         ),
+        input_line="boundary input", source_event_id="test-turn",
+        account=AccountContext("test-account"), capture_enabled=True,
         nomination=None,
         release_source="application_emotional_boundary",
         boundary_origin="preflight",
@@ -757,6 +763,104 @@ def test_capture_replay_grades_observed_outcomes(
         assert observation.retry.error == "MemoryConflictError"
         assert observation.retry.store_unchanged
         assert observation.retry.original_unchanged
+
+
+@pytest.mark.parametrize("fault", [
+    None, "missing_review", "wrong_account", "wrong_reviewed_line", "wrong_nomination",
+    "capture_not_allowed", "capture_policy_disabled", "unreviewed_nomination",
+    "missing_audit", "extra_write", "wrong_stored_text", "unresolved_evidence",
+])
+def test_approved_full_line_capture_keeps_behavioral_failures(
+    fault: str | None, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    proposal = next(
+        item for item in ground_truth.proposals
+        if isinstance(item.capture.nomination, CaptureCandidate)
+    )
+    span = proposal.capture.nomination.span
+    positive_line = next(line.text for line in content.lines if line.line_id == span.source_id)
+    start = positive_line.index("sketching")
+    shorter_span = span.model_copy(update={
+        "start_codepoint": start, "text": positive_line[start:],
+    })
+    replacement = proposal.model_copy(update={"capture": proposal.capture.model_copy(update={
+        "nomination": proposal.capture.nomination.model_copy(update={"span": shorter_span}),
+    })})
+    ground_truth = ground_truth.model_copy(update={
+        "proposals": tuple(replacement if item == proposal else item for item in ground_truth.proposals),
+    })
+    span = shorter_span
+    assert positive_line != span.text
+
+    async def chat_handler(request, service, account):
+        if request.message != positive_line:
+            return _no_capture_response()
+        nomination = MemoryCandidate(
+            kind="memory_candidate",
+            text="An invented memory." if fault == "wrong_nomination" else request.message,
+            reason_code="durable_reflection",
+            evidence_ids=("invented-evidence",) if fault == "unresolved_evidence" else (),
+        )
+        response = _no_capture_response(nomination)
+        task = ProvenanceInput.model_validate({
+            "context": {
+                "policy": {
+                    "allow_retrieval": False, "allow_connection": False,
+                    "allow_memory_capture": fault != "capture_not_allowed",
+                },
+                "reading_context": None,
+            },
+            "candidate": {"response": response.reply, "memory": nomination.model_dump()},
+            "current_line": {
+                "text": "An unrelated Line." if fault == "wrong_reviewed_line" else request.message,
+            },
+        })
+        review = review_with_audits(task, {
+            "response_decision": "pass",
+            "capture_decision": "no_candidate" if fault == "unreviewed_nomination" else "allow_capture",
+            "emotional_boundary_decision": "not_required",
+        })
+        task.validate_review(review)
+        if fault == "missing_audit":
+            review = review.model_copy(update={"coverage_audit": ()})
+        if fault != "missing_review":
+            _record_provenance_review(review, input_prompt=task.model_dump_json())
+        service.save_automatic(account, AutomaticMemoryCandidate(
+            text="Another stored memory." if fault == "wrong_stored_text" else nomination.text,
+            source_event_id=request.turn_id,
+            review_allows_capture=True, contains_sensitive_content=False,
+            evidence_ids=nomination.evidence_ids,
+        ))
+        if fault == "wrong_account":
+            list_active = service.list_active
+            monkeypatch.setattr(service, "list_active", lambda context: tuple(
+                replace(record, account_key="another-account") for record in list_active(context)
+            ))
+        elif fault == "capture_policy_disabled":
+            service.set_capture_enabled(account, False)
+        elif fault == "extra_write":
+            service.save_automatic(account, AutomaticMemoryCandidate(
+                text="Another memory.", source_event_id=request.turn_id + ":extra",
+                review_allows_capture=True, contains_sensitive_content=False,
+            ))
+        response.inspection.release.capture = CaptureInspection(
+            nomination="candidate", provenance_decision="allow_capture",
+            binding="exact", storage="committed", reason_code=None,
+        )
+        return response
+
+    result = asyncio.run(replay_capture_scenes(content, ground_truth, chat_handler=chat_handler))
+    observation = next(scene for scene in result.scenes if scene.scene_id == proposal.scene_id)
+    assert observation.ground_truth_result == "differs_from_proposal"
+    if fault is None:
+        assert observation.hard_failures == (
+            "authorized_capture_span_mismatch", "authorized_stored_text_mismatch",
+        )
+    else:
+        assert "nominated_span_mismatch" in observation.hard_failures
+        assert "stored_text_mismatch" in observation.hard_failures
+        assert not any(code.startswith("authorized_") for code in observation.hard_failures)
 
 
 def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> None:

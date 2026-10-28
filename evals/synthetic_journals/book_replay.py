@@ -28,8 +28,11 @@ from apps.backend.schemas import CaptureInspection, ChatRequest
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.librarian.models import (
+    BoundaryInferenceDecision,
     LibrarianBoundaryDecision,
+    LibrarianBoundaryInferenceInput,
     PassageInferenceDecision,
+    boundary_memory_assessment_errors,
 )
 from src.linger.agents.serendipity.models import (
     ConnectionDiscoveryInput,
@@ -815,6 +818,57 @@ def _boundary_handoff_is_content_free(
     return True
 
 
+def _boundary_support_is_authorized(
+    scene: ValidatedBookScene, observation: BookSceneObservation,
+) -> bool:
+    """Verify actual authority independently of the adopted anchor selection."""
+    scope = scene.facts.scope
+    try:
+        routed = _route_outcome(_librarian_calls(observation.agent_exchanges))
+        exchange = _boundary_exchange(observation.agent_exchanges, routed)
+        if exchange is None or exchange.status != "success" or exchange.failure_code:
+            return False
+        decision = BoundaryInferenceDecision.model_validate(exchange.output)
+        request = LibrarianBoundaryInferenceInput.model_validate_json(exchange.input_prompt)
+        if (
+            decision.work_id != scope.work_id
+            or decision.book_version_id != scope.book_version_id
+            or decision.chapter_number != scene.safe_ceiling_chapter
+            or set(decision.supporting_memory_ids) != set(observation.boundary_support_memory_ids)
+            or request.current_line != scene.line
+            or observation.input_line != scene.line
+            or request.prior_reader_statements
+            or not _boundary_handoff_is_content_free("infer", routed, observation.agent_exchanges)
+            or boundary_memory_assessment_errors(decision, request)
+        ):
+            return False
+        props = {prop.prop_id: prop.source_text for prop in scene.props}
+        seeded = {prop.memory_id: prop for prop in observation.seeded_props}
+        if any(
+            memory.memory_id not in seeded
+            or memory.text != seeded[memory.memory_id].source_text
+            or memory.text != props.get(seeded[memory.memory_id].prop_id)
+            or memory.evidence_ids
+            for memory in request.relevant_memories
+        ):
+            return False
+        actual = observation.boundary_support_evidence
+        if not actual or actual != _boundary_support_observations(observation.agent_exchanges, routed):
+            return False
+        librarian = Librarian()
+        return all(
+            record.work_id == scope.work_id
+            and record.book_version_id == scope.book_version_id
+            and record.part_id == "main"
+            and record.chapter_number is not None
+            and record.chapter_number <= scene.safe_ceiling_chapter
+            and librarian.fetch_by_id(record.evidence_id) == record
+            for record in actual
+        )
+    except (OSError, ValueError, TypeError, KeyError):
+        return False
+
+
 def _scope_failures(
     scene: ValidatedBookScene, observation: BookSceneObservation
 ) -> list[str]:
@@ -858,7 +912,11 @@ def _scope_failures(
             support, observation.boundary_support_evidence,
             optional=tuple(scene.evidence_by_id[key] for key in scope.optional_supporting_evidence_ids),
         ):
-            failures.append("boundary_support_differs_from_ground_truth")
+            failures.append(
+                "authorized_boundary_support_mismatch"
+                if not failures and _boundary_support_is_authorized(scene, observation)
+                else "boundary_support_differs_from_ground_truth"
+            )
     for call in observation.grounding_calls:
         if call.response_kind != "result":
             failures.append("grounding_call_did_not_return_evidence_result")
@@ -1093,15 +1151,6 @@ def _grade_proposal(
                 raise RuntimeError("inferred boundary lacks a safe ceiling")
             if observation.routed_ceiling != safe_ceiling:
                 failures.append("inferred_ceiling_differs_from_ground_truth")
-            expected_support = tuple(
-                evidence[evidence_id] for evidence_id in scope.supporting_evidence_ids
-            )
-            if not _evidence_sets_match(
-                expected_support,
-                observation.boundary_support_evidence,
-                optional=tuple(evidence[key] for key in scope.optional_supporting_evidence_ids),
-            ):
-                failures.append("boundary_support_differs_from_ground_truth")
             for call in observation.grounding_calls:
                 if (
                     call.searched_part_id != "main"

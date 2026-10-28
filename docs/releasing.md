@@ -89,7 +89,7 @@ Use these steps when the publication decision selects the `manual` route and the
 1. Open the candidate summary and common image evidence. Check the successful candidate CI, configuration snapshot, image identity, Trivy report, and offline startup and persistence results.
 2. If evaluation was intentionally skipped, confirm that the configuration disables live evaluations and the summary makes no behavioral pass claim. Decide whether to publish with that stated limitation. No live provider, Scenario, or HTTP inference evidence exists for this run.
 3. If evaluation completed, open the per-Scene reports, Logfire links, source identities, and HTTP smoke evidence. Review responses for useful grounding, appropriate clarification or decline, citation quality, and unsupported personal claims. Inspect failed checks and misleading passes.
-4. For each evaluated attack, confirm that the malicious span reached the agent. Check for paraphrased obedience and unnecessary refusal of the legitimate request. For Line attacks, inspect accepted commits and final personal memories separately from the reply's claims. An absent marker does not prove resistance. A quoted marker does not prove obedience. Review clean comparisons separately from attack resistance.
+4. For each evaluated attack, check its adopted handling: agent-resistance cases require the malicious span to reach the agent; explicit application-guard cases require a verified input block without agent calls or writes. These are separate claims. Check for paraphrased obedience and unnecessary refusal of the legitimate request. For Line attacks, inspect accepted commits and final personal memories separately from the reply's claims. An absent marker does not prove resistance. A quoted marker does not prove obedience. Review clean comparisons separately from attack resistance.
 5. Review any ordinary behavioral failures and decide whether they are acceptable for this release. Security and evidence blockers cannot be overridden by approval.
 6. Confirm that the candidate SHA, configuration SHA, and image ID match the pending `linger-release` job. Approve that job after completing the applicable review.
 7. Save `publication.json`, `approved-release.json`, and the evidence with the project's release records. In `publication.json`, `evaluation_status` is `skipped` or `completed`. The same authorization appears under `authorization` in `approved-release.json`, alongside the published digest, image identity, and CI run. Human publication also records GitHub's approval history.
@@ -97,6 +97,20 @@ Use these steps when the publication decision selects the `manual` route and the
 With live evaluations off, every eligible candidate waits for approval regardless of the automatic-publication setting. With live evaluations on and automatic publication off, every eligible candidate also waits, including one with a 100% automated pass rate. Approval publishes the saved Linux AMD64 image to GHCR. The automatic promotion run then deploys its immutable digest to the existing Railway service. A manual candidate run leaves deployment to the operator. Keep the previous approved digest available for recovery.
 
 For a Railway failure after successful publication, use [Retry deployment without rebuilding](railway.md#retry-deployment-without-rebuilding). Select the original publication run and attempt. The retry reuses the retained evidence and published image without rebuilding, republishing, or rerunning evaluations.
+
+## Review a newly discovered behavioural failure
+
+Unknown failures block publication until their meaning has been reviewed. To add a behavioural exception:
+
+1. Inspect the failed judgment, released reply, tool activity, and execution and storage evidence. Confirm that the failure concerns expected behaviour and that required security checks completed successfully.
+2. Find the code emitted by the owning replay grader. If the code combines harmless behaviour with a security violation, split the grader's code first. Do not exempt a whole Scenario or run.
+3. Add an entry to [`evals/release/behavioral-allowlist.json`](../evals/release/behavioral-allowlist.json) with the exact `runner`, `objective_ids`, and `code`, plus a `reason` and evidence or issue `reference`. Conditional exceptions also require a supported `evidence_requirement`; a free-text reason is not proof.
+4. Add focused tests for the reviewed outcome and the nearby unsafe or incomplete outcomes. Verify that the failed judgment still lowers the score and that unknown failures remain blocking.
+5. Review the change through a PR and promote the resulting version through the release pipeline. Existing artifacts retain their original grades and candidate identities. Do not edit old evaluation files to qualify them for publication.
+
+Known quality mismatches may use precise authorized-failure codes after the owning grader verifies permissions, source integrity and approval. Old ambiguous codes and missing proof stay blocking; do not rename them in saved evidence. Ordinary recall, permitted unnecessary memory searches, different valid book anchors, approved capture spans and authorized curation choices have scoped entries.
+
+The release summary and report record every matched exception. The allowlist does not change the configured 80% threshold or grant approval. A complete result with no blockers still follows the configured automatic or manual route.
 
 ## Adjust automatic publication
 

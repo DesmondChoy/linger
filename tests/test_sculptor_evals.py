@@ -2,14 +2,60 @@
 
 import unittest
 
+import pytest
 from pydantic import ValidationError
 
 from evals.sculptor.harness import (
+    CurationExpectation,
+    CurationOutcomeExpectation,
     REQUIRED_BEHAVIORS,
     SculptorEvalCase,
     grade_sculptor_response,
+    grade_curation_expectation,
     load_sculptor_eval_cases,
 )
+
+
+@pytest.mark.parametrize("fault", [None, "unknown_source", "duplicate_source", "unreviewed", "rejected", "unverified", "missing_outcome"])
+def test_only_authorized_curation_variants_are_behavioral(fault) -> None:
+    case = next(case for case in load_sculptor_eval_cases() if case.primary_behavior == "noisy_memory_summary")
+    expected = case.expected.model_dump()
+    input_ids = tuple(memory.memory_id for memory in case.input.memories)
+    expected["action"]["source_memory_ids"] = input_ids[:2]
+    expectation = CurationExpectation(primary_behavior=case.primary_behavior, expected=expected)
+    sources = list(input_ids)
+    if fault == "unknown_source":
+        sources[-1] = "another-account-memory"
+    elif fault == "duplicate_source":
+        sources[-1] = sources[0]
+    response = {
+        "kind": "curation_proposal",
+        "action": {
+            "action": "assign_topic_group", "source_memory_ids": sources,
+            "topic_label": "Restorative walks",
+        },
+    }
+    outcome = CurationOutcomeExpectation(
+        provenance_decision="not_reviewed" if fault == "unreviewed" else "allow",
+        status="provenance_reject" if fault == "rejected" else "applied",
+        application_created=True,
+        audit_verified=fault != "unverified",
+        retrieval_memory_ids=input_ids,
+    )
+    grade = grade_curation_expectation(
+        expectation, input_ids, response,
+        outcome=None if fault == "missing_outcome" else outcome,
+    )
+    assert grade.hard_pass is False
+    if fault is None:
+        assert grade.failures == (
+            "authorized_curation_action_mismatch", "authorized_curation_sources_mismatch",
+        )
+    else:
+        assert not any(code.startswith("authorized_") for code in grade.failures)
+        if fault == "unknown_source":
+            assert "unknown_source_memory_id" in grade.failures
+            assert "source_memory_ids_mismatch" in grade.failures
 
 
 class SculptorEvalCaseTests(unittest.TestCase):
