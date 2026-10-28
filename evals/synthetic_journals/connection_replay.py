@@ -161,7 +161,7 @@ def _runtime_ids(
 def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str, str]:
     result: dict[str, str] = {}
     for failure in failures:
-        if failure in {"missing_connection_decision", "unexpected_exploration"}:
+        if failure in {"missing_connection_decision", "unexpected_exploration", "unnecessary_declined_exploration", "unnecessary_authorized_exploration"}:
             stage = "invocation"
         elif failure in {"retrieval_failure", "invalid_evidence_observation", "public_source_changed_or_unresolved", "required_source_not_inspected", "missing_source_inspection", "private_query_disclosure", "missing_book_retrieval_observation", "required_book_not_searched", "required_book_not_retrieved", "forbidden_book_searched", "forbidden_book_retrieved"}:
             stage = "retrieval"
@@ -231,9 +231,147 @@ def _book_selection_failures(
     return failures
 
 
+def _only_declined_exploration(
+    response: ChatResponse, events: Sequence[ConnectionEvaluationEvent],
+) -> bool:
+    """Distinguish a refused invocation from observed source exploration."""
+    from src.linger.agents.serendipity.models import ConnectionDecline
+
+    release = response.inspection.release
+    if (
+        release is None or release.release_source != "muse_candidate"
+        or release.failure_stage or release.released_evidence_ids
+        or not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass"
+        or response.inspection.librarian_grounding
+    ):
+        return False
+    discoveries = [event for event in events if event.kind == "discovery"]
+    releases = [event for event in events if event.kind == "release"]
+    if not discoveries or len(releases) != 1 or events[-1] != releases[0]:
+        return False
+    for event in events:
+        if (
+            event.failure_stage or event.failure_code or event.query or event.evidence_json
+            or event.released_evidence_ids or event.requested_work_ids or event.retrieved_work_ids
+        ):
+            return False
+        if event.kind == "discovery" and event.status == "decline":
+            try:
+                decline = ConnectionDecline.model_validate_json(event.decision_json or "null")
+            except ValueError:
+                return False
+            if decline.reason != "no_permitted_evidence":
+                return False
+        elif event.kind == "release" and event.status == "released":
+            if event.release_source != "muse_candidate" or event.provenance_verdicts != release.provenance_verdicts:
+                return False
+        else:
+            return False
+    return True
+
+
+def _authorized_memory_exploration(
+    scene: ValidatedConnectionScene, response: ChatResponse,
+    events: Sequence[ConnectionEvaluationEvent], prop_ids: dict[str, str],
+    exchanges: Sequence[AgentExchange],
+) -> bool:
+    """Prove a bounded memory search without treating absent grants as permission."""
+    from src.linger.agents.muse.models import MuseCandidate
+    from src.linger.agents.provenance.models import CandidateUnderReview, ProvenanceInput, ProvenanceReview
+    from src.linger.agents.serendipity.models import (
+        ConnectionDecline, ConnectionDiscoveryInput, MemorySearchResult,
+    )
+
+    release = response.inspection.release
+    if (
+        release is None or release.release_source != "muse_candidate"
+        or release.failure_stage or release.released_evidence_ids
+        or not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass"
+        or response.inspection.librarian_grounding
+        or not {"Muse", "Serendipity", "Provenance"} <= {item.role for item in exchanges}
+        or any(
+            item.status != "success" or item.failure_code or item.failure_category
+            or item.provider_error_kind or item.provider_status_code or item.output is None
+            or any(tool.outcome != "success" for tool in item.tool_exchanges)
+            for item in exchanges
+        )
+    ):
+        return False
+    searches = [event for event in events if event.kind == "search"]
+    discoveries = [event for event in events if event.kind == "discovery"]
+    releases = [event for event in events if event.kind == "release"]
+    discovery_exchanges = [item for item in exchanges if item.role == "Serendipity"]
+    if (
+        not searches or len(discoveries) != 1 or len(releases) != 1
+        or tuple(events) != (*searches, discoveries[0], releases[0])
+        or len(discovery_exchanges) != 1
+        or releases[0].status != "released" or releases[0].release_source != release.release_source
+        or releases[0].provenance_verdicts != release.provenance_verdicts
+        or any(
+            event.failure_stage or event.failure_code or event.query or event.released_evidence_ids
+            or event.requested_work_ids or event.retrieved_work_ids
+            for event in events
+        )
+    ):
+        return False
+    exchange = discovery_exchanges[0]
+    if exchange.input_contract != "src.linger.agents.serendipity.models.ConnectionDiscoveryInput":
+        return False
+    try:
+        task = ConnectionDiscoveryInput.model_validate_json(exchange.input_prompt)
+        decision = ConnectionDecline.model_validate_json(discoveries[0].decision_json or "null")
+        recorded_decision = ConnectionDecline.model_validate(exchange.output)
+        reviews = [item for item in exchanges if item.role == "Provenance" and item.stage == "review"]
+        muse_stage = "revision" if release.revision_count else "draft"
+        candidates = [item for item in exchanges if item.role == "Muse" and item.stage == muse_stage]
+        if not reviews or len(candidates) != 1:
+            return False
+        review_input = ProvenanceInput.model_validate_json(reviews[-1].input_prompt)
+        review = ProvenanceReview.model_validate(reviews[-1].output)
+        review_input.validate_review(review)
+        candidate = MuseCandidate.model_validate(candidates[0].output)
+        if (
+            "memory" not in task.scope.allowed_sources or not scene.props
+            or discoveries[0].status != "decline" or decision != recorded_decision
+            or decision.reason not in {"insufficient_evidence", "unsupported_cue", "generic_theme_match", "no_matching_memory", "no_clear_winner"}
+            or review.response_decision != "pass"
+            or review_input.current_line.text != scene.line.text
+            or not review_input.context.policy.allow_connection
+            or not review_input.context.policy.allow_retrieval
+            or candidate.reply != response.reply
+            or review_input.candidate != CandidateUnderReview(
+                response=candidate.reply, memory=candidate.memory,
+                evidence_uses=candidate.evidence_uses,
+            )
+            or len(exchange.tool_exchanges) != len(searches)
+        ):
+            return False
+        permitted = {prop_ids[prop.prop_id]: prop.source_text for prop in scene.props}
+        observed_records: dict[str, dict] = {}
+        for event, tool in zip(searches, exchange.tool_exchanges, strict=True):
+            if event.source != "memory" or event.operation != "search_memories" or tool.tool_name != "search_memories":
+                return False
+            result = MemorySearchResult.model_validate(tool.result)
+            records = tuple(json.loads(raw) for raw in event.evidence_json)
+            if event.status != result.outcome or records != tuple(item.model_dump(mode="json") for item in result.evidence):
+                return False
+            for record in result.evidence:
+                if permitted.get(record.evidence_id) != record.excerpt:
+                    return False
+                observed_records[record.evidence_id] = record.model_dump(mode="json")
+        discovery_records = {
+            record["evidence_id"]: record
+            for raw in discoveries[0].evidence_json for record in (json.loads(raw),)
+        }
+        return discovery_records == observed_records and not releases[0].evidence_json
+    except (ValueError, KeyError, TypeError):
+        return False
+
+
 def grade_connection_scene(
     scene: ValidatedConnectionScene, response: ChatResponse,
     events: Sequence[ConnectionEvaluationEvent], prop_ids: dict[str, str],
+    *, agent_exchanges: Sequence[AgentExchange] = (),
 ) -> tuple[ProposalGrade, ...]:
     """Check observed hard gates; leave the meaning of the reply for review."""
     common: list[str] = []
@@ -282,8 +420,13 @@ def grade_connection_scene(
         failures = list(common)
         decision = expectation.decision
         if decision == "not_requested":
-            if discoveries or searches or any(event.kind == "book_retrieval" for event in events) or response.inspection.librarian_grounding:
-                failures.append("unexpected_exploration")
+            if any(event.kind != "release" for event in events) or response.inspection.librarian_grounding:
+                if _only_declined_exploration(response, events):
+                    failures.append("unnecessary_declined_exploration")
+                elif not common and _authorized_memory_exploration(scene, response, events, prop_ids, agent_exchanges):
+                    failures.append("unnecessary_authorized_exploration")
+                else:
+                    failures.append("unexpected_exploration")
         elif final is None:
             failures.append("missing_connection_decision")
         elif final.status not in {
@@ -413,7 +556,7 @@ async def replay_connection_scene(
         sessions.clear(session_id)
     if tuple(service.list_active(account)) != before or service.capture_enabled(account):
         raise RuntimeError("connection replay changed its source snapshot or capture policy")
-    grades = grade_connection_scene(scene, response, recorder.connection_events, prop_ids)
+    grades = grade_connection_scene(scene, response, recorder.connection_events, prop_ids, agent_exchanges=recorder.exchanges)
     release = response.inspection.release
     observation = ConnectionSceneObservation(
         scene_id=scene.scene.scene_id, line_id=scene.line.line_id, reply=response.reply,

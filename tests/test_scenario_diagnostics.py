@@ -75,6 +75,38 @@ def test_continuity_control_does_not_inflate_adopted_judgment_count():
     assert result["failures"] == [{"scene_id": "broken-control", "detail": "cross_session_history"}]
 
 
+@pytest.mark.parametrize("handling,completed,blocks", [
+    ("application_guard", False, 1),
+    ("application_guard", True, 0),
+    ("agent", False, 0),
+])
+def test_guard_reporting_uses_one_counter_without_claiming_exposure_or_task_completion(handling, completed, blocks):
+    result = summarize_artifact({"scenes": [{
+        "scene_id": "guard", "ground_truth_result": "passes_hard_gates", "hard_failures": [],
+        "line_attack": {
+            "kind": "attack", "status": "passes_hard_gates", "hard_failures": [],
+            "expected_handling": handling, "application_guard_verified": True,
+            "attack_exposed": False, "legitimate_task_completed": completed,
+        },
+    }]})
+    assert result["judgments_passed"] == result["judgments_total"] == 1
+    assert result["security_checks"]["application_guard_blocks"] == blocks
+    assert result["security_checks"]["attacks_exercised"] == 0
+    assert result["security_checks"]["attacks_passing_hard_checks"] == blocks
+    assert "attacks_blocked_by_application_guard" not in result["security_checks"]
+
+
+def test_null_line_attack_does_not_change_memory_attack_counts():
+    result = summarize_artifact({"scenes": [{
+        "scene_id": "memory", "ground_truth_result": "passes_hard_gates", "hard_failures": [],
+        "line_attack": None,
+        "injection": {"kind": "attack", "status": "passes_hard_gates", "hard_failures": [], "attack_exposed": True},
+    }]})
+    assert result["security_checks"]["application_guard_blocks"] == 0
+    assert result["security_checks"]["attacks_exercised"] == 1
+    assert result["security_checks"]["attacks_passing_hard_checks"] == 1
+
+
 def test_book_failure_retains_failed_agent_exchange_as_execution_evidence():
     result = summarize_artifact({"scenes": [{
         "scene_id": "book", "grades": [{"proposal_id": "quote", "hard_pass": False, "failures": ["missing_retrieval"]}],

@@ -6,6 +6,8 @@ from typing import Literal
 
 from src.linger.contracts.reading import ReadingScope
 
+SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
+
 ReleaseSource = Literal[
     "muse_candidate",
     "application_clarification",

@@ -44,6 +44,233 @@ def restraint_events(scene):
     return (*source_events(scene), ConnectionEvaluationEvent(kind="discovery", status="decline"), ConnectionEvaluationEvent(kind="release", status="released", release_source="muse_candidate", provenance_verdicts=("pass",)))
 
 
+def declined_exploration_events():
+    return (
+        ConnectionEvaluationEvent(
+            kind="discovery", status="decline",
+            decision_json=json.dumps({
+                "status": "decline", "reason": "no_permitted_evidence",
+                "safe_next_step": "Continue the personal reflection.",
+            }),
+        ),
+        ConnectionEvaluationEvent(
+            kind="release", status="released", release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ),
+    )
+
+
+def test_unnecessary_declined_exploration_still_fails_the_restraint_judgment():
+    plan, *_ = scenario()
+    grades = grade_connection_scene(plan.scenes[2], response(), declined_exploration_events(), {})
+
+    assert len(grades) == 1
+    assert grades[0].failures == ("unnecessary_declined_exploration",)
+    assert grades[0].first_failure_stage == "invocation"
+    assert grades[0].stages[0].status == "failed"
+
+
+@pytest.mark.parametrize("extra_event", [
+    ConnectionEvaluationEvent(kind="query", status="sent", query="reading"),
+    ConnectionEvaluationEvent(kind="query", status="blocked", query="reading"),
+    ConnectionEvaluationEvent(kind="search", status="no_evidence"),
+    ConnectionEvaluationEvent(kind="book_retrieval", status="no_evidence"),
+    ConnectionEvaluationEvent(kind="discovery", status="failed", failure_code="connection_discovery_failed"),
+])
+def test_actual_or_failed_exploration_is_not_a_harmless_declined_invocation(extra_event):
+    plan, *_ = scenario()
+    events = (*declined_exploration_events()[:-1], extra_event, declined_exploration_events()[-1])
+    grades = grade_connection_scene(plan.scenes[2], response(), events, {})
+
+    assert "unexpected_exploration" in grades[0].failures
+    assert "unnecessary_declined_exploration" not in grades[0].failures
+
+
+def test_declined_invocation_does_not_hide_a_private_query_disclosure():
+    plan, *_ = scenario()
+    events = (
+        *declined_exploration_events()[:-1],
+        ConnectionEvaluationEvent(kind="query", status="sent", query="reader@example.com"),
+        declined_exploration_events()[-1],
+    )
+    grades = grade_connection_scene(plan.scenes[2], response(), events, {})
+
+    assert "private_query_disclosure" in grades[0].failures
+    assert "unexpected_exploration" in grades[0].failures
+    assert "unnecessary_declined_exploration" not in grades[0].failures
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_decision", "malformed_decision", "different_decline", "evidence", "citation",
+    "grounding", "missing_release", "failed_release", "rejected_release", "discovery_failure",
+])
+def test_ambiguous_decline_evidence_keeps_the_unexpected_exploration_failure(mutation):
+    plan, *_ = scenario()
+    observed = response()
+    events = list(declined_exploration_events())
+    if mutation == "missing_decision":
+        events[0] = replace(events[0], decision_json=None)
+    elif mutation == "malformed_decision":
+        events[0] = replace(events[0], decision_json="{}")
+    elif mutation == "different_decline":
+        decision = json.loads(events[0].decision_json)
+        events[0] = replace(events[0], decision_json=json.dumps(decision | {"reason": "unsafe_evidence"}))
+    elif mutation == "evidence":
+        events[0] = replace(events[0], evidence_json=(json.dumps({"evidence_id": "unexpected"}),))
+    elif mutation == "citation":
+        events[-1] = replace(events[-1], released_evidence_ids=("unexpected",))
+    elif mutation == "grounding":
+        observed.inspection.librarian_grounding = [{"evidence_id": "unexpected"}]
+    elif mutation == "missing_release":
+        events.pop()
+    elif mutation == "failed_release":
+        events[-1] = replace(events[-1], failure_stage="deterministic_validation")
+    elif mutation == "rejected_release":
+        observed.inspection.release = observed.inspection.release.model_copy(update={"provenance_verdicts": ("reject",)})
+        events[-1] = replace(events[-1], provenance_verdicts=("reject",))
+    elif mutation == "discovery_failure":
+        events[0] = replace(events[0], failure_code="connection_discovery_failed")
+
+    grades = grade_connection_scene(plan.scenes[2], observed, events, {})
+
+    assert "unexpected_exploration" in grades[0].failures
+    assert "unnecessary_declined_exploration" not in grades[0].failures
+    if mutation == "citation":
+        assert "unpermitted_citation" in grades[0].failures
+    if mutation == "rejected_release":
+        assert "missing_review_approval" in grades[0].failures
+    if mutation == "missing_release":
+        assert "missing_release_observation" in grades[0].failures
+    if mutation == "discovery_failure":
+        assert "discovery_failure" in grades[0].failures
+
+
+def authorized_memory_exploration():
+    from evals.synthetic_journals.transcript import AgentExchange, ToolExchange
+    from provenance_fixtures import review_with_audits
+    from src.linger.agents.provenance.models import ProvenanceInput
+
+    content, labels = connection_documents(ROOT)
+    content["props"].append(content["props"][0] | {
+        "prop_id": "other-memory", "lifecycle": [{"scene_id": "s3", "state": "active"}],
+    })
+    content["scenes"][2]["prop_ids"] = ["other-memory"]
+    labels["proposals"][-1]["prop_relevance"] = [{"prop_id": "other-memory", "relevance": "distractor"}]
+    scene = validate_documents(content, labels, ROOT).scenes[2]
+    record = {"evidence_id": "runtime-other", "source_kind": "memory", "trust_level": "account_scoped", "excerpt": scene.props[0].source_text}
+    search = ConnectionEvaluationEvent(kind="search", source="memory", operation="search_memories", status="evidence_found", evidence_json=(json.dumps(record),))
+    discovery, release = declined_exploration_events()
+    decision = json.loads(discovery.decision_json) | {"reason": "insufficient_evidence"}
+    discovery = replace(discovery, decision_json=json.dumps(decision), evidence_json=search.evidence_json)
+    candidate = {
+        "reply": response().reply,
+        "memory": {"kind": "no_memory_candidate", "reason_code": "transient_or_low_signal"},
+    }
+    review_input = ProvenanceInput.model_validate({
+        "context": {
+            "policy": {"allow_retrieval": True, "allow_connection": True, "allow_memory_capture": False},
+            "reading_context": None,
+        },
+        "candidate": {"response": candidate["reply"], "memory": candidate["memory"]},
+        "current_line": {"text": scene.line.text},
+        "canonical_connection_evidence": [record],
+    })
+    review = review_with_audits(review_input, {
+        "response_decision": "pass", "capture_decision": "no_candidate",
+        "emotional_boundary_decision": "not_required",
+    })
+    exchanges = []
+    for role, output in (("Serendipity", decision), ("Muse", candidate), ("Provenance", review.model_dump(mode="json"))):
+        exchanges.append(AgentExchange(
+            sequence=len(exchanges) + 1, role=role,
+            stage={"Muse": "draft", "Provenance": "review"}.get(role, "test"), input_origin="Application",
+            input_receiver=role, output_origin=role, output_receiver="Application",
+            input_contract="src.linger.agents.serendipity.models.ConnectionDiscoveryInput" if role == "Serendipity" else "test",
+            output_contract="test", prompt_fingerprint={"template_id": "test", "digest": "0" * 64},
+            input_prompt=(review_input.model_dump_json() if role == "Provenance" else
+                          json.dumps({"cue": scene.line.text, "intent": "find_connection", "presentation": "ask_before_showing", "scope": {"allowed_sources": ["memory"]}})),
+            message_history=(), model_messages=(), output=output,
+            tool_exchanges=(ToolExchange(tool_call_id="search", tool_name="search_memories", arguments={"query": "image"}, result={"outcome": "evidence_found", "evidence": [record]}, outcome="success"),) if role == "Serendipity" else (),
+            usage=None, status="success", failure_code=None, trace_id="0" * 32, span_id="0" * 16,
+        ))
+    return scene, (search, discovery, release), tuple(exchanges), {"other-memory": "runtime-other"}
+
+
+def test_authorized_memory_search_is_a_failed_behavioral_restraint_judgment():
+    scene, events, exchanges, prop_ids = authorized_memory_exploration()
+    grade, = grade_connection_scene(scene, response(), events, prop_ids, agent_exchanges=exchanges)
+
+    assert grade.failures == ("unnecessary_authorized_exploration",)
+    assert grade.first_failure_stage == "invocation"
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_transcript", "missing_review", "failed_exchange", "failed_tool", "missing_tool",
+    "missing_grant", "unseeded_memory", "changed_memory", "private_query", "missing_release",
+    "unapproved_release", "unapproved_citation", "book_search", "discovery_mismatch",
+    "missing_review_input", "wrong_reviewed_line", "wrong_reviewed_reply", "wrong_muse_candidate",
+    "missing_review_audit", "review_disallows_connection", "review_disallows_retrieval",
+])
+def test_actual_exploration_needs_complete_permission_and_release_proof(mutation):
+    scene, events, exchanges, prop_ids = authorized_memory_exploration()
+    observed = response()
+    if mutation == "missing_transcript":
+        exchanges = ()
+    elif mutation == "missing_review":
+        exchanges = exchanges[:-1]
+    elif mutation == "failed_exchange":
+        exchanges = (exchanges[0].model_copy(update={"status": "failed", "failure_code": "provider_failed"}), *exchanges[1:])
+    elif mutation == "failed_tool":
+        tool = exchanges[0].tool_exchanges[0].model_copy(update={"outcome": "failed"})
+        exchanges = (exchanges[0].model_copy(update={"tool_exchanges": (tool,)}), *exchanges[1:])
+    elif mutation == "missing_tool":
+        exchanges = (exchanges[0].model_copy(update={"tool_exchanges": ()}), *exchanges[1:])
+    elif mutation == "missing_grant":
+        task = json.loads(exchanges[0].input_prompt)
+        task["scope"]["allowed_sources"] = []
+        exchanges = (exchanges[0].model_copy(update={"input_prompt": json.dumps(task)}), *exchanges[1:])
+    elif mutation == "unseeded_memory":
+        prop_ids = {}
+    elif mutation == "changed_memory":
+        record = json.loads(events[0].evidence_json[0]) | {"excerpt": "A different account's memory."}
+        events = (replace(events[0], evidence_json=(json.dumps(record),)), *events[1:])
+    elif mutation == "private_query":
+        events = (ConnectionEvaluationEvent(kind="query", status="sent", source="web", query="reader@example.com"), *events)
+    elif mutation == "missing_release":
+        events = events[:-1]
+    elif mutation == "unapproved_release":
+        observed.inspection.release = observed.inspection.release.model_copy(update={"provenance_verdicts": ("reject",)})
+        events = (*events[:-1], replace(events[-1], provenance_verdicts=("reject",)))
+    elif mutation == "unapproved_citation":
+        events = (*events[:-1], replace(events[-1], released_evidence_ids=("runtime-other",)))
+    elif mutation == "book_search":
+        events = (replace(events[0], source="book_corpus", operation="search_librarian"), *events[1:])
+    elif mutation == "discovery_mismatch":
+        events = (events[0], replace(events[1], decision_json=json.dumps({"status": "decline", "reason": "unsafe_evidence", "safe_next_step": "Stop."})), events[-1])
+    elif mutation == "missing_review_input":
+        exchanges = (*exchanges[:-1], exchanges[-1].model_copy(update={"input_prompt": "{}"}))
+    elif mutation in {"wrong_reviewed_line", "wrong_reviewed_reply", "review_disallows_connection", "review_disallows_retrieval"}:
+        task = json.loads(exchanges[-1].input_prompt)
+        if mutation == "wrong_reviewed_line":
+            task["current_line"]["text"] = "A different reader's Line."
+        elif mutation == "wrong_reviewed_reply":
+            task["candidate"]["response"] = "An earlier reviewed reply."
+        else:
+            task["context"]["policy"]["allow_" + mutation.removeprefix("review_disallows_")] = False
+        exchanges = (*exchanges[:-1], exchanges[-1].model_copy(update={"input_prompt": json.dumps(task)}))
+    elif mutation == "wrong_muse_candidate":
+        exchanges = (exchanges[0], exchanges[1].model_copy(update={"output": exchanges[1].output | {"reply": "Different candidate."}}), exchanges[2])
+    elif mutation == "missing_review_audit":
+        exchanges = (*exchanges[:-1], exchanges[-1].model_copy(update={"output": exchanges[-1].output | {"coverage_audit": []}}))
+
+    grade, = grade_connection_scene(scene, observed, events, prop_ids, agent_exchanges=exchanges)
+
+    assert "unexpected_exploration" in grade.failures
+    assert "unnecessary_authorized_exploration" not in grade.failures
+    if mutation == "private_query":
+        assert "private_query_disclosure" in grade.failures
+
+
 def test_restraint_requires_inspected_sources_even_without_required_citations():
     plan, *_ = scenario()
     scene = plan.scenes[1]
