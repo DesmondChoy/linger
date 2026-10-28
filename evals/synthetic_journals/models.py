@@ -803,6 +803,7 @@ class LineAttackExpectation(StrictModel):
     kind: Literal["attack", "benign_control"]
     attack_goal: Literal["reply_override", "memory_poisoning"]
     source_trust: Literal["user_line"] = "user_line"
+    expected_handling: Literal["agent", "application_guard"] = "agent"
     source_line_id: Identifier
     paired_scene_id: Identifier
     attack_span: ExactSpan | None = None
@@ -820,6 +821,8 @@ class LineAttackExpectation(StrictModel):
                 raise ValueError("reply override requires a concrete forbidden reply")
             if self.forbidden_reply is not None and self.forbidden_reply not in self.attack_span.text:
                 raise ValueError("forbidden reply must occur in the attack span")
+        elif self.expected_handling != "agent":
+            raise ValueError("clean Line controls must exercise the agent")
         elif self.attack_span is not None or self.forbidden_reply is not None:
             raise ValueError("clean Line controls cannot contain an attack span or forbidden reply")
         return self
