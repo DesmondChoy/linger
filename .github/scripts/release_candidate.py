@@ -13,7 +13,9 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from evals.release.policy import parse_threshold, publication_decision, skipped_publication_decision
+from evals.release.policy import (
+    parse_threshold, publication_decision, skipped_publication_decision, validate_execution_classification,
+)
 
 
 def command(*args: str) -> str:
@@ -121,10 +123,11 @@ def validate_publication_evidence(summary: dict) -> tuple[int, int]:
     counts = {key: 0 for key in ("judgments_passed", "judgments_failed", "judgments_total", "scenes_ungraded")}
     for run in runs:
         results, telemetry = run.get("results", {}), run.get("telemetry", {})
+        validate_execution_classification(results)
         if (run.get("status") not in {"passed", "review_required"}
                 or run.get("execution_status") != "completed" or run.get("returncode") != 0
                 or run.get("problems") != [] or results.get("blocking_failures") != []
-                or results.get("execution_failures") != []
+                or results.get("blocking_execution_failures") != []
                 or telemetry.get("flushed") is not True or not telemetry.get("url")):
             raise ValueError("Publication evidence contains incomplete or blocked execution.")
         if (any(type(results.get(key)) is not int or results[key] < 0 for key in counts)
@@ -143,6 +146,38 @@ def validate_candidate_identity(sha: str, image_id: str) -> None:
         raise ValueError("Candidate SHA must be a full Git commit identity.")
     if not isinstance(image_id, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id):
         raise ValueError("Candidate image ID must be a sha256 digest.")
+
+
+def validate_fallback_artifacts(summary: dict, directory: Path) -> None:
+    """Bind the gate's fallback proofs to the retained evidence before publishing."""
+    for run in summary.get("runs", []):
+        proofs = run.get("results", {}).get("safe_fallbacks", [])
+        if not proofs:
+            continue
+        recorded_path = run.get("artifact")
+        if not isinstance(recorded_path, str):
+            raise ValueError("Safe fallback has no retained artifact identity.")
+        parts = Path(recorded_path).parts[-3:]
+        if (len(parts) != 3 or not re.fullmatch(r"repeat-[1-9][0-9]*", parts[0])
+                or not re.fullmatch(r"scenario-[1-9][0-9]*", parts[1]) or parts[2] != "evaluation.json"):
+            raise ValueError("Safe fallback artifact has an invalid release-relative path.")
+        path = directory.joinpath(*parts).resolve()
+        if not path.is_relative_to(directory.resolve()):
+            raise ValueError("Safe fallback artifact is outside the retained evidence directory.")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != run.get("artifact_sha256"):
+            raise ValueError("Safe fallback artifact differs from the release gate evidence.")
+        artifact = json.loads(raw)
+        scenes = artifact.get("scenes") if isinstance(artifact, dict) else None
+        if not isinstance(scenes, list) or any(not isinstance(scene, dict) for scene in scenes):
+            raise ValueError("Safe fallback artifact has malformed Scene evidence.")
+        for proof in proofs:
+            matches = [scene for scene in scenes if scene.get("scene_id") == proof["scene_id"]]
+            if len(matches) != 1:
+                raise ValueError("Safe fallback Scene is missing or duplicated in the retained artifact.")
+            encoded = json.dumps(matches[0], sort_keys=True, separators=(",", ":")).encode()
+            if hashlib.sha256(encoded).hexdigest() != proof["scene_sha256"]:
+                raise ValueError("Safe fallback Scene differs from its verified evidence.")
 
 
 def validate_image_checks(checks: dict, sha: str, image_id: str) -> dict:
@@ -312,14 +347,17 @@ def main() -> int:
         elif args.action == "configuration":
             result = configuration(args.repository, args.sha)
         elif args.action == "authorize":
+            summary = json.loads(args.summary.read_text())
             result = publication_authorization(
-                json.loads(args.summary.read_text()), sha=args.sha, image_id=args.image_id,
+                summary, sha=args.sha, image_id=args.image_id,
                 route=args.route, live_enabled=args.live_enabled, auto_enabled=args.auto_enabled,
                 threshold=args.threshold, configuration_sha=args.configuration_sha,
                 approvals=json.loads(args.approvals.read_text()) if args.approvals else [],
                 configuration=json.loads(args.configuration.read_text()),
                 image_checks=json.loads(args.image_checks.read_text()),
             )
+            if args.live_enabled == "true":
+                validate_fallback_artifacts(summary, args.summary.parent)
             with args.summary.open("rb") as stream:
                 field = "evaluation_summary_sha256" if args.live_enabled == "true" else "skipped_evaluation_record_sha256"
                 result[field] = hashlib.file_digest(stream, "sha256").hexdigest()

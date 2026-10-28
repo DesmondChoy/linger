@@ -194,7 +194,7 @@ def run_path(
             if summary["scenes_failed"] or summary["judgments_failed"]:
                 if not problems:
                     category = "execution" if summary["execution_failures"] else "behavioral"
-                (problems if summary["execution_failures"] else evaluation_findings).append(
+                evaluation_findings.append(
                     "The artifact records an agent or application execution failure; inspect its failure category before attributing a cause."
                     if summary["execution_failures"] else
                     "The replay completed with failed evaluation checks; see expected versus observed evidence."

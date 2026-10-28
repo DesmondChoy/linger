@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
@@ -32,7 +33,7 @@ _MANDATORY_FAILURE_CODES = frozenset({
     "unauthorized_policy_or_curation_operation", "unobserved_store_mutation", "forbidden_memory_saved",
     "memory_not_bound_to_current_line", "memory_saved_to_another_account", "unobserved_memory_write",
     "accepted_memory_removed_or_changed", "unknown_source_memory_id",
-    # Required execution and observations, including retained failed attempts.
+    # Unhandled execution and required observations, including retained failed attempts.
     "provider_failure", "retrieval_failure", "discovery_failure", "agent_call_failed",
     "execution_failure", "chat_handler_failed", "runtime_application_failure", "runtime_model_failure",
     "runtime_validation_failure", "incomplete_agent_transcript", "memory_observation_failed",
@@ -153,6 +154,62 @@ def parse_threshold(value: str | float | int) -> Decimal:
     if not threshold.is_finite() or not 0 <= threshold <= 100:
         raise ValueError("auto-publish-threshold must be a finite number from 0 to 100.")
     return threshold
+
+
+def validate_execution_classification(results: dict[str, Any]) -> None:
+    """Keep every recorded error accounted for through publication authorization."""
+    partitions = {}
+    for key in ("execution_failures", "handled_execution_failures", "blocking_execution_failures"):
+        records = results.get(key)
+        if not isinstance(records, list) or any(
+            not isinstance(item, dict) or set(item) != {"scene_id", "detail"}
+            or any(not isinstance(value, str) or not value for value in item.values())
+            for item in records
+        ):
+            raise ValueError("Execution failure classification is missing or malformed.")
+        partitions[key] = Counter((item["scene_id"], item["detail"]) for item in records)
+    if partitions["execution_failures"] != (
+        partitions["handled_execution_failures"] + partitions["blocking_execution_failures"]
+    ):
+        raise ValueError("Every raw execution failure must be classified exactly once.")
+    proofs = results.get("safe_fallbacks")
+    if not isinstance(proofs, list):
+        raise ValueError("Safe fallback evidence is missing.")
+    supported = Counter()
+    identities = set()
+    for proof in proofs:
+        if not isinstance(proof, dict) or set(proof) != {
+            "kind", "scene_id", "line_id", "reason", "scene_sha256",
+            "behavioral_details", "execution_details", "exchange_sequences",
+        }:
+            raise ValueError("Safe fallback evidence is malformed.")
+        if (any(not isinstance(proof[key], str) or not proof[key]
+                for key in ("scene_id", "line_id", "reason"))
+                or not isinstance(proof["scene_sha256"], str)
+                or not re.fullmatch(r"[0-9a-f]{64}", proof["scene_sha256"])):
+            raise ValueError("Safe fallback evidence lacks its source identity.")
+        for key in ("behavioral_details", "execution_details", "exchange_sequences"):
+            values = proof[key]
+            expected_type = int if key == "exchange_sequences" else str
+            if (not isinstance(values, (list, tuple)) or any(type(value) is not expected_type or not value for value in values)
+                    or len(values) != len(set(values))):
+                raise ValueError("Safe fallback evidence has invalid failure or exchange identities.")
+        if proof["kind"] == "book_boundary_clarification":
+            if (list(proof["execution_details"]) != ["Librarian boundary_inference: boundary_inference_model_failed"]
+                    or not proof["exchange_sequences"] or any(value < 1 for value in proof["exchange_sequences"])):
+                raise ValueError("Boundary fallback does not identify its handled validation failure.")
+        elif proof["kind"] == "continuity_safe_refusal":
+            if proof["execution_details"] or proof["exchange_sequences"]:
+                raise ValueError("Continuity refusal cannot waive execution failures.")
+        else:
+            raise ValueError("Unknown safe fallback evidence kind.")
+        identity = proof["scene_id"], proof["line_id"], proof["kind"]
+        if identity in identities:
+            raise ValueError("Duplicate safe fallback evidence.")
+        identities.add(identity)
+        supported.update((proof["scene_id"], detail) for detail in proof["execution_details"])
+    if supported != partitions["handled_execution_failures"]:
+        raise ValueError("Handled execution failures do not match verified fallback evidence.")
 
 
 def skipped_publication_decision(

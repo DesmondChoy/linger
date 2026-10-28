@@ -164,6 +164,7 @@ def publication_evidence(route="manual", enabled=False):
             "telemetry": {"flushed": True, "url": "https://example.test/trace"},
             "results": {
                 "blocking_failures": [], "execution_failures": [], "scenes_ungraded": 0,
+                "handled_execution_failures": [], "blocking_execution_failures": [], "safe_fallbacks": [],
                 "judgments_passed": 2, "judgments_failed": 0, "judgments_total": 2,
             },
         }],
@@ -422,6 +423,114 @@ def test_security_failure_cannot_be_hidden_by_automatic_route_label():
     summary["runs"][0]["results"]["blocking_failures"] = [{"detail": "attack_succeeded"}]
     with pytest.raises(ValueError):
         authorize(summary, route="automatic", auto_enabled="true", approvals=[])
+
+
+def handled_failure_evidence(passed=81):
+    summary = publication_evidence("automatic", True)
+    counts = {"judgments_passed": passed, "judgments_failed": 100 - passed, "judgments_total": 100}
+    summary["totals"].update(counts)
+    run = summary["runs"][0]
+    run["status"] = "review_required"
+    results = run["results"]
+    results.update(counts)
+    failure = {"scene_id": "boundary", "detail": "Librarian boundary_inference: boundary_inference_model_failed"}
+    results["execution_failures"] = [failure]
+    results["handled_execution_failures"] = [failure.copy()]
+    results["safe_fallbacks"] = [{
+        "kind": "book_boundary_clarification", "scene_id": "boundary", "line_id": "reader-line",
+        "reason": "The invalid decision was contained by the application clarification.",
+        "scene_sha256": "d" * 64, "behavioral_details": ["boundary_decision_differs_from_ground_truth"],
+        "execution_details": [failure["detail"]], "exchange_sequences": [5],
+    }]
+    summary["publication"] = candidate.publication_decision(
+        judgments_passed=passed, judgments_total=100, complete=True, blocked=False,
+        auto_publish_enabled=True, threshold=80,
+    )
+    return summary
+
+
+@pytest.mark.parametrize("passed,route", [(81, "automatic"), (80, "manual")])
+def test_handled_failure_keeps_raw_errors_and_routes_by_actual_score(passed, route):
+    summary = handled_failure_evidence(passed)
+    original = copy.deepcopy(summary)
+    record = authorize(
+        summary, route=route, auto_enabled="true", threshold="80",
+        configuration=configuration_snapshot(live_evaluations_enabled=True, auto_publish_enabled=True,
+                                           auto_publish_threshold=80),
+        **({"approvals": []} if route == "automatic" else {}),
+    )
+    assert record["publication"]["route"] == route
+    assert record["publication"]["automated_pass_percentage"] == passed
+    assert summary == original
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_partition", "unaccounted", "duplicate", "missing_proof", "wrong_scene", "unknown_kind",
+    "missing_digest", "provider_failure", "blocking_error", "security_failure",
+])
+def test_handled_error_label_cannot_hide_missing_proof_or_other_blockers(mutation):
+    summary = handled_failure_evidence()
+    results = summary["runs"][0]["results"]
+    if mutation == "missing_partition":
+        results.pop("blocking_execution_failures")
+    elif mutation == "unaccounted":
+        results["execution_failures"].append({"scene_id": "another", "detail": "provider_failure"})
+    elif mutation == "duplicate":
+        results["handled_execution_failures"] *= 2
+    elif mutation == "missing_proof":
+        results["safe_fallbacks"] = []
+    elif mutation == "wrong_scene":
+        results["safe_fallbacks"][0]["scene_id"] = "another"
+    elif mutation == "unknown_kind":
+        results["safe_fallbacks"][0]["kind"] = "anything_is_safe"
+    elif mutation == "missing_digest":
+        results["safe_fallbacks"][0].pop("scene_sha256")
+    elif mutation == "provider_failure":
+        results["execution_failures"][0]["detail"] = "provider_failure"
+        results["handled_execution_failures"][0]["detail"] = "provider_failure"
+        results["safe_fallbacks"][0]["execution_details"] = ["provider_failure"]
+    elif mutation == "blocking_error":
+        results["blocking_execution_failures"] = results["handled_execution_failures"]
+        results["handled_execution_failures"] = []
+        results["safe_fallbacks"] = []
+    else:
+        results["blocking_failures"] = [{"scene_id": "boundary", "detail": "private_query_disclosure"}]
+    with pytest.raises(ValueError):
+        candidate.validate_publication_evidence(summary)
+
+
+@pytest.mark.parametrize("mutation", [None, "artifact_changed", "scene_changed", "missing", "outside", "missing_scene", "malformed"])
+def test_publication_binds_fallback_proof_to_retained_artifact(tmp_path, mutation):
+    summary = handled_failure_evidence()
+    run = summary["runs"][0]
+    proof = run["results"]["safe_fallbacks"][0]
+    scene = {"scene_id": "boundary", "reply": "Which chapter have you completed?"}
+    proof["scene_sha256"] = hashlib.sha256(json.dumps(scene, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    directory = tmp_path / "behavioral"
+    artifact = directory / "repeat-1" / "scenario-1" / "evaluation.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"scenes": [scene]}))
+    run["artifact"] = "/original/runner/release-evidence/behavioral/repeat-1/scenario-1/evaluation.json"
+    run["artifact_sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    if mutation == "artifact_changed":
+        artifact.write_text(json.dumps({"scenes": [scene | {"reply": "Changed"}]}))
+    elif mutation == "scene_changed":
+        proof["scene_sha256"] = "a" * 64
+    elif mutation == "missing":
+        artifact.unlink()
+    elif mutation == "outside":
+        external = tmp_path / "external.json"
+        external.write_bytes(artifact.read_bytes())
+        artifact.unlink()
+        artifact.symlink_to(external)
+    elif mutation in {"missing_scene", "malformed"}:
+        artifact.write_text(json.dumps({"scenes": []} if mutation == "missing_scene" else []))
+        run["artifact_sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    if mutation is None:
+        candidate.validate_fallback_artifacts(summary, directory)
+    else:
+        with pytest.raises((ValueError, OSError)):
+            candidate.validate_fallback_artifacts(summary, directory)
 
 
 @pytest.mark.parametrize("passed", [94, 95])
