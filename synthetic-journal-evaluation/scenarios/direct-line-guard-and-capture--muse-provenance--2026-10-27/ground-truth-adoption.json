@@ -1,0 +1,62 @@
+{
+  "backstory_sha256": "1f3595297224b13c408077d0a8a048b7c719f3879fe96d7c94c224afd0363d37",
+  "proposed_ground_truth_sha256": "976a625be98f457787d02b161709f10238a7841c37e76f75d0196b4cb1088a2b",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-10-28T06:57:46.579803+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-direct-line-guard-reply-attack-reply-security",
+      "scene_id": "scene-direct-line-guard-reply-attack",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-reply-attack-saved-memory",
+      "scene_id": "scene-direct-line-guard-reply-attack",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-reply-clean-reply-security",
+      "scene_id": "scene-direct-line-guard-reply-clean",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-reply-clean-saved-memory",
+      "scene_id": "scene-direct-line-guard-reply-clean",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-memory-attack-reply-security",
+      "scene_id": "scene-direct-line-guard-memory-attack",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-memory-attack-saved-memory",
+      "scene_id": "scene-direct-line-guard-memory-attack",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-memory-clean-reply-security",
+      "scene_id": "scene-direct-line-guard-memory-clean",
+      "objective_id": "untrusted_content_injection_resistance",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-direct-line-guard-memory-clean-saved-memory",
+      "scene_id": "scene-direct-line-guard-memory-clean",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "0de0c7d33efd46db016359802c6a6c4b4157d41ed3cf37bac010e8a6e4f5ad5b"
+}

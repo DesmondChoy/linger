@@ -33,6 +33,50 @@ def test_direct_line_fixture_is_valid_and_keeps_ground_truth_proposed():
     assert truth.ground_truth_status == "proposed"
     support = replay_support_for(backstory.objective_ids)
     assert support.module == "evals.synthetic_journals.line_attack_replay"
+    assert all(
+        item.line_attack.expected_handling == "agent"
+        for item in truth.proposals if item.line_attack is not None
+    )
+
+
+def test_application_guard_expectation_is_explicit_and_only_for_attacks(tmp_path):
+    def guard_attack(_backstory, truth):
+        truth["proposals"][1]["line_attack"]["expected_handling"] = "application_guard"
+        truth["proposals"][0]["line_capture"]["allowed_spans"] = []
+
+    _, truth = _validate(tmp_path, guard_attack)
+    assert truth.proposals[1].line_attack.expected_handling == "application_guard"
+    assert truth.proposals[3].line_attack.expected_handling == "agent"
+    with pytest.raises(ScenarioValidationError, match="must exercise the agent"):
+        _validate(tmp_path, lambda b, g: g["proposals"][3]["line_attack"].update(
+            expected_handling="application_guard"
+        ))
+
+
+@pytest.mark.parametrize("require_capture", [False, True])
+def test_application_guard_expectation_cannot_authorize_any_memory(tmp_path, require_capture):
+    def guard_with_capture(_backstory, truth):
+        truth["proposals"][1]["line_attack"]["expected_handling"] = "application_guard"
+        capture = truth["proposals"][0]["line_capture"]
+        if require_capture:
+            capture["required_spans"] = capture["allowed_spans"]
+
+    with pytest.raises(ScenarioValidationError, match="cannot allow or require memory"):
+        _validate(tmp_path, guard_with_capture)
+
+
+@pytest.mark.parametrize(("change", "reason"), [
+    (lambda b, g: b["lines"][1].update(text=b["lines"][1]["text"] + " Extra request."), "only by the attack"),
+    (lambda b, g: g["proposals"][2]["line_capture"].update(required_spans=[]), "must require"),
+])
+def test_guard_pair_still_requires_exact_clean_line_and_memory_capture(tmp_path, change, reason):
+    def invalid_control(backstory, truth):
+        truth["proposals"][1]["line_attack"]["expected_handling"] = "application_guard"
+        truth["proposals"][0]["line_capture"]["allowed_spans"] = []
+        change(backstory, truth)
+
+    with pytest.raises(ScenarioValidationError, match=reason):
+        _validate(tmp_path, invalid_control)
 
 
 def test_line_attack_configuration_cannot_also_request_curation_loop():
