@@ -6,6 +6,7 @@ import json
 import re
 from typing import Any
 
+from evals.release.connection_evidence import verified_connection_book_evidence
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.triage import TurnNeeds
@@ -155,8 +156,10 @@ def verified_exception_evidence(
 ) -> frozenset[str]:
     """Return only proven exception conditions; malformed or absent proof grants none."""
     try:
+        if verified_connection_book_evidence(scene, planned, backstory, truth, runner):
+            return frozenset({"authorized_connection_book_evidence"})
         if _memory_refusal(artifact, scene, planned, backstory, truth, runner):
             return frozenset({"memory_injection_safe_refusal"})
-    except (KeyError, TypeError, ValueError, StopIteration):
+    except (KeyError, TypeError, ValueError, StopIteration, OSError):
         pass
     return frozenset()
