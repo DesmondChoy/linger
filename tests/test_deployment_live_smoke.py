@@ -2,6 +2,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+from types import SimpleNamespace
+from urllib.error import HTTPError
 
 import pytest
 
@@ -11,6 +13,30 @@ from docker import live_smoke
 
 def frame(name, data):
     return f"event: {name}\ndata: {json.dumps(data)}\n\n"
+
+
+def chat_response(*, source="muse_candidate", failure_type=None):
+    candidate = source == "muse_candidate"
+    return {
+        "reply": "Synthetic answer." if candidate else "Unable to answer.",
+        "memory_capture": None,
+        "sources": [{"kind": "book", "label": "Alice's Adventures in Wonderland"}] if candidate else [],
+        "trace": {"trace_id": "1" * 32},
+        "inspection": {
+            "muse_turn": {}, "context_resolution": {}, "traces": [], "prompt": "",
+            "release": {
+                "release_source": source, "provenance_verdicts": ["pass"] if candidate else [],
+                "finding_codes": [], "revision_count": 0,
+                "released_evidence_ids": ["pg11-v01b38ea4-ch03-ln0553-0587"] if candidate else [],
+                "failure_stage": "muse_draft" if failure_type else None,
+                "failure_type": failure_type, "failure_retryable": True if failure_type else None,
+                "capture": {
+                    "nomination": "unavailable", "provenance_decision": None,
+                    "binding": "not_applicable", "storage": "suppressed", "reason_code": None,
+                },
+            },
+        },
+    }
 
 
 def test_sse_requires_ordered_progress_and_one_final_success():
@@ -24,26 +50,164 @@ def test_sse_requires_ordered_progress_and_one_final_success():
             parse_sse(body)
 
 
-def test_model_failure_cannot_pass_as_an_expected_decline():
-    response = {"reply": "Unable to answer.", "inspection": {"release": {
-        "release_source": "application_safe_decline", "failure_type": "model",
-    }}}
-    with pytest.raises(ValueError, match="failed agent"):
-        validate_response(response, grounded=False)
+@pytest.mark.parametrize("failure_type", ["model", "application", "validation"])
+@pytest.mark.parametrize("grounded", [False, True])
+def test_completed_safe_failure_is_recorded_as_a_task_finding(failure_type, grounded):
+    response = chat_response(source="application_safe_decline", failure_type=failure_type)
+    findings = validate_response(response, grounded=grounded)
+
+    assert f"runtime_{failure_type}_failure:muse_draft" in findings
+    assert ("expected_grounded_book_answer_missing" in findings) == grounded
 
 
-def test_grounded_http_smoke_requires_reader_visible_evidence_and_no_capture():
-    response = {"reply": "Synthetic answer.", "memory_capture": None, "sources": [{"kind": "book"}], "inspection": {"release": {
-        "failure_type": None, "release_source": "muse_candidate", "released_evidence_ids": ["evidence-1"],
-        "capture": {"storage": "suppressed"},
-    }}}
-    validate_response(response, grounded=True)
+def test_missing_reader_source_is_a_task_finding_while_capture_blocks():
+    response = chat_response()
+    assert validate_response(response, grounded=True) == []
     response["sources"] = []
-    with pytest.raises(ValueError, match="reader-visible"):
-        validate_response(response, grounded=True)
+    assert validate_response(response, grounded=True) == ["reader_visible_book_source_missing"]
     response["inspection"]["release"]["capture"]["storage"] = "committed"
     with pytest.raises(ValueError, match="captured"):
         validate_response(response, grounded=True)
+
+
+def test_intent_mismatch_and_missing_grounding_are_task_findings():
+    response = chat_response()
+    response["inspection"]["release"]["released_evidence_ids"] = []
+    response["sources"] = []
+    assert validate_response(response, grounded=True) == [
+        "expected_grounded_book_answer_missing", "reader_visible_book_source_missing",
+    ]
+    assert validate_response(response, grounded=False) == ["expected_boundary_clarification_missing"]
+
+
+def test_ambiguous_fresh_turn_cannot_release_even_canonical_book_evidence():
+    response = chat_response()
+    with pytest.raises(ValueError, match="without a confirmed reading boundary"):
+        validate_response(response, grounded=False)
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_release", "null_release", "missing_capture", "missing_citation_observation",
+    "missing_trace", "unknown_failure", "inconsistent_failure", "empty_reply",
+])
+def test_smoke_rejects_missing_or_invalid_required_http_observations(mutation):
+    response = chat_response(source="application_safe_decline", failure_type="model")
+    release = response["inspection"]["release"]
+    if mutation == "missing_release":
+        del response["inspection"]["release"]
+    elif mutation == "null_release":
+        response["inspection"]["release"] = None
+    elif mutation == "missing_capture":
+        del release["capture"]
+    elif mutation == "missing_citation_observation":
+        del release["released_evidence_ids"]
+    elif mutation == "missing_trace":
+        del response["trace"]
+    elif mutation == "unknown_failure":
+        release["failure_type"] = "unknown"
+    elif mutation == "inconsistent_failure":
+        release["failure_stage"] = None
+    elif mutation == "empty_reply":
+        response["reply"] = " "
+
+    with pytest.raises(ValueError):
+        validate_response(response, grounded=True)
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_approval", "rejected_approval", "failed_candidate", "guarded_candidate",
+    "unknown_evidence", "empty_evidence", "duplicate_evidence", "later_chapter",
+    "application_evidence", "application_sources", "unbound_sources", "foreign_sources",
+])
+def test_smoke_keeps_actual_release_authority_and_evidence_violations_blocking(mutation):
+    response = chat_response()
+    release = response["inspection"]["release"]
+    if mutation == "missing_approval":
+        release["provenance_verdicts"] = []
+    elif mutation == "rejected_approval":
+        release["provenance_verdicts"] = ["reject"]
+    elif mutation == "failed_candidate":
+        release.update(failure_type="model", failure_stage="muse_draft", failure_retryable=True)
+    elif mutation == "guarded_candidate":
+        release["security_block_category"] = "prompt_injection"
+    elif mutation == "unknown_evidence":
+        release["released_evidence_ids"] = ["invented-evidence"]
+    elif mutation == "empty_evidence":
+        release["released_evidence_ids"] = [""]
+    elif mutation == "duplicate_evidence":
+        release["released_evidence_ids"] *= 2
+    elif mutation == "later_chapter":
+        release["released_evidence_ids"] = ["pg11-v01b38ea4-ch04-ln0820-0851"]
+    elif mutation == "application_evidence":
+        release["release_source"] = "application_safe_decline"
+    elif mutation == "application_sources":
+        release["release_source"] = "application_clarification"
+        release["released_evidence_ids"] = []
+    elif mutation == "unbound_sources":
+        release["released_evidence_ids"] = []
+    elif mutation == "foreign_sources":
+        response["sources"] = [{"kind": "memory", "label": "Another account's memory"}]
+
+    with pytest.raises(ValueError):
+        validate_response(response, grounded=True)
+
+
+def prepare_main(monkeypatch, tmp_path):
+    backstory = tmp_path / "backstory.json"
+    backstory.write_text(json.dumps({"lines": [
+        {"line_id": "alice-race-line", "text": "Synthetic grounded request."},
+        {"line_id": "alice-bottle-line", "text": "Synthetic ambiguous boundary."},
+    ]}))
+    report = tmp_path / "http-smoke.json"
+    monkeypatch.setattr(live_smoke, "BACKSTORY_PATH", backstory)
+    monkeypatch.setattr(live_smoke, "REPORT_PATH", report)
+    monkeypatch.setattr(live_smoke, "wait_until_ready", lambda: None)
+    monkeypatch.setattr("apps.backend.config.get_settings", lambda: SimpleNamespace(linger_memory_dir=tmp_path / "memories"))
+    return report
+
+
+def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypatch, tmp_path):
+    report_path = prepare_main(monkeypatch, tmp_path)
+    ungrounded_answer = chat_response()
+    ungrounded_answer["inspection"]["release"]["released_evidence_ids"] = []
+    ungrounded_answer["sources"] = []
+    responses = iter((chat_response(source="application_safe_decline", failure_type="model"), ungrounded_answer))
+    paths = []
+
+    def request(path, **kwargs):
+        paths.append(path)
+        if path == "/api/auth/signup":
+            return {"token": "synthetic-token"}
+        assert kwargs["token"] == "synthetic-token"
+        response = next(responses)
+        if kwargs["stream"]:
+            return parse_sse(frame("progress", {"sequence": 1}) + frame("result", response))
+        return response
+
+    monkeypatch.setattr(live_smoke, "request", request)
+    assert live_smoke.main() == 0
+    report = json.loads(report_path.read_text())
+    assert report["status"] == "passed"
+    assert paths == ["/api/auth/signup", "/api/chat", "/api/chat/stream"]
+    assert len(report["turns"]) == 2
+    assert all(turn["task_findings"] and turn["evidence"] for turn in report["turns"])
+    assert {item["detail"] for item in report["task_findings"]} >= {
+        "runtime_model_failure:muse_draft", "expected_grounded_book_answer_missing",
+        "expected_boundary_clarification_missing",
+    }
+
+
+def test_http_authentication_error_keeps_smoke_failed_and_records_error(monkeypatch, tmp_path):
+    report_path = prepare_main(monkeypatch, tmp_path)
+
+    def request(*args, **kwargs):
+        raise HTTPError("http://synthetic/api/auth/signup", 401, "Unauthorized", {}, None)
+
+    monkeypatch.setattr(live_smoke, "request", request)
+    assert live_smoke.main() == 1
+    report = json.loads(report_path.read_text())
+    assert report["status"] == "failed"
+    assert report["error"] == "HTTP request failed with status 401."
 
 
 def test_non_ready_response_still_obeys_readiness_deadline(monkeypatch):

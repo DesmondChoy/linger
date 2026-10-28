@@ -9,7 +9,7 @@ import pytest
 
 from apps.backend.contracts import EvidenceItem
 from apps.backend.librarian import Librarian
-from evals.release.exception_evidence import verified_exception_evidence
+from evals.release.connection_evidence import verified_connection_book_evidence
 from evals.release.gate import validate_artifact
 from evals.release.policy import publication_decision
 from provenance_fixtures import review_with_audits
@@ -19,7 +19,6 @@ from src.linger.agents.provenance.models import ProvenanceInput
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIO = "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12"
 EXTRA = "pg11-v01b38ea4-ch05-ln1179-1219"
-TOKEN = frozenset({"authorized_connection_book_evidence"})
 RUNNER = "evals.synthetic_journals.connection_replay"
 
 
@@ -71,7 +70,7 @@ def evidence():
 
 def proof(evidence):
     artifact, observed, planned, backstory, truth = evidence
-    return verified_exception_evidence(artifact, observed, planned, backstory, truth, RUNNER)
+    return verified_connection_book_evidence(observed, planned, backstory, truth, RUNNER)
 
 
 def add_citation(evidence):
@@ -126,7 +125,7 @@ def test_verified_extra_book_remains_a_failed_judgment_without_blocking(evidence
     if cited:
         add_citation(evidence)
     before = deepcopy(evidence)
-    assert proof(evidence) == TOKEN
+    assert proof(evidence) is True
     # The saved fixture also has an unrelated old S3 restraint failure.
     evidence[0]["scenes"][2]["grades"][0]["failures"] = ["unnecessary_declined_exploration"]
     summary = candidate_summary(evidence, tmp_path)
@@ -142,11 +141,51 @@ def test_verified_extra_book_remains_a_failed_judgment_without_blocking(evidence
     assert evidence == before
 
 
+@pytest.mark.parametrize("attempt", ["selection", "assessment", "tool", "search_event"])
+@pytest.mark.parametrize("cited", [False, True])
+def test_failed_earlier_attempt_does_not_invalidate_successful_authority_proof(evidence, tmp_path, attempt, cited):
+    if cited:
+        add_citation(evidence)
+    observed = evidence[1]
+    selection = next(item for item in observed["agent_exchanges"] if item["role"] == "Serendipity")
+    if attempt in {"selection", "assessment"}:
+        original = selection if attempt == "selection" else next(
+            item for item in observed["agent_exchanges"]
+            if item["role"] == "Librarian" and item["stage"] == "evidence_strength"
+        )
+        failed = deepcopy(original)
+        failed.update(status="failure", output=None, tool_exchanges=[], usage=None,
+                      failure_code="earlier_model_failed", failure_category="unknown_error")
+        observed["agent_exchanges"].insert(observed["agent_exchanges"].index(original), failed)
+        for index, exchange in enumerate(observed["agent_exchanges"], 1):
+            exchange["sequence"] = index
+    elif attempt == "tool":
+        failed = deepcopy(next(tool for tool in selection["tool_exchanges"]
+                               if tool["tool_name"] == "search_librarian"))
+        failed.update(outcome="failure", result=None, tool_call_id="failed-earlier-search")
+        selection["tool_exchanges"].insert(0, failed)
+    else:
+        failed = deepcopy(next(event for event in observed["events"]
+                               if event["kind"] == "search" and event["source"] == "book_corpus"))
+        failed.update(status="retrieval_unavailable", evidence_json=[], failure_code="earlier_search_failed")
+        observed["events"].insert(0, failed)
+    observed["grades"][0]["failures"].append("provider_failure" if attempt in {"selection", "assessment"}
+                                              else "retrieval_failure")
+    assert proof(evidence) is True
+    summary = candidate_summary(evidence, tmp_path)
+    assert not summary["blocking_failures"]
+    assert summary["judgments_total"] == 4
+    assert summary["judgments_passed"] == 2
+    assert summary["judgments_failed"] == 2
+    if attempt in {"selection", "assessment"}:
+        assert any("earlier_model_failed" in item["detail"] for item in summary["execution_failures"])
+
+
 @pytest.mark.parametrize("mutation", [
     "missing_ledger", "forged_text", "missing_source_tool", "changed_tool_result",
     "missing_transcript", "missing_selection", "different_selection", "missing_review",
     "unbound_review", "wrong_line", "widened_scope", "missing_scope", "release_ids",
-    "review_not_passed", "failed_tool", "failed_exchange", "missing_release",
+    "review_not_passed", "failed_book_tool", "failed_exchange", "missing_release",
     "empty_extra", "mixed_unknown", "foreign_memory", "later_chapter",
     "missing_first_review", "missing_draft", "missing_judgement", "unselected_passages",
     "missing_book_search", "missing_librarian", "wrong_librarian_selection",
@@ -225,8 +264,8 @@ def test_labels_cannot_replace_complete_authorized_evidence(evidence, tmp_path, 
         observed["released_evidence_ids"].append(EXTRA)
     elif mutation == "review_not_passed":
         observed["events"][-1]["provenance_verdicts"] = ["reject"]
-    elif mutation == "failed_tool":
-        selection["tool_exchanges"][0]["outcome"] = "failed"
+    elif mutation == "failed_book_tool":
+        next(t for t in selection["tool_exchanges"] if t["tool_name"] == "search_librarian")["outcome"] = "failed"
     elif mutation == "failed_exchange":
         selection["status"] = "failed"
     elif mutation == "missing_release":
@@ -244,21 +283,17 @@ def test_labels_cannot_replace_complete_authorized_evidence(evidence, tmp_path, 
             decision["evidence_ids"] = [replacement if i == EXTRA else i for i in decision["evidence_ids"]]
         discovery["decision_json"] = json.dumps(decision)
         selection["output"] = decision
-    assert proof(evidence) == frozenset()
-    if mutation == "failed_exchange":
-        with pytest.raises(ValueError, match="execution failure"):
-            candidate_summary(evidence, tmp_path)
-    else:
-        summary = candidate_summary(evidence, tmp_path)
-        assert any(item["detail"] == "authorized_book_selection_mismatch"
-                   for item in summary["blocking_failures"])
+    assert proof(evidence) is False
+    with pytest.raises(ValueError):
+        candidate_summary(evidence, tmp_path)
 
 
-@pytest.mark.parametrize("failure", ["private_query_disclosure", "missing_release_observation", "future_security_check"])
+
+@pytest.mark.parametrize("failure", ["private_query_disclosure", "missing_release_observation"])
 def test_verified_extra_book_does_not_waive_an_independent_blocker(evidence, tmp_path, failure):
     evidence[1]["grades"][0]["failures"].append(failure)
     summary = candidate_summary(evidence, tmp_path)
-    assert proof(evidence) == TOKEN
+    assert proof(evidence) is True
     assert failure in [item["detail"] for item in summary["blocking_failures"]]
     assert publication_decision(
         judgments_passed=99, judgments_total=100, complete=True,

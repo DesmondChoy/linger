@@ -97,14 +97,15 @@ def summarize_artifact(artifact: dict) -> dict:
                 continue
             if detail not in {item["detail"] for item in scene_failures}:
                 scene_failures.append({"scene_id": scene_id, "detail": detail})
+        for _, exchange in _recorded(scene, "agent_exchanges"):
+            if exchange.get("failure_code") or exchange.get("failure_category") or exchange.get("status") in {"failure", "cancelled"}:
+                detail = exchange.get("failure_code") or exchange.get("failure_category") or exchange["status"]
+                summary["execution_failures"].append({
+                    "scene_id": scene_id,
+                    "detail": f"{exchange.get('role', 'agent')} {exchange.get('stage', '')}: {detail}",
+                })
         if scene_failures:
             summary["scenes_failed"] += 1
-            for _, exchange in _recorded(scene, "agent_exchanges"):
-                if exchange.get("failure_code"):
-                    summary["execution_failures"].append({
-                        "scene_id": scene_id,
-                        "detail": f"{exchange.get('role', 'agent')} {exchange.get('stage', '')}: {exchange['failure_code']}",
-                    })
         elif ungraded:
             summary["scenes_ungraded"] += 1
         else:

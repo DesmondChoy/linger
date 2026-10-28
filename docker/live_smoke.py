@@ -8,6 +8,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 BASE = "http://127.0.0.1:8000"
+BACKSTORY_PATH = Path("/tmp/backstory.json")
+REPORT_PATH = Path("/tmp/http-smoke.json")
 
 
 def request(path, *, body=None, token=None, stream=False, timeout=900):
@@ -44,20 +46,51 @@ def parse_sse(body):
 
 
 def validate_response(response, *, grounded):
-    if not isinstance(response.get("reply"), str) or not response["reply"].strip():
+    from apps.backend.librarian import Librarian
+    from apps.backend.schemas import ChatResponse
+
+    observed = ChatResponse.model_validate(response)
+    if not observed.reply.strip():
         raise ValueError("The HTTP turn returned no reply.")
-    release = response["inspection"]["release"]
-    if release["failure_type"] is not None:
-        raise ValueError("A failed agent or application stage cannot pass a live smoke check.")
-    if response.get("memory_capture") is not None or release["capture"]["storage"] == "committed":
+    release = observed.inspection.release
+    if release is None or "released_evidence_ids" not in response["inspection"]["release"]:
+        raise ValueError("The HTTP turn omitted its release observations.")
+    if observed.memory_capture is not None or release.capture.storage == "committed":
         raise ValueError("The live smoke unexpectedly captured memory.")
+    evidence_ids = release.released_evidence_ids
+    if len(evidence_ids) != len(set(evidence_ids)) or any(not identity.strip() for identity in evidence_ids):
+        raise ValueError("The HTTP turn has malformed released evidence identities.")
+    if release.release_source == "muse_candidate":
+        if (release.failure_type is not None or release.security_block_category is not None
+                or not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass"):
+            raise ValueError("The HTTP turn released a Muse answer without successful approval.")
+        if not grounded and evidence_ids:
+            raise ValueError("The ambiguous HTTP turn released book evidence without a confirmed reading boundary.")
+        librarian = Librarian()
+        for identity in evidence_ids:
+            record = librarian.fetch_by_id(identity)
+            if record is None:
+                raise ValueError("The HTTP turn released an invalid book evidence identity.")
+            if grounded and (record.work_id != "pg11" or record.part_id != "main"
+                             or record.chapter_number is None or record.chapter_number > 3):
+                raise ValueError("The grounded HTTP turn released evidence beyond its authorized book scope.")
+        if any(source.kind != "book" for source in observed.sources):
+            raise ValueError("The live smoke released a source outside its empty-memory, web-disabled setup.")
+        if observed.sources and not evidence_ids:
+            raise ValueError("The HTTP turn reported sources without released evidence identities.")
+    elif evidence_ids or observed.sources:
+        raise ValueError("An application-authored response cannot release source evidence.")
+    findings = []
+    if release.failure_type is not None:
+        findings.append(f"runtime_{release.failure_type}_failure:{release.failure_stage}")
     if grounded:
-        if release["release_source"] != "muse_candidate" or not release["released_evidence_ids"]:
-            raise ValueError("Expected a grounded, released answer with cited book evidence.")
-        if not any(source["kind"] == "book" for source in response["sources"]):
-            raise ValueError("The grounded HTTP response has no reader-visible book source.")
-    elif release["release_source"] not in {"application_clarification", "application_safe_decline"}:
-        raise ValueError("The ambiguous reading boundary requires clarification or decline.")
+        if release.release_source != "muse_candidate" or not evidence_ids:
+            findings.append("expected_grounded_book_answer_missing")
+        if not any(source.kind == "book" for source in observed.sources):
+            findings.append("reader_visible_book_source_missing")
+    elif release.release_source not in {"application_clarification", "application_safe_decline"}:
+        findings.append("expected_boundary_clarification_missing")
+    return findings
 
 
 def wait_until_ready():
@@ -73,12 +106,12 @@ def wait_until_ready():
 
 
 def main():
-    report = {"status": "failed", "turns": [], "semantic_review_required": True}
+    report = {"status": "failed", "turns": [], "task_findings": [], "semantic_review_required": True}
     try:
         wait_until_ready()
         username = "release-" + secrets.token_hex(6)
         token = request("/api/auth/signup", body={"username": username, "password": secrets.token_urlsafe(24)})["token"]
-        backstory = json.loads(Path("/tmp/backstory.json").read_text())
+        backstory = json.loads(BACKSTORY_PATH.read_text())
         lines = {line["line_id"]: line["text"] for line in backstory["lines"]}
         for line_id, streamed in (("alice-race-line", False), ("alice-bottle-line", True)):
             entry = {"line_id": line_id, "streamed": streamed, "message": lines[line_id]}
@@ -88,7 +121,9 @@ def main():
                 body={"session_id": "release-" + secrets.token_hex(8), "message": lines[line_id]},
             )
             entry["evidence"] = response
-            validate_response(response["response"] if streamed else response, grounded=not streamed)
+            findings = validate_response(response["response"] if streamed else response, grounded=not streamed)
+            entry["task_findings"] = findings
+            report["task_findings"].extend({"line_id": line_id, "detail": finding} for finding in findings)
         from apps.backend.config import get_settings
         from src.linger.services.memory import AccountContext, MemoryPolicyService
         service = MemoryPolicyService(get_settings().linger_memory_dir)
@@ -98,10 +133,10 @@ def main():
         report["status"] = "passed"
     except HTTPError as error:
         report["error"] = f"HTTP request failed with status {error.code}."
-    except (OSError, ValueError, KeyError, RuntimeError) as error:
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
-        Path("/tmp/http-smoke.json").write_text(json.dumps(report, indent=2) + "\n")
+        REPORT_PATH.write_text(json.dumps(report, indent=2) + "\n")
     print(f"Live HTTP and SSE smoke: {report['status']}")
     return 0 if report["status"] == "passed" else 1
 

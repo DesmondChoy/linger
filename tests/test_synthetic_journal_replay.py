@@ -32,6 +32,7 @@ from apps.backend.schemas import (
     TraceReference,
     TurnInspection,
 )
+from evals.release.policy import failure_category
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.models import (
     CaptureCandidate,
@@ -110,6 +111,19 @@ def _record_provenance_review(
     )
     sink.complete_agent_exchange(
         handle, result=_result(review), status="success", failure_code=None
+    )
+
+
+def _record_failed_review(input_prompt: str) -> None:
+    sink = active_evaluation_transcript_sink()
+    handle = sink.begin_agent_exchange(
+        role="Provenance", stage="review", input_origin="Muse", output_receiver="Application",
+        input_contract="ProvenanceInput.v1", output_contract="ProvenanceReview.v1",
+        prompt_template_id="provenance.test", prompt_digest="0" * 64,
+        input_prompt=input_prompt, message_history=(), trace_id="0" * 32, span_id="0" * 16,
+    )
+    sink.complete_agent_exchange(
+        handle, result=None, status="failure", failure_code="provider_failed", failure_category="unknown_error",
     )
 
 
@@ -537,15 +551,15 @@ def test_sensitive_response_observation_records_final_provenance_disposition() -
     [
         ("none", ()),
         ("approval", ("capture_review_mismatch", "capture_reason_code_mismatch")),
-        ("storage", ("stored_record_count_mismatch", "unexpected_memory_writes")),
+        ("storage", ("stored_record_count_mismatch", "unapproved_capture_committed")),
         (
             "approval_and_storage",
             (
                 "capture_review_mismatch",
                 "capture_storage_mismatch",
                 "stored_record_count_mismatch",
-                "unexpected_memory_writes",
                 "capture_reason_code_mismatch",
+                "unapproved_capture_committed",
             ),
         ),
         ("wrong_reason", ("capture_reason_code_mismatch",)),
@@ -644,6 +658,9 @@ def test_capture_replay_grades_expected_veto(
         "differs_from_proposal" if expected_failures else "matches_proposal"
     )
     assert observation.existing_memories_unchanged
+    if fault not in {"storage", "approval_and_storage"}:
+        assert "unapproved_capture_committed" not in observation.hard_failures
+        assert all(failure_category(detail) == "quality" for detail in observation.hard_failures)
     if fault == "none":
         assert observation.retry is None
         assert observation.stored_record_count == 0
@@ -665,7 +682,7 @@ def test_capture_replay_grades_expected_veto(
         ("wrong_event", "stored_record_count_mismatch"),
         ("missing_storage", "stored_record_count_mismatch"),
         ("duplicate_retry", "capture_retry_not_idempotent"),
-        ("failed_retry", "capture_retry_not_idempotent"),
+        ("failed_retry", "capture_retry_failed"),
     ],
 )
 def test_capture_replay_grades_observed_outcomes(
@@ -697,6 +714,18 @@ def test_capture_replay_grades_observed_outcomes(
             wrong_nomination if fault == "wrong_nomination" else nomination,
             stage="revision" if fault == "revised_nomination" else "draft",
         )
+        actual_nomination = wrong_nomination if fault == "wrong_nomination" else nomination
+        task = ProvenanceInput.model_validate({
+            "context": {"policy": {"allow_retrieval": False, "allow_connection": False,
+                                      "allow_memory_capture": True}, "reading_context": None},
+            "candidate": {"response": response.reply, "memory": actual_nomination.model_dump()},
+            "current_line": {"text": request.message},
+        })
+        review = review_with_audits(task, {
+            "response_decision": "pass", "capture_decision": "allow_capture",
+            "emotional_boundary_decision": "not_required",
+        })
+        _record_provenance_review(review, input_prompt=task.model_dump_json())
         candidate = AutomaticMemoryCandidate(
             text="An unsupported substitute." if fault == "wrong_text" else span.text,
             source_event_id=request.turn_id + (":wrong" if fault == "wrong_event" else ""),
@@ -763,12 +792,18 @@ def test_capture_replay_grades_observed_outcomes(
         assert observation.retry.error == "MemoryConflictError"
         assert observation.retry.store_unchanged
         assert observation.retry.original_unchanged
+        from evals.release.policy import failure_category
+        assert failure_category("capture_retry_failed") == "quality"
+        assert "capture_retry_not_idempotent" not in observation.hard_failures
+    elif fault == "duplicate_retry":
+        from evals.release.policy import failure_category
+        assert failure_category("capture_retry_not_idempotent") == "security"
 
 
 @pytest.mark.parametrize("fault", [
-    None, "missing_review", "wrong_account", "wrong_reviewed_line", "wrong_nomination",
+    None, "expected_no_capture", "earlier_failed_attempt", "last_review_failed", "missing_review", "wrong_account", "wrong_reviewed_line", "wrong_nomination",
     "capture_not_allowed", "capture_policy_disabled", "unreviewed_nomination",
-    "missing_audit", "extra_write", "wrong_stored_text", "unresolved_evidence",
+    "missing_audit", "extra_write", "wrong_stored_text", "wrong_stored_evidence", "unresolved_evidence",
 ])
 def test_approved_full_line_capture_keeps_behavioral_failures(
     fault: str | None, monkeypatch: pytest.MonkeyPatch,
@@ -787,6 +822,10 @@ def test_approved_full_line_capture_keeps_behavioral_failures(
     replacement = proposal.model_copy(update={"capture": proposal.capture.model_copy(update={
         "nomination": proposal.capture.nomination.model_copy(update={"span": shorter_span}),
     })})
+    if fault == "expected_no_capture":
+        replacement = proposal.model_copy(update={"capture": CaptureExpectation(
+            nomination=NoCandidate(kind="no_candidate"), provenance_decision="no_candidate",
+        )})
     ground_truth = ground_truth.model_copy(update={
         "proposals": tuple(replacement if item == proposal else item for item in ground_truth.proposals),
     })
@@ -824,13 +863,17 @@ def test_approved_full_line_capture_keeps_behavioral_failures(
         task.validate_review(review)
         if fault == "missing_audit":
             review = review.model_copy(update={"coverage_audit": ()})
+        if fault == "earlier_failed_attempt":
+            _record_failed_review(task.model_dump_json())
         if fault != "missing_review":
             _record_provenance_review(review, input_prompt=task.model_dump_json())
+        if fault == "last_review_failed":
+            _record_failed_review(task.model_dump_json())
         service.save_automatic(account, AutomaticMemoryCandidate(
             text="Another stored memory." if fault == "wrong_stored_text" else nomination.text,
             source_event_id=request.turn_id,
             review_allows_capture=True, contains_sensitive_content=False,
-            evidence_ids=nomination.evidence_ids,
+            evidence_ids=("different-stored-evidence",) if fault == "wrong_stored_evidence" else nomination.evidence_ids,
         ))
         if fault == "wrong_account":
             list_active = service.list_active
@@ -853,14 +896,22 @@ def test_approved_full_line_capture_keeps_behavioral_failures(
     result = asyncio.run(replay_capture_scenes(content, ground_truth, chat_handler=chat_handler))
     observation = next(scene for scene in result.scenes if scene.scene_id == proposal.scene_id)
     assert observation.ground_truth_result == "differs_from_proposal"
-    if fault is None:
+    if fault == "expected_no_capture":
+        assert "stored_record_count_mismatch" in observation.hard_failures
+        assert "unexpected_nomination" in observation.hard_failures
+        assert all(failure_category(detail) == "quality" for detail in observation.hard_failures)
+    elif fault in {None, "earlier_failed_attempt"}:
         assert observation.hard_failures == (
             "authorized_capture_span_mismatch", "authorized_stored_text_mismatch",
         )
+        assert all(failure_category(detail) == "quality" for detail in observation.hard_failures)
     else:
         assert "nominated_span_mismatch" in observation.hard_failures
         assert "stored_text_mismatch" in observation.hard_failures
         assert not any(code.startswith("authorized_") for code in observation.hard_failures)
+        blocker = "unexpected_memory_writes" if fault == "extra_write" else "unapproved_capture_committed"
+        assert blocker in observation.hard_failures
+        assert failure_category(blocker) == "security"
 
 
 def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> None:
@@ -886,7 +937,7 @@ def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> N
     result = asyncio.run(
         replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
     )
-    assert "unexpected_memory_writes" in result.scenes[0].hard_failures
+    assert "unapproved_capture_committed" in result.scenes[0].hard_failures
     assert "stored_record_count_mismatch" in result.scenes[0].hard_failures
     assert "existing_memories_changed" in result.scenes[1].hard_failures
     assert all(
