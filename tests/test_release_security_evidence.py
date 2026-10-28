@@ -94,9 +94,74 @@ def test_failed_capture_cannot_be_hidden_by_a_passing_reply_or_clean_controls(ev
     assert summary["security_checks"]["controls_passing_hard_checks"] == 2
 
 
+def test_memory_attack_with_null_line_attack_keeps_exposure_count():
+    summary = summarize_artifact({"scenes": [{
+        "scene_id": "memory-attack", "ground_truth_result": "passes_hard_gates", "hard_failures": [],
+        "line_attack": None,
+        "injection": {"kind": "attack", "attack_exposed": True, "status": "passes_hard_gates", "hard_failures": []},
+    }]})
+    assert summary["security_checks"]["attacks_exercised"] == 1
+    assert "attacks_blocked_by_application_guard" not in summary["security_checks"]
+
+
 def test_removed_allowed_commit_cannot_pass_even_when_attack_capture_is_optional(evidence):
     artifact, path, entry = evidence
     benign_record = artifact["scenes"][1]["capture"]["after_records"][0]
     artifact["scenes"][0]["capture"]["accepted_commits"] = [{"record": benign_record}]
     with pytest.raises(ValueError, match="commits and final memories disagree"):
         validate_artifact(artifact, path, entry)
+
+
+@pytest.fixture
+def guard_evidence(evidence):
+    from src.linger.contracts.security_validation import INJECTION_BLOCK_MESSAGE, USER_INPUT_INJECTION_RULES
+
+    artifact, path, entry = evidence
+    truth = json.loads((path / "ground-truth.json").read_text())
+    backstory = json.loads((path / "backstory.json").read_text())
+    source = next(p["line_attack"] for p in truth["proposals"] if p.get("line_attack"))
+    source["expected_handling"] = "application_guard"
+    line = next(line for line in backstory["lines"] if line["line_id"] == source["source_line_id"])
+    scene = artifact["scenes"][0]
+    scene["line_attack"].update(expected_handling="application_guard", application_guard_verified=True,
+                                 legitimate_task_completed=False, attack_exposed=False, warnings=[])
+    scene.update(line_id=line["line_id"], input_line=line["text"], reply=INJECTION_BLOCK_MESSAGE,
+                 release_source="application_safe_decline", agent_exchanges=[], handler_error=None, observation_errors=[],
+                 release={"release_source": "application_safe_decline", "security_block_category": "prompt_injection",
+                          "security_pattern_ids": [r.pattern_id for r in USER_INPUT_INJECTION_RULES if r.expression.search(line["text"])],
+                          "released_evidence_ids": [], "provenance_verdicts": []},
+                 events=[{"kind": "release", "status": "declined", "release_source": "application_safe_decline", "released_evidence_ids": []}])
+    scene["capture"].update(store_before_sha256="a" * 64, store_after_sha256="a" * 64)
+    (path / "ground-truth.json").write_text(json.dumps(truth))
+    entry["hashes"]["ground-truth.json"] = hashlib.sha256((path / "ground-truth.json").read_bytes()).hexdigest()
+    return evidence
+
+
+def test_explicit_adopted_application_guard_is_not_mislabeled_as_llm_exposure(guard_evidence):
+    summary = validate_artifact(*guard_evidence)
+    assert summary["judgments_passed"] == summary["judgments_total"] == 8
+    assert summary["security_checks"]["attacks_exercised"] == 1
+    assert summary["security_checks"]["attacks_blocked_by_application_guard"] == 1
+    assert summary["security_checks"]["attacks_passing_hard_checks"] == 2
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s["line_attack"].update(application_guard_verified=False),
+    lambda s: s["line_attack"].update(legitimate_task_completed=True),
+    lambda s: s["line_attack"].update(attack_exposed=True),
+    lambda s: s.update(reply="The attack succeeded"),
+    lambda s: s.update(input_line="unrelated Line"),
+    lambda s: s.update(agent_exchanges=[{"status": "success"}]),
+    lambda s: s.pop("agent_exchanges"),
+    lambda s: s["release"].update(security_pattern_ids=[]),
+    lambda s: s["release"].update(failure_type="model"),
+    lambda s: s["capture"].update(store_after_sha256="b" * 64),
+    lambda s: s["capture"].pop("store_before_sha256"),
+    lambda s: s["capture"].update(save_attempts=[{"text": "unapproved"}]),
+    lambda s: s["events"].append({"kind": "search", "status": "evidence_found"}),
+    lambda s: s.update(events=[]),
+])
+def test_application_guard_requires_independent_source_release_and_storage_proof(guard_evidence, change):
+    change(guard_evidence[0]["scenes"][0])
+    with pytest.raises(ValueError, match="Application guard"):
+        validate_artifact(*guard_evidence)

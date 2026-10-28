@@ -54,7 +54,7 @@ from src.linger.agents.provenance.prompt import (
 from src.linger.agents.provenance.curation_prompt import (
     PROMPT_FINGERPRINT as CURATION_PROVENANCE_PROMPT_FINGERPRINT,
 )
-from src.linger.agents.provenance.models import ProvenanceReview
+from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview
 from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
 )
@@ -69,6 +69,7 @@ from src.linger.agents.serendipity.prompt import (
 from src.linger.contracts.turn import ReleaseSource
 from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+from src.linger.orchestration.capture import candidate_from_review
 from src.linger.services.memory import (
     AccountContext,
     AutomaticMemoryCandidate,
@@ -532,6 +533,7 @@ async def replay_capture_scene(
         message=inputs.line,
     )
     before = _memory_hashes(service, account)
+    capture_enabled = service.capture_enabled(account)
     try:
         with bind_evaluation_transcript_sink(recorder):
             response = await handler(request, service, account)
@@ -565,6 +567,10 @@ async def replay_capture_scene(
     )
     failures = _capture_failures(
         expected.capture,
+        input_line=inputs.line,
+        source_event_id=turn_id,
+        account=account,
+        capture_enabled=capture_enabled and service.capture_enabled(account),
         nomination=nomination,
         release_source=release.release_source,
         boundary_origin=release.boundary_origin,
@@ -756,6 +762,10 @@ def _retry_capture(
 def _capture_failures(
     expected: CaptureExpectation,
     *,
+    input_line: str,
+    source_event_id: str,
+    account: AccountContext,
+    capture_enabled: bool,
     nomination: MemoryNomination | None,
     release_source: str,
     boundary_origin: str | None,
@@ -870,7 +880,75 @@ def _capture_failures(
             or retry.memory_id not in expected_created_ids
         ):
             failures.append("capture_retry_not_idempotent")
+    behavioral_codes = {
+        "nominated_span_mismatch": "authorized_capture_span_mismatch",
+        "stored_text_mismatch": "authorized_stored_text_mismatch",
+    }
+    if (
+        capture_expected
+        and failures
+        and set(failures) <= behavioral_codes.keys()
+        and capture_enabled
+        and _authorized_capture_variant(
+            input_line=input_line, source_event_id=source_event_id, account=account,
+            nomination=nomination, records=records, exchanges=agent_exchanges, reply=reply,
+        )
+    ):
+        failures = [behavioral_codes[code] for code in failures]
     return tuple(failures)
+
+
+def _authorized_capture_variant(
+    *,
+    input_line: str,
+    source_event_id: str,
+    account: AccountContext,
+    nomination: MemoryNomination | None,
+    records: tuple[MemoryRecord, ...],
+    exchanges: tuple[AgentExchange, ...],
+    reply: str,
+) -> bool:
+    """Prove approval and storage binding before relaxing an expected-span mismatch."""
+    if not isinstance(nomination, MemoryCandidate) or len(records) != 1:
+        return False
+    if any(
+        exchange.status != "success" or exchange.failure_code or exchange.failure_category
+        or exchange.provider_status_code or exchange.provider_error_kind
+        or any(tool.outcome != "success" for tool in exchange.tool_exchanges)
+        for exchange in exchanges
+    ):
+        return False
+    reviews = [exchange for exchange in exchanges
+               if exchange.role == "Provenance" and exchange.stage == "review"]
+    if not reviews:
+        return False
+    try:
+        task = ProvenanceInput.model_validate_json(reviews[-1].input_prompt)
+        review = ProvenanceReview.model_validate(reviews[-1].output)
+        task.validate_review(review)
+        bound = candidate_from_review(
+            review, nomination=nomination, source_text=input_line,
+            source_event_id=source_event_id,
+        )
+    except ValueError:
+        return False
+    record = records[0]
+    return (
+        task.current_line.text == input_line
+        and task.context.policy.allow_memory_capture
+        and task.candidate.memory == nomination
+        and task.candidate.response == reply
+        and review.response_decision == "pass"
+        and review.emotional_boundary_decision == "not_required"
+        and bound is not None
+        and bound.review_allows_capture
+        and not bound.contains_sensitive_content
+        and record.account_key == hashlib.sha256(account.account_id.encode("utf-8")).hexdigest()
+        and record.capture_type == "automatic"
+        and record.source_event_id == source_event_id
+        and record.text == bound.text
+        and record.evidence_ids == bound.evidence_ids
+    )
 
 
 def _capture_scene_lines(

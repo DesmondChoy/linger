@@ -85,7 +85,7 @@ from src.linger.contracts.librarian import (
     effective_route_response,
 )
 from src.linger.contracts.connection_evidence import WebConnectionEvidence, wrap_untrusted_web_excerpt
-from src.linger.contracts.turn import ReleaseScope, ReleaseSource
+from src.linger.contracts.turn import SAFE_DECLINE, ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
@@ -161,7 +161,6 @@ def _reflection_module_attrs(*, revision: bool) -> dict[str, object]:
         )
     }
 
-SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
     "I couldn’t verify a spoiler-safe answer from the available context."
 )
