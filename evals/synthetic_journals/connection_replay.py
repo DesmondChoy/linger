@@ -172,7 +172,7 @@ def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str,
             stage = "serendipity_selection"
         elif failure.startswith("missing_required_citation"):
             stage = "muse_presentation"
-        elif failure == "missing_review_approval":
+        elif failure in {"missing_review_approval", "response_not_approved"}:
             stage = "provenance_review"
         elif failure == "provider_failure":
             stage = "provenance_review" if failure_stage in {"provenance_review", "emotional_boundary_preflight"} else "muse_presentation"
@@ -484,9 +484,9 @@ def grade_connection_scene(
             elif decision != "restraint" or release.release_source != "application_safe_decline":
                 failures.append("unexpected_release_source")
             elif release.failure_stage == "deterministic_validation":
-                failures.append("invalid_evidence_release")
+                failures.append("candidate_evidence_rejected")
             elif not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass":
-                failures.append("missing_review_approval")
+                failures.append("response_not_approved")
         mapped, evidence_failures = _runtime_ids(scene, proposal, prop_ids, ledger)
         failures.extend(evidence_failures)
         failures.extend(_book_selection_failures(scene, expectation, events, ledger))

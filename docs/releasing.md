@@ -31,7 +31,7 @@ For future dataset changes, use the [Ground truth review skill](../.agents/skill
 4. Obtain review and wait for **Release promotion** to pass. The full CI jobs are skipped on this PR. Select **Create a merge commit**, then wait for full CI on the resulting `release-candidate` push to succeed.
 5. Open the candidate's **Release checks after candidate promotion** run. Inspect candidate validation, the configuration snapshot, the image build, the Trivy report, and the offline startup and persistence checks.
 6. Inspect `release-evidence-<sha>-<run>-<attempt>`. The live suite runs six Scenarios containing 22 Scenes per repetition, followed by two live HTTP turns in the same release image. Check the behavioral summary, per-Scene reports, Logfire links, and `http-smoke.json`.
-7. Check the publication decision. With no blockers and a score strictly above the configured threshold, `linger-release-auto` publishes without human approval. At or below the threshold, complete [review and approval](#review-and-approve-a-candidate) through `linger-release`. Security, execution, or missing-evidence blockers stop publication; human approval cannot override them.
+7. Check the publication decision. With no blockers and a score strictly above the configured threshold, `linger-release-auto` publishes without human approval. At or below the threshold, complete [review and approval](#review-and-approve-a-candidate) through `linger-release`. Security failures, evaluation crashes, and missing or invalid required evidence stop publication. Human approval cannot override them.
 8. Inspect `release-publication-<sha>-<run>-<attempt>` and `railway-deployment-<run>-<attempt>`. Confirm the candidate commit, configuration commit, checked image ID, published registry digest, and Railway deployment agree. The deployment must be active, serve the website, and pass `/api/ready`.
 
 Successful candidate CI starts a release run in either mode. The run builds one fresh Linux AMD64 image at the candidate commit, scans it, and checks offline startup and persistence. The live Scenario suite uses the candidate checkout and local model files copied from that image. Live HTTP checks run inside the image. Publication uses the saved image without rebuilding it, and Railway deploys its immutable registry digest. The promotion's resulting commit SHA is the candidate identity.
@@ -61,7 +61,7 @@ Use manual dispatch to select a candidate in either evaluation mode.
 2. Open **Actions → Release checks (manual) → Run workflow**. Select `release-candidate` as the workflow branch.
 3. Enter the candidate SHA and model. Keep **repetitions** at `1` initially, or enter another positive integer. The model and repetition inputs apply when live evaluations are enabled.
 4. Inspect the run summary and `release-image-evidence-<sha>-<run>-<attempt>`. A failed candidate, configuration, image, security, or offline smoke check blocks publication in either mode.
-5. If live evaluations are enabled, also inspect `release-evidence-<sha>-<run>-<attempt>`. Every requested repetition counts. Invalid adoption, unhandled execution errors, missing observations, and missing Logfire evidence block publication. Ordinary behavioral shortfalls and independently verified safe fallbacks remain visible with their original failed results. Failed evaluation never falls back to the skipped-evaluation route.
+5. If live evaluations are enabled, also inspect `release-evidence-<sha>-<run>-<attempt>`. Every requested repetition counts. Security violations, a crashed replay process, and missing or invalid required evidence block publication. A completed replay can record failed agent tasks without blocking. Those failed judgments remain in the score. See the [publication policy](release-checks.md#publication-decision) for the distinction. Failed evaluation never falls back to the skipped-evaluation route.
 6. Check the selected publication route. If it is `manual`, complete [review and approval](#review-and-approve-a-candidate). If it is `automatic`, publication proceeds through `linger-release-auto` without human approval. Manual dispatch selects the candidate; it does not force manual publication. With live evaluations off, human approval is required even if `auto_publish_enabled=true`.
 
 The run builds and tests a fresh image at the selected SHA. It saves that image for the approval and publication job in the same run. This image artifact expires after seven days. If it expires before publication, start a new release run and review its new image and evidence.
@@ -90,7 +90,7 @@ Use these steps when the publication decision selects the `manual` route and the
 2. If evaluation was intentionally skipped, confirm that the configuration disables live evaluations and the summary makes no behavioral pass claim. Decide whether to publish with that stated limitation. No live provider, Scenario, or HTTP inference evidence exists for this run.
 3. If evaluation completed, open the per-Scene reports, Logfire links, source identities, and HTTP smoke evidence. Review responses for useful grounding, appropriate clarification or decline, citation quality, and unsupported personal claims. Inspect failed checks and misleading passes.
 4. For each evaluated attack, check its adopted handling: agent-resistance cases require the malicious span to reach the agent; explicit application-guard cases require a verified input block without agent calls or writes. These are separate claims. Check for paraphrased obedience and unnecessary refusal of the legitimate request. For Line attacks, inspect accepted commits and final personal memories separately from the reply's claims. An absent marker does not prove resistance. A quoted marker does not prove obedience. Review clean comparisons separately from attack resistance.
-5. Review any ordinary behavioral failures and decide whether they are acceptable for this release. Security and evidence blockers cannot be overridden by approval.
+5. Review any ordinary behavioral failures and decide whether they are acceptable for this release. Security failures, evaluation crashes, and missing or invalid required evidence cannot be overridden by approval.
 6. Confirm that the candidate SHA, configuration SHA, and image ID match the pending `linger-release` job. Approve that job after completing the applicable review.
 7. Save `publication.json`, `approved-release.json`, and the evidence with the project's release records. In `publication.json`, `evaluation_status` is `skipped` or `completed`. The same authorization appears under `authorization` in `approved-release.json`, alongside the published digest, image identity, and CI run. Human publication also records GitHub's approval history.
 
@@ -98,23 +98,19 @@ With live evaluations off, every eligible candidate waits for approval regardles
 
 For a Railway failure after successful publication, use [Retry deployment without rebuilding](railway.md#retry-deployment-without-rebuilding). Select the original publication run and attempt. The retry reuses the retained evidence and published image without rebuilding, republishing, or rerunning evaluations.
 
-## Review a newly discovered behavioural failure
+## Review a failed live evaluation
 
-Unknown failures block publication until their meaning has been reviewed. To add a behavioural exception:
+Use the [publication policy](release-checks.md#publication-decision) to distinguish a failed task from a release blocker.
 
-1. Inspect the failed judgment, released reply, tool activity, and execution and storage evidence. Confirm that the failure concerns expected behaviour and that required security checks completed successfully.
-2. Find the code emitted by the owning replay grader. If the code combines harmless behaviour with a security violation, split the grader's code first. Do not exempt a whole Scenario or run.
-3. Add an entry to [`evals/release/behavioral-allowlist.json`](../evals/release/behavioral-allowlist.json) with the exact `runner`, `objective_ids`, and `code`, plus a `reason` and evidence or issue `reference`. Conditional exceptions also require a supported `evidence_requirement`; a free-text reason is not proof.
-4. Add focused tests for the reviewed outcome and the nearby unsafe or incomplete outcomes. Verify that the failed judgment still lowers the score and that unknown failures remain blocking.
-5. Review the change through a PR and promote the resulting version through the release pipeline. Existing artifacts retain their original grades and candidate identities. Do not edit old evaluation files to qualify them for publication.
+1. Open the run's `behavioral/summary.json` and inspect `blocking_failures`, `behavioral_failures`, and raw `execution_failures`.
+2. Check that the replay process completed successfully and retained every required Scene, judgment, source identity, and Logfire observation. Resolve a crashed process or missing evidence before retrying the release.
+3. Inspect security blockers against the released reply, actual tool activity, and storage observations. Fix an unauthorized disclosure, source access, release, or memory change before retrying.
+4. Review ordinary task failures against the adopted expectations. Keep failed judgments in the score. A rejected tool call, missing retrieval, refused response, or unsuccessful model attempt can remain a quality failure when the completed replay has valid evidence.
+5. Check the publication route against the configured threshold. Complete the manual review when that route requires approval. Record quality defects for follow-up.
 
-Known quality mismatches may use precise authorized-failure codes after the owning grader verifies permissions, source integrity and approval. Old ambiguous codes and missing proof stay blocking; do not rename them in saved evidence. Ordinary recall, permitted unnecessary memory searches, different valid book anchors, approved capture spans and authorized curation choices have scoped entries.
+New quality failure codes need no allowlist entry or fallback exemption. Unknown artifact schemas and incomplete observations still block as invalid evidence. If a grader uses one code for both a rejected candidate and an actual unauthorized release, split those outcomes and test each classification. The owning [release reference](release-checks.md#publication-decision) describes the blocker categories and required evidence.
 
-For connection evidence, distinguish the answer key's expected excerpt from the reader's permitted reading scope. Extra canonical book passages within that scope can remain failed quality judgments under `authorized_book_citation_mismatch` or `authorized_book_selection_mismatch`. Their allowlist entries require `authorized_connection_book_evidence`, which the release gate verifies from the retained observations. Extra memory/web evidence, unknown or altered passages, and scope violations are not covered by this exception.
-
-The release summary and report record every matched exception. The allowlist does not change the configured 80% threshold or grant approval. A complete result with no blockers still follows the configured automatic or manual route.
-
-For a handled application error, first inspect the [safe-fallback classification](release-checks.md#publication-decision). Supported boundary clarifications and continuity refusals are verified by mechanism, without adding each Scene to the allowlist. Check the retained raw error and its `safe_fallbacks` evidence, and confirm `blocking_execution_failures` is empty. An unsuccessful model response alone is not proof that the evaluation crashed, and a fallback label alone is not proof that the outcome was safe. Missing proof or an additional blocker still stops publication.
+Retain the original evaluation files and candidate identities. Offline reclassification helps diagnose policy changes. It does not replace a release run for the selected candidate or establish that publication succeeded.
 
 ## Adjust automatic publication
 
@@ -126,7 +122,7 @@ Review the configured threshold against past results and the [automated score's 
 
 With live evaluations and automatic publication enabled and no blockers, a pass percentage strictly greater than the threshold publishes automatically. At or below the threshold, the candidate goes to `linger-release` for human review. The comparison uses exact judgment counts, not the rounded display percentage. With live evaluations disabled, no score exists and human approval is always required.
 
-The percentage measures automated adopted judgments. It does not establish semantic quality or certify attack resistance. Automatic publication opts into that limitation; semantic-review warnings remain in the evidence. Security failures and incomplete evidence block both publication routes regardless of the threshold.
+The percentage measures automated adopted judgments. It does not establish semantic quality or certify attack resistance. Automatic publication opts into that limitation; semantic-review warnings remain in the evidence. Security failures, evaluation crashes, and missing or invalid required evidence block both publication routes regardless of the threshold.
 
 For failure and approval notifications, enable Actions notifications in your GitHub settings. Inspect failed checks and retained artifacts from the run page. The workflows do not send separate email or chat messages.
 

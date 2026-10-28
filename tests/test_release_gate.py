@@ -44,7 +44,7 @@ def release_repo(tmp_path, monkeypatch):
         "system_variant": "c" * 64,
         "runtime_prompt_fingerprints": [],
         "scenes": [
-            {"scene_id": scene_id, "ground_truth_result": "passes_hard_gates", "hard_failures": []}
+            {"scene_id": scene_id, "ground_truth_result": "passes_hard_gates", "hard_failures": [], "agent_exchanges": []}
             for scene_id in entry["scene_ids"]
         ],
     }
@@ -161,18 +161,24 @@ def test_artifact_must_match_adopted_identity(release_repo, field, value):
         gate.validate_artifact(artifact, scenario, entry)
 
 
-def test_agent_execution_failure_cannot_hide_behind_passing_grade(release_repo):
+def test_completed_agent_failure_is_retained_without_crashing_the_evaluation(release_repo):
+    from tests.memory_injection_fixtures import exchange
     _, scenario, _, entry, artifact = release_repo
-    artifact["scenes"][0]["agent_exchanges"] = [{"failure_code": "provider_failed", "failure_category": "provider_error"}]
-    with pytest.raises(ValueError, match="execution failure"):
-        gate.validate_artifact(artifact, scenario, entry)
+    failed = exchange("Muse", "draft", None)
+    failed.update(status="failure", failure_code="provider_failed", failure_category="provider_error")
+    artifact["scenes"][0]["agent_exchanges"] = [failed]
+    summary = gate.validate_artifact(artifact, scenario, entry)
+    assert not summary["blocking_failures"]
+    assert summary["judgments_passed"] == summary["judgments_total"]
+    assert summary["execution_failures"] == [{"scene_id": artifact["scenes"][0]["scene_id"],
+                                              "detail": "Muse draft: provider_failed"}]
 
 
 @pytest.mark.parametrize("status", ["cancelled", "failed", "error", "incomplete", None])
-def test_allowlisted_failure_cannot_hide_an_unsuccessful_call_without_failure_code(behavioral_repo, status):
+def test_incomplete_agent_observation_is_an_evidence_failure(behavioral_repo, status):
     _, scenario, _, entry, artifact = behavioral_repo
     artifact["scenes"][2]["agent_exchanges"] = [{"status": status, "failure_code": None}]
-    with pytest.raises(ValueError, match="execution failure"):
+    with pytest.raises(ValueError):
         gate.validate_artifact(artifact, scenario, entry)
 
 
@@ -238,7 +244,7 @@ def test_known_runner_grade_shapes_include_semantic_only_continuity(name, runner
     }
     scenes = []
     for planned in backstory["scenes"]:
-        scene = {"scene_id": planned["scene_id"]}
+        scene = {"scene_id": planned["scene_id"], "agent_exchanges": []}
         proposals = [p for p in truth["proposals"] if p["scene_id"] == scene["scene_id"]]
         if runner in {"book_replay", "connection_replay"}:
             scene["grades"] = [
@@ -318,7 +324,7 @@ def behavioral_repo(release_repo):
         continuity = scene["objective_ids"] == ["session_scoped_conversation_continuity"]
         target = continuity and len(scene["line_ids"]) > 1
         artifact["scenes"].append({
-            "scene_id": scene["scene_id"], "role": "continuity" if target else "comparison",
+            "scene_id": scene["scene_id"], "agent_exchanges": [], "role": "continuity" if target else "comparison",
             "ground_truth_result": "not_applicable" if target else "passes_hard_gates",
             "structural_findings" if continuity else "hard_failures": [],
         })
@@ -358,13 +364,11 @@ def test_explicit_opt_in_routes_complete_score_above_threshold_to_automatic(beha
     assert "strictly greater than 66.66%" in report
 
 
-@pytest.mark.parametrize("failure", ["telemetry", "security", "unknown", "partial"])
+@pytest.mark.parametrize("failure", ["telemetry", "security", "partial"])
 def test_behavioral_shortfall_cannot_hide_a_release_blocker(behavioral_repo, tmp_path, monkeypatch, failure):
     artifact = behavioral_repo[-1]
     if failure == "security":
         artifact["scenes"][2]["hard_failures"].append("unexpected_memory_writes")
-    elif failure == "unknown":
-        artifact["scenes"][2]["hard_failures"].append("new_runtime_constraint")
     elif failure == "partial":
         artifact["scenes"].pop()
     _provider(monkeypatch, artifact, flushed=failure != "telemetry")
@@ -373,36 +377,21 @@ def test_behavioral_shortfall_cannot_hide_a_release_blocker(behavioral_repo, tmp
     assert result["publication"]["route"] == "blocked"
 
 
-def test_exception_reason_is_recorded_without_changing_the_failed_judgment(behavioral_repo, tmp_path, monkeypatch):
-    _provider(monkeypatch, behavioral_repo[-1])
+def test_new_quality_failure_needs_no_exception_to_reach_score_routing(behavioral_repo, tmp_path, monkeypatch):
+    artifact = behavioral_repo[-1]
+    artifact["scenes"][2]["hard_failures"].append("new_runtime_constraint")
+    _provider(monkeypatch, artifact)
     result = _run(behavioral_repo, tmp_path / "output", auto_publish_enabled=True)
     summary = result["runs"][0]["results"]
-    assert summary["judgments_passed"] == 2
-    assert summary["judgments_total"] == 3
-    assert summary["judgments_failed"] == 1
+    assert (summary["judgments_passed"], summary["judgments_total"], summary["judgments_failed"]) == (2, 3, 1)
     assert result["publication"]["route"] == "manual"
-    failure = summary["behavioral_failures"][0]
-    assert failure["detail"] == "relevant_prop_not_cited"
-    assert failure["exception"]["code"] == failure["detail"]
-    assert failure["exception"]["reason"]
-    assert failure["exception"]["reference"]
-    assert "exception" not in summary["failures"][0]
-    assert result["behavioral_allowlist"]["sha256"] == gate._sha(gate.ALLOWLIST_PATH)
+    assert {failure["detail"] for failure in summary["behavioral_failures"]} == {
+        "relevant_prop_not_cited", "new_runtime_constraint"}
+    assert all(failure["category"] == "quality" for failure in summary["behavioral_failures"])
+    assert summary["blocking_failures"] == []
+    assert "behavioral_allowlist" not in result
     report = (tmp_path / "output" / "report.md").read_text()
-    assert failure["exception"]["reason"] in report
-    assert failure["exception"]["reference"] in report
-
-
-def test_invalid_exception_policy_blocks_before_provider_calls(release_repo, tmp_path, monkeypatch):
-    def invalid():
-        raise ValueError("Behavioral allowlist is invalid.")
-
-    monkeypatch.setattr(gate, "load_behavioral_allowlist", invalid)
-    calls = _provider(monkeypatch, release_repo[-1])
-    result = _run(release_repo, tmp_path / "output")
-    assert not calls
-    assert result["publication"]["route"] == "blocked"
-    assert any("allowlist" in problem for problem in result["problems"])
+    assert "new_runtime_constraint" in report and "quality failure" in report
 
 
 @pytest.mark.parametrize("threshold", ["NaN", "bad", "101"])
@@ -433,3 +422,10 @@ def test_cli_exposes_manual_route_with_success_for_complete_behavioral_result(mo
     assert observed[0]["auto_publish_enabled"] is True
     assert observed[0]["auto_publish_threshold"] == expected_threshold
     assert destination.read_text() == "existing=value\npublication_route=manual\nautomated_pass_percentage=70\ncheck_result=review_required\n"
+
+
+def test_missing_execution_observations_block_even_when_grade_is_recorded(release_repo):
+    _, scenario, _, entry, artifact = release_repo
+    artifact["scenes"][0].pop("agent_exchanges")
+    with pytest.raises(ValueError, match="execution observations"):
+        gate.validate_artifact(artifact, scenario, entry)

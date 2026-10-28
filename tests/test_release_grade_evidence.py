@@ -35,15 +35,180 @@ def test_retained_native_schema_preserves_all_recorded_judgments(runner):
     artifact, backstory, truth = bundle(runner)
     original = json.dumps(artifact, sort_keys=True)
     scenes = artifact["scenes"]
-    if runner == "memory_loop_replay":
-        with pytest.raises(ValueError, match="transcripts are missing or failed"):
-            validate(artifact, scenes[0], backstory, truth, runner)
-        scenes = scenes[1:]
     handled = [validate(artifact, scene, backstory, truth, runner) for scene in scenes]
 
     assert any(handled)
     assert all(handled) if runner != "capture_curation_replay" else handled == [False] * 11 + [True] * 5
     assert json.dumps(artifact, sort_keys=True) == original
+
+
+def failed_exchange(exchange, *, status="failure", category="provider_error"):
+    exchange.update(
+        status=status, failure_code="provider_request_failed", failure_category=category,
+        output=None, model_messages=[], tool_exchanges=[], usage=None,
+        provider_error_kind="connection" if category == "provider_error" else None,
+    )
+
+
+@pytest.mark.parametrize(("status", "category"), [
+    ("failure", "provider_error"), ("failure", "unknown_error"), ("cancelled", "cancelled"),
+])
+def test_completed_native_connection_retains_recorded_agent_failure(status, category):
+    artifact, backstory, truth = bundle("connection_curation_replay")
+    scene = artifact["scenes"][5]
+    exchange = next(item for item in scene["agent_exchanges"] if item["role"] == "Muse" and item["stage"] == "draft")
+    failed_exchange(exchange, status=status, category=category)
+    scene["grades"][0]["failures"] = ["runtime_model_failure"]
+    scene["hard_gate_pass"] = False
+    original = json.dumps(scene, sort_keys=True)
+
+    assert validate(artifact, scene, backstory, truth, "connection_curation_replay")
+    assert json.dumps(scene, sort_keys=True) == original
+
+
+def test_native_projection_failure_retains_the_observed_agent_output():
+    artifact, backstory, truth = bundle("connection_curation_replay")
+    scene = artifact["scenes"][5]
+    exchange = next(item for item in scene["agent_exchanges"] if item["role"] == "Muse" and item["stage"] == "draft")
+    assert exchange["output"] is not None
+    exchange.update(status="failure", failure_code="agent_result_projection_failed", failure_category="unknown_error")
+    scene["grades"][0]["failures"] = ["runtime_application_failure"]
+    scene["hard_gate_pass"] = False
+    original = json.dumps(scene, sort_keys=True)
+
+    assert validate(artifact, scene, backstory, truth, "connection_curation_replay")
+    assert json.dumps(scene, sort_keys=True) == original
+
+
+@pytest.mark.parametrize("mutation", [
+    "empty", "unknown_status", "missing_code", "missing_category",
+    "incomplete_exchange", "missing_release",
+])
+def test_native_failure_requires_complete_terminal_and_release_observations(mutation):
+    artifact, backstory, truth = bundle("memory_loop_replay")
+    scene = artifact["scenes"][1]
+    grade = scene["grades"][0]
+    exchange = grade["agent_exchanges"][0]
+    failed_exchange(exchange)
+    grade["hard_failures"] = ["runtime_model_failure"]
+    grade["ground_truth_result"] = "fails_hard_gates"
+    if mutation == "empty":
+        grade["agent_exchanges"] = []
+    elif mutation == "unknown_status":
+        exchange["status"] = "pending"
+    elif mutation == "missing_code":
+        exchange["failure_code"] = None
+    elif mutation == "missing_category":
+        exchange["failure_category"] = None
+    elif mutation == "incomplete_exchange":
+        exchange["failure_code"] = "incomplete_agent_exchange"
+    elif mutation == "missing_release":
+        grade["events"] = [event for event in grade["events"] if event["kind"] != "release"]
+
+    with pytest.raises(ValueError):
+        validate(artifact, scene, backstory, truth, "memory_loop_replay")
+
+
+def failed_round(artifact, stage, *, index=0):
+    observation = artifact["curation"][index]
+    if stage == "curation":
+        observation["agent_exchanges"] = observation["agent_exchanges"][:1]
+    failed_exchange(observation["agent_exchanges"][-1])
+    observation.update(
+        status="failed", failure="provider_request_failed", action=None,
+        source_prop_ids=[], provenance_decision=None,
+    )
+    if index:
+        observation["retrieval_view"] = json.loads(json.dumps(artifact["curation"][index - 1]["retrieval_view"]))
+    return observation
+
+
+@pytest.mark.parametrize("stage", ["curation", "curation_review"])
+@pytest.mark.parametrize("index", [0, 2])
+def test_failed_native_round_preserves_trusted_batch_and_unchanged_retrieval(stage, index):
+    artifact, backstory, truth = bundle("memory_loop_replay")
+    failed_round(artifact, stage, index=index)
+    original = json.dumps(artifact, sort_keys=True)
+
+    assert validate(artifact, artifact["scenes"][1], backstory, truth, "memory_loop_replay")
+    assert json.dumps(artifact, sort_keys=True) == original
+
+
+@pytest.mark.parametrize("mutation", [None, "changed_view", "changed_input"])
+def test_generated_invalid_proposal_rejected_before_review_remains_a_recorded_outcome(mutation):
+    artifact, backstory, truth = bundle("memory_loop_replay")
+    observation = artifact["curation"][0]
+    sculptor = observation["agent_exchanges"][0]
+    observation.update(
+        status="failed", failure="InvalidCurationProposal", action=None,
+        source_prop_ids=[], provenance_decision=None, agent_exchanges=[sculptor],
+    )
+    sculptor["output"]["action"]["source_memory_ids"][0] = "unknown-generated-memory-id"
+    for tool in sculptor["tool_exchanges"]:
+        tool["arguments"] = json.dumps(sculptor["output"])
+    for message in sculptor["model_messages"]:
+        for part in message["parts"]:
+            if part.get("part_kind") == "tool-call":
+                part["args"] = json.dumps(sculptor["output"])
+    if mutation == "changed_view":
+        observation["retrieval_view"].pop()
+    elif mutation == "changed_input":
+        payload = json.loads(sculptor["input_prompt"])
+        payload["memories"][0]["text"] = "Changed source content."
+        sculptor["input_prompt"] = json.dumps(payload)
+
+    if mutation is None:
+        original = json.dumps(artifact, sort_keys=True)
+        assert validate(artifact, artifact["scenes"][1], backstory, truth, "memory_loop_replay")
+        assert json.dumps(artifact, sort_keys=True) == original
+    else:
+        with pytest.raises(ValueError):
+            validate(artifact, artifact["scenes"][1], backstory, truth, "memory_loop_replay")
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing_reason", "missing_transcript", "successful_agents", "invented_action",
+    "invented_approval", "unknown_source", "changed_input", "unknown_review_source",
+    "missing_original", "new_derivation",
+])
+def test_failed_round_cannot_bypass_source_storage_or_approval_evidence(mutation):
+    artifact, backstory, truth = bundle("memory_loop_replay")
+    observation = failed_round(artifact, "curation_review")
+    if mutation == "missing_reason":
+        observation["failure"] = None
+    elif mutation == "missing_transcript":
+        observation["agent_exchanges"] = []
+    elif mutation == "successful_agents":
+        observation["agent_exchanges"][-1] = bundle("memory_loop_replay")[0]["curation"][0]["agent_exchanges"][-1]
+    elif mutation == "invented_action":
+        observation["action"] = "update_derived_summary"
+    elif mutation == "invented_approval":
+        observation["provenance_decision"] = "allow"
+    elif mutation == "unknown_source":
+        observation["retrieval_view"][0]["source_prop_ids"] = ["another-account"]
+    elif mutation == "changed_input":
+        exchange = observation["agent_exchanges"][0]
+        payload = json.loads(exchange["input_prompt"])
+        payload["memories"][0]["text"] = "Another account's source."
+        exchange["input_prompt"] = json.dumps(payload)
+    elif mutation == "unknown_review_source":
+        sculptor, reviewer = observation["agent_exchanges"]
+        payload = json.loads(reviewer["input_prompt"])
+        unknown = "another-account-memory"
+        sculptor["output"]["action"]["source_memory_ids"][0] = unknown
+        payload["proposal"]["action"]["source_memory_ids"][0] = unknown
+        payload["sources"][0]["memory_id"] = unknown
+        reviewer["input_prompt"] = json.dumps(payload)
+    elif mutation == "missing_original":
+        observation["retrieval_view"].pop()
+    elif mutation == "new_derivation":
+        observation["retrieval_view"].append({
+            "kind": "derived_summary", "source_prop_ids": list(backstory["scenes"][1]["prop_ids"][:2]),
+            "text": "An unapproved summary.",
+        })
+
+    with pytest.raises(ValueError):
+        validate(artifact, artifact["scenes"][1], backstory, truth, "memory_loop_replay")
 
 
 @pytest.mark.parametrize("mutation", [
