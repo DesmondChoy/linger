@@ -198,7 +198,7 @@ Table 4 lists each technology and why it was chosen over the obvious alternative
 | Agent structure | One agent per role; skill chosen per run | Each role's tools and validators stay in one place, while each task's instructions and schema are versioned separately |
 | Models | Shared `LINGER_MODEL`; team standard OpenAI `gpt-6-luna`; Google and Anthropic supported | All reported live results use OpenAI models; selected skills override reasoning effort (Section 3) |
 | Retrieval | Hybrid BM25 and dense retrieval with cross-encoder reranking, in application code | Highest evidence recall with the least evidence volume, at a p95 of 0.46 seconds (Section 7.4). Spoiler safety cannot depend on a model's judgment |
-| Web search | Exa, off unless enabled | Public-web connections only when policy and credentials allow |
+| Web search | Exa; off unless policy grants web and a key is set (enabled on Railway) | Semantic search built on Exa's own embedding models and vector index. It handles long, paragraph-length natural-language queries, such as a reflection's theme, which keyword search engines match poorly |
 | Backend | FastAPI on Uvicorn, Python 3.12 | Thin transport and authentication layer over `run_chat_turn` |
 | Front end | React 19 with Vite | Account and chat views; Library and Inspect are local developer diagnostics |
 | Storage | SQLite for accounts and transcripts; content-hashed Markdown for the corpus and memories | Enough for a single-process prototype. Hashed, immutable records are easy to audit |
