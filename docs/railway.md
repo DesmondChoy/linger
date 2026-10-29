@@ -98,6 +98,23 @@ retained for 30 days; expired evidence prevents a retry. Keep approved release
 records before their expiry. Do not rerun the whole release workflow to recover
 from a Railway-only failure.
 
+Failed CLI commands report their exit code and redacted stdout/stderr in the
+job log, job summary, and `railway-deployment.json` artifact. GraphQL errors
+retain the API error details. Each diagnostic stream is limited to 4,000
+characters after credential redaction.
+
+Test this error reporting locally without credentials, provider calls, or a
+deployment:
+
+```bash
+uv run pytest -q tests/test_railway_release.py
+```
+
+These tests simulate CLI/API failures and verify the retained diagnostics,
+credential redaction, and rejection before any deployment mutation. To test
+against Railway after merging a fix to `main`, use the deployment-only retry
+above with the original successful publication's run ID and attempt.
+
 ## Configure GitHub once
 
 1. Protect both branches with one required approval, dismissal of stale approvals,
