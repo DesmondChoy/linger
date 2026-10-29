@@ -987,6 +987,8 @@ textarea::placeholder {
   border-color: transparent;
   color: var(--accent);
   text-decoration: underline;
+  text-align: left;
+  white-space: pre-line;
 }
 
 .synthetic-view {
