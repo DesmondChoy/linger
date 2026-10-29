@@ -59,8 +59,25 @@ def resolve(repository: str, sha: str, run_id: str) -> dict:
             "promotion_url": promotions[0]["html_url"], "policy": policy}
 
 
+def diagnostic(text: str) -> str:
+    secrets = {os.environ[name] for name in ("RAILWAY_TOKEN", "RAILWAY_API_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
+               if os.environ.get(name)}
+    for secret in sorted(secrets, key=len, reverse=True):
+        text = text.replace(secret, "[REDACTED]")
+    text = re.sub(r"(?i)\bBearer\s+[^\s\"',;]+", "Bearer [REDACTED]", text)
+    return text[:4000] + "\n[truncated]" if len(text) > 4000 else text
+
+
 def command(*args: str) -> str:
-    return subprocess.run(args, check=True, capture_output=True, text=True).stdout.strip()
+    try:
+        return subprocess.run(args, check=True, capture_output=True, text=True).stdout.strip()
+    except subprocess.CalledProcessError as error:
+        details = [f"{Path(args[0]).name} failed (exit code {error.returncode})."]
+        for label, output in (("stdout", error.stdout), ("stderr", error.stderr)):
+            if output and output.strip():
+                details.append(f"{label}:\n{diagnostic(output.strip())}")
+        # The original exception includes command arguments that may contain credentials.
+        raise RuntimeError("\n".join(details)) from None
 
 
 def approved(approvals: list) -> bool:
@@ -175,7 +192,8 @@ def public_image(reference: str, image_id: str) -> dict:
 def railway_api(query: str, variables: dict) -> dict:
     response = json.loads(command("railway", "api", query, "--variables", json.dumps(variables), "--compact"))
     if response.get("errors") or response.get("data") is None:
-        raise ValueError("Railway API did not confirm the operation.")
+        detail = diagnostic(json.dumps(response.get("errors") or response))
+        raise ValueError(f"Railway API did not confirm the operation: {detail}")
     return response["data"]
 
 

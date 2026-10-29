@@ -8,7 +8,10 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import subprocess
+import sys
 import threading
+import traceback
 
 import pytest
 
@@ -109,6 +112,75 @@ def github_api(monkeypatch, *, tip=SHA, policy_changes=None, pulls=None, ci_chan
     monkeypatch.setattr(railway, "api", api)
     monkeypatch.setitem(railway.configuration.__globals__, "api", api)
     return calls
+
+
+def test_command_reports_both_failure_streams_without_credentials(monkeypatch):
+    secrets = {
+        "RAILWAY_TOKEN": "test-railway-secret",
+        "RAILWAY_API_TOKEN": "test-railway-secret-longer",
+        "GH_TOKEN": "test-github-secret",
+        "GITHUB_TOKEN": "test-github-secret-longer",
+    }
+    for name, value in secrets.items():
+        monkeypatch.setenv(name, value)
+    program = """
+import os, sys
+print('GraphQL: Cannot query field volumeInstances on type Environment')
+print('Railway: permission denied', file=sys.stderr)
+print('Authorization: Bearer unknown-response-credential', file=sys.stderr)
+for name in ('RAILWAY_TOKEN', 'RAILWAY_API_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN'):
+    print(name + '=' + os.environ[name], file=sys.stderr)
+sys.exit(17)
+"""
+    with pytest.raises(RuntimeError) as caught:
+        railway.command(sys.executable, "-c", program, secrets["RAILWAY_TOKEN"])
+    message = str(caught.value)
+    assert "17" in message
+    assert "stdout" in message and "Cannot query field volumeInstances" in message
+    assert "stderr" in message and "permission denied" in message
+    diagnostics = message + "".join(traceback.format_exception(caught.value))
+    for value in (*secrets.values(), "unknown-response-credential"):
+        assert value not in diagnostics
+    assert "longer" not in diagnostics  # Overlapping secrets must be redacted longest first.
+
+
+@pytest.mark.parametrize("program,expected", [
+    ("import sys; print('Not authorized', file=sys.stderr); sys.exit(1)", "Not authorized"),
+    ("import sys; print('GraphQL: unknown field'); sys.exit(1)", "GraphQL: unknown field"),
+    ("import sys; sys.exit(1)", "1"),
+])
+def test_command_reports_failure_with_either_or_no_output(program, expected):
+    with pytest.raises(RuntimeError, match=expected):
+        railway.command(sys.executable, "-c", program)
+
+
+def test_command_returns_successful_stdout():
+    assert railway.command(sys.executable, "-c", "print('  result  ')") == "result"
+
+
+def test_command_bounds_diagnostics_after_redacting_credentials(monkeypatch):
+    secret = "private-railway-" + "x" * 5000
+    monkeypatch.setenv("RAILWAY_TOKEN", secret)
+    program = "import os,sys; print(os.environ['RAILWAY_TOKEN'] + 'y'*10000); sys.exit(1)"
+    with pytest.raises(RuntimeError) as caught:
+        railway.command(sys.executable, "-c", program)
+    message = str(caught.value)
+    assert "private-railway" not in message
+    assert "truncated" in message
+    assert len(message) < 5000
+
+
+def test_railway_api_retains_redacted_graphql_error(monkeypatch):
+    monkeypatch.setenv("RAILWAY_TOKEN", "private-api-token")
+    response = {"data": None, "errors": [{
+        "message": "Cannot query field volumeInstances using private-api-token",
+        "extensions": {"code": "GRAPHQL_VALIDATION_FAILED"},
+    }]}
+    monkeypatch.setattr(railway, "command", lambda *_: json.dumps(response))
+    with pytest.raises(ValueError, match="Cannot query field volumeInstances") as caught:
+        railway.railway_api("query { project { id } }", {})
+    assert "GRAPHQL_VALIDATION_FAILED" in str(caught.value)
+    assert "private-api-token" not in str(caught.value)
 
 
 def test_accepts_exact_candidate_ci_and_merged_promotion(monkeypatch):
@@ -394,6 +466,40 @@ def test_private_image_fails_before_any_railway_mutation(monkeypatch, tmp_path):
     monkeypatch.setattr(railway, "railway_api", lambda *_: pytest.fail("Railway must remain unchanged"))
     with pytest.raises(ValueError, match="public"):
         railway.deploy(REPO, "100", "2", tmp_path / "evidence.json")
+
+
+def test_preflight_cli_error_reaches_evidence_and_summary_before_mutations(monkeypatch, tmp_path):
+    monkeypatch.setenv("RAILWAY_TOKEN", "private-project-token")
+    monkeypatch.setenv("GH_TOKEN", "private-github-token")
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    monkeypatch.setattr(railway, "load_publication", lambda *_: publication())
+    monkeypatch.setattr(railway, "public_image", lambda *_: {"public": True})
+    monkeypatch.setattr(railway, "validate_publication", lambda *_: pytest.fail("Preflight must stop deployment"))
+    commands = []
+
+    def run(args, **_):
+        commands.append(args)
+        raise subprocess.CalledProcessError(
+            1, args, output='{"errors":[{"message":"Cannot query field volumeInstances"}]}',
+            stderr="Railway denied private-project-token; GitHub private-github-token",
+        )
+
+    monkeypatch.setattr(railway.subprocess, "run", run)
+    output = tmp_path / "evidence.json"
+    with pytest.raises(RuntimeError) as caught:
+        railway.deploy(REPO, "100", "2", output)
+    record = json.loads(output.read_text())
+    assert record["status"] == "failed"
+    assert "deployment_id" not in record
+    assert len(commands) == 1 and commands[0][:2] == ("railway", "api")
+    assert "mutation" not in commands[0][2]
+    for text in (str(caught.value), record["error"], summary.read_text(),
+                 "".join(traceback.format_exception(caught.value))):
+        assert "Cannot query field volumeInstances" in text
+        assert "Railway denied" in text
+        assert "private-project-token" not in text
+        assert "private-github-token" not in text
 
 
 @pytest.mark.parametrize("ready,html,expected", [
