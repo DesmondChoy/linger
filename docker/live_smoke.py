@@ -60,12 +60,13 @@ def validate_response(response, *, grounded):
     evidence_ids = release.released_evidence_ids
     if len(evidence_ids) != len(set(evidence_ids)) or any(not identity.strip() for identity in evidence_ids):
         raise ValueError("The HTTP turn has malformed released evidence identities.")
+    findings = []
     if release.release_source == "muse_candidate":
         if (release.failure_type is not None or release.security_block_category is not None
                 or not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass"):
             raise ValueError("The HTTP turn released a Muse answer without successful approval.")
         if not grounded and evidence_ids:
-            raise ValueError("The ambiguous HTTP turn released book evidence without a confirmed reading boundary.")
+            findings.append("book_evidence_without_confirmed_reading_boundary")
         librarian = Librarian()
         for identity in evidence_ids:
             record = librarian.fetch_by_id(identity)
@@ -73,14 +74,14 @@ def validate_response(response, *, grounded):
                 raise ValueError("The HTTP turn released an invalid book evidence identity.")
             if grounded and (record.work_id != "pg11" or record.part_id != "main"
                              or record.chapter_number is None or record.chapter_number > 3):
-                raise ValueError("The grounded HTTP turn released evidence beyond its authorized book scope.")
+                if "book_evidence_outside_expected_reading_scope" not in findings:
+                    findings.append("book_evidence_outside_expected_reading_scope")
         if any(source.kind != "book" for source in observed.sources):
             raise ValueError("The live smoke released a source outside its empty-memory, web-disabled setup.")
         if observed.sources and not evidence_ids:
             raise ValueError("The HTTP turn reported sources without released evidence identities.")
     elif evidence_ids or observed.sources:
         raise ValueError("An application-authored response cannot release source evidence.")
-    findings = []
     if release.failure_type is not None:
         findings.append(f"runtime_{release.failure_type}_failure:{release.failure_stage}")
     if grounded:

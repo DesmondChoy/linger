@@ -80,6 +80,7 @@ def book_evidence():
                 "inferred_ceiling_differs_from_ground_truth"]
     scene = {
         "scene_id": "boundary", "line_id": "line", "input_line": line,
+        "trace_id": exchanges[0]["trace_id"],
         "context_resolution": deepcopy(CONTEXT), "boundary_decision": "clarify", "route_called": True,
         "boundary_handoff_content_free": True, "routed_ceiling": None, "routed_work_id": None,
         "routed_book_version_id": None, "routed_passage_ids": [], "boundary_support_memory_ids": [],
