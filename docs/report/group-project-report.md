@@ -193,17 +193,17 @@ Table 4 lists each technology and why it was chosen over the obvious alternative
 
 | Layer | Choice | Why |
 |---|---|---|
-| Orchestration | Plain Python in `run_chat_turn` | Sequencing, tool grants, and release stay in one function that is easy to read and unit-test. Agent-graph frameworks such as LangGraph or CrewAI make agent-to-agent calls easy, which this design forbids |
-| Agent framework | Pydantic AI | Typed inputs and outputs with validation retries, per-run instructions, provider abstraction, Logfire instrumentation, and a maintained Exa capability |
-| Agent structure | One agent per role; skill chosen per run | Each role's tools and validators stay in one place, while each task's instructions and schema are versioned separately |
-| Models | Shared `LINGER_MODEL`; team standard OpenAI `gpt-6-luna`; Google and Anthropic supported | All reported live results use OpenAI models; selected skills override reasoning effort (Section 3) |
-| Retrieval | Hybrid BM25 and dense retrieval with cross-encoder reranking, in application code | Highest evidence recall with the least evidence volume, at a p95 of 0.46 seconds (Section 7.4). Spoiler safety cannot depend on a model's judgment |
+| Orchestration | Plain Python in `run_chat_turn` | Agent-graph frameworks such as LangGraph or CrewAI let agents call each other, which this design forbids. Plain code keeps sequencing, tool grants and release in one call path that is easy to read and unit-test |
+| Agent framework | Pydantic AI | Agent outputs are Pydantic models, so a malformed response is rejected and returned to the model for a retry. One agent API runs on OpenAI, Google and Anthropic. Logfire tracing and a maintained Exa capability come with the library |
+| Agent structure | One agent per role; skill chosen per run | An agent's tools and validators are fixed when it is built, so one agent per role keeps each role's authority in one place. A skill changes only the task's instructions and output schema, so a task can be revised without touching the role's tools |
+| Models | Shared `LINGER_MODEL`; team standard OpenAI `gpt-6-luna`; Google and Anthropic supported; selected skills override reasoning effort (Section 3) | `gpt-6-luna` is a small, low-cost model, and a grounded turn makes at least four model calls with 104,000 to 222,000 input tokens (Section 7.7). The provider is one setting, so another can be tried without code changes. All reported live results use OpenAI models |
+| Retrieval | Hybrid BM25 and dense retrieval with cross-encoder reranking, in application code | BM25 matches exact names and quoted phrases. Dense retrieval matches passages that paraphrase the question. The cross-encoder rescores the combined candidates for precision. Together they gave the highest evidence recall with the least evidence volume, at a p95 of 0.46 seconds and no token cost (Section 7.4). Running in application code applies the reading boundary before any passage reaches a model |
 | Web search | Exa; off unless policy grants web and a key is set (enabled on Railway) | Semantic search built on Exa's own embedding models and vector index. It handles long, paragraph-length natural-language queries, such as a reflection's theme, which keyword search engines match poorly |
-| Backend | FastAPI on Uvicorn, Python 3.12 | Thin transport and authentication layer over `run_chat_turn` |
-| Front end | React 19 with Vite | Account and chat views; Library and Inspect are local developer diagnostics |
-| Storage | SQLite for accounts and transcripts; content-hashed Markdown for the corpus and memories | Enough for a single-process prototype. Hashed, immutable records are easy to audit |
-| Observability | Logfire under a written data contract | Traces without reader content, enforced by a typed projection and an exported-payload test (Section 6.3) |
-| Packaging | Docker; GitHub Container Registry | One tested image moves from CI to release unchanged |
+| Backend | FastAPI on Uvicorn, Python 3.12 | FastAPI validates requests and responses with Pydantic, the same library the agents use. Its async endpoints keep a long agent turn from blocking other requests, and it streams turn progress to the browser as server-sent events |
+| Front end | React 19 with Vite | React's component model suits a chat view that updates as each agent reports progress. Vite builds static files that FastAPI serves from the same container, so no separate front-end server is needed |
+| Storage | SQLite for accounts and transcripts; content-hashed Markdown for the corpus and memories | SQLite is a single file in the Python standard library, with transactions and no database server to run, which suits one process on one host. Markdown keeps the corpus and memories readable. A content hash identifies each record, so any edit is detectable during an audit |
+| Observability | Logfire under a written data contract | Logfire is built by the Pydantic team on OpenTelemetry and traces Pydantic AI agent runs, tool calls and model requests directly. Its automatic instrumentation records content, so production emits only typed spans without reader content, and full instrumentation runs only on synthetic evaluation data (Section 6.3) |
+| Packaging | Docker; GitHub Container Registry | A container image fixes the operating system, Python and front-end build, so the image smoke-tested in CI is the one Railway runs. GHCR sits beside the repository's GitHub Actions workflows, so publishing needs no separate registry account |
 
 **Table 4.** Technology stack.
 
