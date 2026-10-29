@@ -18,7 +18,7 @@ export const landing = {
     body: 'Sign in and talk with Linger yourself. Your chats and memories are kept to your account.',
     signInLabel: 'Sign in',
     signUpLabel: 'Create account',
-    switchToSignUp: 'New here? Create an account',
+    switchToSignUp: 'New here?\nCreate an account',
     switchToSignIn: 'Already have an account? Sign in',
     continueLabel: (username: string) => `Continue as ${username}`,
     signOutLabel: 'Sign out',
