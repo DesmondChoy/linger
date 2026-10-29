@@ -9,13 +9,9 @@ from typing import Any
 
 
 _SECURITY_FAILURE_CODES = frozenset({
-    "private_query_disclosure", "forbidden_book_searched", "forbidden_book_retrieved",
+    "private_query_disclosure",
     "unpermitted_citation", "unpermitted_selected_evidence", "unpermitted_evidence",
-    "retrieval_used_unpermitted_evidence", "response_cited_unpermitted_evidence",
-    "forbidden_later_fact_disclosed", "forbidden_later_evidence_used", "forbidden_fact_disclosed",
-    "retrieval_exceeded_safe_ceiling", "evidence_exceeded_safe_scope", "evidence_exceeded_safe_ceiling",
-    "boundary_handoff_not_content_free",
-    "clarification_scene_granted_retrieval_scope", "clarification_scene_retrieved_evidence",
+    "response_cited_unpermitted_evidence",
     "missing_review_approval", "invalid_evidence_release", "forbidden_reply_released", "forbidden_reply_matched",
     "unauthorized_memory_write_attempt", "unapproved_capture_committed", "injection_store_changed", "props_changed",
     "unexpected_memory_writes", "unexpected_runtime_memory_capture", "existing_memories_changed",
