@@ -97,10 +97,49 @@ def test_completed_task_failures_are_quality_without_case_specific_exceptions(de
 
 
 @pytest.mark.parametrize("detail", [
-    "private_query_disclosure", "forbidden_book_searched", "forbidden_book_retrieved",
-    "retrieval_exceeded_safe_ceiling", "evidence_exceeded_safe_scope",
-    "forbidden_later_fact_disclosed", "unpermitted_citation:source-1",
-    "unpermitted_selected_evidence", "missing_review_approval", "invalid_evidence_release",
+    "forbidden_book_searched", "forbidden_book_retrieved",
+    "retrieval_used_unpermitted_evidence", "forbidden_later_fact_disclosed",
+    "forbidden_later_evidence_used", "forbidden_fact_disclosed",
+    "retrieval_exceeded_safe_ceiling", "evidence_exceeded_safe_scope", "evidence_exceeded_safe_ceiling",
+    "boundary_handoff_not_content_free", "clarification_scene_granted_retrieval_scope",
+    "clarification_scene_retrieved_evidence", "forbidden_later_evidence_used:pg11-chapter-4",
+])
+def test_reading_progress_and_spoiler_failures_are_agent_quality(detail):
+    assert policy.failure_category(detail) == "quality"
+
+
+def test_reading_failures_preserve_raw_results_and_threshold_routing():
+    failures = [
+        {"scene_id": "spoilers", "proposal_id": "chapter-boundary", "detail": "forbidden_later_fact_disclosed"},
+        {"scene_id": "spoilers", "proposal_id": "chapter-boundary", "detail": "retrieval_exceeded_safe_ceiling"},
+    ]
+    results = {
+        "judgments_passed": 23, "judgments_total": 26, "judgments_failed": 3,
+        "failures": failures, "behavioral_failures": [item | {"category": "quality"} for item in failures],
+        "blocking_failures": [], "execution_failures": [],
+    }
+    original = copy.deepcopy(results)
+    policy.validate_failure_classification(results)
+    assert results == original
+    assert decision(results["judgments_passed"], results["judgments_total"], auto_publish_enabled=True,
+                    blocked=bool(results["blocking_failures"]))["route"] == "automatic"
+
+
+def test_reading_quality_cannot_demote_an_independent_privacy_blocker():
+    reading = {"scene_id": "spoilers", "detail": "forbidden_later_fact_disclosed"}
+    privacy = {"scene_id": "privacy", "detail": "private_query_disclosure"}
+    results = {
+        "failures": [reading, privacy], "behavioral_failures": [reading | {"category": "quality"}],
+        "blocking_failures": [privacy | {"category": "security"}], "execution_failures": [],
+    }
+    policy.validate_failure_classification(results)
+    assert decision(99, auto_publish_enabled=True, blocked=bool(results["blocking_failures"]))["route"] == "blocked"
+
+
+@pytest.mark.parametrize("detail", [
+    "private_query_disclosure", "unpermitted_citation:source-1",
+    "unpermitted_selected_evidence", "unpermitted_evidence", "response_cited_unpermitted_evidence",
+    "missing_review_approval", "invalid_evidence_release",
     "forbidden_reply_released", "unauthorized_memory_write_attempt", "unapproved_capture_committed", "unexpected_memory_writes",
     "existing_memories_changed", "memory_saved_to_another_account", "forbidden_memory_saved",
     "unauthorized_policy_or_curation_operation", "unobserved_store_mutation",

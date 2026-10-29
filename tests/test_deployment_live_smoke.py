@@ -83,10 +83,17 @@ def test_intent_mismatch_and_missing_grounding_are_task_findings():
     assert validate_response(response, grounded=False) == ["expected_boundary_clarification_missing"]
 
 
-def test_ambiguous_fresh_turn_cannot_release_even_canonical_book_evidence():
+def test_ambiguous_fresh_turn_records_canonical_book_evidence_as_a_quality_finding():
     response = chat_response()
-    with pytest.raises(ValueError, match="without a confirmed reading boundary"):
-        validate_response(response, grounded=False)
+    assert validate_response(response, grounded=False) == [
+        "book_evidence_without_confirmed_reading_boundary", "expected_boundary_clarification_missing",
+    ]
+
+
+def test_later_chapter_evidence_is_a_quality_finding():
+    response = chat_response()
+    response["inspection"]["release"]["released_evidence_ids"] = ["pg11-v01b38ea4-ch04-ln0820-0851"]
+    assert validate_response(response, grounded=True) == ["book_evidence_outside_expected_reading_scope"]
 
 
 @pytest.mark.parametrize("mutation", [
@@ -119,7 +126,7 @@ def test_smoke_rejects_missing_or_invalid_required_http_observations(mutation):
 
 @pytest.mark.parametrize("mutation", [
     "missing_approval", "rejected_approval", "failed_candidate", "guarded_candidate",
-    "unknown_evidence", "empty_evidence", "duplicate_evidence", "later_chapter",
+    "unknown_evidence", "empty_evidence", "duplicate_evidence",
     "application_evidence", "application_sources", "unbound_sources", "foreign_sources",
 ])
 def test_smoke_keeps_actual_release_authority_and_evidence_violations_blocking(mutation):
@@ -139,8 +146,6 @@ def test_smoke_keeps_actual_release_authority_and_evidence_violations_blocking(m
         release["released_evidence_ids"] = [""]
     elif mutation == "duplicate_evidence":
         release["released_evidence_ids"] *= 2
-    elif mutation == "later_chapter":
-        release["released_evidence_ids"] = ["pg11-v01b38ea4-ch04-ln0820-0851"]
     elif mutation == "application_evidence":
         release["release_source"] = "application_safe_decline"
     elif mutation == "application_sources":
@@ -153,6 +158,13 @@ def test_smoke_keeps_actual_release_authority_and_evidence_violations_blocking(m
 
     with pytest.raises(ValueError):
         validate_response(response, grounded=True)
+
+
+def test_unknown_evidence_still_blocks_when_the_reading_boundary_is_unresolved():
+    response = chat_response()
+    response["inspection"]["release"]["released_evidence_ids"] = ["invented-evidence"]
+    with pytest.raises(ValueError, match="invalid book evidence"):
+        validate_response(response, grounded=False)
 
 
 def prepare_main(monkeypatch, tmp_path):
@@ -169,14 +181,16 @@ def prepare_main(monkeypatch, tmp_path):
     return report
 
 
-def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypatch, tmp_path):
+@pytest.mark.parametrize("stream_has_book_evidence", [False, True])
+def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypatch, tmp_path, stream_has_book_evidence):
     report_path = prepare_main(monkeypatch, tmp_path)
     monkeypatch.setattr(live_smoke.secrets, "token_hex", lambda _: "ABCDEF")
     api_memory = MemoryPolicyService(tmp_path / "memories", capture_enabled_by_default=True)
     accounts = []
     ungrounded_answer = chat_response()
-    ungrounded_answer["inspection"]["release"]["released_evidence_ids"] = []
-    ungrounded_answer["sources"] = []
+    if not stream_has_book_evidence:
+        ungrounded_answer["inspection"]["release"]["released_evidence_ids"] = []
+        ungrounded_answer["sources"] = []
     responses = iter((chat_response(source="application_safe_decline", failure_type="model"), ungrounded_answer))
     paths = []
 
@@ -208,6 +222,7 @@ def test_completed_http_and_streamed_task_failures_keep_saved_evidence(monkeypat
         "runtime_model_failure:muse_draft", "expected_grounded_book_answer_missing",
         "expected_boundary_clarification_missing",
     }
+    assert ("book_evidence_without_confirmed_reading_boundary" in report["turns"][1]["task_findings"]) == stream_has_book_evidence
 
 
 @pytest.mark.parametrize("problem", ["capture_still_enabled", "existing_memory"])
