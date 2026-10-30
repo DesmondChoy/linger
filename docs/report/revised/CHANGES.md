@@ -114,6 +114,7 @@ New diagrams share one style: Inter font, grey boxes for agents, white boxes for
 | 2.3 Physical architecture | Old 2.3 | Removed the stale "pending" text; the volume arrow now comes from the process, not from retrieval. |
 | 3.4 Why source-gathering exists | — | New: the same five-source request under ranking, ranking with a prompt rule, and the bundle. Outcome counts from `docs/evaluation/five-agent-baseline-and-sculptor-options-2026-09-26.md`. |
 | 3.13 Improvement loop | Authors' Figure 3.12 draft | Redrawn on the chat-turn strip with the strip's step numbers; two approval gates instead of one; live curation and Scenario-specific labels removed. Source: `docs/design/self-improving-memory-loop.md`. |
+| 3.14 What the first round found | — | New: ranked passages before and after the change, showing the missed answers below the top-3 cut-off. Table 3.1 now compares before and after. |
 | 3.8 Chat-turn strip | Uncaptioned strip in 3.2 | Captioned; shows 3.2.6 as offline. |
 | 6.1 Security checkpoints | Old 6.2 (slide screenshot) | Built on the strip; badges 1 to 6 match Table 6.3; step 5's two checkpoints drawn as sub-steps. No slide navigation bar. |
 | 7.1 Test coverage | Old 7.1 | Columns are the strip's steps; component evaluations shown per step. |

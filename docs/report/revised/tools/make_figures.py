@@ -1108,7 +1108,51 @@ def figure_improvement_loop() -> Svg:
     return svg
 
 
+# Figure 3.14: what the first improvement round found ------------------------------
+
+
+def figure_cutoff() -> Svg:
+    svg = Svg(1400, 600)
+    good, bad = "#2f7a46", "#b23a2a"
+    rows = [1, 2, 3, 4, 5, 6, None, 16, 17, 18, None, 20]
+    answers = {4: "answer to question A", 17: "answer to question B"}
+
+    def panel(x0, title, sub, cutoff):
+        svg.text(x0, 34, title, 16, 700, INK, "start")
+        svg.text(x0, 56, sub, 12.5, 400, MUTED, "start")
+        y = 78
+        for rank in rows:
+            if rank is None:
+                svg.text(x0 + 150, y + 19, "⋮", 18, 700, FAINT)
+                y += 30
+                continue
+            passed = rank <= cutoff
+            is_answer = rank in answers
+            if is_answer:
+                stroke, fill = (good, "#e8f3ea") if passed else (bad, "#fbe4e2")
+                label = answers[rank] + (" — reaches the Librarian" if passed else " — dropped")
+                weight, colour = 650, (good if passed else bad)
+            elif passed:
+                stroke, fill, label, weight, colour = INK, "#ffffff", "passage", 400, INK
+            else:
+                stroke, fill, label, weight, colour = "#cfcfcf", "#f4f4f4", "passage", 400, "#a3a3a3"
+            svg.text(x0 + 26, y + 20, f"#{rank}", 12.5, 650, MUTED if passed else FAINT, "end")
+            svg.rect(x0 + 36, y, 560, 30, fill, stroke, 1.6 if is_answer else 1.1, None if passed or is_answer else "4 3", rx=6)
+            svg.text(x0 + 52, y + 20, label, 12.5, weight, colour, "start")
+            y += 38
+            if rank == cutoff or (cutoff == 20 and rank == 20):
+                svg.add(f'<line x1="{x0 - 4}" y1="{y - 4}" x2="{x0 + 610}" y2="{y - 4}" stroke="{bad if cutoff == 3 else good}" stroke-width="2.2" stroke-dasharray="7 5"/>')
+                svg.text(x0 + 610, y + 14, f"cut-off: only the top {cutoff} reach the Librarian", 12.5, 650, bad if cutoff == 3 else good, "end")
+                y += 26
+
+    panel(40, "Before", "Search ranks the passages; only the top 3 are passed on", 3)
+    panel(740, "After Sculptor's change", "The same ranking; the top 20 are passed on", 20)
+    svg.add('<line x1="700" y1="20" x2="700" y2="580" stroke="#dddddd" stroke-width="1.2"/>')
+    return svg
+
+
 FIGURES = {
+    "fig-3-14-cutoff": figure_cutoff,
     "fig-3-13-improvement-loop": figure_improvement_loop,
     "fig-3-4-named-sources": figure_named_sources,
     "fig-3-3-serendipity-skills": figure_serendipity_skills,
