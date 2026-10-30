@@ -1112,42 +1112,28 @@ def figure_improvement_loop() -> Svg:
 
 
 def figure_cutoff() -> Svg:
-    svg = Svg(1400, 600)
-    good, bad = "#2f7a46", "#b23a2a"
-    rows = [1, 2, 3, 4, 5, 6, None, 16, 17, 18, None, 20]
-    answers = {4: "answer to question A", 17: "answer to question B"}
+    svg = Svg(900, 150)
+    green, red = "#2f7a46", "#b23a2a"
+    misses = [4, 5, 17]
 
-    def panel(x0, title, sub, cutoff):
-        svg.text(x0, 34, title, 16, 700, INK, "start")
-        svg.text(x0, 56, sub, 12.5, 400, MUTED, "start")
-        y = 78
-        for rank in rows:
-            if rank is None:
-                svg.text(x0 + 150, y + 19, "⋮", 18, 700, FAINT)
-                y += 30
-                continue
-            passed = rank <= cutoff
-            is_answer = rank in answers
-            if is_answer:
-                stroke, fill = (good, "#e8f3ea") if passed else (bad, "#fbe4e2")
-                label = answers[rank] + (" — reaches the Librarian" if passed else " — dropped")
-                weight, colour = 650, (good if passed else bad)
-            elif passed:
-                stroke, fill, label, weight, colour = INK, "#ffffff", "passage", 400, INK
-            else:
-                stroke, fill, label, weight, colour = "#cfcfcf", "#f4f4f4", "passage", 400, "#a3a3a3"
-            svg.text(x0 + 26, y + 20, f"#{rank}", 12.5, 650, MUTED if passed else FAINT, "end")
-            svg.rect(x0 + 36, y, 560, 30, fill, stroke, 1.6 if is_answer else 1.1, None if passed or is_answer else "4 3", rx=6)
-            svg.text(x0 + 52, y + 20, label, 12.5, weight, colour, "start")
-            y += 38
-            if rank == cutoff or (cutoff == 20 and rank == 20):
-                svg.add(f'<line x1="{x0 - 4}" y1="{y - 4}" x2="{x0 + 610}" y2="{y - 4}" stroke="{bad if cutoff == 3 else good}" stroke-width="2.2" stroke-dasharray="7 5"/>')
-                svg.text(x0 + 610, y + 14, f"cut-off: only the top {cutoff} reach the Librarian", 12.5, 650, bad if cutoff == 3 else good, "end")
-                y += 26
+    def rank_x(r):
+        return 40 + (r - 0.5) * 34
 
-    panel(40, "Before", "Search ranks the passages; only the top 3 are passed on", 3)
-    panel(740, "After Sculptor's change", "The same ranking; the top 20 are passed on", 20)
-    svg.add('<line x1="700" y1="20" x2="700" y2="580" stroke="#dddddd" stroke-width="1.2"/>')
+    y = 72
+    svg.rect(rank_x(0.5), y - 46, rank_x(20.5) - rank_x(0.5), 92, "#f1f8f3", green, 1.6, "7 5", rx=6)
+    svg.text(rank_x(20.5) - 8, y + 38, "after: top 20 reach the Librarian", 12.5, 650, green, "end")
+    svg.rect(rank_x(0.5), y - 34, rank_x(3.5) - rank_x(0.5), 68, "#e6e6e6", INK, 1.4, None, rx=5)
+    svg.text(rank_x(2), y - 15, "before: top 3", 12, 650, INK)
+    svg.add(f'<line x1="{rank_x(0.5)}" y1="{y}" x2="{rank_x(22.5)}" y2="{y}" stroke="#777" stroke-width="1.4"/>')
+    for r in range(1, 23):
+        svg.add(f'<line x1="{rank_x(r)}" y1="{y - 4}" x2="{rank_x(r)}" y2="{y + 4}" stroke="#999" stroke-width="1"/>')
+        if r in (1, 3, 5, 10, 15, 20):
+            svg.text(rank_x(r), y + 20, str(r), 11.5, 400, MUTED)
+    svg.text(rank_x(22.5) + 6, y + 4, "rank", 11.5, 400, MUTED, "start", italic=True)
+    for r in misses:
+        svg.add(f'<circle cx="{rank_x(r)}" cy="{y}" r="9" fill="{red}"/>')
+        svg.text(rank_x(r), y - 14, f"#{r}", 12, 700, red)
+    svg.text(40, 140, "Red dot: the missed answer for one practice question, at its rank in that question's search.", 12, 400, MUTED, "start", italic=True)
     return svg
 
 
