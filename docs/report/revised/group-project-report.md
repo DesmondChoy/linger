@@ -225,9 +225,7 @@ Librarian has four skills, run in two stages (Figure 3.2): boundary-inference an
 - *The book-request skill splits the request into spans copied exactly from the user's words.* The application rejects any span that is not exact reader text.
 - *The evidence-assessment skill judges whether the retrieved passages support each span.* It may select only retrieved records, each record once, within budget. Muse does not receive its free-text reasoning, only a fixed sentence written by the application that states the strength of the evidence. This keeps unreviewed model text out of Muse's context.
 
-Retrieval opens only the chapters within the resolved boundary, so text beyond it never reaches a model that could reproduce it. No spoiler exposure was recorded in any of the five retrieval configurations benchmarked or in the live evaluation.
-
-An incorrectly inferred boundary is Librarian's most consequential error, because it can either expose later content or make the answer miss the relevant passage. Boundary inference produced the largest group of structural failures in Section 4.3, and evidence assessment kept 0.85 of the required passages in the multi-book Scenes (Learning 2).
+In a live chat turn, retrieval opens only the chapters within the resolved boundary, so text beyond it never reaches a model that could reproduce it. No spoiler exposure was recorded in any of the five retrieval configurations benchmarked or in the live evaluation. An incorrectly inferred boundary is Librarian's most consequential error, because it can either expose later content or make the answer miss the relevant passage. In Section 4.3, we discuss how boundary inference produced the largest group of structural failures, and Section 10.1 shows that evidence assessment kept most of the required passages in the multi-book Scenes.
 
 **Code:** `src/linger/agents/librarian/`, `src/linger/orchestration/boundary.py`, `src/linger/orchestration/evidence_strength.py`. **Tested in:** Appendix A (retrieval benchmark, live run), Section 4 (Librarian Scenarios).
 
@@ -251,7 +249,7 @@ Serendipity has three skills (Figure 3.3). The intent Muse passes selects one, a
 
 The application builds the scope of each request from the user's active memories, confirmed reading and the web policy before the agent runs. If no source is permitted, the application declines without calling the agent. After the agent returns, the application rechecks every item: evidence must sit within the grant, web pages must have been opened in this run, and every identifier must appear in the run's ledger. Only the selected evidence returns to Muse. Within a run, Serendipity is limited to 14 tool calls and 16 model requests, enough for two rounds of one book search, one web search and five page retrievals.
 
-Choosing the best candidate is Serendipity's weakest step. In one Scene, the reader mentioned Hume, being a different person at work and with old friends, and telling themselves “one more day of not preparing won't matter” about an event they had promised to host. They asked whether anything they had read spoke to that pull. The answer needed Pinocchio's promise-and-delay passage (“one hour more or less makes very little difference”), because it matches the reader putting things off. Serendipity instead read the question as being about identity, being a different person in different places, and chose Alice and Hume, who write about that. In four of five runs, search found the Pinocchio passage but Serendipity left it out of its winner. The replies were safe, but none answered the reader's worry about putting things off.
+Choosing the best candidate is Serendipity's weakest step. A request can often be read in more than one way, and ranking settles on one reading. When it picks the wrong one, the winner can leave out the passage the question needed, even when search found it. The reply stays safe, but it does not answer what the user asked. In Section 10.1 (Learning 2), we discuss a Scene where this cost almost all of the required passages.
 
 **Code:** `src/linger/agents/serendipity/`, `src/linger/orchestration/connection.py`. **Tested in:** Appendix A (component suite), Section 4 (Serendipity Scenarios), Appendix C.1 (R4 privacy probe).
 
@@ -951,7 +949,7 @@ The loss depended on how the reader asked:
 
 - When the reader named the sources to compare (Scene 06), the judge kept 34 of 36 passages and the replies cited 28 (0.78).
 - When the reader challenged a claim (Scene 07), the judge kept 15 of 18 and the replies cited 8 (0.44).
-- When the reader named no sources (Scene 08), the judge kept 12 of 18 but the replies cited only 2 (0.11). Most of that loss came after the judge: Serendipity chose an identity comparison with Alice and Hume instead of the passages the question needed (Section 3.1.3).
+- When the reader named no sources (Scene 08), the judge kept 12 of 18 but the replies cited only 2 (0.11). Most of that loss came after the judge: Serendipity read the question as being about identity and chose Alice and Hume, instead of the Pinocchio passage about putting off a promise that the question needed (Section 3.1.3).
 
 ![Share of required passages surviving each step](figures/fig-10-2-stage-survival.png)
 
