@@ -409,10 +409,12 @@ Sections 3.2.1 to 3.2.5 describe a harness that stays fixed during a turn. It ca
 
 *Figure 3.13. Sculptor's supervised improvement loop. It reads the same retrieval code that serves step 5 of the chat turn, runs on practice questions, and passes two approval gates before anything is built.*
 
-1. **Practice traces.** The application runs the Librarian's retrieval on practice questions and records each trace: the plan, the search steps, the passages returned, and whether the answer was found. Held-back questions never reach Sculptor.
-2. **Error analysis.** *retrieval-error-analysis* reads every trace, notes the first failure in each, and groups the failures into counted categories. It proposes no fix. The owner approves the categories.
-3. **Research.** *retrieval-research* takes the approved category with the most failures, searches the web within a budget of ten searches and ten page opens, and writes one specification. It cannot edit code. The owner approves the specification.
-4. **Build and score.** A coding agent builds the specification behind an opt-in switch, and a second model reviews the build against the specification. The new search is scored on the practice set and once on the held-back set. The loop stops when every practice question is found with none lost, or after three rounds; otherwise the next round starts from the best state so far.
+Each round has four steps:
+
+1. **Collect failed searches.** The application runs the Librarian's retrieval on a practice set and records each trace: the plan, the searches, the passages returned, and whether the answer was found. Held-back questions never reach Sculptor.
+2. **Diagnose.** Sculptor's *retrieval-error-analysis* groups the first failure in each trace into counted categories, without proposing a fix. A person approves the categories.
+3. **Research and specify.** Sculptor's *retrieval-research* takes the largest approved category, researches a remedy on the web within a fixed budget, and specifies one change. It cannot edit code. A person approves the specification.
+4. **Build, check and rescore.** A coding agent builds the change behind an evaluation-only setting, a second model checks it against the specification, and the new search is rescored on the practice set and once on the held-back set. The loop stops when every practice question is found with none lost, or after three rounds; otherwise the next round starts from the best state so far.
 
 Table 3.1 shows the first round of this loop (Experiment 4, round 1, 1 October 2026).
 
