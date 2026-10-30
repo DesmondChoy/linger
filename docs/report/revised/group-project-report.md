@@ -305,7 +305,7 @@ Showing a benefit is Sculptor's weakest point. Curation is meant to make recall 
 
 ## 3.2 The harness around the agents
 
-Each Linger agent is a model plus a harness. Weng (2026) defines a harness as the system around a base model that decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results. In Linger, application code builds that harness for every run. At five points in each chat turn, the model proposes and the application decides. Figure 3.8 maps each point to a step of the turn.
+Each Linger agent is a model plus a harness. Weng (2026) defines a harness as the system around a base model that decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results. In Linger, application code builds that harness for every run. At five points in each chat turn, the model proposes and the application decides. Figure 3.8 maps each point to a step of the turn. Sections 3.2.1 to 3.2.5 follow those points in order; Section 3.2.6 then steps outside the turn to show how the harness itself is improved.
 
 ![The chat turn and the harness subsections](figures/fig-3-8-turn-strip.png)
 
@@ -329,19 +329,19 @@ Emotional distress cannot be detected reliably by pattern matching, so the final
 
 ### 3.2.2 Tasks and tools
 
-The application, not the model, decides which task an agent runs and which tools it may use. Each agent is one reusable Pydantic AI `Agent`. For each run, the application selects a skill, which fixes the task instructions, the typed input and output, the permitted tools and the validators (`src/linger/agents/skills.py`). The model plans only within that task, for example which granted tool to call.
+The application, not the model, decides which task an agent runs and which tools it may use. Each agent is one reusable Pydantic AI `Agent`. For each run, the application selects a skill, which fixes the task instructions, the typed input and output, the permitted tools and the validators. The model plans only within that task, for example which granted tool to call.
 
 A skill's instructions include the guidance for a tool only when that tool is granted. This reduced Muse's input from about 25,000 to about 16,000 tokens per run, with no change in hard-gate results.
 
-**Tool grants.** Muse's triage labels decide which tools a turn receives, and application code maps the labels to tools (`src/linger/orchestration/triage.py`). This indirection limits the effect of prompt injection. An instruction embedded in the message, such as a request to use the web tool, can at most alter a label, and a message classified as an override attempt receives no additional tools. If triage fails, Muse receives only the book tools, which have access to neither the web nor the user's memories.
+**Tool grants.** Muse's triage labels decide which tools a turn receives, and application code maps the labels to tools. This indirection limits the effect of prompt injection. An instruction embedded in the message, such as a request to use the web tool, can at most alter a label, and a message classified as an override attempt receives no additional tools. If triage fails, Muse receives only the book tools, which have access to neither the web nor the user's memories.
 
-**Tool inputs.** Muse's tools accept only identifiers or an intent, and the application supplies the user's exact words as the search text (`src/linger/agents/muse/tools.py`). Muse therefore cannot substitute a paraphrase for the user's request or search for content the user did not ask about.
+**Tool inputs.** Muse's tools accept only identifiers or an intent, and the application supplies the user's exact words as the search text. Muse therefore cannot substitute a paraphrase for the user's request or search for content the user did not ask about.
 
 **Code:** `src/linger/agents/skills.py`, `src/linger/orchestration/triage.py`, `src/linger/agents/muse/tools.py`. **Tested in:** Appendix A (turn triage), Appendix C.1 (R1, R8).
 
 ### 3.2.3 Context and hand-offs
 
-No agent sees more than its task requires, and no agent calls another. The application selects each run's context for every run (`src/linger/orchestration/turn_context.py`). Figure 3.10 shows what each agent run can see. These limits follow the principle of least privilege, and each one addresses a specific risk:
+No agent sees more than its task requires, and no agent calls another. The application selects the context for every run. Figure 3.10 shows what each agent run can see. These limits follow the principle of least privilege, and each one addresses a specific risk:
 
 - Only Muse's drafting step receives the earlier conversation.
 - Muse's triage step receives the current message alone, so text injected in an earlier turn cannot be used to argue for additional tools.
@@ -352,7 +352,7 @@ No agent sees more than its task requires, and no agent calls another. The appli
 
 *Figure 3.10. What each agent run can see. Empty cells are information the application never supplies to that run.*
 
-Agents do not call one another. Every exchange between them passes through application code as a typed Pydantic object that carries only the fields the next step requires and rejects unknown fields. The application resolves every identifier that an agent returns, so an agent cannot cite a record it was not given. Full transcripts are never passed between agents. Figure 3.11 shows a recorded hand-off.
+Every exchange between agents passes through application code as a typed Pydantic object that carries only the fields the next step requires and rejects unknown fields. The application resolves every identifier that an agent returns, so an agent cannot cite a record it was not given. Full transcripts are never passed between agents. Figure 3.11 shows a recorded hand-off.
 
 Three rules apply at every hand-off:
 
@@ -376,14 +376,14 @@ No model-written text reaches the user until the application has checked it. Fig
 
 *Figure 3.12. The release path. A Provenance pass is necessary but not sufficient, and any failure ends in a safe decline.*
 
-The release recheck exists because model review alone proved insufficient. In evaluation, Provenance passed an uncited web claim and an incorrect speaker attribution (Section 10.1, Learning 3). After a pass, the application therefore verifies mechanically that every quotation appears verbatim in both the reply and its source record. It also confirms that every evidence identifier and source location resolves, and that no Muse instructions have leaked into the reply.
+Provenance's review can miss errors (Section 10.1, Learning 3), so after a pass the application rechecks everything that can be checked mechanically. It verifies that every quotation appears verbatim in both the reply and its source record, that every evidence identifier and source location resolves, and that no Muse instructions have leaked into the reply.
 
-Two further checks sit inside the steps of Figure 3.12:
+Two more checks are not drawn in Figure 3.12:
 
 - **Review validation** rejects a review that is inconsistent with its input. The application computes the quotation checks itself and judges the reviewer's audit against them.
 - **Evidence binding** rejects a declaration that does not bind to the request-scoped index, which holds only records retrieved in this request or cited earlier in the session.
 
-Deterministic checks were most effective when their errors were returned to the model's bounded retry. The candidate validator, for example, returns its error to Muse for repair.
+Deterministic checks worked best when their errors went back to the model to fix, within a set number of retries. The candidate validator, for example, returns its error to Muse for repair.
 
 The safe decline uses fixed text for every failure. A message that stated the specific reason could reveal which check had triggered, or indicate that later content exists beyond the user's chapter. These checks establish that cited material exists and is quoted accurately. They do not establish that what the reply says about that material is correct.
 
@@ -403,7 +403,7 @@ Only the Memory and Policy Service writes long-term memories and curation record
 
 ### 3.2.6 Sculptor self-improvement loop
 
-Linger applies a scoped form of recursive self-improvement to its own retrieval: the model stays fixed, Sculptor proposes improvements to the harness around it, and a person approves each step. The loop runs offline, beside the chat turn, and never changes what readers get by itself (Figure 3.13).
+Sections 3.2.1 to 3.2.5 describe a harness that stays fixed during a turn. It can still be improved between turns, under the same rule: a model proposes and something outside it decides. Linger applies a scoped form of recursive self-improvement to its own retrieval: the model stays fixed, Sculptor proposes improvements to the harness around it, and a person approves each step. The loop runs offline, beside the chat turn, and never changes what readers get by itself (Figure 3.13).
 
 ![Sculptor's supervised improvement loop](figures/fig-3-13-improvement-loop.png)
 
