@@ -403,18 +403,22 @@ Only the Memory and Policy Service writes long-term memories and curation record
 
 ### 3.2.6 Sculptor self-improvement loop
 
-No self-improvement reaches the live system without a person's approval. Sculptor's loop runs offline and turns failed retrieval practice runs into one specification that a developer may build. A person approves each step before the next step reads it (Figure 3.7).
+Linger applies a scoped form of recursive self-improvement to its own retrieval: the model stays fixed, Sculptor proposes improvements to the harness around it, and a person approves each step. The loop runs offline, beside the chat turn, and never changes what readers get by itself (Figure 3.13).
+
+![Sculptor's supervised improvement loop](figures/fig-3-13-improvement-loop.png)
+
+*Figure 3.13. Sculptor's supervised improvement loop. It reads the same retrieval code that serves step 5 of the chat turn, runs on practice questions, and passes two approval gates before anything is built.*
 
 1. **Practice traces.** The application runs the Librarian's retrieval on practice questions and records each trace: the plan, the search steps, the passages returned, and whether the answer was found. Held-back questions never reach Sculptor.
 2. **Error analysis.** *retrieval-error-analysis* reads every trace, notes the first failure in each, and groups the failures into counted categories. It proposes no fix. The owner approves the categories.
 3. **Research.** *retrieval-research* takes the approved category with the most failures, searches the web within a budget of ten searches and ten page opens, and writes one specification. It cannot edit code. The owner approves the specification.
-4. **Build and score.** A developer builds the specification behind a switch. The new search is scored on the practice set and once on the held-back set.
+4. **Build and score.** A coding agent builds the specification behind an opt-in switch, and a second model reviews the build against the specification. The new search is scored on the practice set and once on the held-back set. The loop stops when every practice question is found with none lost, or after three rounds; otherwise the next round starts from the best state so far.
 
 Table 3.1 shows the first round of this loop (Experiment 4, round 1, 1 October 2026).
 
 | Step | What happened | Key learning |
 |-------------|-------------------------------------------------------|--------------------------------|
-| Error analysis | Two categories: "answer window falls beyond the returned-passage cutoff" (2 practice questions) and "exact answer window absent from the candidate turn order" (1) | Sculptor found the real cause of two misses; the developer noted that the third was misfiled |
+| Error analysis | Two categories: "answer window falls beyond the returned-passage cutoff" (2 practice questions) and "exact answer window absent from the candidate turn order" (1) | Sculptor found the real cause of two misses; the coding agent noted that the third was misfiled |
 | Research | Two web searches and two pages opened. The specification: keep the first 20 windows of each planned part instead of 3, and change nothing else | One narrow change, tied to the counted failures |
 | Score | Practice: 17 to 20 of 20 found, none lost. Held-back: 16 to 20 found, none lost. Words handed to the Librarian rose about 3.8 times | The gain came with far more text per question, so the cost is reported beside the score |
 

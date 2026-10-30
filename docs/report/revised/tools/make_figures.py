@@ -42,6 +42,7 @@ STYLES = {
     "stop": (STOP, STOP, None, "#ffffff", "#f6d9d4"),
     "note": ("#ffffff", "#9a9a9a", "4 4", "#3a3a3a", MUTED),
     "sec": (SEC_FILL, SEC, None, INK, MUTED),
+    "person": ("#fff5dc", "#a0701c", None, INK, MUTED),
 }
 
 
@@ -1054,7 +1055,61 @@ def figure_named_sources() -> Svg:
     return svg
 
 
+# Figure 3.13: Sculptor's supervised improvement loop ------------------------------
+
+
+def figure_improvement_loop() -> Svg:
+    svg = Svg(1400, 640)
+    gold = "#a0701c"
+    svg.text(40, 26, "Sculptor's improvement loop runs offline, beside the chat turn from Figure 3.8. It never changes what readers get by itself.", 13, 400, MUTED, "start")
+    steps = turn_strip(svg, 40, 44, 116, 104, 16, outlines={"5": gold})
+
+    svg.rect(30, 214, 1340, 352, "#fffdf6", gold, 1.6, "8 5", rx=10)
+    svg.text(1352, 238, "OFFLINE · UP TO THREE ROUNDS · STOPS AT THE PASS MARK", 12, 700, gold, "end")
+
+    row_y, row_h = 300, 108
+    boxes = [
+        ("code", "Practice traces", ["Librarian's retrieval on", "practice questions; held-back", "questions never reach Sculptor"], 220, "1"),
+        ("agent", "Error analysis", ["Sculptor groups first", "failures into counted", "categories"], 190, "2"),
+        ("person", "Owner approves", ["the categories"], 140, None),
+        ("agent", "Research", ["Sculptor searches the web", "within a budget and writes", "one specification"], 205, "3"),
+        ("person", "Owner approves", ["the specification"], 140, None),
+        ("code", "Build and score", ["coding agent builds behind a", "switch; a second model reviews;", "practice, then held-back once"], 245, "4"),
+    ]
+    gap = 24
+    x = 50
+    placed = []
+    for kind, title, lines, width, badge in boxes:
+        svg.box(x, row_y, width, row_h, kind, title, lines, title_size=13.5, line_size=11.5)
+        if badge:
+            svg.badge(x + 4, row_y - 2, badge, gold)
+        if placed:
+            svg.line([(placed[-1][0] + placed[-1][1] + 2, row_y + row_h / 2), (x - 2, row_y + row_h / 2)])
+        placed.append((x, width))
+        x += width + gap
+
+    # The loop reads the same retrieval code that serves step 5.
+    s5 = steps["5"]
+    first_mid = placed[0][0] + placed[0][1] / 2
+    svg.line([(s5[0] + s5[2] / 2, s5[1] + s5[3] + 4), (s5[0] + s5[2] / 2, 262), (first_mid, 262), (first_mid, row_y - 4)], dashed=True)
+    svg.text(first_mid + 10, 256, "the same retrieval code, run offline on practice questions", 11.5, 400, MUTED, "start", italic=True)
+
+    last_x, last_w = placed[-1]
+    exit_x, exit_w = last_x + 60, 180
+    svg.line([(exit_x + exit_w / 2, row_y + row_h + 2), (exit_x + exit_w / 2, 458)])
+    svg.text(exit_x + exit_w / 2 - 8, 440, "pass mark met", 12, 650, "#2f6b3a", "end")
+    svg.box(exit_x, 460, exit_w, 60, "term", "Stop and report", ["readers' search unchanged"], title_size=13, line_size=11)
+
+    back_x = last_x + 30
+    svg.line([(back_x, row_y + row_h + 2), (back_x, 540), (first_mid, 540), (first_mid, row_y + row_h + 4)], dashed=True, colour="muted")
+    svg.text((back_x + first_mid) / 2, 532, "pass mark not met: the next round starts from the best state so far", 12, 400, MUTED, italic=True)
+
+    svg.legend(40, 606, [("agent", "Sculptor (model)"), ("code", "code or coding agent"), ("person", "person approves"), ("term", "chat turn input, output and stop")])
+    return svg
+
+
 FIGURES = {
+    "fig-3-13-improvement-loop": figure_improvement_loop,
     "fig-3-4-named-sources": figure_named_sources,
     "fig-3-3-serendipity-skills": figure_serendipity_skills,
     "fig-2-1-logical-architecture": figure_logical_architecture,
