@@ -786,7 +786,7 @@ def figure_chat_turn_sequence() -> Svg:
     msg(125, reader, app, "1  Line (reader message)")
     activation(178, "2  Pre-model checks (Figure 3.9, checks 1–6)", "may end the turn with a fixed reply")
     msg(248, app, prov, "3  Emotional preflight, no tools")
-    msg(298, prov, app, "continue_reflection |\napply_boundary", ret=True)
+    msg(298, prov, app, "continue | boundary |\nself-harm boundary", ret=True)
     msg(348, app, muse, "4  Triage, then tool grants")
     msg(398, muse, app, "5a  Muse requests a granted tool")
     msg(448, app, tools, "5b  Application supplies the reader's words and permitted scope")
