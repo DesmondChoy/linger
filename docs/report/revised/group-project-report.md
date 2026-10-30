@@ -273,24 +273,24 @@ Provenance has three skills (Figure 3.5): emotional-preflight classifies each me
 
 Each review starts from a fresh input, so earlier conversation cannot influence the reviewer. For the same reason, a second review has no record of what the first accepted and may object to text that was previously passed. Linger handles this by restricting revisions to flagged sentences (Section 3.1.1) rather than by giving the reviewer memory.
 
-Judging meaning is Provenance's weakest step. Because it runs on the same model as Muse, it can share Muse's blind spots: it can pass a draft that misreports a source, and it can send back a correct one. The application's release checks catch only errors that can be stated as rules, such as a misquotation or a source that does not resolve (Section 3.2.4). Errors of meaning, such as who said a line, still depend on Provenance. In Section 10.1 (Learning 3), we discuss both kinds of error with worked examples.
+Provenance and the code checks work together. The release checks catch errors that can be stated as rules, such as a misquotation or a source that does not resolve (Section 3.2.4). Provenance judges what code cannot, such as whether a claim is supported by its passage or a line is given to the right speaker. Its verdict is still an LLM's judgement, so it is not right every time: it can pass a draft that misreports a source, and it can send back a correct one (Section 10.1, Learning 3). Table 9.1 lists the next step: testing the reviewer on a different model.
 
 **Code:** `src/linger/agents/provenance/` (including `review_validation.py` and `quotation_audit.py`), `src/linger/orchestration/emotional.py`. **Tested in:** Appendix A (draft review, emotional preflight), Section 4, Section 10.1 (Learning 3).
 
 ### 3.1.5 Sculptor
 
-Sculptor is the curation agent. It maintains the user's stored memories and helps improve the system offline, but it never takes part in drafting a reply and every skill only proposes.
+Sculptor is the curation agent. It tidies the user's stored memories so that recall finds the right note, and it helps improve the system offline. It never takes part in drafting a reply, and every skill only proposes: Sculptor cannot change a memory itself.
 
 ![Sculptor's five skills](figures/fig-3-7-sculptor-skills.png)
 
 *Figure 3.7. Sculptor's five skills. Only memory-curation runs live, and every skill only proposes.*
 
-Sculptor has five skills: memory-curation runs live after a memory is captured, and the other four run offline.
+Sculptor has five skills (Figure 3.7): memory-curation runs live after a memory is captured, and the other four run offline.
 
-- *The memory-curation skill links duplicates and summarises facts that changed over time.* It receives the new record and up to eleven related ones, without the account identity, and returns one action or "no change". It never modifies the originals: summaries and links live in a separate curated layer, so an inaccurate summary can be withdrawn without losing what the user said. "No change" is a valid proposal, because a curator obliged to produce a change would eventually propose a merge that loses information. Table 3.1 shows two examples.
-- *The memory-surfacing skill decides whether stored memories should be suggested now, later or never.* It runs only in evaluation.
-- *The chapter-cues skill revises the search aids for each chapter.* A person approves each revision before search reads it.
-- *The retrieval-error-analysis and retrieval-research skills form the supervised improvement loop* described in Section 3.2.6.
+- *The memory-curation skill tidies related memories so that recall finds one clear answer.* Deciding whether two notes record the same fact, or whether a later note changes an earlier one, is a judgement about meaning, not shared words. “Library card expires 30 Nov” and “Renewal due by 30 Nov so I can keep borrowing” are worded differently but record one fact, while a note about a tap washer that arrived with three reading-plan notes has nothing to do with them (Table 3.1). After each capture, the application gives Sculptor the new memory and up to eleven earlier ones that share words with it, without the account identity. Sculptor returns one action from a fixed set (link duplicates, summarise a fact that changed, group related notes, or hide or restore a duplicate in search) or no change. It never edits the originals: summaries and links sit in a separate curated layer, so a wrong one can be withdrawn without losing what the user wrote. “No change” is a valid answer, so Sculptor is never forced to merge notes that should stay separate. Provenance reviews each proposal before the Memory and Policy Service applies it (Section 3.2.5).
+- *The memory-surfacing skill decides whether a stored memory should be suggested now, later or never.* It runs only in offline evaluation; chat never calls it, and nothing schedules or sends a suggestion.
+- *The chapter-cues skill rewrites each chapter's search aids so that retrieval finds the chapter a user means.* A person approves each revision before search reads it.
+- *The retrieval-error-analysis and retrieval-research skills form the supervised improvement loop* in Section 3.2.6.
 
 | Case | Stored notes | Sculptor's proposal | Key learning |
 |--------------|-----------------------------------|----------------------|-----------------------------|
@@ -301,7 +301,7 @@ Sculptor has five skills: memory-curation runs live after a memory is captured, 
 
 None of these outputs reaches a user without approval from Provenance, the Memory and Policy Service or a person.
 
-Curation has not yet shown a recall gain. In the Scenarios, one curation Scene grouped notes it should have summarised, and the Supper club Scenario found no recall improvement after curation (Section 4.2, Figure 4.4).
+Showing a benefit is Sculptor's weakest point. Curation is meant to make recall easier, but the evaluation has not yet shown that curated memories are found more often than uncurated ones. In Section 4.2, we discuss the curation Scenes, and Section 10.3 explains why measuring memory search directly proved more informative than an end-to-end test.
 
 **Code:** `src/linger/agents/sculptor/`, `src/linger/orchestration/curation.py`. **Tested in:** `evals/sculptor` (Appendix A), Section 4 (Sculptor Scenarios).
 
