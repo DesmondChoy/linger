@@ -223,7 +223,9 @@ Librarian has four skills, run in two stages: boundary-inference and event-ident
 - *The boundary-inference skill infers how far the user has read when they have not confirmed a chapter.* Users often refer to events rather than chapter numbers, for example "the part with the Caterpillar". To locate such an event, it may inspect candidates from the whole book, which are used only to infer the user's position and never become evidence for the reply. The application rejects an inferred ceiling when it rests on the current Line alone, when its confidence is below 0.75, or when its chapter differs from the highest chapter of its supporting evidence.
 - *The event-identification skill names the event where the user stopped.* It runs alongside boundary inference, and the inferred ceiling must agree with it. If either check fails, the application asks the user which chapter they have finished, at the cost of one additional turn.
 - *The book-request skill splits the request into spans copied exactly from the user's words.* The application rejects any span that is not exact reader text.
-- *The evidence-assessment skill judges whether the retrieved passages support each span.* It may select only retrieved records, each record once, within budget. Muse does not receive its free-text reasoning, only a fixed sentence written by the application that states the strength of the evidence.
+- *The evidence-assessment skill judges whether the retrieved passages support each span.* It may select only retrieved records, each record once, within budget.
+
+Muse does not receive Librarian's free-text reasoning. It receives a fixed sentence, written by the application, that states the strength of the evidence. This keeps unreviewed model text out of Muse's context.
 
 Retrieval opens only the chapters within the resolved boundary, so text beyond it never reaches a model that could reproduce it. No spoiler exposure was recorded in any of the five retrieval configurations benchmarked or in the live evaluation.
 
