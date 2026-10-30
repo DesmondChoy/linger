@@ -120,7 +120,7 @@ We have five agents:
 
 ![Logical architecture](figures/fig-2-1-logical-architecture.png)
 
-*Figure 2.1. Logical architecture. No edge connects two agents. Solid edges show calls, writes or typed tasks from application code. Dashed edges show access that application code runs or supplies for an agent; the agent holds no store handle. Each agent box lists the runtime skills the application can select for it; the five offline-only skills are not shown. Agents return typed outputs to the code that ran them.*
+*Figure 2.1. Logical architecture. No edge connects two agents. Solid edges show calls, writes or typed tasks from application code. Dashed edges show access that application code runs or supplies for an agent; the agent holds no store handle. Each agent box lists the runtime skills the application can select for it; Sculptor's four offline-only skills are not shown. Agents return typed outputs to the code that ran them.*
 
 ![One chat turn as a sequence](figures/fig-2-2-chat-turn-sequence.png)
 
@@ -223,9 +223,7 @@ Librarian has four skills, run in two stages: boundary-inference and event-ident
 - *The boundary-inference skill infers how far the user has read when they have not confirmed a chapter.* Users often refer to events rather than chapter numbers, for example "the part with the Caterpillar". To locate such an event, it may inspect candidates from the whole book, which are used only to infer the user's position and never become evidence for the reply. The application rejects an inferred ceiling when it rests on the current Line alone, when its confidence is below 0.75, or when its chapter differs from the highest chapter of its supporting evidence.
 - *The event-identification skill names the event where the user stopped.* It runs alongside boundary inference, and the inferred ceiling must agree with it. If either check fails, the application asks the user which chapter they have finished, at the cost of one additional turn.
 - *The book-request skill splits the request into spans copied exactly from the user's words.* The application rejects any span that is not exact reader text.
-- *The evidence-assessment skill judges whether the retrieved passages support each span.* It may select only retrieved records, each record once, within budget.
-
-Muse does not receive Librarian's free-text reasoning. It receives a fixed sentence, written by the application, that states the strength of the evidence. This keeps unreviewed model text out of Muse's context.
+- *The evidence-assessment skill judges whether the retrieved passages support each span.* It may select only retrieved records, each record once, within budget. Muse does not receive its free-text reasoning, only a fixed sentence written by the application that states the strength of the evidence. This keeps unreviewed model text out of Muse's context.
 
 Retrieval opens only the chapters within the resolved boundary, so text beyond it never reaches a model that could reproduce it. No spoiler exposure was recorded in any of the five retrieval configurations benchmarked or in the live evaluation.
 
@@ -239,20 +237,19 @@ Serendipity is the discovery agent. It finds material from outside the current c
 
 ![Serendipity's skills](figures/fig-3-3-serendipity-skills.png)
 
-*Figure 3.3. Serendipity's skills. The application builds the request scope, the intent selects one live skill, and the application rechecks the evidence before it returns to Muse.*
+*Figure 3.3. Serendipity's three skills. The application builds the request scope, the intent selects one skill, and the application rechecks the evidence before it returns to Muse.*
 
-Serendipity has four skills: three run live, selected by the intent Muse passes, and one runs offline.
+Serendipity has three skills. The intent Muse passes selects one, and each searches only the sources the application granted for that request.
 
-- *The connection-discovery skill proposes a single connection.* It handles `find_connection` and `get_recommendation`, searches the permitted sources and ranks the candidates. When the two highest-rated candidates are tied, it declines rather than choosing, because an arbitrary choice would be presented to the user as a considered suggestion.
-- *The source-gathering skill collects the sources the user has already named.* It handles `gather_sources` and returns each named source without ranking them, so that Muse can present them side by side.
-- *The memory-recall skill returns the user's own earlier words.* It handles `recall_memory` and searches only the user's memories.
-- *The self-review skill improves connection-discovery offline.* It reads Serendipity's own failed practice cases and proposes exact edits, which are kept only if a rerun does better (Section 3.2.6).
+- *The connection-discovery skill proposes one tentative connection, or declines.* It handles `find_connection` and `get_recommendation`. A grant is permission, not an instruction to search every source, so the skill first picks a primary source: for example, the user's memories when the message refers to their own earlier words, and the public web when they ask for an outside recommendation. It then ranks the supported candidates and returns one proposal with its shortlist. A memory counts only if it is the user's own earlier reflection on the same theme; one that merely offers a similar lesson or mood does not. When the two highest-rated candidates are tied, it declines rather than choosing, because an arbitrary choice would be presented to the user as a considered suggestion.
+- *The source-gathering skill collects every source the user has named, without choosing among them.* It handles `gather_sources`, which applies when the user names the books, scenes, public text or earlier notes they want compared. It searches only those named sources, even when others are permitted, and returns them together as one bundle, or a decline. It may not rank the sources or pick a winner: the user has already chosen, so Muse can present them side by side. A record is included only if it supports a named source, and nothing is added to make the bundle look fuller.
+- *The memory-recall skill returns the user's own earlier words on what they asked about.* It handles `recall_memory`, and the application grants it the user's memories only, so no book or web source can enter a recall. A record matches only if the user would recognise it as what they wrote before about the same fact, preference or decision; a record that merely shares vocabulary does not count. It returns one to three matching records, or declines when none matches, and never stretches an unrelated note into an answer. Muse then presents the records as the user's own words rather than as facts (Section 5.2).
 
-The application builds the scope of each request from the user's active memories, confirmed reading and the web policy before the agent runs. If no source is permitted, the application declines without calling the agent. Within a run, Serendipity is limited to 14 tool calls and 16 model requests, enough for two rounds of one book search, one web search and five page retrievals.
+The application builds the scope of each request from the user's active memories, confirmed reading and the web policy before the agent runs. If no source is permitted, the application declines without calling the agent. After the agent returns, the application rechecks every item: evidence must sit within the grant, web pages must have been opened in this run, and every identifier must appear in the run's ledger. Only the selected evidence returns to Muse. Within a run, Serendipity is limited to 14 tool calls and 16 model requests, enough for two rounds of one book search, one web search and five page retrievals.
 
 Candidate selection is Serendipity's weakest step. In the component suite of 46 cases, each run five times, 0.913 of runs passed, but only 38 cases passed all five repetitions (Appendix A). In the Scenarios, it sometimes preferred an identity comparison to the passages the question required, and it did not follow an instruction that the selected connection must cover every source the user named. This is the clearest case in the project of a prompt instruction failing where a code check would have held.
 
-**Code:** `src/linger/agents/serendipity/`, `src/linger/orchestration/connection.py`, `src/linger/orchestration/serendipity_self_review.py`. **Tested in:** Appendix A (component suite), Section 4 (Serendipity Scenarios), Appendix C.1 (R4 privacy probe).
+**Code:** `src/linger/agents/serendipity/`, `src/linger/orchestration/connection.py`. **Tested in:** Appendix A (component suite), Section 4 (Serendipity Scenarios), Appendix C.1 (R4 privacy probe).
 
 ### 3.1.4 Provenance
 
@@ -423,7 +420,7 @@ Table 3.2 shows the first round of this loop (Experiment 4, round 1, 1 October 2
 
 *Table 3.2. One round of Sculptor's supervised improvement loop.*
 
-The larger setting is not active for readers: production still keeps three windows per planned part. Serendipity's offline *self-review* skill follows the same rule: a proposed instruction edit is kept only if a rerun on its practice cases does better.
+The larger setting is not active for readers: production still keeps three windows per planned part.
 
 **Code:** `src/linger/agents/sculptor/skills/retrieval-error-analysis/`, `src/linger/agents/sculptor/skills/retrieval-research/`, `src/linger/orchestration/retrieval_research.py`, `evals/librarian/research_loop.py`. **Tested in:** Experiment 4 records, `evals/librarian/research_runs/round-1/` and `docs/design/self-improving-memory-loop.md`.
 

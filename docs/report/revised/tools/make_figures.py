@@ -929,7 +929,43 @@ def figure_release_flow() -> Svg:
     return svg
 
 
+# Figure 3.3: Serendipity's live skills ------------------------------------------
+
+
+def figure_serendipity_skills() -> Svg:
+    svg = Svg(1060, 640)
+    svg.legend(24, 26, [("code", "Application code"), ("agent", "Agent"), ("fixed", "Fixed reply, turn ends")])
+    svg.box(30, 64, 230, 74, "muted", "serendipity_explore", ["Muse passes an intent;", "a pinned intent is checked"])
+    svg.box(320, 64, 330, 74, "code", "Build request scope", ["active memories, confirmed reading,", "web policy; recall: memory only"])
+    svg.box(780, 64, 240, 74, "fixed", "Decline", ["agent not called"])
+    svg.line([(262, 101), (318, 101)])
+    svg.line([(652, 101), (778, 101)])
+    svg.text(715, 92, "no permitted source", 11.5, 400, MUTED, italic=True)
+    svg.rect(24, 200, 1012, 276, "#f6f6f6", "#c9c9c9", 1.2, None, rx=6)
+    svg.text(40, 462, "LIVE SKILLS: the intent selects one; each run is capped at 14 tool calls and 16 model requests", 12, 700, "#555555", "start")
+    skills = [
+        ("connection-discovery", ["Intent: find_connection or", "get_recommendation", "Searches books, memories, web", "Ranks candidates; a top-two", "tie produces a decline", "Returns ConnectionProposal", "or ConnectionDecline"]),
+        ("source-gathering", ["Intent: gather_sources", "Collects every source the", "user named, side by side", "Searches books, memories, web", "Does not rank or pick a winner", "Returns SourceBundle", "or ConnectionDecline"]),
+        ("memory-recall", ["Intent: recall_memory", "Searches memories only", "Finds the user's own", "earlier words on the topic", "Returns MemoryRecall", "or ConnectionDecline"]),
+    ]
+    xs = [44, 376, 708]
+    svg.line([(485, 138), (485, 176)], arrow=False)
+    svg.line([(xs[0] + 150, 176), (xs[2] + 150, 176)], arrow=False)
+    for x, (name, lines) in zip(xs, skills):
+        svg.line([(x + 150, 176), (x + 150, 218)])
+        svg.box(x, 220, 300, 222, "agent", name, lines, title_size=14.5, line_size=12.5)
+        svg.line([(x + 150, 442), (x + 150, 448)], arrow=False)
+        svg.line([(x + 150, 476), (x + 150, 500)], arrow=False)
+    svg.line([(xs[0] + 150, 500), (xs[2] + 150, 500)], arrow=False)
+    svg.line([(345, 500), (345, 538)])
+    svg.box(200, 540, 290, 74, "code", "Application recheck", ["evidence within the grant; web pages", "opened in this run; ids in run ledger"])
+    svg.box(570, 540, 290, 74, "code", "Back to Muse", ["selected evidence only;", "one result cached per turn"])
+    svg.line([(492, 577), (568, 577)])
+    return svg
+
+
 FIGURES = {
+    "fig-3-3-serendipity-skills": figure_serendipity_skills,
     "fig-2-1-logical-architecture": figure_logical_architecture,
     "fig-2-2-chat-turn-sequence": figure_chat_turn_sequence,
     "fig-2-3-physical-architecture": figure_physical_architecture,

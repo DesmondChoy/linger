@@ -45,7 +45,7 @@ cd docs/report/revised && pandoc -f markdown-implicit_figures group-project-repo
 | Learning 3 and Figure 10.4 | "Provenance changed it to Lamp-Wick" reworded. Provenance flagged the speaker, Muse's revision introduced the error, and the second review passed it. Source: `docs/evaluation/five-agent-baseline-and-sculptor-options-2026-09-26.md` ("a wrong speaker attribution that Provenance had requested during revision"). Figure 10.3 now shows the added error as a path from over-refusal to missed error. |
 | 3.2.3 | The "about 5%" claim now shows the per-Scene rates it rests on (4, 3, 0 and 1 of the last five runs) and the product 0.8 × 0.6 × 0.5 × 0.2. Source: the same evaluation document. |
 | 4.3, step 2 | Restored the missing explanation of "that list": the model-written list of unused candidate passages, which the application now derives itself (`normalize_boundary_candidate`). |
-| 3.1.3 | Says that Serendipity has four skills, and now describes the fourth (self-review). |
+| 3.1.3 | Serendipity is described with its three live skills only; the offline self-review skill was removed from the report, and Figure 3.3 was redrawn to match. The skill bullets now give each skill's routing, match and decline rules from its `SKILL.md`. |
 | Figure 2.3 | Redrawn without "first deploy pending" and "pending release path". |
 | OWASP | Table 6.1 names each category. The reference year now matches the 2026 numbering the register uses. |
 | References | Added Panickssery et al. (2024), Kim et al. (2025), and IMDA (2026). Added placeholder entries for OpenAI (2024, 2025, 2026), xAI (2026) and OpenClaw (2026). Removed the uncited Xu et al. (2026) and the IMDA 2020 and 2024 frameworks. Shankar et al. (2024) is now cited in Table 9.1. |

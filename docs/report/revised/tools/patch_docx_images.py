@@ -36,7 +36,6 @@ KEEP = {
     "image23.png": "fig-2-6-ground-truth-review.png",
     "image32.png": "fig-3-1-muse-skills.png",
     "image15.png": "fig-3-2-librarian-skills.png",
-    "image34.png": "fig-3-3-serendipity-skills.png",
     "image6.png": "fig-3-4-provenance-skills.png",
     "image4.png": "fig-3-5-provenance-outcome.png",
     "image13.png": "fig-3-6-sculptor-skills.png",
