@@ -7,9 +7,9 @@ Run from the repository root with the path to the Word draft:
 
 Fixes applied, each recorded in docs/report/revised/CHANGES.md:
 - Figure 1.1: crop the slide deck's navigation bar.
-- Figures 3.1, 3.4 and 3.6: remove the "Fixed reply, turn ends" legend entry,
+- Figures 3.1, 3.5 and 3.7: remove the "Fixed reply, turn ends" legend entry,
   which those figures never use.
-- Figure 3.8: replace the file path in step 1 with what the check does.
+- Figure 3.9: replace the file path in step 1 with what the check does.
 - Figure 4.1: the review application is now Figure 2.6, not Figure 2.9.
 - Figure F.3: crop the card whose description shows a raw Markdown link.
 """
@@ -36,13 +36,13 @@ KEEP = {
     "image23.png": "fig-2-6-ground-truth-review.png",
     "image32.png": "fig-3-1-muse-skills.png",
     "image15.png": "fig-3-2-librarian-skills.png",
-    "image6.png": "fig-3-4-provenance-skills.png",
-    "image4.png": "fig-3-5-provenance-outcome.png",
-    "image13.png": "fig-3-6-sculptor-skills.png",
-    "image10.png": "fig-3-8-input-checks.png",
-    "image31.png": "fig-3-9-agent-context.png",
-    "image8.png": "fig-3-10-recorded-handoff.png",
-    "image20.png": "fig-3-11-release-path.png",
+    "image6.png": "fig-3-5-provenance-skills.png",
+    "image4.png": "fig-3-6-provenance-outcome.png",
+    "image13.png": "fig-3-7-sculptor-skills.png",
+    "image10.png": "fig-3-9-input-checks.png",
+    "image31.png": "fig-3-10-agent-context.png",
+    "image8.png": "fig-3-11-recorded-handoff.png",
+    "image20.png": "fig-3-12-release-path.png",
     "image24.png": "fig-4-1-scenario-pipeline.png",
     "image9.png": "fig-4-2-check-coverage.png",
     "image19.png": "fig-4-3-scenario-coverage.png",

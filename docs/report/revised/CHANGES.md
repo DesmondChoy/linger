@@ -37,7 +37,7 @@ cd docs/report/revised && pandoc -f markdown-implicit_figures group-project-repo
 | Where | Change |
 |---|---|
 | 3.2.6 | Was an empty heading. Now describes Sculptor's offline loop, with a worked example from Experiment 4, round 1 (Table 3.2). Source: `docs/design/self-improving-memory-loop.md` and `evals/librarian/research_runs/round-1/`. |
-| Figure 2.2 | Cited "Table 3.2, rows 1–6", which did not exist. Redrawn; now cites Figure 3.8, checks 1–6. |
+| Figure 2.2 | Cited "Table 3.2, rows 1–6", which did not exist. Redrawn; now cites Figure 3.9, checks 1–6. |
 | Learning 3 | Release recheck cross-reference corrected from 3.2.3 to 3.2.4. The reference to the missing "Table 10.1" now points to Table 9.1. |
 | Section 10 numbering | Every figure and table is captioned and numbered in order. |
 | Learning 2 | "The judge kept 0.70" corrected to 0.85 (61 of 72), matching the chart and the stage-survival table in `docs/report/group-project-report.md`. Scene 07 is now described. |
@@ -68,7 +68,7 @@ cd docs/report/revised && pandoc -f markdown-implicit_figures group-project-repo
 | Introducing automated checks and LLM-review | 4.1.2 | Old 4.2.2 and 4.3 merged |
 | The problem and competitor products | Figure 1.1, Table 1.1, Appendix B | 1.1 bullets (one sentence now), 1.2 bullets |
 | Limitations and future work | Table 9.1 (with a next-step column) | Old Table 10.3 |
-| Validator list in 3.2.4 | Figure 3.11 | Bullets cut to the two checks the figure does not show |
+| Validator list in 3.2.4 | Figure 3.12 | Bullets cut to the two checks the figure does not show |
 
 ## 3. Structure
 
@@ -103,14 +103,15 @@ Main body: about 17,500 words and 43 images before, about 15,700 words and 32 im
 
 ## 5. Diagrams
 
-New diagrams share one style: Inter font, grey boxes for agents, white boxes for code, dark boxes for the reader, dashed boxes for fixed replies or optional services. The chat-turn strip (Figure 3.7) is the base for Figures 6.1, 7.1 and 10.1, so step numbers mean the same thing in every figure.
+New diagrams share one style: Inter font, grey boxes for agents, white boxes for code, dark boxes for the reader, dashed boxes for fixed replies or optional services. The chat-turn strip (Figure 3.8) is the base for Figures 6.1, 7.1 and 10.1, so step numbers mean the same thing in every figure.
 
 | New figure | Replaces | What changed |
 |---|---|---|
 | 2.1 Logical architecture | Old 2.1 | Fewer crossing lines: one bus from `run_chat_turn` to its components, one bus for typed tasks to agents, and dashed access lines that run straight down to stores. Logfire removed; Figure 2.3 shows it. |
 | 2.2 Chat turn sequence | Old 2.2 | Fixed the dead table reference; long labels wrap. |
 | 2.3 Physical architecture | Old 2.3 | Removed the stale "pending" text; the volume arrow now comes from the process, not from retrieval. |
-| 3.7 Chat-turn strip | Uncaptioned strip in 3.2 | Captioned; shows 3.2.6 as offline. |
+| 3.4 Why source-gathering exists | — | New: the same five-source request under ranking, ranking with a prompt rule, and the bundle. Outcome counts from `docs/evaluation/five-agent-baseline-and-sculptor-options-2026-09-26.md`. |
+| 3.8 Chat-turn strip | Uncaptioned strip in 3.2 | Captioned; shows 3.2.6 as offline. |
 | 6.1 Security checkpoints | Old 6.2 (slide screenshot) | Built on the strip; badges 1 to 6 match Table 6.3; step 5's two checkpoints drawn as sub-steps. No slide navigation bar. |
 | 7.1 Test coverage | Old 7.1 | Columns are the strip's steps; component evaluations shown per step. |
 | 8.1 Release flow | Old 8.1 | No crossing lines; the feedback loop no longer wraps the figure; shows the auto-publish condition. |
@@ -122,8 +123,8 @@ New diagrams share one style: Inter font, grey boxes for agents, white boxes for
 Fixes to figures kept from the Word draft (`tools/patch_docx_images.py`):
 
 - Figure 1.1: cropped the slide deck's navigation bar.
-- Figures 3.1, 3.4 and 3.6: removed the unused "Fixed reply, turn ends" legend entry.
-- Figure 3.8: replaced `apps/backend/rate_limit.py` in step 1 with "ten messages a minute per account".
+- Figures 3.1, 3.5 and 3.7: removed the unused "Fixed reply, turn ends" legend entry.
+- Figure 3.9: replaced `apps/backend/rate_limit.py` in step 1 with "ten messages a minute per account".
 - Figure 4.1: "(Figure 2.9)" now reads "(Figure 2.6)", the review application's new number.
 - Figure F.3: cropped the Supper club card, whose description showed a raw Markdown link.
 
@@ -135,8 +136,9 @@ Fixes to figures kept from the Word draft (`tools/patch_docx_images.py`):
 | Figure 2.4 landing, 2.6 memories, 2.7 scenario list, 2.8 saved evaluation | Figures F.1, F.2, F.3, F.4 |
 | Figure 2.5 chat and inspect | Figure 2.5 |
 | Figure 2.9 review application | Figure 2.6 |
-| Uncaptioned strip in 3.2 | Figure 3.7 |
-| Figures 3.7, 3.8, 3.9, 3.10 | Figures 3.8, 3.9, 3.10, 3.11 |
+| Figures 3.4, 3.5, 3.6 | Figures 3.5, 3.6, 3.7 (new Figure 3.4 inserted) |
+| Uncaptioned strip in 3.2 | Figure 3.8 |
+| Figures 3.7, 3.8, 3.9, 3.10 | Figures 3.9, 3.10, 3.11, 3.12 |
 | Sections 4.2, 4.2.1, 4.2.2 + 4.3, 4.4, 4.5 | Sections 4.1, 4.1.1, 4.1.2, 4.2, 4.3 |
 | Section 7.1.2, Table 7.3 | Section 4.4, Table 4.4 |
 | Section 7.1.3, Table 7.4 | Section 4.5, Table 4.5 |

@@ -124,7 +124,7 @@ We have five agents:
 
 ![One chat turn as a sequence](figures/fig-2-2-chat-turn-sequence.png)
 
-*Figure 2.2. One chat turn. Grey columns are agents and white columns are the reader and application code. Agents never message each other: Muse reaches Librarian and Serendipity only through tools the application grants, and model-written text reaches the user only at step 10, after the deterministic release checks. After a new memory is saved, Sculptor may propose curation, which Provenance reviews before it is applied (not shown). The reply is returned only after this work finishes. The step numbers are reused in Figures 3.7, 6.1, 7.1 and 10.1.*
+*Figure 2.2. One chat turn. Grey columns are agents and white columns are the reader and application code. Agents never message each other: Muse reaches Librarian and Serendipity only through tools the application grants, and model-written text reaches the user only at step 10, after the deterministic release checks. After a new memory is saved, Sculptor may propose curation, which Provenance reviews before it is applied (not shown). The reply is returned only after this work finishes. The step numbers are reused in Figures 3.8, 6.1, 7.1 and 10.1.*
 
 ## 2.2 Physical architecture and technology choices
 
@@ -218,7 +218,7 @@ Librarian is the book agent. It restricts book answers to what the user has read
 
 *Figure 3.2. Librarian's four skills. The application resolves the reading boundary first, then retrieves and judges evidence only within it.*
 
-Librarian has four skills, run in two stages: boundary-inference and event-identification resolve how far the user has read, and book-request and evidence-assessment find and judge evidence within that boundary.
+Librarian has four skills, run in two stages (Figure 3.2): boundary-inference and event-identification resolve how far the user has read, and book-request and evidence-assessment find and judge evidence within that boundary.
 
 - *The boundary-inference skill infers how far the user has read when they have not confirmed a chapter.* Users often refer to events rather than chapter numbers, for example "the part with the Caterpillar". To locate such an event, it may inspect candidates from the whole book, which are used only to infer the user's position and never become evidence for the reply. The application rejects an inferred ceiling when it rests on the current Line alone, when its confidence is below 0.75, or when its chapter differs from the highest chapter of its supporting evidence.
 - *The event-identification skill names the event where the user stopped.* It runs alongside boundary inference, and the inferred ceiling must agree with it. If either check fails, the application asks the user which chapter they have finished, at the cost of one additional turn.
@@ -239,15 +239,19 @@ Serendipity is the discovery agent. It finds material from outside the current c
 
 *Figure 3.3. Serendipity's three skills. The application builds the request scope, the intent selects one skill, and the application rechecks the evidence before it returns to Muse.*
 
-Serendipity has three skills. The intent Muse passes selects one, and each searches only the sources the application granted for that request.
+Serendipity has three skills (Figure 3.3). The intent Muse passes selects one, and each searches only the sources the application granted for that request.
 
-- *The connection-discovery skill proposes one tentative connection, or declines.* It handles `find_connection` and `get_recommendation`. A grant is permission, not an instruction to search every source, so the skill first picks a primary source: for example, the user's memories when the message refers to their own earlier words, and the public web when they ask for an outside recommendation. It then ranks the supported candidates and returns one proposal with its shortlist. A memory counts only if it is the user's own earlier reflection on the same theme; one that merely offers a similar lesson or mood does not. When the two highest-rated candidates are tied, it declines rather than choosing, because an arbitrary choice would be presented to the user as a considered suggestion.
-- *The source-gathering skill collects every source the user has named, without choosing among them.* It handles `gather_sources`, which applies when the user names the books, scenes, public text or earlier notes they want compared. It exists because connection-discovery is built to pick one winner. Given a request that named five sources to compare, the ranking path either dropped some of them or declined, and a prompt instruction to cover every named source was ignored. Source-gathering instead returns one bundle with every named source it found, plus those it could not find. The bundle has no winner, so a named source cannot be dropped by ranking, and Muse presents the sources side by side. The skill searches only the named sources, even when others are permitted, and adds nothing to make the bundle look fuller.
+- *The connection-discovery skill proposes one tentative connection, or declines.* It handles `find_connection` and `get_recommendation`. A grant is permission, not an instruction to search every source, so the skill first picks a primary source: for example, the user's memories when the message refers to their own earlier words, and the public web when they ask for an outside recommendation. It then ranks the supported candidates and returns one proposal with its shortlist. A memory counts only if it is the user's own earlier reflection on the same theme; one that merely offers a similar lesson or mood does not. When the two best candidates are tied, it declines instead of picking one at random.
+- *The source-gathering skill collects every source the user has named, without choosing among them.* It handles `gather_sources`, which applies when the user names the books, scenes, public text or earlier notes they want compared. In user requests that named five sources to compare, the ranking path either dropped some of the sources or declined. We first attempted a prompt instruction to cover every named source; however, this was ignored. We therefore added this skill, which returns one bundle with every named source it found, plus those it could not find (Figure 3.4). The bundle has no winner, so a named source cannot be dropped by ranking, and Muse presents the sources side by side. The skill searches only the named sources, even when others are permitted, and adds nothing to make the bundle look fuller.
 - *The memory-recall skill returns the user's own earlier words on what they asked about.* It handles `recall_memory`, and the application grants it the user's memories only, so no book or web source can enter a recall. A record matches only if the user would recognise it as what they wrote before about the same fact, preference or decision; a record that merely shares vocabulary does not count. It returns one to three matching records, or declines when none matches, and never stretches an unrelated note into an answer. Muse then presents the records as the user's own words rather than as facts (Section 5.2).
+
+![The same five-source request under three designs](figures/fig-3-4-named-sources.png)
+
+*Figure 3.4. Why source-gathering exists. The same five-source request under the ranking skill, the ranking skill with a prompt rule, and the source-gathering bundle.*
 
 The application builds the scope of each request from the user's active memories, confirmed reading and the web policy before the agent runs. If no source is permitted, the application declines without calling the agent. After the agent returns, the application rechecks every item: evidence must sit within the grant, web pages must have been opened in this run, and every identifier must appear in the run's ledger. Only the selected evidence returns to Muse. Within a run, Serendipity is limited to 14 tool calls and 16 model requests, enough for two rounds of one book search, one web search and five page retrievals.
 
-Candidate selection is Serendipity's weakest step. In the component suite of 46 cases, each run five times, 0.913 of runs passed, but only 38 cases passed all five repetitions (Appendix A). In the Scenarios, it sometimes preferred an identity comparison to the passages the question required, and it did not follow an instruction that the selected connection must cover every source the user named. That second failure is the clearest case in the project of a prompt instruction failing where a structural rule holds; source-gathering is the fix.
+Candidate selection is Serendipity's weakest step. In the component suite of 46 cases, each run five times, 0.913 of runs passed, but only 38 cases passed all five repetitions (Appendix A). In the Scenarios, it sometimes preferred an identity comparison to the passages the question required, and it did not follow an instruction that the selected connection must cover every source the user named. That second failure is the clearest case in the project of a prompt instruction failing where a structural rule holds; source-gathering is the fix (Figure 3.4).
 
 **Code:** `src/linger/agents/serendipity/`, `src/linger/orchestration/connection.py`. **Tested in:** Appendix A (component suite), Section 4 (Serendipity Scenarios), Appendix C.1 (R4 privacy probe).
 
@@ -255,19 +259,19 @@ Candidate selection is Serendipity's weakest step. In the component suite of 46 
 
 Provenance is the review agent. It independently reviews proposed content before the application releases a reply or changes durable memory, but it has no tools and no conversation history, and it cannot release or store anything itself.
 
-![Provenance's three review skills](figures/fig-3-4-provenance-skills.png)
+![Provenance's three review skills](figures/fig-3-5-provenance-skills.png)
 
-*Figure 3.4. Provenance's three review skills. Each run has no tools, no conversation history and a fresh typed input.*
+*Figure 3.5. Provenance's three review skills. Each run has no tools, no conversation history and a fresh typed input.*
 
-Provenance has three skills: emotional-preflight classifies each message, candidate-review checks each Muse draft, and curation-review checks each Sculptor proposal.
+Provenance has three skills (Figure 3.5): emotional-preflight classifies each message, candidate-review checks each Muse draft, and curation-review checks each Sculptor proposal.
 
 - *The emotional-preflight skill classifies each message before Muse runs.* Its output is limited to `continue_reflection` or `apply_boundary`, and the application writes both resulting replies (Section 3.2.1). An incorrect or manipulated classification can therefore only select between two predefined outcomes.
-- *The candidate-review skill checks every Muse draft and revision.* Application context and policy appear first in its input, followed by trusted evidence; tool outcomes and the candidate itself appear last and are marked as untrusted, so injected instructions reach the reviewer as material under review rather than as guidance. It returns separate decisions for the reply and the memory nomination, so an acceptable reply can still have its nomination vetoed. Spoilers, prompt injection, policy overrides, harmful content and instruction disclosure require rejection rather than revision, because a revision could reword the problem without removing it. Figure 3.5 shows a recorded review.
+- *The candidate-review skill checks every Muse draft and revision.* Application context and policy appear first in its input, followed by trusted evidence; tool outcomes and the candidate itself appear last and are marked as untrusted, so injected instructions reach the reviewer as material under review rather than as guidance. It returns separate decisions for the reply and the memory nomination, so an acceptable reply can still have its nomination vetoed. Spoilers, prompt injection, policy overrides, harmful content and instruction disclosure require rejection rather than revision, because a revision could reword the problem without removing it. Figure 3.6 shows a recorded review.
 - *The curation-review skill checks each Sculptor proposal against the exact records Sculptor examined.* Its verdict must repeat the digest of the proposal it approves, so an approval cannot be reused for a different or altered proposal (Section 3.2.5).
 
-![A recorded Provenance outcome](figures/fig-3-5-provenance-outcome.png)
+![A recorded Provenance outcome](figures/fig-3-6-provenance-outcome.png)
 
-*Figure 3.5. A recorded Provenance outcome. The first review found an unsupported claim and asked for a revision; the revised candidate passed.*
+*Figure 3.6. A recorded Provenance outcome. The first review found an unsupported claim and asked for a revision; the revised candidate passed.*
 
 Each review starts from a fresh input, so earlier conversation cannot influence the reviewer. For the same reason, a second review has no record of what the first accepted and may object to text that was previously passed. Linger handles this by restricting revisions to flagged sentences (Section 3.1.1) rather than by giving the reviewer memory.
 
@@ -279,9 +283,9 @@ Provenance runs on the same model as Muse and errs in both directions: on its su
 
 Sculptor is the curation agent. It maintains the user's stored memories and helps improve the system offline, but it never takes part in drafting a reply and every skill only proposes.
 
-![Sculptor's five skills](figures/fig-3-6-sculptor-skills.png)
+![Sculptor's five skills](figures/fig-3-7-sculptor-skills.png)
 
-*Figure 3.6. Sculptor's five skills. Only memory-curation runs live, and every skill only proposes.*
+*Figure 3.7. Sculptor's five skills. Only memory-curation runs live, and every skill only proposes.*
 
 Sculptor has five skills: memory-curation runs live after a memory is captured, and the other four run offline.
 
@@ -305,19 +309,19 @@ Curation has not yet shown a recall gain. In the Scenarios, one curation Scene g
 
 ## 3.2 The harness around the agents
 
-Each Linger agent is a model plus a harness. Weng (2026) defines a harness as the system around a base model that decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results. In Linger, application code builds that harness for every run. At five points in each chat turn, the model proposes and the application decides. Figure 3.7 maps each point to a step of the turn.
+Each Linger agent is a model plus a harness. Weng (2026) defines a harness as the system around a base model that decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results. In Linger, application code builds that harness for every run. At five points in each chat turn, the model proposes and the application decides. Figure 3.8 maps each point to a step of the turn.
 
-![The chat turn and the harness subsections](figures/fig-3-7-turn-strip.png)
+![The chat turn and the harness subsections](figures/fig-3-8-turn-strip.png)
 
-*Figure 3.7. One chat turn, with the subsection that covers each part of the harness. Step numbers match Figure 2.2 and are reused in Figures 6.1, 7.1 and 10.1.*
+*Figure 3.8. One chat turn, with the subsection that covers each part of the harness. Step numbers match Figure 2.2 and are reused in Figures 6.1, 7.1 and 10.1.*
 
 ### 3.2.1 Input checks
 
-No agent sees a message until it has passed seven checks. Each check either lets the message continue or ends the turn with a fixed reply written by the application (Figure 3.8).
+No agent sees a message until it has passed seven checks. Each check either lets the message continue or ends the turn with a fixed reply written by the application (Figure 3.9).
 
-![The seven input checks](figures/fig-3-8-input-checks.png)
+![The seven input checks](figures/fig-3-9-input-checks.png)
 
-*Figure 3.8. The seven input checks, in order. Each check passes the message on or ends the turn with a fixed reply.*
+*Figure 3.9. The seven input checks, in order. Each check passes the message on or ends the turn with a fixed reply.*
 
 Six of the seven checks are deterministic. Placing them ahead of any model call has two advantages. First, a deterministic check cannot be persuaded by the content of the message in the way that a prompted model can, so attempts at instruction override are filtered before a model reads them. Second, a blocked turn incurs no model cost. The credential check also runs before the turn is persisted, so a credential submitted in error is never written to transcripts, traces or memory.
 
@@ -341,18 +345,18 @@ A skill's instructions include the guidance for a tool only when that tool is gr
 
 ### 3.2.3 Context and hand-offs
 
-No agent sees more than its task requires, and no agent calls another. The application selects each run's context for every run (`src/linger/orchestration/turn_context.py`). Figure 3.9 shows what each agent run can see. These limits follow the principle of least privilege, and each one addresses a specific risk:
+No agent sees more than its task requires, and no agent calls another. The application selects each run's context for every run (`src/linger/orchestration/turn_context.py`). Figure 3.10 shows what each agent run can see. These limits follow the principle of least privilege, and each one addresses a specific risk:
 
 - Only Muse's drafting step receives the earlier conversation.
 - Muse's triage step receives the current message alone, so text injected in an earlier turn cannot be used to argue for additional tools.
 - Provenance receives no conversation history, so the draft under review cannot influence the reviewer through earlier exchanges.
 - Sculptor receives no account identity, so a curation proposal cannot be directed at a particular user.
 
-![What each agent run can see](figures/fig-3-9-agent-context.png)
+![What each agent run can see](figures/fig-3-10-agent-context.png)
 
-*Figure 3.9. What each agent run can see. Empty cells are information the application never supplies to that run.*
+*Figure 3.10. What each agent run can see. Empty cells are information the application never supplies to that run.*
 
-Agents do not call one another. Every exchange between them passes through application code as a typed Pydantic object that carries only the fields the next step requires and rejects unknown fields. The application resolves every identifier that an agent returns, so an agent cannot cite a record it was not given. Full transcripts are never passed between agents. Figure 3.10 shows a recorded hand-off.
+Agents do not call one another. Every exchange between them passes through application code as a typed Pydantic object that carries only the fields the next step requires and rejects unknown fields. The application resolves every identifier that an agent returns, so an agent cannot cite a record it was not given. Full transcripts are never passed between agents. Figure 3.11 shows a recorded hand-off.
 
 Three rules apply at every hand-off:
 
@@ -360,9 +364,9 @@ Three rules apply at every hand-off:
 - **Every returned identifier must resolve.** An agent can cite only records it was given in this run. Unknown passage identifiers are rejected, request spans must be exact reader text, and the chapter grant comes from the supporting passages, not from the model.
 - **A review binds to what it checked.** A second candidate review must resolve each earlier finding. A curation verdict must repeat the digest of the proposal it approves.
 
-![A recorded hand-off from Muse to Librarian](figures/fig-3-10-recorded-handoff.png)
+![A recorded hand-off from Muse to Librarian](figures/fig-3-11-recorded-handoff.png)
 
-*Figure 3.10. A recorded hand-off from Muse to Librarian, shortened. The free-text reason field is omitted.*
+*Figure 3.11. A recorded hand-off from Muse to Librarian, shortened. The free-text reason field is omitted.*
 
 Serial composition also has a cost in reliability. A connection Scene makes about eight to ten model calls, and any of them can end in a decline. In the last five development runs of the all-five-agent Scenario, its four connection Scenes passed in four, three, zero and one of the runs. Even if the weakest Scene passed half the time, all four would pass in the same run only about 5% of the time (0.8 × 0.6 × 0.5 × 0.2 ≈ 0.05). Because every failure ends in a safe decline, this cost appears as reduced helpfulness rather than as harm to the user. Each additional agent in the chain raises the reliability that every other agent must achieve (Section 10.2).
 
@@ -370,15 +374,15 @@ Serial composition also has a cost in reliability. A connection Scene makes abou
 
 ### 3.2.4 Release checks
 
-No model-written text reaches the user until the application has checked it. Figure 3.11 shows the path a draft follows. Any failure along this path ends in a safe decline: a fixed message that reveals nothing from the rejected draft and writes nothing to storage.
+No model-written text reaches the user until the application has checked it. Figure 3.12 shows the path a draft follows. Any failure along this path ends in a safe decline: a fixed message that reveals nothing from the rejected draft and writes nothing to storage.
 
-![The release path](figures/fig-3-11-release-path.png)
+![The release path](figures/fig-3-12-release-path.png)
 
-*Figure 3.11. The release path. A Provenance pass is necessary but not sufficient, and any failure ends in a safe decline.*
+*Figure 3.12. The release path. A Provenance pass is necessary but not sufficient, and any failure ends in a safe decline.*
 
 The release recheck exists because model review alone proved insufficient. In evaluation, Provenance passed an uncited web claim and an incorrect speaker attribution (Section 10.1, Learning 3). After a pass, the application therefore verifies mechanically that every quotation appears verbatim in both the reply and its source record. It also confirms that every evidence identifier and source location resolves, and that no Muse instructions have leaked into the reply.
 
-Two further checks sit inside the steps of Figure 3.11:
+Two further checks sit inside the steps of Figure 3.12:
 
 - **Review validation** rejects a review that is inconsistent with its input. The application computes the quotation checks itself and judges the reviewer's audit against them.
 - **Evidence binding** rejects a declaration that does not bind to the request-scoped index, which holds only records retrieved in this request or cited earlier in the session.
@@ -403,7 +407,7 @@ Only the Memory and Policy Service writes long-term memories and curation record
 
 ### 3.2.6 Sculptor self-improvement loop
 
-No self-improvement reaches the live system without a person's approval. Sculptor's loop runs offline and turns failed retrieval practice runs into one specification that a developer may build. A person approves each step before the next step reads it (Figure 3.6).
+No self-improvement reaches the live system without a person's approval. Sculptor's loop runs offline and turns failed retrieval practice runs into one specification that a developer may build. A person approves each step before the next step reads it (Figure 3.7).
 
 1. **Practice traces.** The application runs the Librarian's retrieval on practice questions and records each trace: the plan, the search steps, the passages returned, and whether the answer was found. Held-back questions never reach Sculptor.
 2. **Error analysis.** *retrieval-error-analysis* reads every trace, notes the first failure in each, and groups the failures into counted categories. It proposes no fix. The owner approves the categories.
@@ -716,7 +720,7 @@ Table 6.2 summarises the main control, the evidence, and the known gap for each 
 
 ## 6.2 Runtime security checkpoints
 
-Runtime controls constrain what a model can see, call, release, or store during a request. Agents draft replies, assess evidence, select permitted tool calls, and propose changes, and application code controls their authority. Figure 6.1 places the six checkpoints on the chat turn from Figure 3.7, and Table 6.3 names the component that enforces each one.
+Runtime controls constrain what a model can see, call, release, or store during a request. Agents draft replies, assess evidence, select permitted tool calls, and propose changes, and application code controls their authority. Figure 6.1 places the six checkpoints on the chat turn from Figure 3.8, and Table 6.3 names the component that enforces each one.
 
 ![Security checkpoints on the chat turn](figures/fig-6-1-security-checkpoints.png)
 
@@ -939,7 +943,7 @@ Each step in a turn passes on only part of what it received. This stops a leaked
 
 ![Where the nine answers were lost](figures/fig-10-1-evidence-loss.png)
 
-*Figure 10.1. Where the nine safe-but-missing replies were lost, on the chat turn from Figure 3.7.*
+*Figure 10.1. Where the nine safe-but-missing replies were lost, on the chat turn from Figure 3.8.*
 
 To see where loss happens inside one chain, we measured it step by step: a reader asks Linger to connect a reflection to passages from several books (all-five-agent Scenario, Scenes 06 to 08, nine development runs). Search run by code from the Librarian's plan found almost all the book passages the answer key required (0.97). The Librarian's judge kept 0.85 of them, and Muse's replies cited only about half (0.53) (Figure 10.2).
 

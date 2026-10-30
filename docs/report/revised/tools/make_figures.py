@@ -9,7 +9,7 @@ Run from the repository root, then render PNGs:
 Every diagram shares one visual language: grey boxes are model-backed agents,
 white boxes are deterministic application code, dark boxes are the reader's
 input and output, and dashed boxes are fixed replies or optional services.
-The chat-turn strip (Figure 3.7) is the base for Figures 6.1, 7.1 and 10.1, so
+The chat-turn strip (Figure 3.8) is the base for Figures 6.1, 7.1 and 10.1, so
 step numbers mean the same thing in every figure.
 """
 
@@ -250,7 +250,7 @@ def centre(b: tuple[float, float, float, float]) -> float:
     return b[0] + b[2] / 2
 
 
-# Figure 3.7: the harness strip ------------------------------------------------
+# Figure 3.8: the harness strip ------------------------------------------------
 
 
 def figure_turn_strip() -> Svg:
@@ -290,7 +290,7 @@ def figure_security_checkpoints() -> Svg:
     svg.text(
         40,
         24,
-        "The chat turn from Figure 3.7. Red outlines mark the six runtime security checkpoints in Table 6.3.",
+        "The chat turn from Figure 3.8. Red outlines mark the six runtime security checkpoints in Table 6.3.",
         13,
         400,
         MUTED,
@@ -399,7 +399,7 @@ def figure_test_coverage() -> Svg:
     svg.text(
         20,
         24,
-        "Columns follow the chat turn in Figure 3.7. Each bar shows where a test acts and which kind of model it uses.",
+        "Columns follow the chat turn in Figure 3.8. Each bar shows where a test acts and which kind of model it uses.",
         13,
         400,
         MUTED,
@@ -494,7 +494,7 @@ def figure_evidence_loss() -> Svg:
         24,
         448,
         "Final run, 16 October 2026. Each Scene gave the reader a safe reply that missed what they asked for. "
-        "Step numbers follow Figure 3.7; 5a to 5c are parts of step 5.",
+        "Step numbers follow Figure 3.8; 5a to 5c are parts of step 5.",
         12,
         400,
         MUTED,
@@ -535,7 +535,7 @@ def figure_provenance_verdicts() -> Svg:
     ])
     cell(col2, row2, "#f4f3f0", "none", "Correct catch", "#555555", [
         "Test suite: blocked 0.94 of unsafe drafts",
-        "Example: an unsupported claim (Figure 3.5)",
+        "Example: an unsupported claim (Figure 3.6)",
     ])
 
     # Added error: a false finding on a right draft, then a wrong revision passes.
@@ -784,7 +784,7 @@ def figure_chat_turn_sequence() -> Svg:
         svg.text(app + 20, y + 18, sub, 12, 400, MUTED, "start", italic=True)
 
     msg(125, reader, app, "1  Line (reader message)")
-    activation(178, "2  Pre-model checks (Figure 3.8, checks 1–6)", "may end the turn with a fixed reply")
+    activation(178, "2  Pre-model checks (Figure 3.9, checks 1–6)", "may end the turn with a fixed reply")
     msg(248, app, prov, "3  Emotional preflight, no tools")
     msg(298, prov, app, "continue_reflection |\napply_boundary", ret=True)
     msg(348, app, muse, "4  Triage, then tool grants")
@@ -964,12 +964,103 @@ def figure_serendipity_skills() -> Svg:
     return svg
 
 
+# Figure 3.4: why source-gathering exists ------------------------------------------
+
+NAMED_SOURCES = ["Alice: the Caterpillar", "Pinocchio: the promise", "Keller: the lake", "Hume passage", "Reader's own note"]
+
+
+def figure_named_sources() -> Svg:
+    svg = Svg(1400, 640)
+    good, bad = "#2f7a46", "#b23a2a"
+
+    def chip(x, y, label, state):
+        w, h = 172, 30
+        if state == "kept":
+            svg.rect(x, y, w, h, "#ffffff", INK, 1.3, None, rx=15)
+            svg.text(x + w / 2, y + 19.5, label, 12, 500, INK)
+        elif state == "bundle":
+            svg.rect(x, y, w, h, "#e8f3ea", good, 1.5, None, rx=15)
+            svg.text(x + w / 2, y + 19.5, label, 12, 600, "#1f5a33")
+        else:
+            svg.rect(x, y, w, h, "#f4f4f4", "#c9c9c9", 1.2, "4 3", rx=15)
+            svg.text(x + w / 2, y + 19.5, label, 12, 400, "#a3a3a3")
+            width = len(label) * 6.3
+            svg.add(f'<line x1="{x + w / 2 - width / 2:.1f}" y1="{y + 15.5:.1f}" x2="{x + w / 2 + width / 2:.1f}" y2="{y + 15.5:.1f}" stroke="{bad}" stroke-width="1.6"/>')
+
+    def chips(x0, y0, states):
+        positions = [(0, 0), (184, 0), (0, 38), (184, 38), (92, 76)]
+        for (dx, dy), label, state in zip(positions, NAMED_SOURCES, states):
+            chip(x0 + dx, y0 + dy, label, state)
+
+    columns = [
+        ("1", "Rank and pick a winner", "connection-discovery"),
+        ("2", "Add a prompt rule", "connection-discovery + instruction"),
+        ("3", "Gather into a bundle", "source-gathering"),
+    ]
+    col_w, gap, x0 = 420, 40, 30
+    for index, (number, title, skill) in enumerate(columns):
+        x = x0 + index * (col_w + gap)
+        mid = x + col_w / 2
+        svg.badge(x + 14, 40, number, "#444444")
+        svg.text(x + 34, 45, title, 16, 700, INK, "start")
+        if index:
+            svg.line([(x - gap + 6, 40), (x - 8, 40)], colour="muted")
+
+        # The same request in every column.
+        svg.rect(x, 66, col_w, 150, "#f7f7f7", "#d6d6d6", 1, None, rx=8)
+        svg.text(x + 16, 88, "Reader names five sources to compare", 12.5, 650, "#444444", "start")
+        chips(x + 30, 100, ["kept"] * 5)
+        svg.line([(mid, 218), (mid, 246)])
+
+        if index == 0:
+            svg.box(x, 248, col_w, 64, "agent", skill, ["ranks candidates, returns one winner"])
+        elif index == 1:
+            svg.box(x, 248, col_w, 64, "agent", skill, ["“the winner must cover every named source”"])
+        else:
+            svg.box(x, 248, col_w, 64, "agent", skill, ["collects each named source; no ranking, no winner"])
+        svg.line([(mid, 314), (mid, 342)])
+
+        if index < 2:
+            svg.rect(x, 344, col_w, 150, "#ffffff", INK, 1.4, None, rx=8)
+            svg.text(x + 16, 366, "One winner", 12.5, 650, INK, "start")
+            svg.text(x + col_w - 16, 366, "or a decline", 12, 400, MUTED, "end", italic=True)
+            chips(x + 30, 378, ["kept", "dropped", "dropped", "kept", "dropped"])
+        else:
+            svg.rect(x, 344, col_w, 150, "#ffffff", good, 1.8, None, rx=8)
+            svg.text(x + 16, 366, "One bundle", 12.5, 650, "#1f5a33", "start")
+            svg.text(x + col_w - 16, 366, "not found: none", 12, 400, MUTED, "end", italic=True)
+            chips(x + 30, 378, ["bundle"] * 5)
+
+        outcomes = [
+            (bad, "#fbe4e2", ["Named sources dropped, or declined", "Scenes 06 and 07: no passes before run 11"]),
+            (bad, "#fbe4e2", ["No effect", "Serendipity ignored the instruction"]),
+            (good, "#e8f3ea", ["Every named source reaches Muse", "Scenes 06 and 07: 7 passes in 10 (runs 11 to 15)"]),
+        ]
+        colour, fill, rows = outcomes[index]
+        svg.rect(x, 512, col_w, 70, fill, colour, 1.4, None, rx=8)
+        svg.text(mid, 540, rows[0], 14, 700, colour)
+        svg.text(mid, 562, rows[1], 12.5, 400, "#333333")
+
+    svg.text(
+        30,
+        616,
+        "Sources from the Scene 07 request. Which sources a winner kept varied by run; the passes in column 3 also include the retrieval fixes made in the same runs.",
+        12,
+        400,
+        MUTED,
+        "start",
+        italic=True,
+    )
+    return svg
+
+
 FIGURES = {
+    "fig-3-4-named-sources": figure_named_sources,
     "fig-3-3-serendipity-skills": figure_serendipity_skills,
     "fig-2-1-logical-architecture": figure_logical_architecture,
     "fig-2-2-chat-turn-sequence": figure_chat_turn_sequence,
     "fig-2-3-physical-architecture": figure_physical_architecture,
-    "fig-3-7-turn-strip": figure_turn_strip,
+    "fig-3-8-turn-strip": figure_turn_strip,
     "fig-6-1-security-checkpoints": figure_security_checkpoints,
     "fig-7-1-test-coverage": figure_test_coverage,
     "fig-8-1-release-flow": figure_release_flow,
