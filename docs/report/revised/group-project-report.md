@@ -416,18 +416,16 @@ Each round has four steps:
 3. **Research and specify.** Sculptor's *retrieval-research* takes the largest approved category, researches a remedy on the web within a fixed budget, and specifies one change. It cannot edit code. A person approves the specification.
 4. **Build, check and rescore.** A coding agent builds the change behind an evaluation-only setting, a second model checks it against the specification, and the new search is rescored on the practice set and once on the held-back set. The loop stops when every practice question is found with none lost, or after three rounds; otherwise the next round starts from the best state so far.
 
-Table 3.1 shows the first round of this loop, run on *The Adventures of Pinocchio* (Experiment 4, round 1, 1 October 2026).
+In its first round, on *The Adventures of Pinocchio*, Sculptor traced two of the three practice misses to one cause: search had already ranked the answers, at 4th and 17th place, but only the top three passages for each part of the request reached the Librarian. It specified one change, to pass the top 20 instead, because better ranking could not recover an answer the cut-off had already dropped. The change also fixed the third miss (Table 3.1).
 
-| Step | What happened | Key learning |
-|----------------|----------------------------------------------------|--------------------------------|
-| Collect failed searches | Search found the answer for 17 of 20 practice questions and missed 3 | The loop starts from observed failures, not a guess |
-| Diagnose | Two causes: the answer passage was found but ranked below the top three passages passed to the Librarian (2 questions), or it was missing from the ranked list (1) | The real cause was the cut-off, not the search. The third miss later proved to be the same cut-off problem |
-| Research and specify | Two web searches and two pages read. The specification: pass the top 20 passages for each part of the request instead of the top 3, and change nothing else | One narrow change, tied to the counted failures |
-| Build, check and rescore | Built behind an evaluation-only setting and checked by a second model. Practice: 17 to 20 of 20 found, none lost. Held-back: 16 to 20 found, none lost | The gain cost about 3.8 times more text for the Librarian to read per question, so the cost is reported beside the score |
+| Search | Practice found | Held-back found | Words the Librarian reads per question |
+|----------------------------|------------|------------|------------------|
+| Before: top 3 passages | 17 of 20 | 16 of 20 | 1,278 |
+| After Sculptor's change: top 20 | 20 of 20 | 20 of 20 | 4,837 |
 
-*Table 3.1. The first round of Sculptor's improvement loop, step by step.*
+*Table 3.1. The first round of Sculptor's improvement loop (Experiment 4, 1 October 2026). Word counts are for the practice set.*
 
-The 20-passage setting is not switched on for readers: production still passes the top three passages for each part.
+The change found every answer but made the Librarian read almost four times as much text, so it was not switched on for readers.
 
 **Code:** `src/linger/agents/sculptor/skills/retrieval-error-analysis/`, `src/linger/agents/sculptor/skills/retrieval-research/`, `src/linger/orchestration/retrieval_research.py`, `evals/librarian/research_loop.py`. **Tested in:** Experiment 4 records, `evals/librarian/research_runs/round-1/` and `docs/design/self-improving-memory-loop.md`.
 
