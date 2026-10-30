@@ -273,7 +273,7 @@ Provenance has three skills (Figure 3.5): emotional-preflight classifies each me
 
 Each review starts from a fresh input, so earlier conversation cannot influence the reviewer. For the same reason, a second review has no record of what the first accepted and may object to text that was previously passed. Linger handles this by restricting revisions to flagged sentences (Section 3.1.1) rather than by giving the reviewer memory.
 
-Judging meaning is Provenance's weakest step. Because it runs on the same model as Muse, it can share Muse's blind spots: it can pass a draft that misreports a source, and it can send back a correct one. This is why a Provenance pass is necessary but not sufficient, and the application rechecks every draft before release (Section 3.2.4). In Section 10.1 (Learning 3), we discuss both kinds of error with worked examples.
+Judging meaning is Provenance's weakest step. Because it runs on the same model as Muse, it can share Muse's blind spots: it can pass a draft that misreports a source, and it can send back a correct one. The application's release checks catch only errors that can be stated as rules, such as a misquotation or a source that does not resolve (Section 3.2.4). Errors of meaning, such as who said a line, still depend on Provenance. In Section 10.1 (Learning 3), we discuss both kinds of error with worked examples.
 
 **Code:** `src/linger/agents/provenance/` (including `review_validation.py` and `quotation_audit.py`), `src/linger/orchestration/emotional.py`. **Tested in:** Appendix A (draft review, emotional preflight), Section 4, Section 10.1 (Learning 3).
 
