@@ -50,7 +50,7 @@ cd docs/report/revised && pandoc -f markdown-implicit_figures group-project-repo
 | 3.1.5 | Table 3.1 (curation examples) replaced by two sub-bullets under memory-curation; the 3.2.6 worked example is now Table 3.1. The memory-surfacing and chapter-cues bullets now say why each skill exists and how it is limited; chapter cues are offline only (`read_chapter_cues` defaults to off). |
 | Figure 2.3 | Redrawn without "first deploy pending" and "pending release path". |
 | OWASP | Table 6.1 names each category. The reference year now matches the 2026 numbering the register uses. |
-| References | Added Panickssery et al. (2024), Kim et al. (2025), and IMDA (2026). Added placeholder entries for OpenAI (2024, 2025, 2026), xAI (2026) and OpenClaw (2026). Removed the uncited Xu et al. (2026) and the IMDA 2020 and 2024 frameworks. Shankar et al. (2024) is now cited in Table 9.1. |
+| References | Xu et al. (2026) is now cited in 3.2.6. Added Panickssery et al. (2024), Kim et al. (2025), and IMDA (2026). Added placeholder entries for OpenAI (2024, 2025, 2026), xAI (2026) and OpenClaw (2026). Removed the IMDA 2020 and 2024 frameworks. Shankar et al. (2024) is now cited in Table 9.1. |
 | MAST names | Section 4.3 and Appendix B now use the same category names: specification and system design, inter-agent misalignment, task verification. |
 | 4.2 | "The quotation she asked for" is now "the quotation the reader asked for". |
 | Contents | Generated from the headings, so 10.2 and its heading now match. |

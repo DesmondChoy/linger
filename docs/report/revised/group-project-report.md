@@ -431,7 +431,9 @@ In the first round, search missed 3 of the 20 practice questions. Sculptor trace
 
 *Table 3.1. The first round of Sculptor's improvement loop (Experiment 4, 1 October 2026). Word counts are for the practice questions.*
 
-The change answered every question but made the Librarian read almost four times as much text, so it was not switched on for readers.
+The change found every answer, but it made the Librarian read almost four times as much text, so it was not switched on for readers. Improving retrieval was this experiment's objective, but the same loop could extend to other parts of Linger whose evaluations show room to improve, such as the hand-offs between agents (Section 10.1, Learning 2).
+
+Harness² (Xu et al., 2026) uses the same core idea, a fixed model with an improving harness, but has no person in the loop. Linger keeps a person at every gate, because in Linger the harness is also the safety boundary.
 
 **Code:** `src/linger/agents/sculptor/skills/retrieval-error-analysis/`, `src/linger/agents/sculptor/skills/retrieval-research/`, `src/linger/orchestration/retrieval_research.py`, `evals/librarian/research_loop.py`. **Tested in:** Experiment 4 records, `evals/librarian/research_runs/round-1/` and `docs/design/self-improving-memory-loop.md`.
 
@@ -1354,6 +1356,8 @@ Weng, L. (2026). *Harness engineering for self-improvement*. Lil'Log.
 xAI. (2026). [Title of the cited Grok Bot announcement — to be completed by the authors].
 
 Xia, B., Lu, Q., Zhu, L., Xing, Z., Zhao, D., and Zhang, H. (2025). *Evaluation-driven development and operations of LLM agents: A process model and reference architecture* (Version 3). arXiv:2411.13768v3.
+
+Xu, R., Chen, Y., CuiZhu, Z., Dalvi Mishra, B., Ming, Y., Yu, H., Han, R., Lee, C.-Y., and Pfister, T. (2026). *Harness²: Recursive agent harnessing for an open world*. arXiv.
 
 Yao, S., Shinn, N., Razavi, P., and Narasimhan, K. (2025). τ-bench: A benchmark for tool-agent-user interaction in real-world domains. *International Conference on Learning Representations (ICLR 2025)*.
 
