@@ -287,11 +287,10 @@ Sculptor is the curation agent. It tidies the user's stored memories so that rec
 
 Sculptor has five skills (Figure 3.7): memory-curation runs live after a memory is captured, and the other four run offline.
 
-- *The memory-curation skill tidies related memories so that recall finds one clear answer.* Deciding whether two notes record the same fact, or whether a later note changes an earlier one, is a judgement about meaning, not shared words. Its four actions:
-  - Link duplicates for the same fact in different words: “Library card expires” and “Renewal of card due so I can keep borrowing books” are worded differently but record one fact. Sculptor links them, so recall returns one note instead of two.
+- *The memory-curation skill tidies related memories so that recall finds one clear answer.* Deciding whether two notes record the same fact, or whether a later note changes an earlier one, is a judgement about meaning, not shared words. Its three actions:
+  - Link duplicates for the same fact in different words: “Library card expires” and “Renewal of card due so I can keep borrowing books” are worded differently but record one fact. Sculptor links them, and can then hide the extra copy from search without deleting it, so recall returns one note instead of two.
   - Summarise a fact that changed over time: when a user changes the same plan three times, from weekday evenings to weekday mornings to weekends, Sculptor summarises the latest plan, so recall returns it rather than three conflicting versions. The summary must exclude unrelated notes as well as combine related ones.
   - Group related notes: notes on one theme that remain separate facts are grouped, so recall can find them together.
-  - Hide or restore a duplicate in search: once two notes are linked, the extra copy can be hidden from search without being deleted, and restored later.
 
   Sculptor never edits the original memories: summaries and links sit in a separate curated layer, so a wrong one can be withdrawn without losing what the user wrote. “No change” is a valid answer, so Sculptor is never forced to merge notes that should stay separate.
 - *The memory-surfacing skill decides whether a stored memory should be brought back to the user now, later or never.* Whether a memory is useful now depends on the user's situation, so a shared word or a broad topic is not enough to suggest it. The skill returns one of three outcomes: suggest it now, citing the memories it rests on; defer it to a stated time or condition; or stay silent.
