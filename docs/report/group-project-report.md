@@ -2,9 +2,9 @@
 
 Master of Technology in Intelligent Systems, Institute of Systems Science, National University of Singapore. Group 9 Project Report.
 
-- Choy Yong Yi Desmond [A0315402W]
-- Leong Kay Mei [A0188702Y]
-- Loke Yuen Ying, Jodie [A0310555M]
+- Choy Yong Yi Desmond
+- Leong Kay Mei
+- Loke Yuen Ying, Jodie
 - Kevin Manuel Lee
 - Avan
 
